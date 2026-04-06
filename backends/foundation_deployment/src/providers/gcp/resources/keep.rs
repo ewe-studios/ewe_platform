@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request to add one or more permissions on the note. Currently, only the WRITER role may be specified. If adding a permission fails, then the entire request fails and no changes are made.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchCreatePermissionsRequest {
     /// The request message specifying the resources to create.
     #[serde(default)]
@@ -19,7 +20,7 @@ pub struct BatchCreatePermissionsRequest {
 }
 
 /// The response for creating permissions on a note.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchCreatePermissionsResponse {
     /// Permissions created.
     #[serde(default)]
@@ -27,7 +28,7 @@ pub struct BatchCreatePermissionsResponse {
 }
 
 /// The request to remove one or more permissions from a note. A permission with the OWNER role can''t be removed. If removing a permission fails, then the entire request fails and no changes are made. Returns a 400 bad request error if a specified permission does not exist on the note.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchDeletePermissionsRequest {
     /// Required. The names of the permissions to delete. Format: notes/{note}/permissions/{permission}
     #[serde(default)]
@@ -35,15 +36,15 @@ pub struct BatchDeletePermissionsRequest {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Describes a single Google Family.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Family {}
 
 /// The response when listing a page of notes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListNotesResponse {
     /// Next page''s page_token field.
     #[serde(default, rename = "nextPageToken")]
@@ -54,7 +55,7 @@ pub struct ListNotesResponse {
 }
 
 /// The request to add a single permission on the note.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreatePermissionRequest {
     /// Required. The parent note where this permission will be created. Format: notes/{note}
     #[serde(default)]
@@ -65,7 +66,7 @@ pub struct CreatePermissionRequest {
 }
 
 /// A single note.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Note {
     /// Output only. The attachments attached to this note.
     #[serde(default)]
@@ -97,7 +98,7 @@ pub struct Note {
 }
 
 /// An attachment to a note.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Attachment {
     /// The MIME types (IANA media types) in which the attachment is available.
     #[serde(default, rename = "mimeType")]
@@ -108,7 +109,7 @@ pub struct Attachment {
 }
 
 /// The content of the note.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Section {
     /// Used if this section''s content is a list.
     #[serde(default)]
@@ -119,7 +120,7 @@ pub struct Section {
 }
 
 /// A single permission on the note. Associates a member with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Permission {
     /// Output only. Whether this member has been deleted. If the member is recovered, this value is set to false and the recovered member retains the role on the note.
     #[serde(default)]
@@ -145,7 +146,7 @@ pub struct Permission {
 }
 
 /// The list of items for a single list note.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListContent {
     /// The items in the list. The number of items must be less than 1,000.
     #[serde(default, rename = "listItems")]
@@ -153,7 +154,7 @@ pub struct ListContent {
 }
 
 /// Describes a single Group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Group {
     /// The group email.
     #[serde(default)]
@@ -161,7 +162,7 @@ pub struct Group {
 }
 
 /// Describes a single user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct User {
     /// The user''s email.
     #[serde(default)]
@@ -169,7 +170,7 @@ pub struct User {
 }
 
 /// A single list item in a note''s list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListItem {
     /// Whether this item has been checked off or not.
     #[serde(default)]
@@ -183,7 +184,7 @@ pub struct ListItem {
 }
 
 /// The block of text for a single text section or list item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextContent {
     /// The text of the note. The limits on this vary with the specific field using this type.
     #[serde(default)]

@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request message for specifying that multiple policy values will be deleted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1BatchDeleteGroupPoliciesRequest {
     /// List of policies that will be deleted as defined by the requests. All requests in the list must follow these restrictions: 1. All schemas in the list must have the same root namespace. 2. All policyTargetKey.targetResource values must point to a group resource. 3. All policyTargetKey values must have the same app_id key name in the additionalTargetKeys. 4. No two modification requests can reference the same policySchema +  policyTargetKey pair.
     #[serde(default)]
@@ -21,7 +22,7 @@ pub struct GoogleChromePolicyVersionsV1BatchDeleteGroupPoliciesRequest {
 }
 
 /// Request message for specifying that multiple policy values inherit their value from their parents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1BatchInheritOrgUnitPoliciesRequest {
     /// List of policies that have to inherit their values as defined by the requests. All requests in the list must follow these restrictions: 1. All schemas in the list must have the same root namespace. 2. All policyTargetKey.targetResource values must point to an org unit resource. 3. All policyTargetKey values must have the same key names in the  additionalTargetKeys. This also means if one of the targets has an empty additionalTargetKeys map, all of the targets must have an empty additionalTargetKeys map. 4. No two modification requests can reference the same policySchema +  policyTargetKey pair.
     #[serde(default)]
@@ -31,7 +32,7 @@ pub struct GoogleChromePolicyVersionsV1BatchInheritOrgUnitPoliciesRequest {
 }
 
 /// Request message for modifying multiple policy values for a specific group-based target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1BatchModifyGroupPoliciesRequest {
     /// List of policies to modify as defined by the requests. All requests in the list must follow these restrictions: 1. All schemas in the list must have the same root namespace. 2. All policyTargetKey.targetResource values must point to a group resource. 3. All policyTargetKey values must have the same app_id key name in the additionalTargetKeys. 4. No two modification requests can reference the same policySchema +  policyTargetKey pair.
     #[serde(default)]
@@ -41,7 +42,7 @@ pub struct GoogleChromePolicyVersionsV1BatchModifyGroupPoliciesRequest {
 }
 
 /// Request message for modifying multiple policy values for a specific target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1BatchModifyOrgUnitPoliciesRequest {
     /// List of policies to modify as defined by the requests. All requests in the list must follow these restrictions: 1. All schemas in the list must have the same root namespace. 2. All policyTargetKey.targetResource values must point to an org unit resource. 3. All policyTargetKey values must have the same key names in the  additionalTargetKeys. This also means if one of the targets has an empty additionalTargetKeys map, all of the targets must have an empty additionalTargetKeys map. 4. No two modification requests can reference the same policySchema +  policyTargetKey pair.
     #[serde(default)]
@@ -51,7 +52,7 @@ pub struct GoogleChromePolicyVersionsV1BatchModifyOrgUnitPoliciesRequest {
 }
 
 /// Request object for creating a certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1DefineCertificateRequest {
     /// Optional. The optional name of the certificate. If not specified, the certificate issuer will be used as the name.
     #[serde(default, rename = "ceritificateName")]
@@ -69,7 +70,7 @@ pub struct GoogleChromePolicyVersionsV1DefineCertificateRequest {
 }
 
 /// Response object for creating a certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1DefineCertificateResponse {
     /// The guid of the certificate created by the action.
     #[serde(default, rename = "networkId")]
@@ -84,7 +85,7 @@ pub struct GoogleChromePolicyVersionsV1DefineCertificateResponse {
 }
 
 /// Request object for creating a new network.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1DefineNetworkRequest {
     /// Required. Name of the new created network.
     #[serde(default)]
@@ -99,7 +100,7 @@ pub struct GoogleChromePolicyVersionsV1DefineNetworkRequest {
 }
 
 /// Response object for creating a network.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1DefineNetworkResponse {
     /// Network ID of the new created network.
     #[serde(default, rename = "networkId")]
@@ -114,7 +115,7 @@ pub struct GoogleChromePolicyVersionsV1DefineNetworkResponse {
 }
 
 /// Request message for listing the group priority ordering of an app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1ListGroupPriorityOrderingRequest {
     /// The namespace of the policy type for the request.
     #[serde(default, rename = "policyNamespace")]
@@ -128,7 +129,7 @@ pub struct GoogleChromePolicyVersionsV1ListGroupPriorityOrderingRequest {
 }
 
 /// Response message for listing the group priority ordering of an app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1ListGroupPriorityOrderingResponse {
     /// Output only. The group IDs, in priority ordering.
     #[serde(default, rename = "groupIds")]
@@ -145,7 +146,7 @@ pub struct GoogleChromePolicyVersionsV1ListGroupPriorityOrderingResponse {
 }
 
 /// Response message for listing policy schemas that match a filter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1ListPolicySchemasResponse {
     /// The page token used to get the next page of policy schemas.
     #[serde(default, rename = "nextPageToken")]
@@ -157,7 +158,7 @@ pub struct GoogleChromePolicyVersionsV1ListPolicySchemasResponse {
 }
 
 /// Details of the errors encountered during a policy modification request. This message will be returned as part of the details of a google.rpc.Status returned to the user when there is an error in their request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1PolicyModificationErrorDetails {
     /// Output only. List of specific policy modifications errors that may have occurred during a modifying request.
     #[serde(default, rename = "modificationErrors")]
@@ -167,7 +168,7 @@ pub struct GoogleChromePolicyVersionsV1PolicyModificationErrorDetails {
 }
 
 /// Details of the errors encountered during a remove certificate request. This message will be returned as part of the details of a google.rpc.Status returned to the user when there is an error in their request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1RemoveCertificateErrorDetails {
     /// Output only. If the certificate was not removed, a list of references to the certificate that prevented it from being removed. Only unreferenced certificates can be removed.
     #[serde(default, rename = "certificateReferences")]
@@ -176,7 +177,7 @@ pub struct GoogleChromePolicyVersionsV1RemoveCertificateErrorDetails {
 }
 
 /// Request object for removing a certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1RemoveCertificateRequest {
     /// Required. The GUID of the certificate to remove.
     #[serde(default, rename = "networkId")]
@@ -187,11 +188,11 @@ pub struct GoogleChromePolicyVersionsV1RemoveCertificateRequest {
 }
 
 /// Response object for removing a certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1RemoveCertificateResponse {}
 
 /// Request object for removing a network
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1RemoveNetworkRequest {
     /// Required. The GUID of the network to remove.
     #[serde(default, rename = "networkId")]
@@ -202,11 +203,11 @@ pub struct GoogleChromePolicyVersionsV1RemoveNetworkRequest {
 }
 
 /// Response object for removing a network.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1RemoveNetworkResponse {}
 
 /// Request message for getting the resolved policy value for a specific target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1ResolveRequest {
     /// The maximum number of policies to return, defaults to 100 and has a maximum of 1000.
     #[serde(default, rename = "pageSize")]
@@ -223,7 +224,7 @@ pub struct GoogleChromePolicyVersionsV1ResolveRequest {
 }
 
 /// Response message for getting the resolved policy value for a specific target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1ResolveResponse {
     /// The page token used to get the next set of resolved policies found by the request.
     #[serde(default, rename = "nextPageToken")]
@@ -235,7 +236,7 @@ pub struct GoogleChromePolicyVersionsV1ResolveResponse {
 }
 
 /// Request message for updating the group priority ordering of an app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1UpdateGroupPriorityOrderingRequest {
     /// Required. The group IDs, in desired priority ordering.
     #[serde(default, rename = "groupIds")]
@@ -252,7 +253,7 @@ pub struct GoogleChromePolicyVersionsV1UpdateGroupPriorityOrderingRequest {
 }
 
 /// Request message for uploading a file for a policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1UploadPolicyFileRequest {
     /// Required. The fully qualified policy schema and field name this file is uploaded for. This information will be used to validate the content type of the file.
     #[serde(default, rename = "policyField")]
@@ -260,7 +261,7 @@ pub struct GoogleChromePolicyVersionsV1UploadPolicyFileRequest {
 }
 
 /// Response message for downloading an uploaded file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1UploadPolicyFileResponse {
     /// The uri for end user to download the file.
     #[serde(default, rename = "downloadUri")]
@@ -268,11 +269,11 @@ pub struct GoogleChromePolicyVersionsV1UploadPolicyFileResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// Request parameters for deleting the policy value of a specific group target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1DeleteGroupPolicyRequest {
     /// The fully qualified name of the policy schema that is being inherited.
     #[serde(default, rename = "policySchema")]
@@ -283,7 +284,7 @@ pub struct GoogleChromePolicyVersionsV1DeleteGroupPolicyRequest {
 }
 
 /// Request parameters for inheriting policy value of a specific org unit target from the policy value of its parent org unit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1InheritOrgUnitPolicyRequest {
     /// The fully qualified name of the policy schema that is being inherited.
     #[serde(default, rename = "policySchema")]
@@ -294,7 +295,7 @@ pub struct GoogleChromePolicyVersionsV1InheritOrgUnitPolicyRequest {
 }
 
 /// Request parameters for modifying a policy value for a specific group target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1ModifyGroupPolicyRequest {
     /// Required. The key of the target for which we want to modify a policy. The target resource must point to a Group.
     #[serde(default, rename = "policyTargetKey")]
@@ -308,7 +309,7 @@ pub struct GoogleChromePolicyVersionsV1ModifyGroupPolicyRequest {
 }
 
 /// Request parameters for modifying a policy value for a specific org unit target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1ModifyOrgUnitPolicyRequest {
     /// Required. The key of the target for which we want to modify a policy. The target resource must point to an Org Unit.
     #[serde(default, rename = "policyTargetKey")]
@@ -322,7 +323,7 @@ pub struct GoogleChromePolicyVersionsV1ModifyOrgUnitPolicyRequest {
 }
 
 /// A network setting contains network configurations. It adheres to the PolicyAPI formats defined under the namespace chrome.networks.{wifi/ethernet/cellular/vpn}.Details
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1NetworkSetting {
     /// The fully qualified name of the network setting.
     #[serde(default, rename = "policySchema")]
@@ -333,7 +334,7 @@ pub struct GoogleChromePolicyVersionsV1NetworkSetting {
 }
 
 /// Resource representing a policy schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1PolicySchema {
     /// Output only. Specific access restrictions related to this policy.
     #[serde(default, rename = "accessRestrictions")]
@@ -384,7 +385,7 @@ pub struct GoogleChromePolicyVersionsV1PolicySchema {
 }
 
 /// Error information for a modification request of a specific policy on a specific target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1PolicyModificationError {
     /// Output only. The non-field errors related to the modification.
     #[serde(default)]
@@ -403,7 +404,7 @@ pub struct GoogleChromePolicyVersionsV1PolicyModificationError {
 }
 
 /// Error information for removing of a specific certificate on a specific target. A reference to a certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1CertificateReference {
     /// Output only. The name of the referencing network.
     #[serde(default)]
@@ -414,7 +415,7 @@ pub struct GoogleChromePolicyVersionsV1CertificateReference {
 }
 
 /// The resolved value of a policy for a given target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1ResolvedPolicy {
     /// Output only. The added source key establishes at which level an entity was explicitly added for management. This is useful for certain type of policies that are only applied if they are explicitly added for management. For example: apps and networks. An entity can only be deleted from management in an Organizational Unit that it was explicitly added to. If this is not present it means that the policy is managed without the need to explicitly add an entity, for example: standard user or device policies.
     #[serde(default, rename = "addedSourceKey")]
@@ -431,7 +432,7 @@ pub struct GoogleChromePolicyVersionsV1ResolvedPolicy {
 }
 
 /// Additional key names that will be used to identify the target of the policy value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1AdditionalTargetKeyName {
     /// Key name.
     #[serde(default)]
@@ -442,7 +443,7 @@ pub struct GoogleChromePolicyVersionsV1AdditionalTargetKeyName {
 }
 
 /// Describes a complete .proto file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Proto2FileDescriptorProto {
     /// copybara:strip_begin TODO(b/297898292) Deprecate and remove this field in favor of enums. copybara:strip_end
     #[serde(default, rename = "editionDeprecated")]
@@ -467,7 +468,7 @@ pub struct Proto2FileDescriptorProto {
 }
 
 /// Provides detailed information for a particular field that is part of a PolicySchema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1PolicySchemaFieldDescription {
     /// Output only. Client default if the policy is unset.
     #[serde(default, rename = "defaultValue")]
@@ -513,7 +514,7 @@ pub struct GoogleChromePolicyVersionsV1PolicySchemaFieldDescription {
 }
 
 /// Provides special notice messages related to a particular value in a field that is part of a PolicySchema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1PolicySchemaNoticeDescription {
     /// Output only. Whether the user needs to acknowledge the notice message before the value can be set.
     #[serde(default, rename = "acknowledgementRequired")]
@@ -530,7 +531,7 @@ pub struct GoogleChromePolicyVersionsV1PolicySchemaNoticeDescription {
 }
 
 /// Lifecycle information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1PolicyApiLifecycle {
     /// In the event that this policy was deprecated in favor of another policy, the fully qualified namespace(s) of the new policies as they will show in PolicyAPI. Could only be set if policy_api_lifecycle_stage is API_DEPRECATED.
     #[serde(default, rename = "deprecatedInFavorOf")]
@@ -550,7 +551,7 @@ pub struct GoogleChromePolicyVersionsV1PolicyApiLifecycle {
 }
 
 /// Error information for a modification request of a specific field on a specific policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1PolicyModificationFieldError {
     /// Output only. The error message related to the field.
     #[serde(default)]
@@ -561,7 +562,7 @@ pub struct GoogleChromePolicyVersionsV1PolicyModificationFieldError {
 }
 
 /// The key used to identify the target on which the policy will be applied.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1PolicyTargetKey {
     /// Map containing the additional target key name and value pairs used to further identify the target of the policy.
     #[serde(default, rename = "additionalTargetKeys")]
@@ -572,7 +573,7 @@ pub struct GoogleChromePolicyVersionsV1PolicyTargetKey {
 }
 
 /// A particular value for a policy managed by the service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1PolicyValue {
     /// The fully qualified name of the policy schema associated with this policy.
     #[serde(default, rename = "policySchema")]
@@ -583,7 +584,7 @@ pub struct GoogleChromePolicyVersionsV1PolicyValue {
 }
 
 /// Describes a message type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Proto2DescriptorProto {
     #[serde(default, rename = "enumType")]
     pub enum_type: ::core::option::Option<::std::vec::Vec<Proto2EnumDescriptorProto>>,
@@ -601,7 +602,7 @@ pub struct Proto2DescriptorProto {
 }
 
 /// Information about any range constraints.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1FieldConstraints {
     /// The allowed range for numeric fields.
     #[serde(default, rename = "numericRangeConstraint")]
@@ -614,7 +615,7 @@ pub struct GoogleChromePolicyVersionsV1FieldConstraints {
 }
 
 /// Provides detailed information about a known value that is allowed for a particular field in a PolicySchema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1PolicySchemaFieldKnownValueDescription {
     /// Output only. Additional description for this value.
     #[serde(default)]
@@ -630,7 +631,7 @@ pub struct GoogleChromePolicyVersionsV1PolicySchemaFieldKnownValueDescription {
 }
 
 /// The fields that will become required based on the value of this field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1PolicySchemaRequiredItems {
     /// The value(s) of the field that provoke required field enforcement. An empty field_conditions implies that any value assigned to this field will provoke required field enforcement.
     #[serde(default, rename = "fieldConditions")]
@@ -641,7 +642,7 @@ pub struct GoogleChromePolicyVersionsV1PolicySchemaRequiredItems {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeDate {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -655,7 +656,7 @@ pub struct GoogleTypeDate {
 }
 
 /// Describes an enum type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Proto2EnumDescriptorProto {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -667,7 +668,7 @@ pub struct Proto2EnumDescriptorProto {
 }
 
 /// Describes a field within a message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Proto2FieldDescriptorProto {
     /// For numeric types, contains the original text representation of the value. For booleans, "true" or "false". For strings, contains the default text contents (not escaped in any way). For bytes, contains the C escaped value. All bytes &gt;= 128 are escaped.
     #[serde(default, rename = "defaultValue")]
@@ -697,14 +698,14 @@ pub struct Proto2FieldDescriptorProto {
 }
 
 /// Describes a oneof.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Proto2OneofDescriptorProto {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
 }
 
 /// A constraint on upper and/or lower bounds, with at least one being set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1NumericRangeConstraint {
     /// Maximum value.
     #[serde(default)]
@@ -715,7 +716,7 @@ pub struct GoogleChromePolicyVersionsV1NumericRangeConstraint {
 }
 
 /// Constraints on the uploaded file of a file policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1UploadedFileConstraints {
     /// The size limit of uploaded files for a setting, in bytes.
     #[serde(default, rename = "sizeLimitBytes")]
@@ -726,7 +727,7 @@ pub struct GoogleChromePolicyVersionsV1UploadedFileConstraints {
 }
 
 /// The field and the value it must have for another field to be allowed to be set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChromePolicyVersionsV1PolicySchemaFieldDependencies {
     /// The source field which this field depends on.
     #[serde(default, rename = "sourceField")]
@@ -737,7 +738,7 @@ pub struct GoogleChromePolicyVersionsV1PolicySchemaFieldDependencies {
 }
 
 /// Describes a value within an enum.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Proto2EnumValueDescriptorProto {
     #[serde(default)]
     pub name: ::core::option::Option<String>,

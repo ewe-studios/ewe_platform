@@ -8,22 +8,23 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request message for AccessControl.AcceptInvitation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcceptInvitationRequest {}
 
 /// Request message for AccessControl.DeclineInvitation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeclineInvitationRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Response message for AccessControl.ListAccountAdmins.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAccountAdminsResponse {
     /// A collection of Admin instances.
     #[serde(default, rename = "accountAdmins")]
@@ -31,7 +32,7 @@ pub struct ListAccountAdminsResponse {
 }
 
 /// Response message for Accounts.ListAccounts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAccountsResponse {
     /// A collection of accounts to which the user has access. The personal account of the user doing the query will always be the first item of the result, unless it is filtered out.
     #[serde(default)]
@@ -42,7 +43,7 @@ pub struct ListAccountsResponse {
 }
 
 /// Response message for AccessControl.ListInvitations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInvitationsResponse {
     /// A collection of invitations that are pending for the account. The number of invitations listed here cannot exceed 1000.
     #[serde(default)]
@@ -50,7 +51,7 @@ pub struct ListInvitationsResponse {
 }
 
 /// Response message for AccessControl.ListLocationAdmins.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationAdminsResponse {
     /// A collection of Admins.
     #[serde(default)]
@@ -58,7 +59,7 @@ pub struct ListLocationAdminsResponse {
 }
 
 /// Request message for AccessControl.TransferLocation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferLocationRequest {
     /// Required. Name of the account resource to transfer the location to (for example, "accounts/{account}").
     #[serde(default, rename = "destinationAccount")]
@@ -66,7 +67,7 @@ pub struct TransferLocationRequest {
 }
 
 /// Represents a pending invitation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Invitation {
     /// Required. The resource name for the invitation. accounts/{account_id}/invitations/{invitation_id}.
     #[serde(default)]
@@ -86,7 +87,7 @@ pub struct Invitation {
 }
 
 /// An administrator of an Account or a location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Admin {
     /// Immutable. The name of the Account resource that this Admin refers to. Used when calling locations.admins.create to invite a LocationGroup as an admin. If both this field and admin are set on CREATE requests, this field takes precedence and the email address in admin will be ignored. Format: accounts/{account}.
     #[serde(default)]
@@ -106,7 +107,7 @@ pub struct Admin {
 }
 
 /// An account is a container for your location. If you are the only user who manages locations for your business, you can use your personal Google Account. To share management of locations with multiple users, [create a business account] (https://support.google.com/business/answer/6085339?ref_topic=6085325).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Account {
     /// Required. The name of the account. For an account of type PERSONAL, this is the first and last name of the user account.
     #[serde(default, rename = "accountName")]
@@ -141,7 +142,7 @@ pub struct Account {
 }
 
 /// Represents a target location for a pending invitation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetLocation {
     /// The address of the location to which the user is invited.
     #[serde(default)]
@@ -152,7 +153,7 @@ pub struct TargetLocation {
 }
 
 /// Additional information stored for an organization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrganizationInfo {
     /// Output only. The postal address for the account.
     #[serde(default)]
@@ -166,7 +167,7 @@ pub struct OrganizationInfo {
 }
 
 /// Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostalAddress {
     /// Unstructured address lines describing the lower levels of an address. Because values in address_lines do not have type information and may sometimes contain multiple values in a single field (for example, "Austin, TX"), it is important that the line order is clear. The order of address lines should be "envelope order" for the country or region of the address. In places where this can vary (for example, Japan), address_language is used to make it explicit (for example, "ja" for large-to-small ordering and "ja-Latn" or "en" for small-to-large). In this way, the most specific line of an address can be selected based on the language. The minimum permitted structural representation of an address consists of a region_code with all remaining information placed in the address_lines. It would be possible to format such an address very approximately without geocoding, but no semantic reasoning could be made about any of the address components until it was at least partially resolved. Creating an address only containing a region_code and address_lines and then geocoding is the recommended way to handle completely unstructured addresses (as opposed to guessing which parts of the address should be localities or administrative areas).
     #[serde(default, rename = "addressLines")]

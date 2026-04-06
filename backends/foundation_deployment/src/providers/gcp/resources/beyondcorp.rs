@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppGatewayOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -37,7 +38,7 @@ pub struct AppGatewayOperationMetadata {
 }
 
 /// ConnectionConfig represents a Connection Configuration object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudSecurityZerotrustApplinkAppConnectorProtoConnectionConfig {
     /// application_endpoint is the endpoint of the application the form of host:port. For example, "localhost:80".
     #[serde(default, rename = "applicationEndpoint")]
@@ -65,19 +66,19 @@ pub struct CloudSecurityZerotrustApplinkAppConnectorProtoConnectionConfig {
 }
 
 /// ConnectorDetails reflects the details of a connector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudSecurityZerotrustApplinkAppConnectorProtoConnectorDetails {}
 
 /// LogAgentDetails reflects the details of a log agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudSecurityZerotrustApplinkLogagentProtoLogAgentDetails {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectionsV1AppConnectionOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -103,7 +104,7 @@ pub struct GoogleCloudBeyondcorpAppconnectionsV1AppConnectionOperationMetadata {
 }
 
 /// Response message for BeyondCorp.ListAppConnections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectionsV1ListAppConnectionsResponse {
     /// A list of BeyondCorp AppConnections in the project.
     #[serde(default, rename = "appConnections")]
@@ -118,7 +119,7 @@ pub struct GoogleCloudBeyondcorpAppconnectionsV1ListAppConnectionsResponse {
 }
 
 /// Response message for BeyondCorp.ResolveAppConnections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponse {
     /// A list of BeyondCorp AppConnections with details in the project.
     #[serde(default, rename = "appConnectionDetails")]
@@ -136,7 +137,7 @@ pub struct GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponse {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectionsV1alphaAppConnectionOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -162,7 +163,7 @@ pub struct GoogleCloudBeyondcorpAppconnectionsV1alphaAppConnectionOperationMetad
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectorsV1AppConnectorOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -188,7 +189,7 @@ pub struct GoogleCloudBeyondcorpAppconnectorsV1AppConnectorOperationMetadata {
 }
 
 /// ContainerHealthDetails reflects the health details of a container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectorsV1ContainerHealthDetails {
     /// The version of the current config.
     #[serde(default, rename = "currentConfigVersion")]
@@ -205,7 +206,7 @@ pub struct GoogleCloudBeyondcorpAppconnectorsV1ContainerHealthDetails {
 }
 
 /// Response message for BeyondCorp.ListAppConnectors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectorsV1ListAppConnectorsResponse {
     /// A list of BeyondCorp AppConnectors in the project.
     #[serde(default, rename = "appConnectors")]
@@ -220,11 +221,11 @@ pub struct GoogleCloudBeyondcorpAppconnectorsV1ListAppConnectorsResponse {
 }
 
 /// RemoteAgentDetails reflects the details of a remote agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectorsV1RemoteAgentDetails {}
 
 /// Request report the connector status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectorsV1ReportStatusRequest {
     /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
@@ -239,7 +240,7 @@ pub struct GoogleCloudBeyondcorpAppconnectorsV1ReportStatusRequest {
 }
 
 /// Response message for BeyondCorp.ResolveInstanceConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectorsV1ResolveInstanceConfigResponse {
     /// AppConnectorInstanceConfig.
     #[serde(default, rename = "instanceConfig")]
@@ -248,7 +249,7 @@ pub struct GoogleCloudBeyondcorpAppconnectorsV1ResolveInstanceConfigResponse {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectorsV1alphaAppConnectorOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -274,7 +275,7 @@ pub struct GoogleCloudBeyondcorpAppconnectorsV1alphaAppConnectorOperationMetadat
 }
 
 /// ContainerHealthDetails reflects the health details of a container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectorsV1alphaContainerHealthDetails {
     /// The version of the current config.
     #[serde(default, rename = "currentConfigVersion")]
@@ -291,11 +292,11 @@ pub struct GoogleCloudBeyondcorpAppconnectorsV1alphaContainerHealthDetails {
 }
 
 /// RemoteAgentDetails reflects the details of a remote agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectorsV1alphaRemoteAgentDetails {}
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppgatewaysV1alphaAppGatewayOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -321,7 +322,7 @@ pub struct GoogleCloudBeyondcorpAppgatewaysV1alphaAppGatewayOperationMetadata {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpConnectionsV1alphaConnectionOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -347,7 +348,7 @@ pub struct GoogleCloudBeyondcorpConnectionsV1alphaConnectionOperationMetadata {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpConnectorsV1alphaConnectorOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -373,7 +374,7 @@ pub struct GoogleCloudBeyondcorpConnectorsV1alphaConnectorOperationMetadata {
 }
 
 /// ContainerHealthDetails reflects the health details of a container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpConnectorsV1alphaContainerHealthDetails {
     /// The version of the current config.
     #[serde(default, rename = "currentConfigVersion")]
@@ -390,11 +391,11 @@ pub struct GoogleCloudBeyondcorpConnectorsV1alphaContainerHealthDetails {
 }
 
 /// RemoteAgentDetails reflects the details of a remote agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpConnectorsV1alphaRemoteAgentDetails {}
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpPartnerservicesV1alphaPartnerServiceOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -420,7 +421,7 @@ pub struct GoogleCloudBeyondcorpPartnerservicesV1alphaPartnerServiceOperationMet
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpPartnerservicesV1mainPartnerServiceOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -446,7 +447,7 @@ pub struct GoogleCloudBeyondcorpPartnerservicesV1mainPartnerServiceOperationMeta
 }
 
 /// The Hub message contains information pertaining to the regional data path deployments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpSecuritygatewaysV1Hub {
     /// Optional. Internet Gateway configuration.
     #[serde(default, rename = "internetGateway")]
@@ -455,7 +456,7 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1Hub {
 }
 
 /// Message for response to listing Applications.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ListApplicationsResponse {
     /// A list of BeyondCorp Application in the project.
     #[serde(default)]
@@ -470,7 +471,7 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ListApplicationsResponse {
 }
 
 /// Message for response to listing SecurityGateways.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ListSecurityGatewaysResponse {
     /// A token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -486,11 +487,11 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ListSecurityGatewaysResponse {
 }
 
 /// Configuration for Cloud Logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpSecuritygatewaysV1LoggingConfig {}
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGatewayOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -516,7 +517,7 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGatewayOperationMetada
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpSecuritygatewaysV1alphaSecurityGatewayOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -542,7 +543,7 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1alphaSecurityGatewayOperationM
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudLocationListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -553,7 +554,7 @@ pub struct GoogleCloudLocationListLocationsResponse {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -564,7 +565,7 @@ pub struct GoogleIamV1SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -572,7 +573,7 @@ pub struct GoogleIamV1TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -580,11 +581,11 @@ pub struct GoogleIamV1TestIamPermissionsResponse {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningCancelOperationRequest {}
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -598,7 +599,7 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// Response message for BeyondCorp.ListAppGateways.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAppGatewaysResponse {
     /// A list of BeyondCorp AppGateways in the project.
     #[serde(default, rename = "appGateways")]
@@ -612,7 +613,7 @@ pub struct ListAppGatewaysResponse {
 }
 
 /// TunnelerInfo contains metadata about tunneler launched by connection manager.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Tunnelv1ProtoTunnelerInfo {
     /// backoff_retry_count stores the number of times the tunneler has been retried by tunManager for current backoff sequence. Gets reset to 0 if time difference between 2 consecutive retries exceeds backoffRetryResetTime.
     #[serde(default, rename = "backoffRetryCount")]
@@ -632,7 +633,7 @@ pub struct Tunnelv1ProtoTunnelerInfo {
 }
 
 /// Gateway represents a GCE VM Instance endpoint for use by IAP TCP.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudSecurityZerotrustApplinkAppConnectorProtoGateway {
     /// interface specifies the network interface of the gateway to connect to.
     #[serde(default)]
@@ -655,7 +656,7 @@ pub struct CloudSecurityZerotrustApplinkAppConnectorProtoGateway {
 }
 
 /// Details of the AppConnection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponseAppConnectionDetails {
     /// A BeyondCorp AppConnection in the project.
     #[serde(default, rename = "appConnection")]
@@ -666,7 +667,7 @@ pub struct GoogleCloudBeyondcorpAppconnectionsV1ResolveAppConnectionsResponseApp
 }
 
 /// A BeyondCorp connector resource that represents an application facing component deployed proximal to and with direct access to the application instances. It is used to establish connectivity between the remote enterprise environment and GCP. It initiates connections to the applications and can proxy the data from users over the connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectorsV1AppConnector {
     /// Output only. Timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
@@ -700,7 +701,7 @@ pub struct GoogleCloudBeyondcorpAppconnectorsV1AppConnector {
 }
 
 /// AppConnectorInstanceConfig defines the instance config of a AppConnector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectorsV1AppConnectorInstanceConfig {
     /// ImageConfig defines the GCR images to run for the remote agent''s control plane.
     #[serde(default, rename = "imageConfig")]
@@ -718,7 +719,7 @@ pub struct GoogleCloudBeyondcorpAppconnectorsV1AppConnectorInstanceConfig {
 }
 
 /// Represents the Internet Gateway configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpSecuritygatewaysV1InternetGateway {
     /// Output only. List of IP addresses assigned to the Cloud NAT.
     #[serde(default, rename = "assignedIps")]
@@ -726,7 +727,7 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1InternetGateway {
 }
 
 /// The information about an application resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpSecuritygatewaysV1Application {
     /// Output only. Timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
@@ -756,7 +757,7 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1Application {
 }
 
 /// The information about a security gateway resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway {
     /// Output only. Timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
@@ -796,7 +797,7 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1SecurityGateway {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudLocationLocation {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -816,7 +817,7 @@ pub struct GoogleCloudLocationLocation {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -833,7 +834,7 @@ pub struct GoogleIamV1Policy {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -853,7 +854,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// A BeyondCorp AppGateway resource represents a BeyondCorp protected AppGateway to a remote application. It creates all the necessary GCP components needed for creating a BeyondCorp protected AppGateway. Multiple connectors can be authorised for a single AppGateway.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppGateway {
     /// Output only. A list of connections allocated for the Gateway
     #[serde(default, rename = "allocatedConnections")]
@@ -897,7 +898,7 @@ pub struct AppGateway {
 }
 
 /// TunnelerError is an error proto for errors returned by the connection manager.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Tunnelv1ProtoTunnelerError {
     /// Original raw error
     #[serde(default)]
@@ -908,7 +909,7 @@ pub struct Tunnelv1ProtoTunnelerError {
 }
 
 /// A BeyondCorp AppConnection resource represents a BeyondCorp protected AppConnection to a remote application. It creates all the necessary GCP components needed for creating a BeyondCorp protected AppConnection. Multiple connectors can be authorised for a single AppConnection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectionsV1AppConnection {
     /// Required. Address of the remote application endpoint for the BeyondCorp AppConnection.
     #[serde(default, rename = "applicationEndpoint")]
@@ -954,7 +955,7 @@ pub struct GoogleCloudBeyondcorpAppconnectionsV1AppConnection {
 }
 
 /// PrincipalInfo represents an Identity oneof.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectorsV1AppConnectorPrincipalInfo {
     /// A GCP service account.
     #[serde(default, rename = "serviceAccount")]
@@ -964,7 +965,7 @@ pub struct GoogleCloudBeyondcorpAppconnectorsV1AppConnectorPrincipalInfo {
 }
 
 /// ResourceInfo represents the information/status of an app connector resource. Such as: - remote_agent - container - runtime - appgateway - appconnector - appconnection - tunnel - logagent
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectorsV1ResourceInfo {
     /// Required. Unique Id for the resource.
     #[serde(default)]
@@ -984,7 +985,7 @@ pub struct GoogleCloudBeyondcorpAppconnectorsV1ResourceInfo {
 }
 
 /// ImageConfig defines the control plane images to run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectorsV1ImageConfig {
     /// The stable image that the remote agent will fallback to if the target image fails. Format would be a gcr image path, e.g.: gcr.io/PROJECT-ID/my-image:tag1
     #[serde(default, rename = "stableImage")]
@@ -995,7 +996,7 @@ pub struct GoogleCloudBeyondcorpAppconnectorsV1ImageConfig {
 }
 
 /// NotificationConfig defines the mechanisms to notify instance agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectorsV1NotificationConfig {
     /// Cloud Pub/Sub Configuration to receive notifications.
     #[serde(default, rename = "pubsubNotification")]
@@ -1005,7 +1006,7 @@ pub struct GoogleCloudBeyondcorpAppconnectorsV1NotificationConfig {
 }
 
 /// EndpointMatcher contains the information of the endpoint that will match the application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpSecuritygatewaysV1EndpointMatcher {
     /// Required. Hostname of the application.
     #[serde(default)]
@@ -1016,7 +1017,7 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1EndpointMatcher {
 }
 
 /// Which upstream resource to forward traffic to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ApplicationUpstream {
     /// Optional. Routing policy information.
     #[serde(default, rename = "egressPolicy")]
@@ -1036,7 +1037,7 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ApplicationUpstream {
 }
 
 /// Settings related to the Service Discovery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ServiceDiscovery {
     /// Required. External API configuration.
     #[serde(default, rename = "apiGateway")]
@@ -1045,7 +1046,7 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ServiceDiscovery {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -1056,7 +1057,7 @@ pub struct GoogleIamV1AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -1070,7 +1071,7 @@ pub struct GoogleIamV1Binding {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1084,7 +1085,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// Allocated connection of the AppGateway.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllocatedConnection {
     /// Required. The ingress port of an allocated connection
     #[serde(default, rename = "ingressPort")]
@@ -1095,7 +1096,7 @@ pub struct AllocatedConnection {
 }
 
 /// ApplicationEndpoint represents a remote application endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectionsV1AppConnectionApplicationEndpoint {
     /// Required. Hostname or IP address of the remote application endpoint.
     #[serde(default)]
@@ -1106,7 +1107,7 @@ pub struct GoogleCloudBeyondcorpAppconnectionsV1AppConnectionApplicationEndpoint
 }
 
 /// Gateway represents a user facing component that serves as an entrance to enable connectivity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectionsV1AppConnectionGateway {
     /// Required. AppGateway name in following format: projects/{project_id}/locations/{location_id}/appgateways/{gateway_id}
     #[serde(default, rename = "appGateway")]
@@ -1126,7 +1127,7 @@ pub struct GoogleCloudBeyondcorpAppconnectionsV1AppConnectionGateway {
 }
 
 /// ServiceAccount represents a GCP service account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectorsV1AppConnectorPrincipalInfoServiceAccount {
     /// Email address of the service account.
     #[serde(default)]
@@ -1134,7 +1135,7 @@ pub struct GoogleCloudBeyondcorpAppconnectorsV1AppConnectorPrincipalInfoServiceA
 }
 
 /// The configuration for Pub/Sub messaging for the AppConnector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpAppconnectorsV1NotificationConfigCloudPubSubNotificationConfig {
     /// The Pub/Sub subscription the AppConnector uses to receive notifications.
     #[serde(default, rename = "pubsubSubscription")]
@@ -1142,7 +1143,7 @@ pub struct GoogleCloudBeyondcorpAppconnectorsV1NotificationConfigCloudPubSubNoti
 }
 
 /// Routing policy information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpSecuritygatewaysV1EgressPolicy {
     /// Required. List of the regions where the application sends traffic.
     #[serde(default)]
@@ -1150,7 +1151,7 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1EgressPolicy {
 }
 
 /// Endpoints to forward traffic to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ApplicationUpstreamExternal {
     /// Required. List of the endpoints to forward traffic to.
     #[serde(default)]
@@ -1159,7 +1160,7 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ApplicationUpstreamExternal {
 }
 
 /// Network to forward traffic to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ApplicationUpstreamNetwork {
     /// Required. Network name is of the format: projects/{project}/global/networks/{network}
     #[serde(default)]
@@ -1167,7 +1168,7 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ApplicationUpstreamNetwork {
 }
 
 /// The configuration for the proxy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ProxyProtocolConfig {
     /// Optional. List of the allowed client header names.
     #[serde(default, rename = "allowedClientHeaders")]
@@ -1188,7 +1189,7 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ProxyProtocolConfig {
 }
 
 /// If Service Discovery is done through API, defines its settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ServiceDiscoveryApiGateway {
     /// Required. Enables fetching resource model updates to alter service behavior per Chrome profile.
     #[serde(default, rename = "resourceOverride")]
@@ -1198,7 +1199,7 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ServiceDiscoveryApiGateway {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -1209,7 +1210,7 @@ pub struct GoogleIamV1AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeExpr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -1226,7 +1227,7 @@ pub struct GoogleTypeExpr {
 }
 
 /// Internet Gateway endpoint to forward traffic to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpSecuritygatewaysV1Endpoint {
     /// Required. Hostname of the endpoint.
     #[serde(default)]
@@ -1237,7 +1238,7 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1Endpoint {
 }
 
 /// Contextual headers configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeaders {
     /// Optional. The device information configuration.
     #[serde(default, rename = "deviceInfo")]
@@ -1260,7 +1261,7 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeaders {
 }
 
 /// API operation descriptor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ServiceDiscoveryApiGatewayOperationDescriptor {
     /// Required. Contains the URI path fragment where HTTP request is sent.
     #[serde(default)]
@@ -1268,7 +1269,7 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ServiceDiscoveryApiGatewayOper
 }
 
 /// The delegated device information configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeadersDelegatedDeviceInfo {
     /// Optional. The output type details for the delegated device. // TODO: enum values: ["OUTPUT_TYPE_UNSPECIFIED", "PROTOBUF", "JSON", "NONE"]
     #[serde(default, rename = "outputType")]
@@ -1276,7 +1277,7 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeadersDelegatedDevi
 }
 
 /// The delegated group configuration details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeadersDelegatedGroupInfo {
     /// Optional. The output type of the delegated group information. // TODO: enum values: ["OUTPUT_TYPE_UNSPECIFIED", "PROTOBUF", "JSON", "NONE"]
     #[serde(default, rename = "outputType")]
@@ -1284,7 +1285,7 @@ pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeadersDelegatedGrou
 }
 
 /// The configuration information for the delegated user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBeyondcorpSecuritygatewaysV1ContextualHeadersDelegatedUserInfo {
     /// Optional. The delegated user''s information. // TODO: enum values: ["OUTPUT_TYPE_UNSPECIFIED", "PROTOBUF", "JSON", "NONE"]
     #[serde(default, rename = "outputType")]

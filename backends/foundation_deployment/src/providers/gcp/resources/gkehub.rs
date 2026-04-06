@@ -8,18 +8,19 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -30,7 +31,7 @@ pub struct ListLocationsResponse {
 }
 
 /// Response message for the GkeHubFeature.ListMembershipFeatures method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMembershipFeaturesResponse {
     /// The list of matching MembershipFeatures.
     #[serde(default, rename = "membershipFeatures")]
@@ -44,7 +45,7 @@ pub struct ListMembershipFeaturesResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -58,7 +59,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -84,7 +85,7 @@ pub struct OperationMetadata {
 }
 
 /// BundleInstallSpec is the specification configuration for a single managed bundle.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyControllerBundleInstallSpec {
     /// the set of namespaces to be exempted from the bundle
     #[serde(default, rename = "exemptedNamespaces")]
@@ -92,7 +93,7 @@ pub struct PolicyControllerBundleInstallSpec {
 }
 
 /// Deployment-specific configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyControllerPolicyControllerDeploymentConfig {
     /// Container resource requirements.
     #[serde(default, rename = "containerResources")]
@@ -112,7 +113,7 @@ pub struct PolicyControllerPolicyControllerDeploymentConfig {
 }
 
 /// RBACRoleBindingState is the status of an RBACRoleBinding which exists on a membership.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RBACRoleBindingActuationRBACRoleBindingState {
     /// The reason for the failure.
     #[serde(default)]
@@ -126,11 +127,11 @@ pub struct RBACRoleBindingActuationRBACRoleBindingState {
 }
 
 /// **RBAC RoleBinding Actuation**: The membership-specific input for RBACRoleBindingActuation feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RBACRoleBindingActuationSpec {}
 
 /// IdentityProviderStateDetail represents the state of an Identity Provider.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkloadIdentityIdentityProviderStateDetail {
     /// The state of the Identity Provider. // TODO: enum values: ["IDENTITY_PROVIDER_STATE_UNSPECIFIED", "IDENTITY_PROVIDER_STATE_OK", "IDENTITY_PROVIDER_STATE_ERROR"]
     #[serde(default)]
@@ -141,7 +142,7 @@ pub struct WorkloadIdentityIdentityProviderStateDetail {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -161,7 +162,7 @@ pub struct Location {
 }
 
 /// MembershipFeature represents the settings and status of a Fleet Feature enabled on a single Fleet Membership.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MembershipFeature {
     /// Output only. When the MembershipFeature resource was created.
     #[serde(default, rename = "createTime")]
@@ -190,7 +191,7 @@ pub struct MembershipFeature {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -210,7 +211,7 @@ pub struct Operation {
 }
 
 /// ResourceRequirements describes the compute resource requirements.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyControllerResourceRequirements {
     /// Limits describes the maximum amount of compute resources allowed for use by the running container.
     #[serde(default)]
@@ -221,7 +222,7 @@ pub struct PolicyControllerResourceRequirements {
 }
 
 /// Toleration of a node taint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyControllerToleration {
     /// Matches a taint effect.
     #[serde(default)]
@@ -238,7 +239,7 @@ pub struct PolicyControllerToleration {
 }
 
 /// LifecycleState describes the state of a MembershipFeature *resource* in the GkeHub API. See FeatureState for the "running state" of the MembershipFeature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LifecycleState {
     /// Output only. The current state of the Feature resource in the Hub API. // TODO: enum values: ["STATE_UNSPECIFIED", "ENABLING", "ACTIVE", "DISABLING", "UPDATING", "SERVICE_UPDATING"]
     #[serde(default)]
@@ -246,7 +247,7 @@ pub struct LifecycleState {
 }
 
 /// FeatureSpec contains user input per-feature spec information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FeatureSpec {
     /// Cloudbuild-specific FeatureSpec.
     #[serde(default)]
@@ -275,7 +276,7 @@ pub struct FeatureSpec {
 }
 
 /// FeatureState contains high-level state information and per-feature state information for this MembershipFeature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FeatureState {
     /// Appdevexperience specific state.
     #[serde(default)]
@@ -310,7 +311,7 @@ pub struct FeatureState {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -324,7 +325,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// ResourceList contains container resource requirements.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyControllerResourceList {
     /// CPU requirement expressed in Kubernetes resource units.
     #[serde(default)]
@@ -335,7 +336,7 @@ pub struct PolicyControllerResourceList {
 }
 
 /// **Cloud Build**: Configurations for each Cloud Build enabled cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudBuildSpec {
     /// Whether it is allowed to run the privileged builds on the cluster or not. // TODO: enum values: ["SECURITY_POLICY_UNSPECIFIED", "NON_PRIVILEGED", "PRIVILEGED"]
     #[serde(default, rename = "securityPolicy")]
@@ -346,7 +347,7 @@ pub struct CloudBuildSpec {
 }
 
 /// Origin defines where this FeatureSpec originated from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Origin {
     /// Type specifies which type of origin is set. // TODO: enum values: ["TYPE_UNSPECIFIED", "FLEET", "FLEET_OUT_OF_SYNC", "USER"]
     #[serde(default, rename = "type")]
@@ -354,7 +355,7 @@ pub struct Origin {
 }
 
 /// **Policy Controller**: Configuration for a single cluster. Intended to parallel the PolicyController CR.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyControllerSpec {
     /// Policy Controller configuration for the cluster.
     #[serde(default, rename = "policyControllerHubConfig")]
@@ -365,7 +366,7 @@ pub struct PolicyControllerSpec {
 }
 
 /// **Service Mesh**: Spec for a single Membership for the servicemesh feature
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceMeshSpec {
     /// Optional. Specifies the API that will be used for configuring the mesh workloads. // TODO: enum values: ["CONFIG_API_UNSPECIFIED", "CONFIG_API_ISTIO", "CONFIG_API_GATEWAY"]
     #[serde(default, rename = "configApi")]
@@ -382,7 +383,7 @@ pub struct ServiceMeshSpec {
 }
 
 /// **WorkloadCertificate**: The membership-specific input for WorkloadCertificate feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkloadCertificateSpec {
     /// CertificateManagement specifies workload certificate management. // TODO: enum values: ["CERTIFICATE_MANAGEMENT_UNSPECIFIED", "DISABLED", "ENABLED"]
     #[serde(default, rename = "certificateManagement")]
@@ -390,7 +391,7 @@ pub struct WorkloadCertificateSpec {
 }
 
 /// State for App Dev Exp Feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppDevExperienceState {
     /// Status of subcomponent that detects configured Service Mesh resources.
     #[serde(default, rename = "networkingInstallSucceeded")]
@@ -398,7 +399,7 @@ pub struct AppDevExperienceState {
 }
 
 /// Per-membership state for this feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterUpgradeState {
     /// Whether this membership is ignored by the feature. For example, manually upgraded clusters can be ignored if they are newer than the default versions of its release channel.
     #[serde(default)]
@@ -409,7 +410,7 @@ pub struct ClusterUpgradeState {
 }
 
 /// **Anthos Config Management**: State for a single cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementState {
     /// Output only. Binauthz status.
     #[serde(default, rename = "binauthzState")]
@@ -439,7 +440,7 @@ pub struct ConfigManagementState {
 }
 
 /// **IdentityService**: State for a single membership, analyzed and reported by feature controller.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentityServiceState {
     /// The reason of the failure.
     #[serde(default, rename = "failureReason")]
@@ -456,7 +457,7 @@ pub struct IdentityServiceState {
 }
 
 /// **Metering**: State for a single membership, analyzed and reported by feature controller.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MeteringState {
     /// The time stamp of the most recent measurement of the number of vCPUs in the cluster.
     #[serde(default, rename = "lastMeasurementTime")]
@@ -467,7 +468,7 @@ pub struct MeteringState {
 }
 
 /// **Policy Controller**: State for a single cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyControllerState {
     /// Currently these include (also serving as map keys): 1. "admission" 2. "audit" 3. "mutation"
     #[serde(default, rename = "componentStates")]
@@ -481,7 +482,7 @@ pub struct PolicyControllerState {
 }
 
 /// **RBAC RoleBinding Actuation**: A membership-specific Feature state for the RBACRoleBindingActuation fleet feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RBACRoleBindingActuationState {
     /// Output only. The state of RBACRoleBindings using custom roles that exist on the cluster, keyed by RBACRoleBinding resource name with format: projects/{project}/locations/{location}/scopes/{scope}/rbacrolebindings/{rbacrolebinding}.
     #[serde(default, rename = "rbacrolebindingStates")]
@@ -489,7 +490,7 @@ pub struct RBACRoleBindingActuationState {
 }
 
 /// **Service Mesh**: State for a single Membership, as analyzed by the Service Mesh Hub Controller.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceMeshState {
     /// Output only. Results of running Service Mesh analyzers.
     #[serde(default, rename = "analysisMessages")]
@@ -509,7 +510,7 @@ pub struct ServiceMeshState {
 }
 
 /// High-level state of a MembershipFeature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct State {
     /// The high-level, machine-readable status of this MembershipFeature. // TODO: enum values: ["CODE_UNSPECIFIED", "OK", "WARNING", "ERROR"]
     #[serde(default)]
@@ -523,7 +524,7 @@ pub struct State {
 }
 
 /// **WorkloadIdentity**: The membership-specific state for WorkloadIdentity feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkloadIdentityState {
     /// Deprecated, this field will be erased after code is changed to use the new field.
     #[serde(default)]
@@ -534,7 +535,7 @@ pub struct WorkloadIdentityState {
 }
 
 /// Configuration for Policy Controller
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyControllerHubConfig {
     /// Sets the interval for Policy Controller Audit Scans (in seconds). When set to 0, this disables audit functionality altogether.
     #[serde(default, rename = "auditIntervalSeconds")]
@@ -569,7 +570,7 @@ pub struct PolicyControllerHubConfig {
 }
 
 /// Status specifies state for the subcomponent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppDevExperienceStatus {
     /// Code specifies AppDevExperienceFeature''s subcomponent ready state. // TODO: enum values: ["CODE_UNSPECIFIED", "OK", "FAILED", "UNKNOWN"]
     #[serde(default)]
@@ -580,7 +581,7 @@ pub struct AppDevExperienceStatus {
 }
 
 /// IgnoredMembership represents a membership ignored by the feature. A membership can be ignored because it was manually upgraded to a newer version than RC default.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterUpgradeIgnoredMembership {
     /// Time when the membership was first set to ignored.
     #[serde(default, rename = "ignoredTime")]
@@ -591,7 +592,7 @@ pub struct ClusterUpgradeIgnoredMembership {
 }
 
 /// MembershipGKEUpgradeState is a GKEUpgrade and its state per-membership.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterUpgradeMembershipGKEUpgradeState {
     /// Status of the upgrade.
     #[serde(default)]
@@ -602,7 +603,7 @@ pub struct ClusterUpgradeMembershipGKEUpgradeState {
 }
 
 /// State for Binauthz.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementBinauthzState {
     /// The version of binauthz that is installed.
     #[serde(default)]
@@ -613,7 +614,7 @@ pub struct ConfigManagementBinauthzState {
 }
 
 /// State information for ConfigSync.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementConfigSyncState {
     /// Output only. Whether syncing resources to the cluster is stopped at the cluster level. // TODO: enum values: ["STOP_SYNCING_STATE_UNSPECIFIED", "NOT_STOPPED", "PENDING", "STOPPED"]
     #[serde(default, rename = "clusterLevelStopSyncingState")]
@@ -645,7 +646,7 @@ pub struct ConfigManagementConfigSyncState {
 }
 
 /// State for Hierarchy Controller.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementHierarchyControllerState {
     /// The deployment state for Hierarchy Controller.
     #[serde(default)]
@@ -656,7 +657,7 @@ pub struct ConfigManagementHierarchyControllerState {
 }
 
 /// **Anthos Config Management**: Configuration for a single cluster. Intended to parallel the ConfigManagement CR.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementSpec {
     /// Optional. Deprecated: Binauthz configuration will be ignored and should not be set.
     #[serde(default)]
@@ -682,7 +683,7 @@ pub struct ConfigManagementSpec {
 }
 
 /// State information for an ACM''s Operator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementOperatorState {
     /// The state of the Operator''s deployment. // TODO: enum values: ["DEPLOYMENT_STATE_UNSPECIFIED", "NOT_INSTALLED", "INSTALLED", "ERROR", "PENDING"]
     #[serde(default, rename = "deploymentState")]
@@ -696,7 +697,7 @@ pub struct ConfigManagementOperatorState {
 }
 
 /// State for PolicyControllerState.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementPolicyControllerState {
     /// The state about the policy controller installation.
     #[serde(default, rename = "deploymentState")]
@@ -710,7 +711,7 @@ pub struct ConfigManagementPolicyControllerState {
 }
 
 /// **IdentityService**: Configuration for a single membership.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentityServiceSpec {
     /// A member may support multiple auth methods.
     #[serde(default, rename = "authMethods")]
@@ -721,7 +722,7 @@ pub struct IdentityServiceSpec {
 }
 
 /// The state of the policy controller policy content
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyControllerPolicyContentState {
     /// The state of the any bundles included in the chosen version of the manifest
     #[serde(default, rename = "bundleStates")]
@@ -735,7 +736,7 @@ pub struct PolicyControllerPolicyContentState {
 }
 
 /// AnalysisMessage is a single message produced by an analyzer, and it used to communicate to the end user about the state of their Service Mesh configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceMeshAnalysisMessage {
     /// A UI can combine these args with a template (based on message_base.type) to produce an internationalized message.
     #[serde(default)]
@@ -752,7 +753,7 @@ pub struct ServiceMeshAnalysisMessage {
 }
 
 /// Condition being reported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceMeshCondition {
     /// Unique identifier of the condition which describes the condition recognizable to the user. // TODO: enum values: ["CODE_UNSPECIFIED", "MESH_IAM_PERMISSION_DENIED", "MESH_IAM_CROSS_PROJECT_PERMISSION_DENIED", "CNI_CONFIG_UNSUPPORTED", "GKE_SANDBOX_UNSUPPORTED", "NODEPOOL_WORKLOAD_IDENTITY_FEDERATION_REQUIRED", "CNI_INSTALLATION_FAILED", "CNI_POD_UNSCHEDULABLE", "CLUSTER_HAS_ZERO_NODES", "CANONICAL_SERVICE_ERROR", "UNSUPPORTED_MULTIPLE_CONTROL_PLANES", "VPCSC_GA_SUPPORTED", "DEPRECATED_SPEC_CONTROL_PLANE_MANAGEMENT", "DEPRECATED_SPEC_CONTROL_PLANE_MANAGEMENT_SAFE", "CONFIG_APPLY_INTERNAL_ERROR", "CONFIG_VALIDATION_ERROR", "CONFIG_VALIDATION_WARNING", "QUOTA_EXCEEDED_BACKEND_SERVICES", "QUOTA_EXCEEDED_HEALTH_CHECKS", "QUOTA_EXCEEDED_HTTP_ROUTES", "QUOTA_EXCEEDED_TCP_ROUTES", "QUOTA_EXCEEDED_TLS_ROUTES", "QUOTA_EXCEEDED_TRAFFIC_POLICIES", "QUOTA_EXCEEDED_ENDPOINT_POLICIES", "QUOTA_EXCEEDED_GATEWAYS", "QUOTA_EXCEEDED_MESHES", "QUOTA_EXCEEDED_SERVER_TLS_POLICIES", "QUOTA_EXCEEDED_CLIENT_TLS_POLICIES", "QUOTA_EXCEEDED_SERVICE_LB_POLICIES", "QUOTA_EXCEEDED_HTTP_FILTERS", "QUOTA_EXCEEDED_TCP_FILTERS", "QUOTA_EXCEEDED_NETWORK_ENDPOINT_GROUPS", "CONFIG_APPLY_BLOCKED", "LEGACY_MC_SECRETS", "WORKLOAD_IDENTITY_REQUIRED", "NON_STANDARD_BINARY_USAGE", "UNSUPPORTED_GATEWAY_CLASS", "MANAGED_CNI_NOT_ENABLED", "MODERNIZATION_SCHEDULED", "MODERNIZATION_IN_PROGRESS", "MODERNIZATION_COMPLETED", "MODERNIZATION_ABORTED", "MODERNIZATION_PREPARING", "MODERNIZATION_STALLED", "MODERNIZATION_PREPARED", "MODERNIZATION_MIGRATING_WORKLOADS", "MODERNIZATION_ROLLING_BACK_CLUSTER", "MODERNIZATION_WILL_BE_SCHEDULED", "MODERNIZATION_MANUAL", "MODERNIZATION_ELIGIBLE", "MODERNIZATION_MODERNIZING", "MODERNIZATION_MODERNIZED_SOAKING", "MODERNIZATION_FINALIZED", "MODERNIZATION_ROLLING_BACK_FLEET"]
     #[serde(default)]
@@ -769,7 +770,7 @@ pub struct ServiceMeshCondition {
 }
 
 /// Status of control plane management.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceMeshControlPlaneManagement {
     /// Explanation of state.
     #[serde(default)]
@@ -783,7 +784,7 @@ pub struct ServiceMeshControlPlaneManagement {
 }
 
 /// Status of data plane management. Only reported per-member.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceMeshDataPlaneManagement {
     /// Explanation of the status.
     #[serde(default)]
@@ -794,7 +795,7 @@ pub struct ServiceMeshDataPlaneManagement {
 }
 
 /// MonitoringConfig specifies the backends Policy Controller should export metrics to. For example, to specify metrics should be exported to Cloud Monitoring and Prometheus, specify backends: ["cloudmonitoring", "prometheus"]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyControllerMonitoringConfig {
     /// Specifies the list of backends Policy Controller will export to. An empty list would effectively disable metrics export.
     #[serde(default)]
@@ -802,7 +803,7 @@ pub struct PolicyControllerMonitoringConfig {
 }
 
 /// PolicyContentSpec defines the user''s desired content configuration on the cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyControllerPolicyContentSpec {
     /// map of bundle name to BundleInstallSpec. The bundle name maps to the bundleName key in the policycontroller.gke.io/constraintData annotation on a constraint.
     #[serde(default)]
@@ -813,7 +814,7 @@ pub struct PolicyControllerPolicyContentSpec {
 }
 
 /// UpgradeStatus provides status information for each upgrade.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterUpgradeUpgradeStatus {
     /// Status code of the upgrade. // TODO: enum values: ["CODE_UNSPECIFIED", "INELIGIBLE", "PENDING", "IN_PROGRESS", "SOAKING", "FORCED_SOAKING", "COMPLETE"]
     #[serde(default)]
@@ -827,7 +828,7 @@ pub struct ClusterUpgradeUpgradeStatus {
 }
 
 /// GKEUpgrade represents a GKE provided upgrade, e.g., control plane upgrade.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterUpgradeGKEUpgrade {
     /// Name of the upgrade, e.g., "k8s_control_plane".
     #[serde(default)]
@@ -838,7 +839,7 @@ pub struct ClusterUpgradeGKEUpgrade {
 }
 
 /// The version of binauthz.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementBinauthzVersion {
     /// The version of the binauthz webhook.
     #[serde(default, rename = "webhookVersion")]
@@ -846,7 +847,7 @@ pub struct ConfigManagementBinauthzVersion {
 }
 
 /// The state of ConfigSync''s deployment on a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementConfigSyncDeploymentState {
     /// Deployment state of admission-webhook. // TODO: enum values: ["DEPLOYMENT_STATE_UNSPECIFIED", "NOT_INSTALLED", "INSTALLED", "ERROR", "PENDING"]
     #[serde(default, rename = "admissionWebhook")]
@@ -878,7 +879,7 @@ pub struct ConfigManagementConfigSyncDeploymentState {
 }
 
 /// Errors pertaining to the installation of Config Sync
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementConfigSyncError {
     /// A string representing the user facing error message
     #[serde(default, rename = "errorMessage")]
@@ -886,7 +887,7 @@ pub struct ConfigManagementConfigSyncError {
 }
 
 /// State indicating an ACM''s progress syncing configurations to a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementSyncState {
     /// Sync status code. // TODO: enum values: ["SYNC_CODE_UNSPECIFIED", "SYNCED", "PENDING", "ERROR", "NOT_CONFIGURED", "NOT_INSTALLED", "UNAUTHORIZED", "UNREACHABLE"]
     #[serde(default)]
@@ -912,7 +913,7 @@ pub struct ConfigManagementSyncState {
 }
 
 /// Specific versioning information pertaining to ConfigSync''s Pods.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementConfigSyncVersion {
     /// Version of the deployed admission-webhook pod.
     #[serde(default, rename = "admissionWebhook")]
@@ -944,7 +945,7 @@ pub struct ConfigManagementConfigSyncVersion {
 }
 
 /// Deployment state for Hierarchy Controller
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementHierarchyControllerDeploymentState {
     /// The deployment state for Hierarchy Controller extension (e.g. v0.7.0-hc.1). // TODO: enum values: ["DEPLOYMENT_STATE_UNSPECIFIED", "NOT_INSTALLED", "INSTALLED", "ERROR", "PENDING"]
     #[serde(default)]
@@ -955,7 +956,7 @@ pub struct ConfigManagementHierarchyControllerDeploymentState {
 }
 
 /// Version for Hierarchy Controller.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementHierarchyControllerVersion {
     /// Version for Hierarchy Controller extension.
     #[serde(default)]
@@ -966,7 +967,7 @@ pub struct ConfigManagementHierarchyControllerVersion {
 }
 
 /// Configuration for Binauthz.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementBinauthzConfig {
     /// Whether binauthz is enabled in this cluster.
     #[serde(default)]
@@ -974,7 +975,7 @@ pub struct ConfigManagementBinauthzConfig {
 }
 
 /// Configuration for Config Sync
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementConfigSync {
     /// Optional. Configuration for deployment overrides. Applies only to Config Sync deployments with containers that are not a root or namespace reconciler: reconciler-manager, otel-collector, resource-group-controller-manager, admission-webhook. To override a root or namespace reconciler, use the rootsync or reposync fields at https://docs.cloud.google.com/kubernetes-engine/config-sync/docs/reference/rootsync-reposync-fields#override-resources instead.
     #[serde(default, rename = "deploymentOverrides")]
@@ -1004,7 +1005,7 @@ pub struct ConfigManagementConfigSync {
 }
 
 /// Configuration for Hierarchy Controller.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementHierarchyControllerConfig {
     /// Whether hierarchical resource quota is enabled in this cluster.
     #[serde(default, rename = "enableHierarchicalResourceQuota")]
@@ -1018,7 +1019,7 @@ pub struct ConfigManagementHierarchyControllerConfig {
 }
 
 /// Configuration for Policy Controller
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementPolicyController {
     /// Sets the interval for Policy Controller Audit Scans (in seconds). When set to 0, this disables audit functionality altogether.
     #[serde(default, rename = "auditIntervalSeconds")]
@@ -1050,7 +1051,7 @@ pub struct ConfigManagementPolicyController {
 }
 
 /// Errors pertaining to the installation of ACM.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementInstallError {
     /// A string representing the user facing error message.
     #[serde(default, rename = "errorMessage")]
@@ -1058,7 +1059,7 @@ pub struct ConfigManagementInstallError {
 }
 
 /// State of Policy Controller installation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementGatekeeperDeploymentState {
     /// Status of gatekeeper-audit deployment. // TODO: enum values: ["DEPLOYMENT_STATE_UNSPECIFIED", "NOT_INSTALLED", "INSTALLED", "ERROR", "PENDING"]
     #[serde(default, rename = "gatekeeperAudit")]
@@ -1072,7 +1073,7 @@ pub struct ConfigManagementGatekeeperDeploymentState {
 }
 
 /// State for the migration of PolicyController from ACM -&gt; PoCo Hub.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementPolicyControllerMigration {
     /// Last time this membership spec was copied to PoCo feature.
     #[serde(default, rename = "copyTime")]
@@ -1083,7 +1084,7 @@ pub struct ConfigManagementPolicyControllerMigration {
 }
 
 /// The build version of Gatekeeper Policy Controller is using.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementPolicyControllerVersion {
     /// The gatekeeper image tag that is composed of ACM version, git tag, build number.
     #[serde(default)]
@@ -1091,7 +1092,7 @@ pub struct ConfigManagementPolicyControllerVersion {
 }
 
 /// Configuration of an auth method for a member/cluster. Only one authentication method (e.g., OIDC and LDAP) can be set per AuthMethod.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentityServiceAuthMethod {
     /// AzureAD specific Configuration.
     #[serde(default, rename = "azureadConfig")]
@@ -1117,7 +1118,7 @@ pub struct IdentityServiceAuthMethod {
 }
 
 /// Holds non-protocol-related configuration options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentityServiceIdentityServiceOptions {
     /// Configuration options for the AIS diagnostic interface.
     #[serde(default, rename = "diagnosticInterface")]
@@ -1128,7 +1129,7 @@ pub struct IdentityServiceIdentityServiceOptions {
 }
 
 /// OnClusterState represents the state of a sub-component of Policy Controller.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyControllerOnClusterState {
     /// Surface potential errors or information logs.
     #[serde(default)]
@@ -1139,7 +1140,7 @@ pub struct PolicyControllerOnClusterState {
 }
 
 /// AnalysisMessageBase describes some common information that is needed for all messages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceMeshAnalysisMessageBase {
     /// A url pointing to the Service Mesh or Istio documentation for this specific error type.
     #[serde(default, rename = "documentationUrl")]
@@ -1153,7 +1154,7 @@ pub struct ServiceMeshAnalysisMessageBase {
 }
 
 /// Structured and human-readable details for a status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceMeshStatusDetails {
     /// A machine-readable code that further describes a broad status.
     #[serde(default)]
@@ -1164,7 +1165,7 @@ pub struct ServiceMeshStatusDetails {
 }
 
 /// The config specifying which default library templates to install.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyControllerTemplateLibraryConfig {
     /// Configures the manner in which the template library is installed on the cluster. // TODO: enum values: ["INSTALLATION_UNSPECIFIED", "NOT_INSTALLED", "ALL"]
     #[serde(default)]
@@ -1172,7 +1173,7 @@ pub struct PolicyControllerTemplateLibraryConfig {
 }
 
 /// An ACM created error representing a problem syncing configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementSyncError {
     /// An ACM defined error code
     #[serde(default)]
@@ -1186,7 +1187,7 @@ pub struct ConfigManagementSyncError {
 }
 
 /// Configuration for a deployment override.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementDeploymentOverride {
     /// Optional. The containers of the deployment resource to be overridden.
     #[serde(default)]
@@ -1200,7 +1201,7 @@ pub struct ConfigManagementDeploymentOverride {
 }
 
 /// Git repo configuration for a single cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementGitConfig {
     /// Optional. The Google Cloud Service Account Email used for auth when secret_type is gcpserviceaccount.
     #[serde(default, rename = "gcpServiceAccountEmail")]
@@ -1229,7 +1230,7 @@ pub struct ConfigManagementGitConfig {
 }
 
 /// OCI repo configuration for a single cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementOciConfig {
     /// Optional. The Google Cloud Service Account Email used for auth when secret_type is gcpserviceaccount.
     #[serde(default, rename = "gcpServiceAccountEmail")]
@@ -1249,7 +1250,7 @@ pub struct ConfigManagementOciConfig {
 }
 
 /// PolicyControllerMonitoring specifies the backends Policy Controller should export metrics to. For example, to specify metrics should be exported to Cloud Monitoring and Prometheus, specify backends: ["cloudmonitoring", "prometheus"]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementPolicyControllerMonitoring {
     /// Specifies the list of backends Policy Controller will export to. An empty list would effectively disable metrics export.
     #[serde(default)]
@@ -1257,7 +1258,7 @@ pub struct ConfigManagementPolicyControllerMonitoring {
 }
 
 /// Configuration for the AzureAD Auth flow.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentityServiceAzureADConfig {
     /// ID for the registered client application that makes authentication requests to the Azure AD identity provider.
     #[serde(default, rename = "clientId")]
@@ -1283,7 +1284,7 @@ pub struct IdentityServiceAzureADConfig {
 }
 
 /// Configuration for the Google Plugin Auth flow.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentityServiceGoogleConfig {
     /// Disable automatic configuration of Google Plugin on supported platforms.
     #[serde(default)]
@@ -1291,7 +1292,7 @@ pub struct IdentityServiceGoogleConfig {
 }
 
 /// Configuration for the LDAP Auth flow.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentityServiceLdapConfig {
     /// Optional. Contains the properties for locating and authenticating groups in the directory.
     #[serde(default)]
@@ -1308,7 +1309,7 @@ pub struct IdentityServiceLdapConfig {
 }
 
 /// Configuration for OIDC Auth flow.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentityServiceOidcConfig {
     /// PEM-encoded CA for OIDC provider.
     #[serde(default, rename = "certificateAuthorityData")]
@@ -1355,7 +1356,7 @@ pub struct IdentityServiceOidcConfig {
 }
 
 /// Configuration for the SAML Auth flow.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentityServiceSamlConfig {
     /// Optional. The mapping of additional user attributes like nickname, birthday and address etc.. key is the name of this additional attribute. value is a string presenting as CEL(common expression language, go/cel) used for getting the value from the resources. Take nickname as an example, in this case, key is "attribute.nickname" and value is "assertion.nickname".
     #[serde(default, rename = "attributeMapping")]
@@ -1384,7 +1385,7 @@ pub struct IdentityServiceSamlConfig {
 }
 
 /// Configuration options for the AIS diagnostic interface.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentityServiceDiagnosticInterface {
     /// Determines whether to enable the diagnostic interface.
     #[serde(default)]
@@ -1395,7 +1396,7 @@ pub struct IdentityServiceDiagnosticInterface {
 }
 
 /// A unique identifier for the type of message. Display_name is intended to be human-readable, code is intended to be machine readable. There should be a one-to-one mapping between display_name and code. (i.e. do not re-use display_names or codes between message types.) See istio.analysis.v1alpha1.AnalysisMessageBase.Type
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceMeshType {
     /// A 7 character code matching ^IST[0-9]{4}$ or ^ASM[0-9]{4}$, intended to uniquely identify the message type. (e.g. "IST0001" is mapped to the "InternalError" message type.)
     #[serde(default)]
@@ -1406,7 +1407,7 @@ pub struct ServiceMeshType {
 }
 
 /// Model for a config file in the git repo with an associated Sync error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementErrorResource {
     /// Group/version/kind of the resource that is causing an error
     #[serde(default, rename = "resourceGvk")]
@@ -1423,7 +1424,7 @@ pub struct ConfigManagementErrorResource {
 }
 
 /// Configuration for a container override.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementContainerOverride {
     /// Required. The name of the container.
     #[serde(default, rename = "containerName")]
@@ -1443,7 +1444,7 @@ pub struct ConfigManagementContainerOverride {
 }
 
 /// Contains the properties for locating and authenticating groups in the directory.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentityServiceGroupConfig {
     /// Required. The location of the subtree in the LDAP directory to search for group entries.
     #[serde(default, rename = "baseDn")]
@@ -1457,7 +1458,7 @@ pub struct IdentityServiceGroupConfig {
 }
 
 /// Server settings for the external LDAP server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentityServiceServerConfig {
     /// Optional. Contains a Base64 encoded, PEM formatted certificate authority certificate for the LDAP server. This must be provided for the "ldaps" and "startTLS" connections.
     #[serde(default, rename = "certificateAuthorityData")]
@@ -1471,7 +1472,7 @@ pub struct IdentityServiceServerConfig {
 }
 
 /// Contains the credentials of the service account which is authorized to perform the LDAP search in the directory. The credentials can be supplied by the combination of the DN and password or the client certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentityServiceServiceAccountConfig {
     /// Credentials for basic auth.
     #[serde(default, rename = "simpleBindCredentials")]
@@ -1479,7 +1480,7 @@ pub struct IdentityServiceServiceAccountConfig {
 }
 
 /// Defines where users exist in the LDAP directory.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentityServiceUserConfig {
     /// Required. The location of the subtree in the LDAP directory to search for user entries.
     #[serde(default, rename = "baseDn")]
@@ -1496,7 +1497,7 @@ pub struct IdentityServiceUserConfig {
 }
 
 /// A Kubernetes object''s GVK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigManagementGroupVersionKind {
     /// Kubernetes Group
     #[serde(default)]
@@ -1510,7 +1511,7 @@ pub struct ConfigManagementGroupVersionKind {
 }
 
 /// The structure holds the LDAP simple binding credential.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentityServiceSimpleBindCredentials {
     /// Required. The distinguished name(DN) of the service account object/user.
     #[serde(default)]

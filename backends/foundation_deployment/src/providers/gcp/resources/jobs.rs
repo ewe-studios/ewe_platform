@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request to create a batch of jobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchCreateJobsRequest {
     /// Required. The jobs to be created. A maximum of 200 jobs can be created in a batch.
     #[serde(default)]
@@ -19,7 +20,7 @@ pub struct BatchCreateJobsRequest {
 }
 
 /// The result of JobService.BatchCreateJobs. It''s used to replace google.longrunning.Operation.response in case of success.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchCreateJobsResponse {
     /// List of job mutation results from a batch create operation. It can change until operation status is FINISHED, FAILED or CANCELLED.
     #[serde(default, rename = "jobResults")]
@@ -27,7 +28,7 @@ pub struct BatchCreateJobsResponse {
 }
 
 /// Request to delete a batch of jobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchDeleteJobsRequest {
     /// The names of the jobs to delete. The format is "projects/{project_id}/tenants/{tenant_id}/jobs/{job_id}". For example, "projects/foo/tenants/bar/jobs/baz". A maximum of 200 jobs can be deleted in a batch.
     #[serde(default)]
@@ -35,7 +36,7 @@ pub struct BatchDeleteJobsRequest {
 }
 
 /// The result of JobService.BatchDeleteJobs. It''s used to replace google.longrunning.Operation.response in case of success.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchDeleteJobsResponse {
     /// List of job mutation results from a batch delete operation. It can change until operation status is FINISHED, FAILED or CANCELLED.
     #[serde(default, rename = "jobResults")]
@@ -43,7 +44,7 @@ pub struct BatchDeleteJobsResponse {
 }
 
 /// Metadata used for long running operations returned by CTS batch APIs. It''s used to replace google.longrunning.Operation.metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchOperationMetadata {
     /// The time when the batch operation is created.
     #[serde(default, rename = "createTime")]
@@ -72,7 +73,7 @@ pub struct BatchOperationMetadata {
 }
 
 /// Request to update a batch of jobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateJobsRequest {
     /// Required. The jobs to be updated. A maximum of 200 jobs can be updated in a batch.
     #[serde(default)]
@@ -83,7 +84,7 @@ pub struct BatchUpdateJobsRequest {
 }
 
 /// The result of JobService.BatchUpdateJobs. It''s used to replace google.longrunning.Operation.response in case of success.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateJobsResponse {
     /// List of job mutation results from a batch update operation. It can change until operation status is FINISHED, FAILED or CANCELLED.
     #[serde(default, rename = "jobResults")]
@@ -91,7 +92,7 @@ pub struct BatchUpdateJobsResponse {
 }
 
 /// An event issued when an end user interacts with the application that implements Cloud Talent Solution. Providing this information improves the quality of results for the API clients, enabling the service to perform optimally. The number of events sent must be consistent with other calls, such as job searches, issued to the service by the client.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClientEvent {
     /// Required. The timestamp of the event.
     #[serde(default, rename = "createTime")]
@@ -111,7 +112,7 @@ pub struct ClientEvent {
 }
 
 /// Response of auto-complete query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompleteQueryResponse {
     /// Results of the matching job/company candidates.
     #[serde(default, rename = "completionResults")]
@@ -122,7 +123,7 @@ pub struct CompleteQueryResponse {
 }
 
 /// Custom attribute values that are either filterable or non-filterable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomAttribute {
     /// If the filterable flag is true, the custom field values may be used for custom attribute filters JobQuery.custom_attribute_filter. If false, these values may not be used for custom attribute filters. Default is false.
     #[serde(default)]
@@ -139,11 +140,11 @@ pub struct CustomAttribute {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// The List companies response object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCompaniesResponse {
     /// Companies for the current client.
     #[serde(default)]
@@ -157,7 +158,7 @@ pub struct ListCompaniesResponse {
 }
 
 /// List jobs response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListJobsResponse {
     /// The Jobs for a given company. The maximum number of items returned is based on the limit field provided in the request.
     #[serde(default)]
@@ -171,7 +172,7 @@ pub struct ListJobsResponse {
 }
 
 /// The List tenants response object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTenantsResponse {
     /// Additional information for the API invocation, such as the request tracking id.
     #[serde(default)]
@@ -185,7 +186,7 @@ pub struct ListTenantsResponse {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -205,7 +206,7 @@ pub struct Operation {
 }
 
 /// The Request body of the SearchJobs call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchJobsRequest {
     /// Controls over how job documents get ranked on top of existing relevance score (determined by API algorithm).
     #[serde(default, rename = "customRankingInfo")]
@@ -255,7 +256,7 @@ pub struct SearchJobsRequest {
 }
 
 /// Response for SearchJob method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchJobsResponse {
     /// If query broadening is enabled, we may append additional results from the broadened query. This number indicates how many of the jobs returned in the jobs field are from the broadened query. These results are always at the end of the jobs list. In particular, a value of 0, or if the field isn''t set, all the jobs in the jobs list are from the original (without broadening) query. If this field is non-zero, subsequent requests with offset after this result set should contain all broadened results.
     #[serde(default, rename = "broadenedQueryJobsCount")]
@@ -284,7 +285,7 @@ pub struct SearchJobsResponse {
 }
 
 /// Mutation result of a job from a batch operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobResult {
     /// Here Job only contains basic information including name, company, language_code and requisition_id, use getJob method to retrieve detailed information of the created/updated job.
     #[serde(default)]
@@ -295,7 +296,7 @@ pub struct JobResult {
 }
 
 /// An event issued when a job seeker interacts with the application that implements Cloud Talent Solution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobEvent {
     /// Required. The job name(s) associated with this event. For example, if this is an impression event, this field contains the identifiers of all jobs shown to the job seeker. If this was a view event, this field contains the identifier of the viewed job. The format is "projects/{project_id}/tenants/{tenant_id}/jobs/{job_id}", for example, "projects/foo/tenants/bar/jobs/baz".
     #[serde(default)]
@@ -306,7 +307,7 @@ pub struct JobEvent {
 }
 
 /// Resource that represents completion results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompletionResult {
     /// The URI of the company image for COMPANY_NAME.
     #[serde(default, rename = "imageUri")]
@@ -320,7 +321,7 @@ pub struct CompletionResult {
 }
 
 /// A Company resource represents a company in the service. A company is the entity that owns job postings, that is, the hiring entity responsible for employing applicants for the job position.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Company {
     /// The URI to employer''s career site or careers page on the employer''s web site, for example, "https://careers.google.com".
     #[serde(default, rename = "careerSiteUri")]
@@ -364,7 +365,7 @@ pub struct Company {
 }
 
 /// A Tenant resource represents a tenant in the service. A tenant is a group or entity that shares common access with specific privileges for resources like jobs. Customer may create multiple tenants to provide data isolation for different groups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Tenant {
     /// Required. Client side tenant identifier, used to uniquely identify the tenant. The maximum number of allowed characters is 255.
     #[serde(default, rename = "externalId")]
@@ -375,7 +376,7 @@ pub struct Tenant {
 }
 
 /// Custom ranking information for SearchJobsRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomRankingInfo {
     /// Required. Controls over how important the score of CustomRankingInfo.ranking_expression gets applied to job''s final ranking position. An error is thrown if not specified. // TODO: enum values: ["IMPORTANCE_LEVEL_UNSPECIFIED", "NONE", "LOW", "MILD", "MEDIUM", "HIGH", "EXTREME"]
     #[serde(default, rename = "importanceLevel")]
@@ -386,7 +387,7 @@ pub struct CustomRankingInfo {
 }
 
 /// The histogram request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HistogramQuery {
     /// An expression specifies a histogram request against matching jobs for searches. See SearchJobsRequest.histogram_queries for details about syntax.
     #[serde(default, rename = "histogramQuery")]
@@ -394,7 +395,7 @@ pub struct HistogramQuery {
 }
 
 /// The query required to perform a search query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobQuery {
     /// Allows filtering jobs by commute time with different travel methods (for example, driving or public transit). Note: This only works when you specify a CommuteMethod. In this case, location_filters is ignored. Currently we don''t support sorting by commute time.
     #[serde(default, rename = "commuteFilter")]
@@ -441,7 +442,7 @@ pub struct JobQuery {
 }
 
 /// Meta information related to the job searcher or entity conducting the job search. This information is used to improve the performance of the service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RequestMetadata {
     /// Only set when any of domain, session_id and user_id isn''t available for some reason. It is highly recommended not to set this field and provide accurate domain, session_id and user_id for the best service experience.
     #[serde(default, rename = "allowMissingIds")]
@@ -461,7 +462,7 @@ pub struct RequestMetadata {
 }
 
 /// Histogram result that matches HistogramQuery specified in searches.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HistogramQueryResult {
     /// A map from the values of the facet associated with distinct values to the number of matching entries with corresponding value. The key format is: * (for string histogram) string values stored in the field. * (for named numeric bucket) name specified in bucket() function, like for bucket(0, MAX, "non-negative"), the key will be non-negative. * (for anonymous numeric bucket) range formatted as -, for example, 0-1000, MIN-0, and 0-MAX.
     #[serde(default)]
@@ -472,7 +473,7 @@ pub struct HistogramQueryResult {
 }
 
 /// Job entry with metadata inside SearchJobsResponse.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MatchingJob {
     /// Commute information which is generated based on specified CommuteFilter.
     #[serde(default, rename = "commuteInfo")]
@@ -492,7 +493,7 @@ pub struct MatchingJob {
 }
 
 /// Additional information returned to client, such as debugging information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResponseMetadata {
     /// A unique id associated with this call. This id is logged for tracking purposes.
     #[serde(default, rename = "requestId")]
@@ -500,7 +501,7 @@ pub struct ResponseMetadata {
 }
 
 /// Spell check result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpellingCorrection {
     /// Indicates if the query was corrected by the spell checker.
     #[serde(default)]
@@ -514,7 +515,7 @@ pub struct SpellingCorrection {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -528,7 +529,7 @@ pub struct Status {
 }
 
 /// Derived details about the company.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompanyDerivedInfo {
     /// A structured headquarters location of the company, resolved from Company.headquarters_address if provided.
     #[serde(default, rename = "headquartersLocation")]
@@ -536,7 +537,7 @@ pub struct CompanyDerivedInfo {
 }
 
 /// Parameters needed for commute search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommuteFilter {
     /// If true, jobs without street level addresses may also be returned. For city level addresses, the city center is used. For state and coarser level addresses, text matching is used. If this field is set to false or isn''t specified, only jobs that include street level addresses will be returned by commute search.
     #[serde(default, rename = "allowImpreciseAddresses")]
@@ -559,7 +560,7 @@ pub struct CommuteFilter {
 }
 
 /// Filter on job compensation type and amount.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompensationFilter {
     /// If set to true, jobs with unspecified compensation range fields are included.
     #[serde(default, rename = "includeJobsWithUnspecifiedCompensationRange")]
@@ -576,7 +577,7 @@ pub struct CompensationFilter {
 }
 
 /// Geographic region of the search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocationFilter {
     /// The address name, such as "Mountain View" or "Bay Area".
     #[serde(default)]
@@ -596,7 +597,7 @@ pub struct LocationFilter {
 }
 
 /// Message representing a period of time between two timestamps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimestampRange {
     /// End of the period (exclusive).
     #[serde(default, rename = "endTime")]
@@ -607,7 +608,7 @@ pub struct TimestampRange {
 }
 
 /// Device information collected from the job seeker, candidate, or other entity conducting the job search. Providing this information improves the quality of the search results across devices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceInfo {
     /// Type of the device. // TODO: enum values: ["DEVICE_TYPE_UNSPECIFIED", "WEB", "MOBILE_WEB", "ANDROID", "IOS", "BOT", "OTHER"]
     #[serde(default, rename = "deviceType")]
@@ -618,7 +619,7 @@ pub struct DeviceInfo {
 }
 
 /// Commute details related to this job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommuteInfo {
     /// Location used as the destination in the commute calculation.
     #[serde(default, rename = "jobLocation")]
@@ -629,7 +630,7 @@ pub struct CommuteInfo {
 }
 
 /// A Job resource represents a job posting (also referred to as a "job listing" or "job requisition"). A job belongs to a Company, which is the hiring entity responsible for the job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Job {
     /// Strongly recommended for the best service experience. Location(s) where the employer is looking to hire for this job posting. Specifying the full street address(es) of the hiring location enables better API results, especially job searches by commute time. At most 50 locations are allowed for best search performance. If a job has more locations, it is suggested to split it into multiple jobs with unique requisition_ids (e.g. ''ReqA'' becomes ''ReqA-1'', ''ReqA-2'', and so on.) as multiple jobs with the same company, language_code and requisition_id are not allowed. If the original requisition_id must be preserved, a custom field should be used for storage. It is also suggested to group the locations that close to each other in the same job for better search experience. Jobs with multiple addresses must have their addresses with the same LocationType to allow location filtering to work properly. (For example, a Job with addresses "1600 Amphitheatre Parkway, Mountain View, CA, USA" and "London, UK" may not have location filters applied correctly at search time since the first is a LocationType.STREET_ADDRESS and the second is a LocationType.LOCALITY.) If a job needs to have multiple addresses, it is suggested to split it into multiple jobs with same LocationTypes. The maximum number of allowed characters is 500.
     #[serde(default)]
@@ -724,7 +725,7 @@ pub struct Job {
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]
@@ -741,7 +742,7 @@ pub struct TimeOfDay {
 }
 
 /// Application related details of a job posting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplicationInfo {
     /// Use this field to specify email address(es) to which resumes or applications can be sent. The maximum number of allowed characters for each entry is 255.
     #[serde(default)]
@@ -755,7 +756,7 @@ pub struct ApplicationInfo {
 }
 
 /// Job compensation details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompensationInfo {
     /// Output only. Annualized base compensation range. Computed as base compensation entry''s CompensationEntry.amount times CompensationEntry.expected_units_per_year. See CompensationEntry for explanation on compensation annualization.
     #[serde(default, rename = "annualizedBaseCompensationRange")]
@@ -769,7 +770,7 @@ pub struct CompensationInfo {
 }
 
 /// Derived details about the job posting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobDerivedInfo {
     /// Job categories derived from Job.title and Job.description.
     #[serde(default, rename = "jobCategories")]
@@ -780,7 +781,7 @@ pub struct JobDerivedInfo {
 }
 
 /// Options for job processing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProcessingOptions {
     /// If set to true, the service does not attempt to resolve a more precise address for the job.
     #[serde(default, rename = "disableStreetAddressResolution")]
@@ -791,7 +792,7 @@ pub struct ProcessingOptions {
 }
 
 /// A compensation entry that represents one component of compensation, such as base pay, bonus, or other compensation type. Annualization: One compensation entry can be annualized if - it contains valid amount or range. - and its expected_units_per_year is set or can be derived. Its annualized range is determined as (amount or range) times expected_units_per_year.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompensationEntry {
     /// Compensation amount.
     #[serde(default)]
@@ -814,7 +815,7 @@ pub struct CompensationEntry {
 }
 
 /// A resource that represents a location with full geographic information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// An object representing a latitude/longitude pair.
     #[serde(default, rename = "latLng")]
@@ -831,7 +832,7 @@ pub struct Location {
 }
 
 /// Compensation range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompensationRange {
     /// The maximum amount of compensation. If left empty, the value is set to a maximal compensation value and the currency code is set to match the currency code of min_compensation.
     #[serde(default, rename = "maxCompensation")]
@@ -842,7 +843,7 @@ pub struct CompensationRange {
 }
 
 /// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LatLng {
     /// The latitude in degrees. It must be in the range [-90.0, +90.0].
     #[serde(default)]
@@ -853,7 +854,7 @@ pub struct LatLng {
 }
 
 /// Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostalAddress {
     /// Unstructured address lines describing the lower levels of an address. Because values in address_lines do not have type information and may sometimes contain multiple values in a single field (for example, "Austin, TX"), it is important that the line order is clear. The order of address lines should be "envelope order" for the country or region of the address. In places where this can vary (for example, Japan), address_language is used to make it explicit (for example, "ja" for large-to-small ordering and "ja-Latn" or "en" for small-to-large). In this way, the most specific line of an address can be selected based on the language. The minimum permitted structural representation of an address consists of a region_code with all remaining information placed in the address_lines. It would be possible to format such an address very approximately without geocoding, but no semantic reasoning could be made about any of the address components until it was at least partially resolved. Creating an address only containing a region_code and address_lines and then geocoding is the recommended way to handle completely unstructured addresses (as opposed to guessing which parts of the address should be localities or administrative areas).
     #[serde(default, rename = "addressLines")]
@@ -891,7 +892,7 @@ pub struct PostalAddress {
 }
 
 /// Represents an amount of money with its currency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Money {
     /// The three-letter currency code defined in ISO 4217.
     #[serde(default, rename = "currencyCode")]

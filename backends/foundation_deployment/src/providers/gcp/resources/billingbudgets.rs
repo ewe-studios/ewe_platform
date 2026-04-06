@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Describes a budget amount targeted to the last Filter.calendar_period spend. At this time, the amount is automatically 100% of the last calendar period''s spend; that is, there are no other options yet. LastPeriodAmount cannot be set for a budget configured with a Filter.custom_period.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBillingBudgetsV1LastPeriodAmount {}
 
 /// Response for ListBudgets
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBillingBudgetsV1ListBudgetsResponse {
     /// List of the budgets owned by the requested billing account.
     #[serde(default)]
@@ -26,11 +27,11 @@ pub struct GoogleCloudBillingBudgetsV1ListBudgetsResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// A budget is a plan that describes what you expect to spend on Cloud projects, plus the rules to execute as spend is tracked against that plan, (for example, send an alert when 90% of the target spend is met). The budget time period is configurable, with options such as month (default), quarter, year, or custom time period.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBillingBudgetsV1Budget {
     /// Required. Budgeted amount.
     #[serde(default)]
@@ -60,7 +61,7 @@ pub struct GoogleCloudBillingBudgetsV1Budget {
 }
 
 /// The budgeted amount for each usage period.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBillingBudgetsV1BudgetAmount {
     /// Use the last period''s actual spend as the budget for the present period. LastPeriodAmount can only be set when the budget''s time period is a Filter.calendar_period. It cannot be set in combination with Filter.custom_period.
     #[serde(default, rename = "lastPeriodAmount")]
@@ -71,7 +72,7 @@ pub struct GoogleCloudBillingBudgetsV1BudgetAmount {
 }
 
 /// A filter for a budget, limiting the scope of the cost to calculate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBillingBudgetsV1Filter {
     /// Optional. Specifies to track usage for recurring calendar period. For example, assume that CalendarPeriod.QUARTER is set. The budget tracks usage from April 1 to June 30, when the current calendar month is April, May, June. After that, it tracks usage from July 1 to September 30 when the current calendar month is July, August, September, so on. // TODO: enum values: ["CALENDAR_PERIOD_UNSPECIFIED", "MONTH", "QUARTER", "YEAR"]
     #[serde(default, rename = "calendarPeriod")]
@@ -103,7 +104,7 @@ pub struct GoogleCloudBillingBudgetsV1Filter {
 }
 
 /// NotificationsRule defines notifications that are sent based on budget spend and thresholds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBillingBudgetsV1NotificationsRule {
     /// Optional. When set to true, disables default notifications sent when a threshold is exceeded. Default notifications are sent to those with Billing Account Administrator and Billing Account User IAM roles for the target account.
     #[serde(default, rename = "disableDefaultIamRecipients")]
@@ -123,7 +124,7 @@ pub struct GoogleCloudBillingBudgetsV1NotificationsRule {
 }
 
 /// ThresholdRule contains the definition of a threshold. Threshold rules define the triggering events used to generate a budget notification email. When a threshold is crossed (spend exceeds the specified percentages of the budget), budget alert emails are sent to the email recipients you specify in the [NotificationsRule](#notificationsrule). Threshold rules also affect the fields included in the [JSON data object](https://cloud.google.com/billing/docs/how-to/budgets-programmatic-notifications#notification_format) sent to a Pub/Sub topic. Threshold rules are _required_ if using email notifications. Threshold rules are _optional_ if only setting a [pubsubTopic NotificationsRule](#NotificationsRule), unless you want your JSON data object to include data about the thresholds you set. For more information, see [set budget threshold rules and actions](https://cloud.google.com/billing/docs/how-to/budgets#budget-actions).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBillingBudgetsV1ThresholdRule {
     /// Optional. The type of basis used to determine if spend has passed the threshold. Behavior defaults to CURRENT_SPEND if not set. // TODO: enum values: ["BASIS_UNSPECIFIED", "CURRENT_SPEND", "FORECASTED_SPEND"]
     #[serde(default, rename = "spendBasis")]
@@ -134,7 +135,7 @@ pub struct GoogleCloudBillingBudgetsV1ThresholdRule {
 }
 
 /// Represents an amount of money with its currency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeMoney {
     /// The three-letter currency code defined in ISO 4217.
     #[serde(default, rename = "currencyCode")]
@@ -148,7 +149,7 @@ pub struct GoogleTypeMoney {
 }
 
 /// All date times begin at 12 AM US and Canadian Pacific Time (UTC-8).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBillingBudgetsV1CustomPeriod {
     /// Optional. The end date of the time period. Budgets with elapsed end date won''t be processed. If unset, specifies to track all usage incurred since the start_date.
     #[serde(default, rename = "endDate")]
@@ -159,7 +160,7 @@ pub struct GoogleCloudBillingBudgetsV1CustomPeriod {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeDate {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]

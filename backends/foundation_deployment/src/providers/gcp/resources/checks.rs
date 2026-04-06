@@ -8,18 +8,19 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// The response message for AccountService.ListApps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksAccountV1alphaListAppsResponse {
     /// The apps.
     #[serde(default)]
@@ -30,7 +31,7 @@ pub struct GoogleChecksAccountV1alphaListAppsResponse {
 }
 
 /// Request proto for ClassifyContent RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksAisafetyV1alphaClassifyContentRequest {
     /// Optional. Version of the classifier to use. If not specified, the latest version will be used. // TODO: enum values: ["CLASSIFIER_VERSION_UNSPECIFIED", "STABLE", "LATEST"]
     #[serde(default, rename = "classifierVersion")]
@@ -50,7 +51,7 @@ pub struct GoogleChecksAisafetyV1alphaClassifyContentRequest {
 }
 
 /// Response proto for ClassifyContent RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksAisafetyV1alphaClassifyContentResponse {
     /// Results of the classification for each policy.
     #[serde(default, rename = "policyResults")]
@@ -60,7 +61,7 @@ pub struct GoogleChecksAisafetyV1alphaClassifyContentResponse {
 }
 
 /// The request message for RepoScanService.GenerateScan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksRepoScanV1alphaGenerateScanRequest {
     /// Required. CLI analysis results.
     #[serde(default, rename = "cliAnalysis")]
@@ -77,7 +78,7 @@ pub struct GoogleChecksRepoScanV1alphaGenerateScanRequest {
 }
 
 /// The response message for RepoScanService.ListRepoScans.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksRepoScanV1alphaListRepoScansResponse {
     /// A token which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -88,7 +89,7 @@ pub struct GoogleChecksRepoScanV1alphaListRepoScansResponse {
 }
 
 /// The request message for ReportService.AnalyzeUpload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaAnalyzeUploadRequest {
     /// Optional. The type of the uploaded app binary. If not provided, the server assumes APK file for Android and IPA file for iOS. // TODO: enum values: ["APP_BINARY_FILE_TYPE_UNSPECIFIED", "ANDROID_APK", "ANDROID_AAB", "IOS_IPA"]
     #[serde(default, rename = "appBinaryFileType")]
@@ -99,7 +100,7 @@ pub struct GoogleChecksReportV1alphaAnalyzeUploadRequest {
 }
 
 /// The response message for ReportService.ListReports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaListReportsResponse {
     /// A token which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -110,7 +111,7 @@ pub struct GoogleChecksReportV1alphaListReportsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -124,7 +125,7 @@ pub struct ListOperationsResponse {
 }
 
 /// The request message for Operations.WaitOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WaitOperationRequest {
     /// The maximum duration to wait before timing out. If left blank, the wait will be at most the time permitted by the underlying HTTP/RPC protocol. If RPC context deadline is also specified, the shorter one will be used.
     #[serde(default)]
@@ -132,7 +133,7 @@ pub struct WaitOperationRequest {
 }
 
 /// Represents an app in Checks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksAccountV1alphaApp {
     /// The resource name of the app. Example: accounts/123/apps/456
     #[serde(default)]
@@ -143,7 +144,7 @@ pub struct GoogleChecksAccountV1alphaApp {
 }
 
 /// Context about the input that will be used to help on the classification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksAisafetyV1alphaClassifyContentRequestContext {
     /// Optional. Prompt that generated the model response.
     #[serde(default)]
@@ -151,7 +152,7 @@ pub struct GoogleChecksAisafetyV1alphaClassifyContentRequestContext {
 }
 
 /// Content to be classified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksAisafetyV1alphaClassifyContentRequestInputContent {
     /// Content in text format.
     #[serde(default, rename = "textInput")]
@@ -159,7 +160,7 @@ pub struct GoogleChecksAisafetyV1alphaClassifyContentRequestInputContent {
 }
 
 /// List of policies to classify against.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksAisafetyV1alphaClassifyContentRequestPolicyConfig {
     /// Required. Type of the policy. // TODO: enum values: ["POLICY_TYPE_UNSPECIFIED", "DANGEROUS_CONTENT", "PII_SOLICITING_RECITING", "HARASSMENT", "SEXUALLY_EXPLICIT", "HATE_SPEECH", "MEDICAL_INFO", "VIOLENCE_AND_GORE", "OBSCENITY_AND_PROFANITY"]
     #[serde(default, rename = "policyType")]
@@ -170,7 +171,7 @@ pub struct GoogleChecksAisafetyV1alphaClassifyContentRequestPolicyConfig {
 }
 
 /// Result for one policy against the corresponding input.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksAisafetyV1alphaClassifyContentResponsePolicyResult {
     /// Type of the policy. // TODO: enum values: ["POLICY_TYPE_UNSPECIFIED", "DANGEROUS_CONTENT", "PII_SOLICITING_RECITING", "HARASSMENT", "SEXUALLY_EXPLICIT", "HATE_SPEECH", "MEDICAL_INFO", "VIOLENCE_AND_GORE", "OBSCENITY_AND_PROFANITY"]
     #[serde(default, rename = "policyType")]
@@ -184,7 +185,7 @@ pub struct GoogleChecksAisafetyV1alphaClassifyContentResponsePolicyResult {
 }
 
 /// The results of a Code Compliance CLI analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksRepoScanV1alphaCliAnalysis {
     /// Optional. Requested code scans resulting from preliminary CLI analysis.
     #[serde(default, rename = "codeScans")]
@@ -195,7 +196,7 @@ pub struct GoogleChecksRepoScanV1alphaCliAnalysis {
 }
 
 /// Repo scan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksRepoScanV1alphaRepoScan {
     /// CLI version.
     #[serde(default, rename = "cliVersion")]
@@ -218,7 +219,7 @@ pub struct GoogleChecksRepoScanV1alphaRepoScan {
 }
 
 /// Privacy report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaReport {
     /// Information about the analyzed app bundle.
     #[serde(default, rename = "appBundle")]
@@ -238,7 +239,7 @@ pub struct GoogleChecksReportV1alphaReport {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -258,7 +259,7 @@ pub struct Operation {
 }
 
 /// Text input to be classified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksAisafetyV1alphaTextInput {
     /// Actual piece of text to be classified.
     #[serde(default)]
@@ -269,7 +270,7 @@ pub struct GoogleChecksAisafetyV1alphaTextInput {
 }
 
 /// A requested analysis of source code. Contains the source code and processing state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksRepoScanV1alphaCodeScan {
     /// Optional. Data type classification requests.
     #[serde(default, rename = "dataTypeClassifications")]
@@ -282,7 +283,7 @@ pub struct GoogleChecksRepoScanV1alphaCodeScan {
 }
 
 /// SCM metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksRepoScanV1alphaScmMetadata {
     /// Required. Branch name.
     #[serde(default)]
@@ -299,7 +300,7 @@ pub struct GoogleChecksRepoScanV1alphaScmMetadata {
 }
 
 /// Represents a data source finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksRepoScanV1alphaSource {
     /// Optional. Source code attribution for the finding.
     #[serde(default, rename = "codeAttribution")]
@@ -313,7 +314,7 @@ pub struct GoogleChecksRepoScanV1alphaSource {
 }
 
 /// Information about the analyzed app bundle.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaAppBundle {
     /// Unique id of the bundle. For example: "com.google.Gmail".
     #[serde(default, rename = "bundleId")]
@@ -333,7 +334,7 @@ pub struct GoogleChecksReportV1alphaAppBundle {
 }
 
 /// A check that was run on your app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaCheck {
     /// Regulations and policies that serve as the legal basis for the check.
     #[serde(default)]
@@ -359,7 +360,7 @@ pub struct GoogleChecksReportV1alphaCheck {
 }
 
 /// Represents the data monitoring section of the report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaDataMonitoring {
     /// Data types that your app shares or collects.
     #[serde(default, rename = "dataTypes")]
@@ -383,7 +384,7 @@ pub struct GoogleChecksReportV1alphaDataMonitoring {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -397,7 +398,7 @@ pub struct Status {
 }
 
 /// A request to classify data types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksRepoScanV1alphaCodeScanDataTypeClassification {
     /// Required. Candidate data type. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "DATA_TYPE_APPROXIMATE_LOCATION", "DATA_TYPE_PRECISE_LOCATION", "DATA_TYPE_PERSONAL_NAME", "DATA_TYPE_EMAIL_ADDRESS", "DATA_TYPE_USER_IDS", "DATA_TYPE_PHYSICAL_ADDRESS", "DATA_TYPE_PHONE_NUMBER", "DATA_TYPE_RACE_AND_ETHNICITY", "DATA_TYPE_POLITICAL_OR_RELIGIOUS_BELIEFS", "DATA_TYPE_SEXUAL_ORIENTATION", "DATA_TYPE_OTHER_PERSONAL_INFO", "DATA_TYPE_PAYMENT_INFO", "DATA_TYPE_PURCHASE_HISTORY", "DATA_TYPE_CREDIT_SCORE", "DATA_TYPE_OTHER_FINANCIAL_INFO", "DATA_TYPE_HEALTH_INFO", "DATA_TYPE_FITNESS_INFO", "DATA_TYPE_EMAILS", "DATA_TYPE_TEXT_MESSAGES", "DATA_TYPE_OTHER_IN_APP_MESSAGES", "DATA_TYPE_PHOTOS", "DATA_TYPE_VIDEOS", "DATA_TYPE_VOICE_OR_SOUND_RECORDINGS", "DATA_TYPE_MUSIC_FILES", "DATA_TYPE_OTHER_AUDIO_FILES", "DATA_TYPE_FILES_AND_DOCS", "DATA_TYPE_CALENDAR_EVENTS", "DATA_TYPE_CONTACTS", "DATA_TYPE_APP_INTERACTIONS", "DATA_TYPE_IN_APP_SEARCH_HISTORY", "DATA_TYPE_INSTALLED_APPS", "DATA_TYPE_OTHER_USER_GENERATED_CONTENT", "DATA_TYPE_OTHER_ACTIONS", "DATA_TYPE_WEB_BROWSING_HISTORY", "DATA_TYPE_CRASH_LOGS", "DATA_TYPE_PERFORMANCE_DIAGNOSTICS", "DATA_TYPE_OTHER_APP_PERFORMANCE_DATA", "DATA_TYPE_DEVICE_OR_OTHER_IDS"]
     #[serde(default, rename = "dataType")]
@@ -408,7 +409,7 @@ pub struct GoogleChecksRepoScanV1alphaCodeScanDataTypeClassification {
 }
 
 /// Contains source code from a repo.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksRepoScanV1alphaSourceCode {
     /// Required. Source code.
     #[serde(default)]
@@ -425,7 +426,7 @@ pub struct GoogleChecksRepoScanV1alphaSourceCode {
 }
 
 /// Pull request info.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksRepoScanV1alphaPullRequest {
     /// Required. For PR analysis, we compare against the most recent scan of the base branch to highlight new issues.
     #[serde(default, rename = "baseBranch")]
@@ -436,7 +437,7 @@ pub struct GoogleChecksRepoScanV1alphaPullRequest {
 }
 
 /// Source code attribution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksRepoScanV1alphaCodeAttribution {
     /// Optional. Code excerpt where the source was detected along with surrounding code.
     #[serde(default, rename = "codeExcerpt")]
@@ -453,7 +454,7 @@ pub struct GoogleChecksRepoScanV1alphaCodeAttribution {
 }
 
 /// Regulation or policy that serves as the legal basis for the check.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaCheckCitation {
     /// Citation type. // TODO: enum values: ["CITATION_TYPE_UNSPECIFIED", "COPPA", "GDPR", "FERPA", "CAL_OPPA", "CCPA", "SOPIPA", "LGPD", "CPRA", "VCDPA", "GOOGLE_PLAY_POLICY", "APP_STORE_POLICY", "CPA", "CTDPA", "UCPA", "PIPEDA", "ALBERTA_PIPA", "QUEBEC_ACT", "QUEBEC_BILL_64", "CHINA_PIPL", "SOUTH_KOREA_PIPA", "SOUTH_AFRICA_POPIA", "JAPAN_APPI", "INDIA_DPDPA", "OCPA", "TDPSA", "MCDPA"]
     #[serde(default, rename = "type")]
@@ -461,7 +462,7 @@ pub struct GoogleChecksReportV1alphaCheckCitation {
 }
 
 /// Evidence for a check.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaCheckEvidence {
     /// Evidence concerning data security.
     #[serde(default, rename = "dataSecurity")]
@@ -508,7 +509,7 @@ pub struct GoogleChecksReportV1alphaCheckEvidence {
 }
 
 /// Additional information about the check state in relation to past reports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaCheckStateMetadata {
     /// Indicators related to the check state.
     #[serde(default)]
@@ -522,7 +523,7 @@ pub struct GoogleChecksReportV1alphaCheckStateMetadata {
 }
 
 /// Information about a data type that was found in your app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaDataMonitoringDataTypeResult {
     /// The data type that was shared or collected by your app. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "DATA_TYPE_APPROXIMATE_LOCATION", "DATA_TYPE_PRECISE_LOCATION", "DATA_TYPE_PERSONAL_NAME", "DATA_TYPE_EMAIL_ADDRESS", "DATA_TYPE_USER_IDS", "DATA_TYPE_PHYSICAL_ADDRESS", "DATA_TYPE_PHONE_NUMBER", "DATA_TYPE_RACE_AND_ETHNICITY", "DATA_TYPE_POLITICAL_OR_RELIGIOUS_BELIEFS", "DATA_TYPE_SEXUAL_ORIENTATION", "DATA_TYPE_OTHER_PERSONAL_INFO", "DATA_TYPE_PAYMENT_INFO", "DATA_TYPE_PURCHASE_HISTORY", "DATA_TYPE_CREDIT_SCORE", "DATA_TYPE_OTHER_FINANCIAL_INFO", "DATA_TYPE_HEALTH_INFO", "DATA_TYPE_FITNESS_INFO", "DATA_TYPE_EMAILS", "DATA_TYPE_TEXT_MESSAGES", "DATA_TYPE_OTHER_IN_APP_MESSAGES", "DATA_TYPE_PHOTOS", "DATA_TYPE_VIDEOS", "DATA_TYPE_VOICE_OR_SOUND_RECORDINGS", "DATA_TYPE_MUSIC_FILES", "DATA_TYPE_OTHER_AUDIO_FILES", "DATA_TYPE_FILES_AND_DOCS", "DATA_TYPE_CALENDAR_EVENTS", "DATA_TYPE_CONTACTS", "DATA_TYPE_APP_INTERACTIONS", "DATA_TYPE_IN_APP_SEARCH_HISTORY", "DATA_TYPE_INSTALLED_APPS", "DATA_TYPE_OTHER_USER_GENERATED_CONTENT", "DATA_TYPE_OTHER_ACTIONS", "DATA_TYPE_WEB_BROWSING_HISTORY", "DATA_TYPE_CRASH_LOGS", "DATA_TYPE_PERFORMANCE_DIAGNOSTICS", "DATA_TYPE_OTHER_APP_PERFORMANCE_DATA", "DATA_TYPE_DEVICE_OR_OTHER_IDS"]
     #[serde(default, rename = "dataType")]
@@ -536,7 +537,7 @@ pub struct GoogleChecksReportV1alphaDataMonitoringDataTypeResult {
 }
 
 /// Information about an endpoint that was contacted by your app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaDataMonitoringEndpointResult {
     /// The endpoint that was contacted by your app.
     #[serde(default)]
@@ -550,7 +551,7 @@ pub struct GoogleChecksReportV1alphaDataMonitoringEndpointResult {
 }
 
 /// Information about a permission that was found in your app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaDataMonitoringPermissionResult {
     /// Metadata about the result.
     #[serde(default)]
@@ -561,7 +562,7 @@ pub struct GoogleChecksReportV1alphaDataMonitoringPermissionResult {
 }
 
 /// Information about an SDK that was found in your app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaDataMonitoringSdkResult {
     /// Metadata about the result.
     #[serde(default)]
@@ -572,7 +573,7 @@ pub struct GoogleChecksReportV1alphaDataMonitoringSdkResult {
 }
 
 /// Evidence concerning data security.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaCheckDataSecurityEvidence {
     /// Evidence related to data in transit.
     #[serde(default, rename = "dataInTransitInfo")]
@@ -582,7 +583,7 @@ pub struct GoogleChecksReportV1alphaCheckDataSecurityEvidence {
 }
 
 /// Evidence concerning a data type that was found in your app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaCheckDataTypeEvidence {
     /// The data type that was found in your app. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "DATA_TYPE_APPROXIMATE_LOCATION", "DATA_TYPE_PRECISE_LOCATION", "DATA_TYPE_PERSONAL_NAME", "DATA_TYPE_EMAIL_ADDRESS", "DATA_TYPE_USER_IDS", "DATA_TYPE_PHYSICAL_ADDRESS", "DATA_TYPE_PHONE_NUMBER", "DATA_TYPE_RACE_AND_ETHNICITY", "DATA_TYPE_POLITICAL_OR_RELIGIOUS_BELIEFS", "DATA_TYPE_SEXUAL_ORIENTATION", "DATA_TYPE_OTHER_PERSONAL_INFO", "DATA_TYPE_PAYMENT_INFO", "DATA_TYPE_PURCHASE_HISTORY", "DATA_TYPE_CREDIT_SCORE", "DATA_TYPE_OTHER_FINANCIAL_INFO", "DATA_TYPE_HEALTH_INFO", "DATA_TYPE_FITNESS_INFO", "DATA_TYPE_EMAILS", "DATA_TYPE_TEXT_MESSAGES", "DATA_TYPE_OTHER_IN_APP_MESSAGES", "DATA_TYPE_PHOTOS", "DATA_TYPE_VIDEOS", "DATA_TYPE_VOICE_OR_SOUND_RECORDINGS", "DATA_TYPE_MUSIC_FILES", "DATA_TYPE_OTHER_AUDIO_FILES", "DATA_TYPE_FILES_AND_DOCS", "DATA_TYPE_CALENDAR_EVENTS", "DATA_TYPE_CONTACTS", "DATA_TYPE_APP_INTERACTIONS", "DATA_TYPE_IN_APP_SEARCH_HISTORY", "DATA_TYPE_INSTALLED_APPS", "DATA_TYPE_OTHER_USER_GENERATED_CONTENT", "DATA_TYPE_OTHER_ACTIONS", "DATA_TYPE_WEB_BROWSING_HISTORY", "DATA_TYPE_CRASH_LOGS", "DATA_TYPE_PERFORMANCE_DIAGNOSTICS", "DATA_TYPE_OTHER_APP_PERFORMANCE_DATA", "DATA_TYPE_DEVICE_OR_OTHER_IDS"]
     #[serde(default, rename = "dataType")]
@@ -593,7 +594,7 @@ pub struct GoogleChecksReportV1alphaCheckDataTypeEvidence {
 }
 
 /// Evidence collected from endpoint restriction violation analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaCheckEndpointRestrictionViolationEvidence {
     /// Endpoints in violation.
     #[serde(default, rename = "endpointDetails")]
@@ -605,7 +606,7 @@ pub struct GoogleChecksReportV1alphaCheckEndpointRestrictionViolationEvidence {
 }
 
 /// Evidence concerning an endpoint that was contacted by your app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaCheckEndpointEvidence {
     /// The endpoint that was contacted by your app.
     #[serde(default)]
@@ -613,7 +614,7 @@ pub struct GoogleChecksReportV1alphaCheckEndpointEvidence {
 }
 
 /// Evidence collected from permission restriction violation analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaCheckPermissionRestrictionViolationEvidence {
     /// Permissions in violation.
     #[serde(default, rename = "permissionDetails")]
@@ -625,7 +626,7 @@ pub struct GoogleChecksReportV1alphaCheckPermissionRestrictionViolationEvidence 
 }
 
 /// Evidence concerning a permission that was found in your app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaCheckPermissionEvidence {
     /// The permission that was found in your app.
     #[serde(default)]
@@ -633,7 +634,7 @@ pub struct GoogleChecksReportV1alphaCheckPermissionEvidence {
 }
 
 /// Evidence collected from your privacy policy(s).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaCheckPrivacyPolicyTextEvidence {
     /// The privacy policy fragment that was used during the check.
     #[serde(default, rename = "policyFragment")]
@@ -641,7 +642,7 @@ pub struct GoogleChecksReportV1alphaCheckPrivacyPolicyTextEvidence {
 }
 
 /// Evidence concerning an SDK issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaCheckSdkIssueEvidence {
     /// The SDK with an issue.
     #[serde(default)]
@@ -652,7 +653,7 @@ pub struct GoogleChecksReportV1alphaCheckSdkIssueEvidence {
 }
 
 /// Evidence collected from SDK restriction violation analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaCheckSdkRestrictionViolationEvidence {
     /// SDKs in violation.
     #[serde(default, rename = "sdkDetails")]
@@ -662,7 +663,7 @@ pub struct GoogleChecksReportV1alphaCheckSdkRestrictionViolationEvidence {
 }
 
 /// Evidence conerning an SDK that was found in your app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaCheckSdkEvidence {
     /// The SDK that was found in your app.
     #[serde(default)]
@@ -670,7 +671,7 @@ pub struct GoogleChecksReportV1alphaCheckSdkEvidence {
 }
 
 /// Information about a data monitoring result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaDataMonitoringResultMetadata {
     /// Badges that apply to this result.
     #[serde(default)]
@@ -687,7 +688,7 @@ pub struct GoogleChecksReportV1alphaDataMonitoringResultMetadata {
 }
 
 /// Evidence related to data in transit detected in your app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaCheckDataSecurityEvidenceDataInTransitInfo {
     /// The URL contacted by your app. This includes the protocol, domain, and URL parameters.
     #[serde(default)]
@@ -695,7 +696,7 @@ pub struct GoogleChecksReportV1alphaCheckDataSecurityEvidenceDataInTransitInfo {
 }
 
 /// Evidence collected about a data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaDataTypeEvidence {
     /// List of endpoints the data type was sent to.
     #[serde(default)]
@@ -714,7 +715,7 @@ pub struct GoogleChecksReportV1alphaDataTypeEvidence {
 }
 
 /// Details of the endpoint in violation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaCheckEndpointRestrictionViolationEvidenceEndpointDetails {
     /// The endpoint in violation.
     #[serde(default)]
@@ -722,7 +723,7 @@ pub struct GoogleChecksReportV1alphaCheckEndpointRestrictionViolationEvidenceEnd
 }
 
 /// Details of the permission in violation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaCheckPermissionRestrictionViolationEvidencePermissionDetails {
     /// The permission in violation.
     #[serde(default)]
@@ -730,7 +731,7 @@ pub struct GoogleChecksReportV1alphaCheckPermissionRestrictionViolationEvidenceP
 }
 
 /// Details of the SDK in violation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaCheckSdkRestrictionViolationEvidenceSdkDetails {
     /// The SDK in violation.
     #[serde(default)]
@@ -738,7 +739,7 @@ pub struct GoogleChecksReportV1alphaCheckSdkRestrictionViolationEvidenceSdkDetai
 }
 
 /// Evidence based on an endpoint that data was sent to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaDataTypeEndpointEvidence {
     /// Set of SDKs that are attributed to the exfiltration.
     #[serde(default, rename = "attributedSdks")]
@@ -756,7 +757,7 @@ pub struct GoogleChecksReportV1alphaDataTypeEndpointEvidence {
 }
 
 /// Evidence based on the inclusion of a permission.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaDataTypePermissionEvidence {
     /// Permission declared by your app.
     #[serde(default)]
@@ -764,7 +765,7 @@ pub struct GoogleChecksReportV1alphaDataTypePermissionEvidence {
 }
 
 /// Evidence based on information from the privacy policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaDataTypePrivacyPolicyTextEvidence {
     /// The privacy policy fragment that implies collection of the data type.
     #[serde(default, rename = "policyFragment")]
@@ -772,7 +773,7 @@ pub struct GoogleChecksReportV1alphaDataTypePrivacyPolicyTextEvidence {
 }
 
 /// Details of SDK that is attributed to the exfiltration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaDataTypeEndpointEvidenceAttributedSdk {
     /// SDK that is attributed to the exfiltration.
     #[serde(default)]
@@ -780,7 +781,7 @@ pub struct GoogleChecksReportV1alphaDataTypeEndpointEvidenceAttributedSdk {
 }
 
 /// Details of the endpoint the data type was sent to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaDataTypeEndpointEvidenceEndpointDetails {
     /// Endpoint the data type was sent to.
     #[serde(default)]
@@ -788,7 +789,7 @@ pub struct GoogleChecksReportV1alphaDataTypeEndpointEvidenceEndpointDetails {
 }
 
 /// Information about a permission.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaPermission {
     /// Permission identifier.
     #[serde(default)]
@@ -796,7 +797,7 @@ pub struct GoogleChecksReportV1alphaPermission {
 }
 
 /// Information about a policy fragment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaPolicyFragment {
     /// HTML content.
     #[serde(default, rename = "htmlContent")]
@@ -807,7 +808,7 @@ pub struct GoogleChecksReportV1alphaPolicyFragment {
 }
 
 /// Information about an SDK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaSdk {
     /// SDK identifier.
     #[serde(default)]
@@ -815,7 +816,7 @@ pub struct GoogleChecksReportV1alphaSdk {
 }
 
 /// Information about an endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChecksReportV1alphaEndpoint {
     /// Domain name (e.g. ads.google.com).
     #[serde(default)]

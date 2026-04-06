@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A request to add assets to a group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddAssetsToGroupRequest {
     /// Optional. When this value is set to false and one of the given assets is already an existing member of the group, the operation fails with an Already Exists error. When set to true this situation is silently ignored by the server. Default value is false.
     #[serde(default, rename = "allowExisting")]
@@ -25,7 +26,7 @@ pub struct AddAssetsToGroupRequest {
 }
 
 /// A request to aggregate one or more values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AggregateAssetsValuesRequest {
     /// Array of aggregations to perform. Up to 25 aggregations can be defined.
     #[serde(default)]
@@ -39,7 +40,7 @@ pub struct AggregateAssetsValuesRequest {
 }
 
 /// A response to a request to aggregated assets values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AggregateAssetsValuesResponse {
     /// The aggregation results.
     #[serde(default)]
@@ -47,31 +48,31 @@ pub struct AggregateAssetsValuesResponse {
 }
 
 /// Object count.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AggregationCount {}
 
 /// Frequency distribution of all field values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AggregationFrequency {}
 
 /// Sum of field values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AggregationSum {}
 
 /// Configuration for asset inventory details exports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssetsExportJobInventory {}
 
 /// Configuration for network dependencies exports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssetsExportJobNetworkDependencies {}
 
 /// Specific details for an AWS RDS database deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AwsRds {}
 
 /// A request to delete a list of asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchDeleteAssetsRequest {
     /// Optional. When this value is set to true the request is a no-op for non-existing assets. See https://google.aip.dev/135#delete-if-existing for additional details. Default value is false.
     #[serde(default, rename = "allowMissing")]
@@ -85,7 +86,7 @@ pub struct BatchDeleteAssetsRequest {
 }
 
 /// A request to update a list of assets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateAssetsRequest {
     /// Required. The request message specifying the resources to update. A maximum of 1000 assets can be modified in a batch.
     #[serde(default)]
@@ -93,7 +94,7 @@ pub struct BatchUpdateAssetsRequest {
 }
 
 /// Response for updating a list of assets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateAssetsResponse {
     /// Update asset content. The content only includes values after field mask being applied.
     #[serde(default)]
@@ -101,19 +102,19 @@ pub struct BatchUpdateAssetsResponse {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// Cascading rule for related logical DBs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CascadeLogicalDBsRule {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Collection of frame data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Frames {
     /// A repeated field of asset data.
     #[serde(default, rename = "framesData")]
@@ -121,7 +122,7 @@ pub struct Frames {
 }
 
 /// Response message for listing assets export jobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAssetsExportJobsResponse {
     /// Output only. The list of assets export jobs.
     #[serde(default, rename = "assetsExportJobs")]
@@ -132,7 +133,7 @@ pub struct ListAssetsExportJobsResponse {
 }
 
 /// Response message for listing assets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAssetsResponse {
     /// A list of assets.
     #[serde(default)]
@@ -146,7 +147,7 @@ pub struct ListAssetsResponse {
 }
 
 /// Response message for listing discovery clients.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDiscoveryClientsResponse {
     /// List of discovery clients.
     #[serde(default, rename = "discoveryClients")]
@@ -160,7 +161,7 @@ pub struct ListDiscoveryClientsResponse {
 }
 
 /// A response for listing error frames.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListErrorFramesResponse {
     /// The list of error frames.
     #[serde(default, rename = "errorFrames")]
@@ -174,7 +175,7 @@ pub struct ListErrorFramesResponse {
 }
 
 /// A response for listing groups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGroupsResponse {
     /// The list of Group
     #[serde(default)]
@@ -188,7 +189,7 @@ pub struct ListGroupsResponse {
 }
 
 /// Response for listing payload files of an import job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListImportDataFilesResponse {
     /// The list of import data files.
     #[serde(default, rename = "importDataFiles")]
@@ -202,7 +203,7 @@ pub struct ListImportDataFilesResponse {
 }
 
 /// A response for listing import jobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListImportJobsResponse {
     /// The list of import jobs.
     #[serde(default, rename = "importJobs")]
@@ -216,7 +217,7 @@ pub struct ListImportJobsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -227,7 +228,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -241,7 +242,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response message for listing preference sets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPreferenceSetsResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -255,7 +256,7 @@ pub struct ListPreferenceSetsResponse {
 }
 
 /// Response message for listing relations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRelationsResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -266,7 +267,7 @@ pub struct ListRelationsResponse {
 }
 
 /// Response message for listing report configs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListReportConfigsResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -280,7 +281,7 @@ pub struct ListReportConfigsResponse {
 }
 
 /// Response message for listing Reports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListReportsResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -294,7 +295,7 @@ pub struct ListReportsResponse {
 }
 
 /// Response message for listing sources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSourcesResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -308,7 +309,7 @@ pub struct ListSourcesResponse {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -334,7 +335,7 @@ pub struct OperationMetadata {
 }
 
 /// A request to remove assets from a group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveAssetsFromGroupRequest {
     /// Optional. When this value is set to false and one of the given assets is not an existing member of the group, the operation fails with a Not Found error. When set to true this situation is silently ignored by the server. Default value is false.
     #[serde(default, rename = "allowMissing")]
@@ -348,11 +349,11 @@ pub struct RemoveAssetsFromGroupRequest {
 }
 
 /// A response to a call to ReportAssetFrame.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportAssetFramesResponse {}
 
 /// A request to run an assets export job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunAssetsExportJobRequest {
     /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes after the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
@@ -360,7 +361,7 @@ pub struct RunAssetsExportJobRequest {
 }
 
 /// Response message for running an assets export job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunAssetsExportJobResponse {
     /// Output only. Execution status of the assets export operation.
     #[serde(default, rename = "assetsExportJobExecution")]
@@ -368,7 +369,7 @@ pub struct RunAssetsExportJobResponse {
 }
 
 /// A request to run an import job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunImportJobRequest {
     /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes after the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
@@ -376,7 +377,7 @@ pub struct RunImportJobRequest {
 }
 
 /// A request to send a discovery client heartbeat.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SendDiscoveryClientHeartbeatRequest {
     /// Optional. Errors affecting client functionality.
     #[serde(default)]
@@ -387,7 +388,7 @@ pub struct SendDiscoveryClientHeartbeatRequest {
 }
 
 /// Describes the Migration Center settings related to the project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Settings {
     /// Disable Cloud Logging for the Migration Center API. Users are billed for the logs.
     #[serde(default, rename = "disableCloudLogging")]
@@ -401,7 +402,7 @@ pub struct Settings {
 }
 
 /// A request to validate an import job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValidateImportJobRequest {
     /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes after the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
@@ -409,7 +410,7 @@ pub struct ValidateImportJobRequest {
 }
 
 /// Message describing an aggregation. The message includes the aggregation type, parameters, and the field on which to perform the aggregation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Aggregation {
     /// Count the number of matching objects.
     #[serde(default)]
@@ -429,7 +430,7 @@ pub struct Aggregation {
 }
 
 /// Message describing a result of an aggregation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AggregationResult {
     #[serde(default)]
     pub count: ::core::option::Option<AggregationResultCount>,
@@ -444,7 +445,7 @@ pub struct AggregationResult {
 }
 
 /// Specifies cascading rules for traversing relations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CascadingRule {
     /// Cascading rule for related logical DBs.
     #[serde(default, rename = "cascadeLogicalDbs")]
@@ -452,7 +453,7 @@ pub struct CascadingRule {
 }
 
 /// A request to update an asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateAssetRequest {
     /// Required. The resource being updated.
     #[serde(default)]
@@ -466,7 +467,7 @@ pub struct UpdateAssetRequest {
 }
 
 /// Assets export job message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssetsExportJob {
     /// Optional. Conditions for selecting assets to export.
     #[serde(default)]
@@ -504,7 +505,7 @@ pub struct AssetsExportJob {
 }
 
 /// Represents an installed Migration Center Discovery Client instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiscoveryClient {
     /// Output only. Time when the discovery client was first created.
     #[serde(default, rename = "createTime")]
@@ -554,7 +555,7 @@ pub struct DiscoveryClient {
 }
 
 /// Message representing a frame which failed to be processed due to an error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorFrame {
     /// Output only. Frame ingestion time.
     #[serde(default, rename = "ingestionTime")]
@@ -571,7 +572,7 @@ pub struct ErrorFrame {
 }
 
 /// A resource that represents an asset group. The purpose of an asset group is to bundle a set of assets that have something in common, while allowing users to add annotations to the group. An asset can belong to multiple groups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Group {
     /// Output only. The timestamp when the group was created.
     #[serde(default, rename = "createTime")]
@@ -594,7 +595,7 @@ pub struct Group {
 }
 
 /// A resource that represents a payload file in an import job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportDataFile {
     /// Output only. The timestamp when the file was created.
     #[serde(default, rename = "createTime")]
@@ -617,7 +618,7 @@ pub struct ImportDataFile {
 }
 
 /// A resource that represents the background job that imports asset frames.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportJob {
     /// Required. Reference to a source.
     #[serde(default, rename = "assetSource")]
@@ -652,7 +653,7 @@ pub struct ImportJob {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -672,7 +673,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -692,7 +693,7 @@ pub struct Operation {
 }
 
 /// The preferences that apply to all assets in a given context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PreferenceSet {
     /// Output only. The timestamp when the preference set was created.
     #[serde(default, rename = "createTime")]
@@ -715,7 +716,7 @@ pub struct PreferenceSet {
 }
 
 /// Message representing a relation between 2 resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Relation {
     /// Output only. The timestamp when the relation was created.
     #[serde(default, rename = "createTime")]
@@ -735,7 +736,7 @@ pub struct Relation {
 }
 
 /// The groups and associated preference sets on which we can generate reports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportConfig {
     /// Output only. The timestamp when the resource was created.
     #[serde(default, rename = "createTime")]
@@ -759,7 +760,7 @@ pub struct ReportConfig {
 }
 
 /// Report represents a point-in-time rendering of the ReportConfig results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Report {
     /// Output only. Creation timestamp.
     #[serde(default, rename = "createTime")]
@@ -788,7 +789,7 @@ pub struct Report {
 }
 
 /// Source represents an object from which asset information is streamed to Migration Center.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Source {
     /// Output only. The timestamp when the source was created.
     #[serde(default, rename = "createTime")]
@@ -826,7 +827,7 @@ pub struct Source {
 }
 
 /// Lists the asset IDs of all assets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssetList {
     /// Required. A list of asset IDs
     #[serde(default, rename = "assetIds")]
@@ -834,7 +835,7 @@ pub struct AssetList {
 }
 
 /// Histogram of bucketed assets counts by field value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AggregationHistogram {
     /// Lower bounds of buckets. The response will contain n+1 buckets for n bounds. The first bucket will count all assets for which the field value is smaller than the first bound. Subsequent buckets will count assets for which the field value is greater or equal to a lower bound and smaller than the next one. The last bucket will count assets for which the field value is greater or equal to the final lower bound. You can define up to 20 lower bounds.
     #[serde(default, rename = "lowerBounds")]
@@ -842,21 +843,21 @@ pub struct AggregationHistogram {
 }
 
 /// The result of a count aggregation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AggregationResultCount {
     #[serde(default)]
     pub value: ::core::option::Option<String>,
 }
 
 /// The result of a frequency distribution aggregation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AggregationResultFrequency {
     #[serde(default)]
     pub values: ::core::option::Option<serde_json::Value>,
 }
 
 /// The result of a bucketed histogram aggregation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AggregationResultHistogram {
     /// Buckets in the histogram. There will be n+1 buckets matching n lower bounds in the request. The first bucket will be from -infinity to the first bound. Subsequent buckets will be between one bound and the next. The final bucket will be from the final bound to infinity.
     #[serde(default)]
@@ -864,14 +865,14 @@ pub struct AggregationResultHistogram {
 }
 
 /// The result of a sum aggregation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AggregationResultSum {
     #[serde(default)]
     pub value: ::core::option::Option<f64>,
 }
 
 /// An asset represents a resource in your environment. Asset types include virtual machines and databases.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Asset {
     /// Output only. The list of groups that the asset is assigned to.
     #[serde(default, rename = "assignedGroups")]
@@ -924,7 +925,7 @@ pub struct Asset {
 }
 
 /// Conditions for selecting assets to export.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssetsExportJobExportCondition {
     /// Optional. Assets filter, supports the same syntax as asset listing.
     #[serde(default)]
@@ -932,7 +933,7 @@ pub struct AssetsExportJobExportCondition {
 }
 
 /// Configuration for performance data exports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssetsExportJobPerformanceData {
     /// Optional. When this value is set to a positive integer, performance data will be returned for the most recent days for which data is available. When this value is unset (or set to zero), all available data is returned. The maximum value is 420; values above 420 will be coerced to 420. If unset (0 value) a default value of 40 will be used.
     #[serde(default, rename = "maxDays")]
@@ -940,7 +941,7 @@ pub struct AssetsExportJobPerformanceData {
 }
 
 /// Execution status of assets export job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssetsExportJobExecution {
     /// Output only. Completion time of the export.
     #[serde(default, rename = "endTime")]
@@ -963,7 +964,7 @@ pub struct AssetsExportJobExecution {
 }
 
 /// Signed URI destination configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SignedUriDestination {
     /// Required. The file format to export. // TODO: enum values: ["FILE_FORMAT_UNSPECIFIED", "CSV", "XLSX"]
     #[serde(default, rename = "fileFormat")]
@@ -971,7 +972,7 @@ pub struct SignedUriDestination {
 }
 
 /// Contains data reported from an inventory source on an asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssetFrame {
     /// Generic asset attributes.
     #[serde(default)]
@@ -1003,7 +1004,7 @@ pub struct AssetFrame {
 }
 
 /// A resource that contains a single violation of a reported AssetFrame resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FrameViolationEntry {
     /// The field of the original frame where the violation occurred.
     #[serde(default)]
@@ -1014,7 +1015,7 @@ pub struct FrameViolationEntry {
 }
 
 /// A resource that contains a URI to which a data file can be uploaded.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadFileInfo {
     /// Output only. The headers that were used to sign the URI.
     #[serde(default)]
@@ -1028,7 +1029,7 @@ pub struct UploadFileInfo {
 }
 
 /// A resource that reports result of the import job execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecutionReport {
     /// Validation errors encountered during the execution of the import job.
     #[serde(default, rename = "executionErrors")]
@@ -1042,7 +1043,7 @@ pub struct ExecutionReport {
 }
 
 /// Represents a combination of a group with a preference set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportConfigGroupPreferenceSetAssignment {
     /// Required. Name of the group.
     #[serde(default)]
@@ -1053,7 +1054,7 @@ pub struct ReportConfigGroupPreferenceSetAssignment {
 }
 
 /// Describes the Summary view of a Report, which contains aggregated values for all the groups and preference sets included in this Report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportSummary {
     /// Aggregate statistics for all the assets across all the groups.
     #[serde(default, rename = "allAssetsStats")]
@@ -1064,7 +1065,7 @@ pub struct ReportSummary {
 }
 
 /// A histogram bucket with a lower and upper bound, and a count of items with a field value between those bounds. The lower bound is inclusive and the upper bound is exclusive. Lower bound may be -infinity and upper bound may be infinity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AggregationResultHistogramBucket {
     /// Count of items in the bucket.
     #[serde(default)]
@@ -1078,7 +1079,7 @@ pub struct AggregationResultHistogramBucket {
 }
 
 /// Message containing insights list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsightList {
     /// Output only. Insights of the list.
     #[serde(default)]
@@ -1089,7 +1090,7 @@ pub struct InsightList {
 }
 
 /// Performance data for an asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssetPerformanceData {
     /// Daily resource usage aggregations. Contains all of the data available for an asset, up to the last 420 days. Aggregations are sorted from oldest to most recent.
     #[serde(default, rename = "dailyResourceUsageAggregations")]
@@ -1098,7 +1099,7 @@ pub struct AssetPerformanceData {
 }
 
 /// Contains the result of the assets export.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssetsExportJobExecutionResult {
     /// Output only. Error encountered during export.
     #[serde(default)]
@@ -1112,7 +1113,7 @@ pub struct AssetsExportJobExecutionResult {
 }
 
 /// The details of a database deployment asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseDeploymentDetails {
     /// Output only. Aggregated stats for the database deployment.
     #[serde(default, rename = "aggregatedStats")]
@@ -1147,7 +1148,7 @@ pub struct DatabaseDeploymentDetails {
 }
 
 /// Details of a logical database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseDetails {
     /// Optional. The allocated storage for the database in bytes.
     #[serde(default, rename = "allocatedStorageBytes")]
@@ -1164,7 +1165,7 @@ pub struct DatabaseDetails {
 }
 
 /// Details of a machine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MachineDetails {
     /// Architecture details (vendor, CPU architecture).
     #[serde(default)]
@@ -1205,7 +1206,7 @@ pub struct MachineDetails {
 }
 
 /// Performance data sample.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PerformanceSample {
     /// CPU usage sample.
     #[serde(default)]
@@ -1225,7 +1226,7 @@ pub struct PerformanceSample {
 }
 
 /// A resource that aggregates errors across import job files.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValidationReport {
     /// List of errors found in files.
     #[serde(default, rename = "fileValidations")]
@@ -1236,7 +1237,7 @@ pub struct ValidationReport {
 }
 
 /// Summary Findings for a specific Group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportSummaryGroupFinding {
     /// Summary statistics for all the assets in this group.
     #[serde(default, rename = "assetAggregateStats")]
@@ -1257,7 +1258,7 @@ pub struct ReportSummaryGroupFinding {
 }
 
 /// An insight about an asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Insight {
     /// Output only. A generic insight about an asset.
     #[serde(default, rename = "genericInsight")]
@@ -1268,7 +1269,7 @@ pub struct Insight {
 }
 
 /// Usage data aggregation for a single day.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DailyResourceUsageAggregation {
     /// CPU usage.
     #[serde(default)]
@@ -1288,7 +1289,7 @@ pub struct DailyResourceUsageAggregation {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1302,7 +1303,7 @@ pub struct Status {
 }
 
 /// Contains a list of output files.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OutputFileList {
     /// Output only. List of output files.
     #[serde(default)]
@@ -1310,7 +1311,7 @@ pub struct OutputFileList {
 }
 
 /// Contains a list of Signed URIs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SignedUris {
     /// Output only. List of signed URIs.
     #[serde(default, rename = "signedUris")]
@@ -1318,7 +1319,7 @@ pub struct SignedUris {
 }
 
 /// Aggregated stats for the database deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseDeploymentDetailsAggregatedStats {
     /// Output only. The number of databases in the deployment.
     #[serde(default, rename = "databaseCount")]
@@ -1326,7 +1327,7 @@ pub struct DatabaseDeploymentDetailsAggregatedStats {
 }
 
 /// Specific details for a Mysql database deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MysqlDatabaseDeployment {
     /// Optional. List of MySql plugins.
     #[serde(default)]
@@ -1343,7 +1344,7 @@ pub struct MysqlDatabaseDeployment {
 }
 
 /// Specific details for a PostgreSQL database deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostgreSqlDatabaseDeployment {
     /// Optional. List of PostgreSql properties.
     #[serde(default)]
@@ -1354,7 +1355,7 @@ pub struct PostgreSqlDatabaseDeployment {
 }
 
 /// Specific details for a Microsoft SQL Server database deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlServerDatabaseDeployment {
     /// Optional. List of SQL Server features.
     #[serde(default)]
@@ -1368,7 +1369,7 @@ pub struct SqlServerDatabaseDeployment {
 }
 
 /// Details of database deployment''s topology.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseDeploymentTopology {
     /// Optional. Number of total logical cores.
     #[serde(default, rename = "coreCount")]
@@ -1400,7 +1401,7 @@ pub struct DatabaseDeploymentTopology {
 }
 
 /// The identifiers of the parent database deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseDetailsParentDatabaseDeployment {
     /// Optional. The parent database deployment generated ID.
     #[serde(default, rename = "generatedId")]
@@ -1411,7 +1412,7 @@ pub struct DatabaseDetailsParentDatabaseDeployment {
 }
 
 /// Details of a database schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseSchema {
     /// Optional. Details of a Mysql schema.
     #[serde(default)]
@@ -1434,7 +1435,7 @@ pub struct DatabaseSchema {
 }
 
 /// Details of the machine architecture.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MachineArchitectureDetails {
     /// BIOS Details.
     #[serde(default)]
@@ -1466,7 +1467,7 @@ pub struct MachineArchitectureDetails {
 }
 
 /// Disk partition details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskPartitionDetails {
     /// Output only. Total free space of all partitions.
     #[serde(default, rename = "freeSpaceBytes")]
@@ -1480,7 +1481,7 @@ pub struct DiskPartitionDetails {
 }
 
 /// Details of machine disks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MachineDiskDetails {
     /// List of disks.
     #[serde(default)]
@@ -1494,7 +1495,7 @@ pub struct MachineDiskDetails {
 }
 
 /// Information from Guest-level collections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuestOsDetails {
     /// OS and app configuration.
     #[serde(default)]
@@ -1514,7 +1515,7 @@ pub struct GuestOsDetails {
 }
 
 /// Details of network adapters and settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MachineNetworkDetails {
     /// List of network adapters.
     #[serde(default)]
@@ -1534,7 +1535,7 @@ pub struct MachineNetworkDetails {
 }
 
 /// Information about the platform.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlatformDetails {
     /// AWS EC2 specific details.
     #[serde(default, rename = "awsEc2Details")]
@@ -1554,7 +1555,7 @@ pub struct PlatformDetails {
 }
 
 /// CPU usage sample.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CpuUsageSample {
     /// Percentage of total CPU capacity utilized. Must be in the interval [0, 100]. On most systems can be calculated using 100 - idle percentage.
     #[serde(default, rename = "utilizedPercentage")]
@@ -1562,7 +1563,7 @@ pub struct CpuUsageSample {
 }
 
 /// Disk usage sample. Values are across all disks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskUsageSample {
     /// Optional. Average IOPS sampled over a short window. Must be non-negative. If read or write are set, the sum of read and write will override the value of the average_iops.
     #[serde(default, rename = "averageIops")]
@@ -1576,7 +1577,7 @@ pub struct DiskUsageSample {
 }
 
 /// Memory usage sample.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MemoryUsageSample {
     /// Percentage of system memory utilized. Must be in the interval [0, 100].
     #[serde(default, rename = "utilizedPercentage")]
@@ -1584,7 +1585,7 @@ pub struct MemoryUsageSample {
 }
 
 /// Network usage sample. Values are across all network interfaces.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkUsageSample {
     /// Average network egress in B/s sampled over a short window. Must be non-negative.
     #[serde(default, rename = "averageEgressBps")]
@@ -1595,7 +1596,7 @@ pub struct NetworkUsageSample {
 }
 
 /// A resource that aggregates the validation errors found in an import job file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FileValidationReport {
     /// List of file level errors.
     #[serde(default, rename = "fileErrors")]
@@ -1612,7 +1613,7 @@ pub struct FileValidationReport {
 }
 
 /// Aggregate statistics for a collection of assets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportSummaryAssetAggregateStats {
     /// Histogram showing a distribution of logical CPU core counts.
     #[serde(default, rename = "coreCountHistogram")]
@@ -1650,7 +1651,7 @@ pub struct ReportSummaryAssetAggregateStats {
 }
 
 /// Summary Findings for a specific Group/PreferenceSet combination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportSummaryGroupPreferenceSetFinding {
     /// A set of findings that applies to Compute Engine machines in the input.
     #[serde(default, rename = "computeEngineFinding")]
@@ -1691,7 +1692,7 @@ pub struct ReportSummaryGroupPreferenceSetFinding {
 }
 
 /// A generic insight about an asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenericInsight {
     /// Output only. Additional information about the insight, each entry can be a logical entry and must make sense if it is displayed with line breaks between each entry. Text can contain md style links.
     #[serde(default, rename = "additionalInformation")]
@@ -1705,7 +1706,7 @@ pub struct GenericInsight {
 }
 
 /// An insight about potential migrations for an asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MigrationInsight {
     /// Output only. A Google Compute Engine target.
     #[serde(default, rename = "computeEngineTarget")]
@@ -1716,7 +1717,7 @@ pub struct MigrationInsight {
 }
 
 /// Statistical aggregation of CPU usage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DailyResourceUsageAggregationCPU {
     /// CPU utilization percentage.
     #[serde(default, rename = "utilizationPercentage")]
@@ -1724,7 +1725,7 @@ pub struct DailyResourceUsageAggregationCPU {
 }
 
 /// Statistical aggregation of disk usage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DailyResourceUsageAggregationDisk {
     /// Optional. Disk I/O operations per second.
     #[serde(default)]
@@ -1738,7 +1739,7 @@ pub struct DailyResourceUsageAggregationDisk {
 }
 
 /// Statistical aggregation of memory usage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DailyResourceUsageAggregationMemory {
     /// Memory utilization percentage.
     #[serde(default, rename = "utilizationPercentage")]
@@ -1746,7 +1747,7 @@ pub struct DailyResourceUsageAggregationMemory {
 }
 
 /// Statistical aggregation of network usage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DailyResourceUsageAggregationNetwork {
     /// Network egress in B/s.
     #[serde(default, rename = "egressBps")]
@@ -1757,7 +1758,7 @@ pub struct DailyResourceUsageAggregationNetwork {
 }
 
 /// Contains a single output file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OutputFile {
     /// Output only. CSV output file.
     #[serde(default, rename = "csvOutputFile")]
@@ -1771,7 +1772,7 @@ pub struct OutputFile {
 }
 
 /// MySql plugin.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MySqlPlugin {
     /// Required. The plugin is active.
     #[serde(default)]
@@ -1785,7 +1786,7 @@ pub struct MySqlPlugin {
 }
 
 /// MySql property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MySqlProperty {
     /// Required. The property is enabled.
     #[serde(default)]
@@ -1799,7 +1800,7 @@ pub struct MySqlProperty {
 }
 
 /// MySql variable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MySqlVariable {
     /// Required. The variable category.
     #[serde(default)]
@@ -1813,7 +1814,7 @@ pub struct MySqlVariable {
 }
 
 /// PostgreSql property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostgreSqlProperty {
     /// Required. The property is enabled.
     #[serde(default)]
@@ -1827,7 +1828,7 @@ pub struct PostgreSqlProperty {
 }
 
 /// PostgreSql setting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostgreSqlSetting {
     /// Required. The setting boolean value.
     #[serde(default, rename = "boolValue")]
@@ -1853,7 +1854,7 @@ pub struct PostgreSqlSetting {
 }
 
 /// SQL Server feature details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlServerFeature {
     /// Required. Field enabled is set when a feature is used on the source deployment.
     #[serde(default)]
@@ -1864,7 +1865,7 @@ pub struct SqlServerFeature {
 }
 
 /// SQL Server server flag details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlServerServerFlag {
     /// Required. The server flag name.
     #[serde(default, rename = "serverFlagName")]
@@ -1878,7 +1879,7 @@ pub struct SqlServerServerFlag {
 }
 
 /// SQL Server trace flag details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlServerTraceFlag {
     /// Required. The trace flag scope. // TODO: enum values: ["SCOPE_UNSPECIFIED", "OFF", "GLOBAL", "SESSION"]
     #[serde(default)]
@@ -1889,7 +1890,7 @@ pub struct SqlServerTraceFlag {
 }
 
 /// Details of a database instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseInstance {
     /// Optional. The instance''s name.
     #[serde(default, rename = "instanceName")]
@@ -1903,7 +1904,7 @@ pub struct DatabaseInstance {
 }
 
 /// Specific details for a Mysql database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MySqlSchemaDetails {
     /// Optional. Mysql storage engine tables.
     #[serde(default, rename = "storageEngines")]
@@ -1911,7 +1912,7 @@ pub struct MySqlSchemaDetails {
 }
 
 /// Details of a group of database objects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseObjects {
     /// Optional. The category of the objects. // TODO: enum values: ["CATEGORY_UNSPECIFIED", "TABLE", "INDEX", "CONSTRAINTS", "VIEWS", "SOURCE_CODE", "OTHER"]
     #[serde(default)]
@@ -1922,7 +1923,7 @@ pub struct DatabaseObjects {
 }
 
 /// Specific details for a PostgreSql schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostgreSqlSchemaDetails {
     /// Optional. PostgreSql foreign tables.
     #[serde(default, rename = "foreignTablesCount")]
@@ -1933,7 +1934,7 @@ pub struct PostgreSqlSchemaDetails {
 }
 
 /// Specific details for a SqlServer database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlServerSchemaDetails {
     /// Optional. SqlServer number of CLR objects.
     #[serde(default, rename = "clrObjectCount")]
@@ -1941,7 +1942,7 @@ pub struct SqlServerSchemaDetails {
 }
 
 /// Details about the BIOS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BiosDetails {
     /// BIOS name. This fields is deprecated. Please use the id field instead.
     #[serde(default, rename = "biosName")]
@@ -1964,7 +1965,7 @@ pub struct BiosDetails {
 }
 
 /// VM disks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskEntryList {
     /// Disk entries.
     #[serde(default)]
@@ -1972,7 +1973,7 @@ pub struct DiskEntryList {
 }
 
 /// Guest OS config information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuestConfigDetails {
     /// Mount list (Linux fstab).
     #[serde(default)]
@@ -1992,7 +1993,7 @@ pub struct GuestConfigDetails {
 }
 
 /// Guest OS runtime information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuestRuntimeDetails {
     /// Domain, e.g. c.stratozone-development.internal.
     #[serde(default)]
@@ -2021,7 +2022,7 @@ pub struct GuestRuntimeDetails {
 }
 
 /// List of network adapters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkAdapterList {
     /// Network adapter entries.
     #[serde(default)]
@@ -2029,7 +2030,7 @@ pub struct NetworkAdapterList {
 }
 
 /// AWS EC2 specific details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AwsEc2PlatformDetails {
     /// Optional. Whether the machine is hyperthreaded. // TODO: enum values: ["HYPERTHREADING_STATUS_UNSPECIFIED", "HYPERTHREADING_STATUS_DISABLED", "HYPERTHREADING_STATUS_ENABLED"]
     #[serde(default)]
@@ -2043,7 +2044,7 @@ pub struct AwsEc2PlatformDetails {
 }
 
 /// Azure VM specific details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AzureVmPlatformDetails {
     /// Whether the machine is hyperthreaded. // TODO: enum values: ["HYPERTHREADING_STATUS_UNSPECIFIED", "HYPERTHREADING_STATUS_DISABLED", "HYPERTHREADING_STATUS_ENABLED"]
     #[serde(default)]
@@ -2060,7 +2061,7 @@ pub struct AzureVmPlatformDetails {
 }
 
 /// Generic platform details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenericPlatformDetails {
     /// Whether the machine is hyperthreaded. // TODO: enum values: ["HYPERTHREADING_STATUS_UNSPECIFIED", "HYPERTHREADING_STATUS_DISABLED", "HYPERTHREADING_STATUS_ENABLED"]
     #[serde(default)]
@@ -2071,7 +2072,7 @@ pub struct GenericPlatformDetails {
 }
 
 /// Platform specific details for Physical Machines.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PhysicalPlatformDetails {
     /// Whether the machine is hyperthreaded. // TODO: enum values: ["HYPERTHREADING_STATUS_UNSPECIFIED", "HYPERTHREADING_STATUS_DISABLED", "HYPERTHREADING_STATUS_ENABLED"]
     #[serde(default)]
@@ -2082,7 +2083,7 @@ pub struct PhysicalPlatformDetails {
 }
 
 /// VMware specific details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwarePlatformDetails {
     /// Whether the ESX is hyperthreaded. // TODO: enum values: ["HYPERTHREADING_STATUS_UNSPECIFIED", "HYPERTHREADING_STATUS_DISABLED", "HYPERTHREADING_STATUS_ENABLED"]
     #[serde(default, rename = "esxHyperthreading")]
@@ -2108,7 +2109,7 @@ pub struct VmwarePlatformDetails {
 }
 
 /// A resource that reports the import job errors at row level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportRowError {
     /// Error details for an archive file.
     #[serde(default, rename = "archiveError")]
@@ -2137,7 +2138,7 @@ pub struct ImportRowError {
 }
 
 /// A Histogram Chart shows a distribution of values into buckets, showing a count of values which fall into a bucket.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportSummaryHistogramChartData {
     /// Buckets in the histogram. There will be n+1 buckets matching n lower bounds in the request. The first bucket will be from -infinity to the first bound. Subsequent buckets will be between one bound and the next. The final bucket will be from the final bound to infinity.
     #[serde(default)]
@@ -2145,7 +2146,7 @@ pub struct ReportSummaryHistogramChartData {
 }
 
 /// Utilization Chart is a specific type of visualization which displays a metric classified into "Used" and "Free" buckets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportSummaryUtilizationChartData {
     /// Aggregate value which falls into the "Free" bucket.
     #[serde(default)]
@@ -2156,7 +2157,7 @@ pub struct ReportSummaryUtilizationChartData {
 }
 
 /// Describes a collection of data points rendered as a Chart.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportSummaryChartData {
     /// Each data point in the chart is represented as a name-value pair with the name being the x-axis label, and the value being the y-axis value.
     #[serde(default, rename = "dataPoints")]
@@ -2164,7 +2165,7 @@ pub struct ReportSummaryChartData {
 }
 
 /// A set of findings that applies to assets destined for Compute Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportSummaryComputeEngineFinding {
     /// Count of assets which were allocated.
     #[serde(default, rename = "allocatedAssetCount")]
@@ -2182,7 +2183,7 @@ pub struct ReportSummaryComputeEngineFinding {
 }
 
 /// VirtualMachinePreferences enables you to create sets of assumptions, for example, a geographical location and pricing track, for your migrated virtual machines. The set of preferences influence recommendations for migrating virtual machine assets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VirtualMachinePreferences {
     /// Commitment plan to consider when calculating costs for virtual machine insights and recommendations. If you are unsure which value to set, a 3 year commitment plan is often a good value to start with. // TODO: enum values: ["COMMITMENT_PLAN_UNSPECIFIED", "COMMITMENT_PLAN_NONE", "COMMITMENT_PLAN_ONE_YEAR", "COMMITMENT_PLAN_THREE_YEARS"]
     #[serde(default, rename = "commitmentPlan")]
@@ -2208,7 +2209,7 @@ pub struct VirtualMachinePreferences {
 }
 
 /// Represents an amount of money with its currency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Money {
     /// The three-letter currency code defined in ISO 4217.
     #[serde(default, rename = "currencyCode")]
@@ -2222,7 +2223,7 @@ pub struct Money {
 }
 
 /// A set of findings that applies to assets destined for Sole-Tenant nodes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportSummarySoleTenantFinding {
     /// Count of assets which are allocated
     #[serde(default, rename = "allocatedAssetCount")]
@@ -2237,7 +2238,7 @@ pub struct ReportSummarySoleTenantFinding {
 }
 
 /// A set of findings that applies to assets destined for VMWare Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportSummaryVmwareEngineFinding {
     /// Count of assets which are allocated
     #[serde(default, rename = "allocatedAssetCount")]
@@ -2252,7 +2253,7 @@ pub struct ReportSummaryVmwareEngineFinding {
 }
 
 /// Compute engine migration target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeEngineMigrationTarget {
     /// Description of the suggested shape for the migration target.
     #[serde(default)]
@@ -2260,7 +2261,7 @@ pub struct ComputeEngineMigrationTarget {
 }
 
 /// Describes the fit level of an asset for migration to a specific target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FitDescriptor {
     /// Output only. Fit level. // TODO: enum values: ["FIT_LEVEL_UNSPECIFIED", "FIT", "NO_FIT", "REQUIRES_EFFORT"]
     #[serde(default, rename = "fitLevel")]
@@ -2268,7 +2269,7 @@ pub struct FitDescriptor {
 }
 
 /// Statistical aggregation of samples for a single resource usage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DailyResourceUsageAggregationStats {
     /// Average usage value.
     #[serde(default)]
@@ -2285,7 +2286,7 @@ pub struct DailyResourceUsageAggregationStats {
 }
 
 /// Contains a single output file of type CSV.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CsvOutputFile {
     /// Output only. Number of columns in the file.
     #[serde(default, rename = "columnsCount")]
@@ -2299,7 +2300,7 @@ pub struct CsvOutputFile {
 }
 
 /// Contains a single output file of type XLSX.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XlsxOutputFile {
     /// Output only. Signed URI destination.
     #[serde(default, rename = "signedUri")]
@@ -2307,7 +2308,7 @@ pub struct XlsxOutputFile {
 }
 
 /// Network details of a database instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseInstanceNetwork {
     /// Optional. The instance''s host names.
     #[serde(default, rename = "hostNames")]
@@ -2321,7 +2322,7 @@ pub struct DatabaseInstanceNetwork {
 }
 
 /// Mysql storage engine tables.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MySqlStorageEngineDetails {
     /// Optional. The number of encrypted tables.
     #[serde(default, rename = "encryptedTableCount")]
@@ -2335,7 +2336,7 @@ pub struct MySqlStorageEngineDetails {
 }
 
 /// PostgreSql extension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostgreSqlExtension {
     /// Required. The extension name.
     #[serde(default)]
@@ -2346,7 +2347,7 @@ pub struct PostgreSqlExtension {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -2360,7 +2361,7 @@ pub struct Date {
 }
 
 /// Single disk entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskEntry {
     /// Disk capacity.
     #[serde(default, rename = "capacityBytes")]
@@ -2389,7 +2390,7 @@ pub struct DiskEntry {
 }
 
 /// Fstab content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FstabEntryList {
     /// Fstab entries.
     #[serde(default)]
@@ -2397,7 +2398,7 @@ pub struct FstabEntryList {
 }
 
 /// Hosts content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HostsEntryList {
     /// Hosts entries.
     #[serde(default)]
@@ -2405,7 +2406,7 @@ pub struct HostsEntryList {
 }
 
 /// NFS exports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NfsExportList {
     /// NFS export entries.
     #[serde(default)]
@@ -2413,7 +2414,7 @@ pub struct NfsExportList {
 }
 
 /// Guest installed application list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuestInstalledApplicationList {
     /// Application entries.
     #[serde(default)]
@@ -2421,7 +2422,7 @@ pub struct GuestInstalledApplicationList {
 }
 
 /// Runtime networking information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RuntimeNetworkInfo {
     /// Network connections.
     #[serde(default)]
@@ -2432,7 +2433,7 @@ pub struct RuntimeNetworkInfo {
 }
 
 /// Open file list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OpenFileList {
     /// Open file details entries.
     #[serde(default)]
@@ -2440,7 +2441,7 @@ pub struct OpenFileList {
 }
 
 /// List of running guest OS processes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunningProcessList {
     /// Running process entries.
     #[serde(default)]
@@ -2448,7 +2449,7 @@ pub struct RunningProcessList {
 }
 
 /// List of running guest OS services.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunningServiceList {
     /// Running service entries.
     #[serde(default)]
@@ -2456,7 +2457,7 @@ pub struct RunningServiceList {
 }
 
 /// Details of network adapter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkAdapterDetails {
     /// Network adapter type (e.g. VMXNET3).
     #[serde(default, rename = "adapterType")]
@@ -2470,7 +2471,7 @@ pub struct NetworkAdapterDetails {
 }
 
 /// Error details for an archive file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportRowErrorArchiveErrorDetails {
     /// Error details for a CSV file.
     #[serde(default, rename = "csvError")]
@@ -2481,7 +2482,7 @@ pub struct ImportRowErrorArchiveErrorDetails {
 }
 
 /// A resource that reports the errors encountered while processing an import job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportError {
     /// The error information.
     #[serde(default, rename = "errorDetails")]
@@ -2492,7 +2493,7 @@ pub struct ImportError {
 }
 
 /// Error details for an XLSX file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportRowErrorXlsxErrorDetails {
     /// The row number where the error was detected.
     #[serde(default, rename = "rowNumber")]
@@ -2503,7 +2504,7 @@ pub struct ImportRowErrorXlsxErrorDetails {
 }
 
 /// A histogram bucket with a lower and upper bound, and a count of items with a field value between those bounds. The lower bound is inclusive and the upper bound is exclusive. Lower bound may be -infinity and upper bound may be infinity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportSummaryHistogramChartDataBucket {
     /// Count of items in the bucket.
     #[serde(default)]
@@ -2517,7 +2518,7 @@ pub struct ReportSummaryHistogramChartDataBucket {
 }
 
 /// Describes a single data point in the Chart.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportSummaryChartDataDataPoint {
     /// The X-axis label for this data point.
     #[serde(default)]
@@ -2528,7 +2529,7 @@ pub struct ReportSummaryChartDataDataPoint {
 }
 
 /// Represents a data point tracking the count of assets allocated for a specific Machine Series.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportSummaryMachineSeriesAllocation {
     /// Count of assets allocated to this machine series.
     #[serde(default, rename = "allocatedAssetCount")]
@@ -2539,7 +2540,7 @@ pub struct ReportSummaryMachineSeriesAllocation {
 }
 
 /// The user preferences relating to Compute Engine target platform.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeEnginePreferences {
     /// License type to consider when calculating costs for virtual machine insights and recommendations. If unspecified, costs are calculated based on the default licensing plan. // TODO: enum values: ["LICENSE_TYPE_UNSPECIFIED", "LICENSE_TYPE_DEFAULT", "LICENSE_TYPE_BRING_YOUR_OWN_LICENSE"]
     #[serde(default, rename = "licenseType")]
@@ -2553,7 +2554,7 @@ pub struct ComputeEnginePreferences {
 }
 
 /// The user preferences relating to target regions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionPreferences {
     /// A list of preferred regions, ordered by the most preferred region first. Set only valid Google Cloud region names. See https://cloud.google.com/compute/docs/regions-zones for available regions.
     #[serde(default, rename = "preferredRegions")]
@@ -2561,7 +2562,7 @@ pub struct RegionPreferences {
 }
 
 /// Preferences concerning Sole Tenancy nodes and VMs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SoleTenancyPreferences {
     /// Commitment plan to consider when calculating costs for virtual machine insights and recommendations. If you are unsure which value to set, a 3 year commitment plan is often a good value to start with. // TODO: enum values: ["COMMITMENT_PLAN_UNSPECIFIED", "ON_DEMAND", "COMMITMENT_1_YEAR", "COMMITMENT_3_YEAR"]
     #[serde(default, rename = "commitmentPlan")]
@@ -2578,7 +2579,7 @@ pub struct SoleTenancyPreferences {
 }
 
 /// The user preferences relating to Google Cloud VMware Engine target platform.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareEnginePreferences {
     /// Commitment plan to consider when calculating costs for virtual machine insights and recommendations. If you are unsure which value to set, a 3 year commitment plan is often a good value to start with. // TODO: enum values: ["COMMITMENT_PLAN_UNSPECIFIED", "ON_DEMAND", "COMMITMENT_1_YEAR_MONTHLY_PAYMENTS", "COMMITMENT_3_YEAR_MONTHLY_PAYMENTS", "COMMITMENT_1_YEAR_UPFRONT_PAYMENT", "COMMITMENT_3_YEAR_UPFRONT_PAYMENT"]
     #[serde(default, rename = "commitmentPlan")]
@@ -2595,7 +2596,7 @@ pub struct VmwareEnginePreferences {
 }
 
 /// Represents the assets allocated to a specific Sole-Tenant node type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportSummarySoleTenantNodeAllocation {
     /// Count of assets allocated to these nodes
     #[serde(default, rename = "allocatedAssetCount")]
@@ -2609,7 +2610,7 @@ pub struct ReportSummarySoleTenantNodeAllocation {
 }
 
 /// Represents assets allocated to a specific VMWare Node type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportSummaryVmwareNodeAllocation {
     /// Count of assets allocated to these nodes
     #[serde(default, rename = "allocatedAssetCount")]
@@ -2623,7 +2624,7 @@ pub struct ReportSummaryVmwareNodeAllocation {
 }
 
 /// Compute Engine target shape descriptor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeEngineShapeDescriptor {
     /// Output only. Number of logical cores.
     #[serde(default, rename = "logicalCoreCount")]
@@ -2646,7 +2647,7 @@ pub struct ComputeEngineShapeDescriptor {
 }
 
 /// Contains a signed URI.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SignedUri {
     /// Output only. Name of the file the Signed URI references.
     #[serde(default)]
@@ -2657,7 +2658,7 @@ pub struct SignedUri {
 }
 
 /// VMware disk config details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareDiskConfig {
     /// VMDK backing type. // TODO: enum values: ["BACKING_TYPE_UNSPECIFIED", "BACKING_TYPE_FLAT_V1", "BACKING_TYPE_FLAT_V2", "BACKING_TYPE_PMEM", "BACKING_TYPE_RDM_V1", "BACKING_TYPE_RDM_V2", "BACKING_TYPE_SESPARSE", "BACKING_TYPE_SESPARSE_V1", "BACKING_TYPE_SESPARSE_V2"]
     #[serde(default, rename = "backingType")]
@@ -2674,7 +2675,7 @@ pub struct VmwareDiskConfig {
 }
 
 /// Single fstab entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FstabEntry {
     /// The mount point for the filesystem.
     #[serde(default)]
@@ -2697,7 +2698,7 @@ pub struct FstabEntry {
 }
 
 /// Single /etc/hosts entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HostsEntry {
     /// List of host names / aliases.
     #[serde(default, rename = "hostNames")]
@@ -2708,7 +2709,7 @@ pub struct HostsEntry {
 }
 
 /// NFS export.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NfsExport {
     /// The directory being exported.
     #[serde(default, rename = "exportDirectory")]
@@ -2719,7 +2720,7 @@ pub struct NfsExport {
 }
 
 /// Guest installed application information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuestInstalledApplication {
     /// Installed application name.
     #[serde(default, rename = "applicationName")]
@@ -2742,7 +2743,7 @@ pub struct GuestInstalledApplication {
 }
 
 /// Network connection list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkConnectionList {
     /// Network connection entries.
     #[serde(default)]
@@ -2750,7 +2751,7 @@ pub struct NetworkConnectionList {
 }
 
 /// Open file Information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OpenFileDetails {
     /// Opened file command.
     #[serde(default)]
@@ -2767,7 +2768,7 @@ pub struct OpenFileDetails {
 }
 
 /// Guest OS running process details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunningProcess {
     /// Process extended attributes.
     #[serde(default)]
@@ -2787,7 +2788,7 @@ pub struct RunningProcess {
 }
 
 /// Guest OS running service details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunningService {
     /// Service command line.
     #[serde(default)]
@@ -2810,7 +2811,7 @@ pub struct RunningService {
 }
 
 /// List of allocated/assigned network addresses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkAddressList {
     /// Network address entries.
     #[serde(default)]
@@ -2818,7 +2819,7 @@ pub struct NetworkAddressList {
 }
 
 /// Error details for a CSV file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportRowErrorCsvErrorDetails {
     /// The row number where the error was detected.
     #[serde(default, rename = "rowNumber")]
@@ -2826,7 +2827,7 @@ pub struct ImportRowErrorCsvErrorDetails {
 }
 
 /// The type of machines to consider when calculating virtual machine migration insights and recommendations. Not all machine types are available in all zones and regions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MachinePreferences {
     /// Compute Engine machine series to consider for insights and recommendations. If empty, no restriction is applied on the machine series.
     #[serde(default, rename = "allowedMachineSeries")]
@@ -2834,7 +2835,7 @@ pub struct MachinePreferences {
 }
 
 /// A Sole Tenant node type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SoleTenantNodeType {
     /// Name of the Sole Tenant node. Consult https://cloud.google.com/compute/docs/nodes/sole-tenant-nodes
     #[serde(default, rename = "nodeName")]
@@ -2842,7 +2843,7 @@ pub struct SoleTenantNodeType {
 }
 
 /// A VMWare Engine Node
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportSummaryVmwareNode {
     /// Code to identify VMware Engine node series, e.g. "ve1-standard-72". Based on the displayName of cloud.google.com/vmware-engine/docs/reference/rest/v1/projects.locations.nodeTypes
     #[serde(default)]
@@ -2850,7 +2851,7 @@ pub struct ReportSummaryVmwareNode {
 }
 
 /// Compute Engine storage option descriptor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeStorageDescriptor {
     /// Output only. Disk size in GiB.
     #[serde(default, rename = "sizeGb")]
@@ -2861,7 +2862,7 @@ pub struct ComputeStorageDescriptor {
 }
 
 /// NetworkConnection resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkConnection {
     /// Local IP address.
     #[serde(default, rename = "localIpAddress")]
@@ -2890,7 +2891,7 @@ pub struct NetworkConnection {
 }
 
 /// Details of network address.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkAddress {
     /// Whether DHCP is used to assign addresses. // TODO: enum values: ["ADDRESS_ASSIGNMENT_UNSPECIFIED", "ADDRESS_ASSIGNMENT_STATIC", "ADDRESS_ASSIGNMENT_DHCP"]
     #[serde(default)]
@@ -2910,7 +2911,7 @@ pub struct NetworkAddress {
 }
 
 /// A machine series, for a target product (e.g. Compute Engine, Google Cloud VMware Engine).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MachineSeries {
     /// Code to identify a machine series. Consult this for more details on the available series for Compute Engine: https://cloud.google.com/compute/docs/machine-resource#machine_type_comparison Consult this for more details on the available series for Google Cloud VMware Engine: https://cloud.google.com/vmware-engine/pricing
     #[serde(default)]
@@ -2918,7 +2919,7 @@ pub struct MachineSeries {
 }
 
 /// Disk Partition details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskPartition {
     /// Partition capacity.
     #[serde(default, rename = "capacityBytes")]
@@ -2944,7 +2945,7 @@ pub struct DiskPartition {
 }
 
 /// Disk partition list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskPartitionList {
     /// Partition entries.
     #[serde(default)]

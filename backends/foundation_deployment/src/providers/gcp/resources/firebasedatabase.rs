@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request sent to the DisableDatabaseInstance method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisableDatabaseInstanceRequest {}
 
 /// The response from the ListDatabaseInstances method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDatabaseInstancesResponse {
     /// List of each DatabaseInstance that is in the parent Firebase project.
     #[serde(default)]
@@ -26,15 +27,15 @@ pub struct ListDatabaseInstancesResponse {
 }
 
 /// The request sent to the ReenableDatabaseInstance method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReenableDatabaseInstanceRequest {}
 
 /// The request sent to UndeleteDatabaseInstance method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UndeleteDatabaseInstanceRequest {}
 
 /// Representation of a Realtime Database instance. Details on interacting with contents of a DatabaseInstance can be found at: https://firebase.google.com/docs/database/rest/start.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseInstance {
     /// Output only. Output Only. The globally unique hostname of the database.
     #[serde(default, rename = "databaseUrl")]

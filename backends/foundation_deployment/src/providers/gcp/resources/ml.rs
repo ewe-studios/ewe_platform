@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for the AddTrialMeasurement service method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1AddTrialMeasurementRequest {
     /// Required. The measurement to be added to a trial.
     #[serde(default)]
@@ -19,11 +20,11 @@ pub struct GoogleCloudMlV1AddTrialMeasurementRequest {
 }
 
 /// Request message for the CancelJob method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1CancelJobRequest {}
 
 /// This message will be placed in the metadata field of a google.longrunning.Operation associated with a CheckTrialEarlyStoppingState request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1CheckTrialEarlyStoppingStateMetatdata {
     /// The time at which the operation was submitted.
     #[serde(default, rename = "createTime")]
@@ -37,11 +38,11 @@ pub struct GoogleCloudMlV1CheckTrialEarlyStoppingStateMetatdata {
 }
 
 /// The request message for the CheckTrialEarlyStoppingState service method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1CheckTrialEarlyStoppingStateRequest {}
 
 /// The message will be placed in the response field of a completed google.longrunning.Operation associated with a CheckTrialEarlyStoppingState request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1CheckTrialEarlyStoppingStateResponse {
     /// The time at which operation processing completed.
     #[serde(default, rename = "endTime")]
@@ -55,7 +56,7 @@ pub struct GoogleCloudMlV1CheckTrialEarlyStoppingStateResponse {
 }
 
 /// The request message for the CompleteTrial service method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1CompleteTrialRequest {
     /// Optional. If provided, it will be used as the completed trial''s final_measurement; Otherwise, the service will auto-select a previously reported measurement as the final-measurement
     #[serde(default, rename = "finalMeasurement")]
@@ -69,7 +70,7 @@ pub struct GoogleCloudMlV1CompleteTrialRequest {
 }
 
 /// Request for explanations to be issued against a trained model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1ExplainRequest {
     /// Required. The explanation request body.
     #[serde(default, rename = "httpBody")]
@@ -77,7 +78,7 @@ pub struct GoogleCloudMlV1ExplainRequest {
 }
 
 /// Returns service account information associated with a project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1GetConfigResponse {
     #[serde(default)]
     pub config: ::core::option::Option<GoogleCloudMlV1Config>,
@@ -90,7 +91,7 @@ pub struct GoogleCloudMlV1GetConfigResponse {
 }
 
 /// Response message for the ListJobs method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1ListJobsResponse {
     /// The list of jobs.
     #[serde(default)]
@@ -101,7 +102,7 @@ pub struct GoogleCloudMlV1ListJobsResponse {
 }
 
 /// GoogleCloudMlV1ListLocationsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1ListLocationsResponse {
     /// Locations where at least one type of CMLE capability is available.
     #[serde(default)]
@@ -112,7 +113,7 @@ pub struct GoogleCloudMlV1ListLocationsResponse {
 }
 
 /// Response message for the ListModels method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1ListModelsResponse {
     /// The list of models.
     #[serde(default)]
@@ -123,11 +124,11 @@ pub struct GoogleCloudMlV1ListModelsResponse {
 }
 
 /// The request message for the ListTrials service method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1ListOptimalTrialsRequest {}
 
 /// The response message for the ListOptimalTrials method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1ListOptimalTrialsResponse {
     /// The pareto-optimal trials for multiple objective study or the optimal trial for single objective study. The definition of pareto-optimal can be checked in wiki page. https://en.wikipedia.org/wiki/Pareto_efficiency
     #[serde(default)]
@@ -135,7 +136,7 @@ pub struct GoogleCloudMlV1ListOptimalTrialsResponse {
 }
 
 /// GoogleCloudMlV1ListStudiesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1ListStudiesResponse {
     /// The studies associated with the project.
     #[serde(default)]
@@ -143,7 +144,7 @@ pub struct GoogleCloudMlV1ListStudiesResponse {
 }
 
 /// The response message for the ListTrials method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1ListTrialsResponse {
     /// The trials associated with the study.
     #[serde(default)]
@@ -151,7 +152,7 @@ pub struct GoogleCloudMlV1ListTrialsResponse {
 }
 
 /// Response message for the ListVersions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1ListVersionsResponse {
     /// Optional. Pass this token as the page_token field of the request for a subsequent call.
     #[serde(default, rename = "nextPageToken")]
@@ -162,7 +163,7 @@ pub struct GoogleCloudMlV1ListVersionsResponse {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1OperationMetadata {
     /// The time the operation was submitted.
     #[serde(default, rename = "createTime")]
@@ -194,7 +195,7 @@ pub struct GoogleCloudMlV1OperationMetadata {
 }
 
 /// Request for predictions to be issued against a trained model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1PredictRequest {
     ///  Required. The prediction request body. Refer to the [request body details section](#request-body-details) for more information on how to structure your request.
     #[serde(default, rename = "httpBody")]
@@ -202,15 +203,15 @@ pub struct GoogleCloudMlV1PredictRequest {
 }
 
 /// Request message for the SetDefaultVersion request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1SetDefaultVersionRequest {}
 
 /// GoogleCloudMlV1StopTrialRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1StopTrialRequest {}
 
 /// Metadata field of a google.longrunning.Operation associated with a SuggestTrialsRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1SuggestTrialsMetadata {
     /// The identifier of the client that is requesting the suggestion.
     #[serde(default, rename = "clientId")]
@@ -227,7 +228,7 @@ pub struct GoogleCloudMlV1SuggestTrialsMetadata {
 }
 
 /// The request message for the SuggestTrial service method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1SuggestTrialsRequest {
     /// Required. The identifier of the client that is requesting the suggestion. If multiple SuggestTrialsRequests have the same client_id, the service will return the identical suggested trial if the trial is pending, and provide a new trial if the last suggested trial was completed.
     #[serde(default, rename = "clientId")]
@@ -238,7 +239,7 @@ pub struct GoogleCloudMlV1SuggestTrialsRequest {
 }
 
 /// This message will be placed in the response field of a completed google.longrunning.Operation associated with a SuggestTrials request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1SuggestTrialsResponse {
     /// The time at which operation processing completed.
     #[serde(default, rename = "endTime")]
@@ -255,7 +256,7 @@ pub struct GoogleCloudMlV1SuggestTrialsResponse {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -266,7 +267,7 @@ pub struct GoogleIamV1SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -274,7 +275,7 @@ pub struct GoogleIamV1TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -282,7 +283,7 @@ pub struct GoogleIamV1TestIamPermissionsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -296,11 +297,11 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// GoogleCloudMlV1Config resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1Config {
     /// The service account Cloud ML uses to run on TPU node.
     #[serde(default, rename = "tpuServiceAccount")]
@@ -308,7 +309,7 @@ pub struct GoogleCloudMlV1Config {
 }
 
 /// Represents a training or prediction job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1Job {
     /// Output only. When the job was created.
     #[serde(default, rename = "createTime")]
@@ -352,7 +353,7 @@ pub struct GoogleCloudMlV1Job {
 }
 
 /// GoogleCloudMlV1Location resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1Location {
     /// Capabilities available in the location.
     #[serde(default)]
@@ -362,7 +363,7 @@ pub struct GoogleCloudMlV1Location {
 }
 
 /// Represents a machine learning solution. A model can have multiple versions, each of which is a deployed, trained model ready to receive prediction requests. The model itself is just a container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1Model {
     /// Output only. The default version of the model. This version will be used to handle prediction requests that do not specify a version. You can change the default version by calling projects.models.versions.setDefault.
     #[serde(default, rename = "defaultVersion")]
@@ -391,7 +392,7 @@ pub struct GoogleCloudMlV1Model {
 }
 
 /// A message representing a Study.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1Study {
     /// Output only. Time at which the study was created.
     #[serde(default, rename = "createTime")]
@@ -411,7 +412,7 @@ pub struct GoogleCloudMlV1Study {
 }
 
 /// Message that represents an arbitrary HTTP body. It should only be used for payload formats that can''t be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleApiHttpBody {
     /// The HTTP Content-Type header value specifying the content type of the body.
     #[serde(default, rename = "contentType")]
@@ -425,7 +426,7 @@ pub struct GoogleApiHttpBody {
 }
 
 /// A message representing a trial.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1Trial {
     /// Output only. The identifier of the client that originally requested this trial.
     #[serde(default, rename = "clientId")]
@@ -460,7 +461,7 @@ pub struct GoogleCloudMlV1Trial {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -477,7 +478,7 @@ pub struct GoogleIamV1Policy {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -497,7 +498,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// Represents input parameters for a prediction job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1PredictionInput {
     /// Optional. Number of records per batch, defaults to 64. The service will buffer batch_size number of records in memory before invoking one Tensorflow prediction call internally. So take the record size and memory available into consideration when setting this parameter.
     #[serde(default, rename = "batchSize")]
@@ -538,7 +539,7 @@ pub struct GoogleCloudMlV1PredictionInput {
 }
 
 /// Represents results of a prediction job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1PredictionOutput {
     /// The number of data instances which resulted in errors.
     #[serde(default, rename = "errorCount")]
@@ -555,7 +556,7 @@ pub struct GoogleCloudMlV1PredictionOutput {
 }
 
 /// Represents input parameters for a training job. When using the gcloud command to submit your training job, you can specify the input parameters as command-line arguments and/or in a YAML configuration file referenced from the --config command-line argument. For details, see the guide to [submitting a training job](/ai-platform/training/docs/training-jobs).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1TrainingInput {
     /// Optional. Command-line arguments passed to the training application when it starts. If your job uses a custom container, then the arguments are passed to the container''s ENTRYPOINT command.
     #[serde(default)]
@@ -638,7 +639,7 @@ pub struct GoogleCloudMlV1TrainingInput {
 }
 
 /// Represents results of a training job. Output only.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1TrainingOutput {
     /// Details related to built-in algorithms jobs. Only set for built-in algorithms jobs.
     #[serde(default, rename = "builtInAlgorithmOutput")]
@@ -667,7 +668,7 @@ pub struct GoogleCloudMlV1TrainingOutput {
 }
 
 /// GoogleCloudMlV1Capability resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1Capability {
     /// Available accelerators for the capability.
     #[serde(default, rename = "availableAccelerators")]
@@ -678,7 +679,7 @@ pub struct GoogleCloudMlV1Capability {
 }
 
 /// Represents a version of the model. Each version is a trained model deployed in the cloud, ready to handle prediction requests. A model can have multiple versions. You can get information about all of the versions of a given model by calling projects.models.versions.list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1Version {
     /// Optional. Accelerator config for using GPUs for online prediction (beta). Only specify this field if you have specified a Compute Engine (N1) machine type in the machineType field. Learn more about [using GPUs for online prediction](/ml-engine/docs/machine-types-online-prediction#gpus).
     #[serde(default, rename = "acceleratorConfig")]
@@ -761,7 +762,7 @@ pub struct GoogleCloudMlV1Version {
 }
 
 /// Represents configuration of a study.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1StudyConfig {
     /// The search algorithm specified for the study. // TODO: enum values: ["ALGORITHM_UNSPECIFIED", "GAUSSIAN_PROCESS_BANDIT", "GRID_SEARCH", "RANDOM_SEARCH"]
     #[serde(default)]
@@ -778,7 +779,7 @@ pub struct GoogleCloudMlV1StudyConfig {
 }
 
 /// A message representing a measurement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1Measurement {
     /// Output only. Time that the trial has been running at the point of this measurement.
     #[serde(default, rename = "elapsedTime")]
@@ -792,7 +793,7 @@ pub struct GoogleCloudMlV1Measurement {
 }
 
 /// A message representing a parameter to be tuned. Contains the name of the parameter and the suggested value to use for this trial.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1TrialParameter {
     /// Must be set if ParameterType is DOUBLE or DISCRETE.
     #[serde(default, rename = "floatValue")]
@@ -809,7 +810,7 @@ pub struct GoogleCloudMlV1TrialParameter {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -820,7 +821,7 @@ pub struct GoogleIamV1AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -834,7 +835,7 @@ pub struct GoogleIamV1Binding {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -848,7 +849,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// Represents a custom encryption key configuration that can be applied to a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1EncryptionConfig {
     /// The Cloud KMS resource identifier of the customer-managed encryption key used to protect a resource, such as a training job. It has the following format: projects/{PROJECT_ID}/locations/{REGION}/keyRings/{KEY_RING_NAME}/cryptoKeys/{KEY_NAME}
     #[serde(default, rename = "kmsKeyName")]
@@ -856,7 +857,7 @@ pub struct GoogleCloudMlV1EncryptionConfig {
 }
 
 /// Represents the configuration for a replica in a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1ReplicaConfig {
     /// Represents the type and number of accelerators used by the replica. [Learn about restrictions on accelerator configurations for training.](/ai-platform/training/docs/using-gpus#compute-engine-machine-types-with-gpu)
     #[serde(default, rename = "acceleratorConfig")]
@@ -879,7 +880,7 @@ pub struct GoogleCloudMlV1ReplicaConfig {
 }
 
 /// Represents a set of hyperparameters to optimize.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1HyperparameterSpec {
     /// Optional. The search algorithm specified for the hyperparameter tuning job. Uses the default AI Platform hyperparameter tuning algorithm if unspecified. // TODO: enum values: ["ALGORITHM_UNSPECIFIED", "GRID_SEARCH", "RANDOM_SEARCH"]
     #[serde(default)]
@@ -911,7 +912,7 @@ pub struct GoogleCloudMlV1HyperparameterSpec {
 }
 
 /// All parameters related to scheduling of training jobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1Scheduling {
     /// Optional. The maximum job running time, expressed in seconds. The field can contain up to nine fractional digits, terminated by s. If not specified, this field defaults to 604800s (seven days). If the training job is still running after this duration, AI Platform Training cancels it. The duration is measured from when the job enters the RUNNING state; therefore it does not overlap with the duration limited by Scheduling.max_wait_time. For example, if you want to ensure your job runs for no more than 2 hours, set this field to 7200s (2 hours * 60 minutes / hour * 60 seconds / minute). If you submit your training job using the gcloud tool, you can [specify this field in a config.yaml file](/ai-platform/training/docs/training-jobs#formatting_your_configuration_parameters). For example: yaml trainingInput: scheduling: maxRunningTime: 7200s
     #[serde(default, rename = "maxRunningTime")]
@@ -925,7 +926,7 @@ pub struct GoogleCloudMlV1Scheduling {
 }
 
 /// Represents the result of a single hyperparameter tuning trial from a training job. The TrainingOutput object that is returned on successful completion of a training job with hyperparameter tuning includes a list of HyperparameterOutput objects, one for each successful trial.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1HyperparameterOutput {
     /// All recorded object metrics for this trial. This field is not currently populated.
     #[serde(default, rename = "allMetrics")]
@@ -963,7 +964,7 @@ pub struct GoogleCloudMlV1HyperparameterOutput {
 }
 
 /// Options for automatically scaling a model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1AutoScaling {
     /// The maximum number of nodes to scale this model under load. The actual value will depend on resource quota and availability.
     #[serde(default, rename = "maxNodes")]
@@ -977,7 +978,7 @@ pub struct GoogleCloudMlV1AutoScaling {
 }
 
 /// Specification of a custom container for serving predictions. This message is a subset of the [Kubernetes Container v1 core specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1ContainerSpec {
     /// Immutable. Specifies arguments for the command that runs when the container starts. This overrides the container''s [CMD](https://docs.docker.com/engine/reference/builder/#cmd). Specify this field as an array of executable and arguments, similar to a Docker CMD''s "default parameters" form. If you don''t specify this field but do specify the command field, then the command from the command field runs without any additional arguments. See the [Kubernetes documentation about how the command and args fields interact with a container''s ENTRYPOINT and CMD](https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/#notes). If you don''t specify this field and don''t specify the commmand field, then the container''s [ENTRYPOINT](https://docs.docker.com/engine/reference/builder/#cmd) and CMD determine what runs based on their default behavior. See the [Docker documentation about how CMD and ENTRYPOINT interact](https://docs.docker.com/engine/reference/builder/#understand-how-cmd-and-entrypoint-interact). In this field, you can reference [environment variables set by AI Platform Prediction](/ai-platform/prediction/docs/custom-container-requirements#aip-variables) and environment variables set in the env field. You cannot reference environment variables set in the Docker image. In order for environment variables to be expanded, reference them by using the following syntax: $( VARIABLE_NAME) Note that this differs from Bash variable expansion, which does not use parentheses. If a variable cannot be resolved, the reference in the input string is used unchanged. To avoid variable expansion, you can escape this syntax with $$; for example: $$(VARIABLE_NAME) This field corresponds to the args field of the [Kubernetes Containers v1 core API](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#container-v1-core).
     #[serde(default)]
@@ -997,7 +998,7 @@ pub struct GoogleCloudMlV1ContainerSpec {
 }
 
 /// Message holding configuration options for explaining model predictions. There are three feature attribution methods supported for TensorFlow models: integrated gradients, sampled Shapley, and XRAI. [Learn more about feature attributions.](/ai-platform/prediction/docs/ai-explanations/overview)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1ExplanationConfig {
     /// Attributes credit by computing the Aumann-Shapley value taking advantage of the model''s fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1703.01365
     #[serde(default, rename = "integratedGradientsAttribution")]
@@ -1013,7 +1014,7 @@ pub struct GoogleCloudMlV1ExplanationConfig {
 }
 
 /// Options for manually scaling a model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1ManualScaling {
     /// The number of nodes to allocate for this model. These nodes are always up, starting from the time the model is deployed, so the cost of operating this model will be proportional to nodes * number of hours since last billing cycle plus the cost for each prediction performed.
     #[serde(default)]
@@ -1021,7 +1022,7 @@ pub struct GoogleCloudMlV1ManualScaling {
 }
 
 /// Configuration for logging request-response pairs to a BigQuery table. Online prediction requests to a model version and the responses to these requests are converted to raw strings and saved to the specified BigQuery table. Logging is constrained by [BigQuery quotas and limits](/bigquery/quotas). If your project exceeds BigQuery quotas or limits, AI Platform Prediction does not log request-response pairs, but it continues to serve predictions. If you are using [continuous evaluation](/ml-engine/docs/continuous-evaluation/), you do not need to specify this configuration manually. Setting up continuous evaluation automatically enables logging of request-response pairs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1RequestLoggingConfig {
     /// Required. Fully qualified BigQuery table name in the following format: " project_id.dataset_name.table_name" The specified table must already exist, and the "Cloud ML Service Agent" for your project must have permission to write to it. The table must have the following [schema](/bigquery/docs/schemas): Field name Type Mode model STRING REQUIRED model_version STRING REQUIRED time TIMESTAMP REQUIRED raw_data STRING REQUIRED raw_prediction STRING NULLABLE groundtruth STRING NULLABLE
     #[serde(default, rename = "bigqueryTableName")]
@@ -1032,7 +1033,7 @@ pub struct GoogleCloudMlV1RequestLoggingConfig {
 }
 
 /// Specifies HTTP paths served by a custom container. AI Platform Prediction sends requests to these paths on the container; the custom container must run an HTTP server that responds to these requests with appropriate responses. Read [Custom container requirements](/ai-platform/prediction/docs/custom-container-requirements) for details on how to create your container image to meet these requirements.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1RouteMap {
     /// HTTP path on the container to send health checkss to. AI Platform Prediction intermittently sends GET requests to this path on the container''s IP address and port to check that the container is healthy. Read more about [health checks](/ai-platform/prediction/docs/custom-container-requirements#checks). For example, if you set this field to /bar, then AI Platform Prediction intermittently sends a GET request to the /bar path on the port of your container specified by the first value of Version.container.ports. If you don''t specify this field, it defaults to the following value: /v1/models/ MODEL/versions/VERSION The placeholders in this value are replaced as follows: * MODEL: The name of the parent Model. This does not include the "projects/PROJECT_ID/models/" prefix that the API returns in output; it is the bare model name, as provided to projects.models.create. * VERSION: The name of the model version. This does not include the "projects/PROJECT_ID /models/MODEL/versions/" prefix that the API returns in output; it is the bare version name, as provided to projects.models.versions.create.
     #[serde(default)]
@@ -1043,7 +1044,7 @@ pub struct GoogleCloudMlV1RouteMap {
 }
 
 /// Configuration for Automated Early Stopping of Trials. If no implementation_config is set, automated early stopping will not be run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1AutomatedStoppingConfig {
     #[serde(default, rename = "decayCurveStoppingConfig")]
     pub decay_curve_stopping_config: ::core::option::Option<
@@ -1055,7 +1056,7 @@ pub struct GoogleCloudMlV1AutomatedStoppingConfig {
 }
 
 /// Represents a metric to optimize.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1StudyConfigMetricSpec {
     /// Required. The optimization goal of the metric. // TODO: enum values: ["GOAL_TYPE_UNSPECIFIED", "MAXIMIZE", "MINIMIZE"]
     #[serde(default)]
@@ -1066,7 +1067,7 @@ pub struct GoogleCloudMlV1StudyConfigMetricSpec {
 }
 
 /// Represents a single parameter to optimize.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1StudyConfigParameterSpec {
     /// The value spec for a ''CATEGORICAL'' parameter.
     #[serde(default, rename = "categoricalValueSpec")]
@@ -1111,7 +1112,7 @@ pub struct GoogleCloudMlV1StudyConfigParameterSpec {
 }
 
 /// A message representing a metric in the measurement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1MeasurementMetric {
     /// Required. Metric name.
     #[serde(default)]
@@ -1122,7 +1123,7 @@ pub struct GoogleCloudMlV1MeasurementMetric {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -1133,7 +1134,7 @@ pub struct GoogleIamV1AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeExpr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -1150,7 +1151,7 @@ pub struct GoogleTypeExpr {
 }
 
 /// Represents a hardware accelerator request config. Note that the AcceleratorConfig can be used in both Jobs and Versions. Learn more about [accelerators for training](/ml-engine/docs/using-gpus) and [accelerators for online prediction](/ml-engine/docs/machine-types-online-prediction#gpus).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1AcceleratorConfig {
     /// The number of accelerators to attach to each machine running the job.
     #[serde(default)]
@@ -1161,7 +1162,7 @@ pub struct GoogleCloudMlV1AcceleratorConfig {
 }
 
 /// Represents the config of disk options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1DiskConfig {
     /// Size in GB of the boot disk (default is 100GB).
     #[serde(default, rename = "bootDiskSizeGb")]
@@ -1172,7 +1173,7 @@ pub struct GoogleCloudMlV1DiskConfig {
 }
 
 /// Represents a single hyperparameter to optimize.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1ParameterSpec {
     /// Required if type is CATEGORICAL. The list of possible categories.
     #[serde(default, rename = "categoricalValues")]
@@ -1198,7 +1199,7 @@ pub struct GoogleCloudMlV1ParameterSpec {
 }
 
 /// An observed value of a metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1HyperparameterOutputHyperparameterMetric {
     /// The objective value at this training step.
     #[serde(default, rename = "objectiveValue")]
@@ -1209,7 +1210,7 @@ pub struct GoogleCloudMlV1HyperparameterOutputHyperparameterMetric {
 }
 
 /// Represents output related to a built-in algorithm Job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1BuiltInAlgorithmOutput {
     /// Framework on which the built-in algorithm was trained.
     #[serde(default)]
@@ -1226,7 +1227,7 @@ pub struct GoogleCloudMlV1BuiltInAlgorithmOutput {
 }
 
 /// MetricSpec contains the specifications to use to calculate the desired nodes count when autoscaling is enabled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1MetricSpec {
     /// metric name. // TODO: enum values: ["METRIC_NAME_UNSPECIFIED", "CPU_USAGE", "GPU_DUTY_CYCLE"]
     #[serde(default)]
@@ -1237,7 +1238,7 @@ pub struct GoogleCloudMlV1MetricSpec {
 }
 
 /// Represents an environment variable to be made available in a container. This message is a subset of the [Kubernetes EnvVar v1 core specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#envvar-v1-core).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1EnvVar {
     /// Name of the environment variable. Must be a [valid C identifier](https://github.com/kubernetes/kubernetes/blob/v1.18.8/staging/src/k8s.io/apimachinery/pkg/util/validation/validation.go#L258) and must not begin with the prefix AIP_.
     #[serde(default)]
@@ -1248,7 +1249,7 @@ pub struct GoogleCloudMlV1EnvVar {
 }
 
 /// Represents a network port in a single container. This message is a subset of the [Kubernetes ContainerPort v1 core specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.18/#containerport-v1-core).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1ContainerPort {
     /// Number of the port to expose on the container. This must be a valid port number: 0 &lt; PORT_NUMBER &lt; 65536.
     #[serde(default, rename = "containerPort")]
@@ -1256,7 +1257,7 @@ pub struct GoogleCloudMlV1ContainerPort {
 }
 
 /// Attributes credit by computing the Aumann-Shapley value taking advantage of the model''s fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1703.01365
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1IntegratedGradientsAttribution {
     /// Number of steps for approximating the path integral. A good value to start is 50 and gradually increase until the sum to diff property is met within the desired error range.
     #[serde(default, rename = "numIntegralSteps")]
@@ -1264,7 +1265,7 @@ pub struct GoogleCloudMlV1IntegratedGradientsAttribution {
 }
 
 /// An attribution method that approximates Shapley values for features that contribute to the label being predicted. A sampling strategy is used to approximate the value rather than considering all subsets of features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1SampledShapleyAttribution {
     /// The number of feature permutations to consider when approximating the Shapley values.
     #[serde(default, rename = "numPaths")]
@@ -1272,7 +1273,7 @@ pub struct GoogleCloudMlV1SampledShapleyAttribution {
 }
 
 /// Attributes credit by computing the XRAI taking advantage of the model''s fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1906.02825 Currently only implemented for models with natural image inputs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1XraiAttribution {
     /// Number of steps for approximating the path integral. A good value to start is 50 and gradually increase until the sum to diff property is met within the desired error range.
     #[serde(default, rename = "numIntegralSteps")]
@@ -1280,7 +1281,7 @@ pub struct GoogleCloudMlV1XraiAttribution {
 }
 
 /// GoogleCloudMlV1AutomatedStoppingConfigDecayCurveAutomatedStoppingConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1AutomatedStoppingConfigDecayCurveAutomatedStoppingConfig {
     /// If true, measurement.elapsed_time is used as the x-axis of each Trials Decay Curve. Otherwise, Measurement.steps will be used as the x-axis.
     #[serde(default, rename = "useElapsedTime")]
@@ -1288,7 +1289,7 @@ pub struct GoogleCloudMlV1AutomatedStoppingConfigDecayCurveAutomatedStoppingConf
 }
 
 /// The median automated stopping rule stops a pending trial if the trial''s best objective_value is strictly below the median ''performance'' of all completed trials reported up to the trial''s last measurement. Currently, ''performance'' refers to the running average of the objective values reported by the trial in each measurement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1AutomatedStoppingConfigMedianAutomatedStoppingConfig {
     /// If true, the median automated stopping rule applies to measurement.use_elapsed_time, which means the elapsed_time field of the current trial''s latest measurement is used to compute the median objective value for each completed trial.
     #[serde(default, rename = "useElapsedTime")]
@@ -1296,7 +1297,7 @@ pub struct GoogleCloudMlV1AutomatedStoppingConfigMedianAutomatedStoppingConfig {
 }
 
 /// GoogleCloudMlV1StudyConfigParameterSpecCategoricalValueSpec resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1StudyConfigParameterSpecCategoricalValueSpec {
     /// Must be specified if type is CATEGORICAL. The list of possible categories.
     #[serde(default)]
@@ -1304,7 +1305,7 @@ pub struct GoogleCloudMlV1StudyConfigParameterSpecCategoricalValueSpec {
 }
 
 /// GoogleCloudMlV1StudyConfigParameterSpecDiscreteValueSpec resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1StudyConfigParameterSpecDiscreteValueSpec {
     /// Must be specified if type is DISCRETE. A list of feasible points. The list should be in strictly increasing order. For instance, this parameter might have possible settings of 1.5, 2.5, and 4.0. This list should not contain more than 1,000 values.
     #[serde(default)]
@@ -1312,7 +1313,7 @@ pub struct GoogleCloudMlV1StudyConfigParameterSpecDiscreteValueSpec {
 }
 
 /// GoogleCloudMlV1StudyConfigParameterSpecDoubleValueSpec resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1StudyConfigParameterSpecDoubleValueSpec {
     /// Must be specified if type is DOUBLE. Maximum value of the parameter.
     #[serde(default, rename = "maxValue")]
@@ -1323,7 +1324,7 @@ pub struct GoogleCloudMlV1StudyConfigParameterSpecDoubleValueSpec {
 }
 
 /// GoogleCloudMlV1StudyConfigParameterSpecIntegerValueSpec resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1StudyConfigParameterSpecIntegerValueSpec {
     /// Must be specified if type is INTEGER. Maximum value of the parameter.
     #[serde(default, rename = "maxValue")]
@@ -1334,7 +1335,7 @@ pub struct GoogleCloudMlV1StudyConfigParameterSpecIntegerValueSpec {
 }
 
 /// Represents the spec to match categorical values from parent parameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1StudyConfigParameterSpecMatchingParentCategoricalValueSpec {
     /// Matches values of the parent parameter with type ''CATEGORICAL''. All values must exist in categorical_value_spec of parent parameter.
     #[serde(default)]
@@ -1342,7 +1343,7 @@ pub struct GoogleCloudMlV1StudyConfigParameterSpecMatchingParentCategoricalValue
 }
 
 /// Represents the spec to match discrete values from parent parameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1StudyConfigParameterSpecMatchingParentDiscreteValueSpec {
     /// Matches values of the parent parameter with type ''DISCRETE''. All values must exist in discrete_value_spec of parent parameter.
     #[serde(default)]
@@ -1350,7 +1351,7 @@ pub struct GoogleCloudMlV1StudyConfigParameterSpecMatchingParentDiscreteValueSpe
 }
 
 /// Represents the spec to match integer values from parent parameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMlV1StudyConfigParameterSpecMatchingParentIntValueSpec {
     /// Matches values of the parent parameter with type ''INTEGER''. All values must lie in integer_value_spec of parent parameter.
     #[serde(default)]

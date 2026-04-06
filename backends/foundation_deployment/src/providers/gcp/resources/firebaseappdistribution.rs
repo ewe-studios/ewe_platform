@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Android App Bundle (AAB) information for a Firebase app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppdistroV1AabInfo {
     /// App bundle integration state. Only valid for android apps. // TODO: enum values: ["AAB_INTEGRATION_STATE_UNSPECIFIED", "INTEGRATED", "PLAY_ACCOUNT_NOT_LINKED", "NO_APP_WITH_GIVEN_BUNDLE_ID_IN_PLAY_ACCOUNT", "APP_NOT_PUBLISHED", "AAB_STATE_UNAVAILABLE", "PLAY_IAS_TERMS_NOT_ACCEPTED"]
     #[serde(default, rename = "integrationState")]
@@ -25,7 +26,7 @@ pub struct GoogleFirebaseAppdistroV1AabInfo {
 }
 
 /// The Request message for batch adding testers
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppdistroV1BatchAddTestersRequest {
     /// Required. The email addresses of the tester resources to create. A maximum of 999 and a minimum of 1 tester can be created in a batch.
     #[serde(default)]
@@ -33,7 +34,7 @@ pub struct GoogleFirebaseAppdistroV1BatchAddTestersRequest {
 }
 
 /// The Response message for BatchAddTesters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppdistroV1BatchAddTestersResponse {
     /// The testers which are created and/or already exist
     #[serde(default)]
@@ -41,7 +42,7 @@ pub struct GoogleFirebaseAppdistroV1BatchAddTestersResponse {
 }
 
 /// The request message for BatchDeleteReleases.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppdistroV1BatchDeleteReleasesRequest {
     /// Required. The names of the release resources to delete. Format: projects/{project_number}/apps/{app}/releases/{release} A maximum of 100 releases can be deleted per request.
     #[serde(default)]
@@ -49,7 +50,7 @@ pub struct GoogleFirebaseAppdistroV1BatchDeleteReleasesRequest {
 }
 
 /// The request message for BatchJoinGroup
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppdistroV1BatchJoinGroupRequest {
     /// Indicates whether to create tester resources based on emails if they don''t exist yet.
     #[serde(default, rename = "createMissingTesters")]
@@ -60,7 +61,7 @@ pub struct GoogleFirebaseAppdistroV1BatchJoinGroupRequest {
 }
 
 /// Request message for BatchLeaveGroup
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppdistroV1BatchLeaveGroupRequest {
     /// Required. The email addresses of the testers to be removed from the group. A maximum of 999 and a minimum of 1 testers can be removed in a batch.
     #[serde(default)]
@@ -68,7 +69,7 @@ pub struct GoogleFirebaseAppdistroV1BatchLeaveGroupRequest {
 }
 
 /// The request message for BatchRemoveTesters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppdistroV1BatchRemoveTestersRequest {
     /// Required. The email addresses of the tester resources to removed. A maximum of 999 and a minimum of 1 testers can be deleted in a batch.
     #[serde(default)]
@@ -76,7 +77,7 @@ pub struct GoogleFirebaseAppdistroV1BatchRemoveTestersRequest {
 }
 
 /// The response message for BatchRemoveTesters
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppdistroV1BatchRemoveTestersResponse {
     /// List of deleted tester emails
     #[serde(default)]
@@ -84,7 +85,7 @@ pub struct GoogleFirebaseAppdistroV1BatchRemoveTestersResponse {
 }
 
 /// The request message for DistributeRelease.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppdistroV1DistributeReleaseRequest {
     /// Optional. A list of group aliases (IDs) to be given access to this release. A combined maximum of 999 testerEmails and groupAliases can be specified in a single request.
     #[serde(default, rename = "groupAliases")]
@@ -95,11 +96,11 @@ pub struct GoogleFirebaseAppdistroV1DistributeReleaseRequest {
 }
 
 /// The response message for DistributeRelease.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppdistroV1DistributeReleaseResponse {}
 
 /// The response message for ListFeedbackReports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppdistroV1ListFeedbackReportsResponse {
     /// The feedback reports
     #[serde(default, rename = "feedbackReports")]
@@ -111,7 +112,7 @@ pub struct GoogleFirebaseAppdistroV1ListFeedbackReportsResponse {
 }
 
 /// The response message for ListGroups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppdistroV1ListGroupsResponse {
     /// The groups listed.
     #[serde(default)]
@@ -122,7 +123,7 @@ pub struct GoogleFirebaseAppdistroV1ListGroupsResponse {
 }
 
 /// The response message for ListReleases.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppdistroV1ListReleasesResponse {
     /// A short-lived token, which can be sent as pageToken to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -133,7 +134,7 @@ pub struct GoogleFirebaseAppdistroV1ListReleasesResponse {
 }
 
 /// The response message for ListTesters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppdistroV1ListTestersResponse {
     /// A short-lived token, which can be sent as pageToken to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -144,11 +145,11 @@ pub struct GoogleFirebaseAppdistroV1ListTestersResponse {
 }
 
 /// Operation metadata for UploadRelease.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppdistroV1UploadReleaseMetadata {}
 
 /// Request message for UploadRelease.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppdistroV1UploadReleaseRequest {
     /// Binary to upload
     #[serde(default)]
@@ -156,7 +157,7 @@ pub struct GoogleFirebaseAppdistroV1UploadReleaseRequest {
 }
 
 /// Response message for UploadRelease.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppdistroV1UploadReleaseResponse {
     /// Release associated with the uploaded binary.
     #[serde(default)]
@@ -167,11 +168,11 @@ pub struct GoogleFirebaseAppdistroV1UploadReleaseResponse {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningCancelOperationRequest {}
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -185,7 +186,7 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// The request message for Operations.WaitOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningWaitOperationRequest {
     /// The maximum duration to wait before timing out. If left blank, the wait will be at most the time permitted by the underlying HTTP/RPC protocol. If RPC context deadline is also specified, the shorter one will be used.
     #[serde(default)]
@@ -193,11 +194,11 @@ pub struct GoogleLongrunningWaitOperationRequest {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// App bundle test certificate
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppdistroV1TestCertificate {
     /// Hex string of MD5 hash of the test certificate used to resign the AAB
     #[serde(default, rename = "hashMd5")]
@@ -211,7 +212,7 @@ pub struct GoogleFirebaseAppdistroV1TestCertificate {
 }
 
 /// A feedback report submitted by a tester for a release.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppdistroV1FeedbackReport {
     /// Output only. The time when the feedback report was created.
     #[serde(default, rename = "createTime")]
@@ -234,7 +235,7 @@ pub struct GoogleFirebaseAppdistroV1FeedbackReport {
 }
 
 /// A group which can contain testers. A group can be invited to test apps in a Firebase project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppdistroV1Group {
     /// Required. The display name of the group.
     #[serde(default, rename = "displayName")]
@@ -254,7 +255,7 @@ pub struct GoogleFirebaseAppdistroV1Group {
 }
 
 /// A person that can be invited to test apps in a Firebase project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppdistroV1Tester {
     /// The name of the tester associated with the Google account used to accept the tester invitation.
     #[serde(default, rename = "displayName")]
@@ -271,7 +272,7 @@ pub struct GoogleFirebaseAppdistroV1Tester {
 }
 
 /// A reference to data stored on the filesystem, on GFS or in blobstore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GdataMedia {
     /// Deprecated, use one of explicit hash type fields instead. Algorithm used for calculating the hash. As of 2011/01/21, "MD5" is the only possible value for this field. New values may be added at any time.
     #[serde(default)]
@@ -366,7 +367,7 @@ pub struct GdataMedia {
 }
 
 /// A release of a Firebase app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppdistroV1Release {
     /// Output only. A signed link (which expires in one hour) to directly download the app binary (IPA/APK/AAB) file.
     #[serde(default, rename = "binaryDownloadUri")]
@@ -401,7 +402,7 @@ pub struct GoogleFirebaseAppdistroV1Release {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -421,7 +422,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// Detailed Content-Type information from Scotty. The Content-Type of the media will typically be filled in by the header or Scotty''s best_guess, but this extended information provides the backend with more information so that it can make a better decision if needed. This is only used on media upload requests from Scotty.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GdataContentTypeInfo {
     /// Scotty''s best guess of what the content type of the file is.
     #[serde(default, rename = "bestGuess")]
@@ -441,7 +442,7 @@ pub struct GdataContentTypeInfo {
 }
 
 /// Backend response for a Diff get checksums response. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GdataDiffChecksumsResponse {
     /// Exactly one of these fields must be populated. If checksums_location is filled, the server will return the corresponding contents to the user. If object_location is filled, the server will calculate the checksums based on the content there and return that to the user. For details on the format of the checksums, see http://go/scotty-diff-protocol.
     #[serde(default, rename = "checksumsLocation")]
@@ -461,7 +462,7 @@ pub struct GdataDiffChecksumsResponse {
 }
 
 /// Backend response for a Diff download response. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GdataDiffDownloadResponse {
     /// The original object location.
     #[serde(default, rename = "objectLocation")]
@@ -469,7 +470,7 @@ pub struct GdataDiffDownloadResponse {
 }
 
 /// A Diff upload request. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GdataDiffUploadRequest {
     /// The location of the checksums for the new object. Agents must clone the object located here, as the upload server will delete the contents once a response is received. For details on the format of the checksums, see http://go/scotty-diff-protocol.
     #[serde(default, rename = "checksumsInfo")]
@@ -483,7 +484,7 @@ pub struct GdataDiffUploadRequest {
 }
 
 /// Backend response for a Diff upload request. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GdataDiffUploadResponse {
     /// The object version of the object at the server. Must be included in the end notification response. The version in the end notification response must correspond to the new version of the object that is now stored at the server, after the upload.
     #[serde(default, rename = "objectVersion")]
@@ -494,7 +495,7 @@ pub struct GdataDiffUploadResponse {
 }
 
 /// Backend response for a Diff get version response. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GdataDiffVersionResponse {
     /// The total size of the server object.
     #[serde(default, rename = "objectSizeBytes")]
@@ -505,7 +506,7 @@ pub struct GdataDiffVersionResponse {
 }
 
 /// Parameters specific to media downloads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GdataDownloadParameters {
     /// A boolean to be returned in the response to Scotty. Allows/disallows gzip encoding of the payload content when the server thinks it''s advantageous (hence, does not guarantee compression) which allows Scotty to GZip the response to the client.
     #[serde(default, rename = "allowGzipCompression")]
@@ -516,7 +517,7 @@ pub struct GdataDownloadParameters {
 }
 
 /// Notes that belong to a release.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseAppdistroV1ReleaseNotes {
     /// The text of the release notes.
     #[serde(default)]
@@ -524,7 +525,7 @@ pub struct GoogleFirebaseAppdistroV1ReleaseNotes {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -538,7 +539,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// A sequence of media data references representing composite data. Introduced to support Bigstore composite objects. For details, visit http://go/bigstore-composites.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GdataCompositeMedia {
     /// Blobstore v1 reference, set if reference_type is BLOBSTORE_REF This should be the byte representation of a blobstore.BlobRef. Since Blobstore is deprecating v1, use blobstore2_info instead. For now, any v2 blob will also be represented in this field as v1 BlobRef.
     #[serde(default, rename = "blobRef")]
@@ -576,7 +577,7 @@ pub struct GdataCompositeMedia {
 }
 
 /// Information to read/write to blobstore2.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GdataBlobstore2Info {
     /// The blob generation id.
     #[serde(default, rename = "blobGeneration")]
@@ -602,7 +603,7 @@ pub struct GdataBlobstore2Info {
 }
 
 /// This is a copy of the tech.blob.ObjectId proto, which could not be used directly here due to transitive closure issues with JavaScript support; see http://b/8801763.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GdataObjectId {
     /// The name of the bucket to which this object belongs.
     #[serde(default, rename = "bucketName")]

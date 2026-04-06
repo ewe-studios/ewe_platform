@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request for Datastore.AllocateIds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllocateIdsRequest {
     /// The ID of the database against which to make the request. ''(default)'' is not allowed; please use empty string '''' to refer the default database.
     #[serde(default, rename = "databaseId")]
@@ -22,7 +23,7 @@ pub struct AllocateIdsRequest {
 }
 
 /// The response for Datastore.AllocateIds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllocateIdsResponse {
     /// The keys specified in the request (in the same order), each with its key path completed with a newly allocated ID.
     #[serde(default)]
@@ -30,7 +31,7 @@ pub struct AllocateIdsResponse {
 }
 
 /// The request for Datastore.BeginTransaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BeginTransactionRequest {
     /// The ID of the database against which to make the request. ''(default)'' is not allowed; please use empty string '''' to refer the default database.
     #[serde(default, rename = "databaseId")]
@@ -41,7 +42,7 @@ pub struct BeginTransactionRequest {
 }
 
 /// The response for Datastore.BeginTransaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BeginTransactionResponse {
     /// The transaction identifier (always present).
     #[serde(default)]
@@ -49,7 +50,7 @@ pub struct BeginTransactionResponse {
 }
 
 /// The request for Datastore.Commit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitRequest {
     /// The ID of the database against which to make the request. ''(default)'' is not allowed; please use empty string '''' to refer the default database.
     #[serde(default, rename = "databaseId")]
@@ -69,7 +70,7 @@ pub struct CommitRequest {
 }
 
 /// The response for Datastore.Commit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitResponse {
     /// The transaction commit timestamp. Not set for non-transactional commits.
     #[serde(default, rename = "commitTime")]
@@ -83,11 +84,11 @@ pub struct CommitResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Metadata for Datastore to Firestore migration operations. The DatastoreFirestoreMigration operation is not started by the end-user via an explicit "creation" method. This is an intentional deviation from the LRO design pattern. This singleton resource can be accessed at: "projects/{project_id}/operations/datastore-firestore-migration"
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDatastoreAdminV1DatastoreFirestoreMigrationMetadata {
     /// The current state of migration from Cloud Datastore to Cloud Firestore in Datastore mode. // TODO: enum values: ["MIGRATION_STATE_UNSPECIFIED", "RUNNING", "PAUSED", "COMPLETE"]
     #[serde(default, rename = "migrationState")]
@@ -98,7 +99,7 @@ pub struct GoogleDatastoreAdminV1DatastoreFirestoreMigrationMetadata {
 }
 
 /// Metadata for ExportEntities operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDatastoreAdminV1ExportEntitiesMetadata {
     /// Metadata common to all Datastore Admin operations.
     #[serde(default)]
@@ -118,7 +119,7 @@ pub struct GoogleDatastoreAdminV1ExportEntitiesMetadata {
 }
 
 /// The request for google.datastore.admin.v1.DatastoreAdmin.ExportEntities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDatastoreAdminV1ExportEntitiesRequest {
     /// Description of what data from the project is included in the export.
     #[serde(default, rename = "entityFilter")]
@@ -132,7 +133,7 @@ pub struct GoogleDatastoreAdminV1ExportEntitiesRequest {
 }
 
 /// The response for google.datastore.admin.v1.DatastoreAdmin.ExportEntities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDatastoreAdminV1ExportEntitiesResponse {
     /// Location of the output metadata file. This can be used to begin an import into Cloud Datastore (this project or another project). See google.datastore.admin.v1.ImportEntitiesRequest.input_url. Only present if the operation completed successfully.
     #[serde(default, rename = "outputUrl")]
@@ -140,7 +141,7 @@ pub struct GoogleDatastoreAdminV1ExportEntitiesResponse {
 }
 
 /// Metadata for ImportEntities operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDatastoreAdminV1ImportEntitiesMetadata {
     /// Metadata common to all Datastore Admin operations.
     #[serde(default)]
@@ -160,7 +161,7 @@ pub struct GoogleDatastoreAdminV1ImportEntitiesMetadata {
 }
 
 /// The request for google.datastore.admin.v1.DatastoreAdmin.ImportEntities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDatastoreAdminV1ImportEntitiesRequest {
     /// Optionally specify which kinds/namespaces are to be imported. If provided, the list must be a subset of the EntityFilter used in creating the export, otherwise a FAILED_PRECONDITION error will be returned. If no filter is specified then all entities from the export are imported.
     #[serde(default, rename = "entityFilter")]
@@ -174,7 +175,7 @@ pub struct GoogleDatastoreAdminV1ImportEntitiesRequest {
 }
 
 /// Metadata for Index operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDatastoreAdminV1IndexOperationMetadata {
     /// Metadata common to all Datastore Admin operations.
     #[serde(default)]
@@ -188,7 +189,7 @@ pub struct GoogleDatastoreAdminV1IndexOperationMetadata {
 }
 
 /// The response for google.datastore.admin.v1.DatastoreAdmin.ListIndexes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDatastoreAdminV1ListIndexesResponse {
     /// The indexes.
     #[serde(default)]
@@ -199,7 +200,7 @@ pub struct GoogleDatastoreAdminV1ListIndexesResponse {
 }
 
 /// An event signifying the start of a new step in a [migration from Cloud Datastore to Cloud Firestore in Datastore mode](https://cloud.google.com/datastore/docs/upgrade-to-firestore).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDatastoreAdminV1MigrationProgressEvent {
     /// Details for the PREPARE step.
     #[serde(default, rename = "prepareStepDetails")]
@@ -214,7 +215,7 @@ pub struct GoogleDatastoreAdminV1MigrationProgressEvent {
 }
 
 /// An event signifying a change in state of a [migration from Cloud Datastore to Cloud Firestore in Datastore mode](https://cloud.google.com/datastore/docs/upgrade-to-firestore).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDatastoreAdminV1MigrationStateEvent {
     /// The new state of the migration. // TODO: enum values: ["MIGRATION_STATE_UNSPECIFIED", "RUNNING", "PAUSED", "COMPLETE"]
     #[serde(default)]
@@ -222,7 +223,7 @@ pub struct GoogleDatastoreAdminV1MigrationStateEvent {
 }
 
 /// Metadata for ExportEntities operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDatastoreAdminV1beta1ExportEntitiesMetadata {
     /// Metadata common to all Datastore Admin operations.
     #[serde(default)]
@@ -242,7 +243,7 @@ pub struct GoogleDatastoreAdminV1beta1ExportEntitiesMetadata {
 }
 
 /// The response for google.datastore.admin.v1beta1.DatastoreAdmin.ExportEntities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDatastoreAdminV1beta1ExportEntitiesResponse {
     /// Location of the output metadata file. This can be used to begin an import into Cloud Datastore (this project or another project). See google.datastore.admin.v1beta1.ImportEntitiesRequest.input_url. Only present if the operation completed successfully.
     #[serde(default, rename = "outputUrl")]
@@ -250,7 +251,7 @@ pub struct GoogleDatastoreAdminV1beta1ExportEntitiesResponse {
 }
 
 /// Metadata for ImportEntities operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDatastoreAdminV1beta1ImportEntitiesMetadata {
     /// Metadata common to all Datastore Admin operations.
     #[serde(default)]
@@ -270,7 +271,7 @@ pub struct GoogleDatastoreAdminV1beta1ImportEntitiesMetadata {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -284,7 +285,7 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// The request for Datastore.Lookup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LookupRequest {
     /// The ID of the database against which to make the request. ''(default)'' is not allowed; please use empty string '''' to refer the default database.
     #[serde(default, rename = "databaseId")]
@@ -301,7 +302,7 @@ pub struct LookupRequest {
 }
 
 /// The response for Datastore.Lookup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LookupResponse {
     /// A list of keys that were not looked up due to resource constraints. The order of results in this field is undefined and has no relation to the order of the keys in the input.
     #[serde(default)]
@@ -321,7 +322,7 @@ pub struct LookupResponse {
 }
 
 /// The request for Datastore.ReserveIds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReserveIdsRequest {
     /// The ID of the database against which to make the request. ''(default)'' is not allowed; please use empty string '''' to refer the default database.
     #[serde(default, rename = "databaseId")]
@@ -332,11 +333,11 @@ pub struct ReserveIdsRequest {
 }
 
 /// The response for Datastore.ReserveIds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReserveIdsResponse {}
 
 /// The request for Datastore.Rollback.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RollbackRequest {
     /// The ID of the database against which to make the request. ''(default)'' is not allowed; please use empty string '''' to refer the default database.
     #[serde(default, rename = "databaseId")]
@@ -347,11 +348,11 @@ pub struct RollbackRequest {
 }
 
 /// The response for Datastore.Rollback. (an empty message).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RollbackResponse {}
 
 /// The request for Datastore.RunAggregationQuery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunAggregationQueryRequest {
     /// The query to run.
     #[serde(default, rename = "aggregationQuery")]
@@ -374,7 +375,7 @@ pub struct RunAggregationQueryRequest {
 }
 
 /// The response for Datastore.RunAggregationQuery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunAggregationQueryResponse {
     /// A batch of aggregation results. Always present.
     #[serde(default)]
@@ -391,7 +392,7 @@ pub struct RunAggregationQueryResponse {
 }
 
 /// The request for Datastore.RunQuery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunQueryRequest {
     /// The ID of the database against which to make the request. ''(default)'' is not allowed; please use empty string '''' to refer the default database.
     #[serde(default, rename = "databaseId")]
@@ -417,7 +418,7 @@ pub struct RunQueryRequest {
 }
 
 /// The response for Datastore.RunQuery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunQueryResponse {
     /// A batch of query results. This is always present unless running a query under explain-only mode: RunQueryRequest.explain_options was provided and ExplainOptions.analyze was set to false.
     #[serde(default)]
@@ -434,7 +435,7 @@ pub struct RunQueryResponse {
 }
 
 /// A mutation to apply to an entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Mutation {
     /// The version of the entity that this mutation is being applied to. If this does not match the current version on the server, the mutation conflicts.
     #[serde(default, rename = "baseVersion")]
@@ -466,7 +467,7 @@ pub struct Mutation {
 }
 
 /// The result of applying a mutation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MutationResult {
     /// Whether a conflict was detected for this mutation. Always false when a conflict detection strategy field is not set in the mutation.
     #[serde(default, rename = "conflictDetected")]
@@ -489,7 +490,7 @@ pub struct MutationResult {
 }
 
 /// Identifies a subset of entities in a project. This is specified as combinations of kinds and namespaces (either or both of which may be all, as described in the following examples). Example usage: Entire project: kinds=[], namespace_ids=[] Kinds Foo and Bar in all namespaces: kinds=[''Foo'', ''Bar''], namespace_ids=[] Kinds Foo and Bar only in the default namespace: kinds=[''Foo'', ''Bar''], namespace_ids=[''''] Kinds Foo and Bar in both the default and Baz namespaces: kinds=[''Foo'', ''Bar''], namespace_ids=['''', ''Baz''] The entire Baz namespace: kinds=[], namespace_ids=[''Baz'']
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDatastoreAdminV1EntityFilter {
     /// If empty, then this represents all kinds.
     #[serde(default)]
@@ -500,7 +501,7 @@ pub struct GoogleDatastoreAdminV1EntityFilter {
 }
 
 /// Metadata common to all Datastore Admin operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDatastoreAdminV1CommonMetadata {
     /// The time the operation ended, either successfully or otherwise.
     #[serde(default, rename = "endTime")]
@@ -520,7 +521,7 @@ pub struct GoogleDatastoreAdminV1CommonMetadata {
 }
 
 /// Measures the progress of a particular metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDatastoreAdminV1Progress {
     /// The amount of work that has been completed. Note that this may be greater than work_estimated.
     #[serde(default, rename = "workCompleted")]
@@ -531,7 +532,7 @@ pub struct GoogleDatastoreAdminV1Progress {
 }
 
 /// Datastore composite index definition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDatastoreAdminV1Index {
     /// Required. The index''s ancestor mode. Must not be ANCESTOR_MODE_UNSPECIFIED. // TODO: enum values: ["ANCESTOR_MODE_UNSPECIFIED", "NONE", "ALL_ANCESTORS"]
     #[serde(default)]
@@ -554,7 +555,7 @@ pub struct GoogleDatastoreAdminV1Index {
 }
 
 /// Details for the PREPARE step.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDatastoreAdminV1PrepareStepDetails {
     /// The concurrency mode this database will use when it reaches the REDIRECT_WRITES step. // TODO: enum values: ["CONCURRENCY_MODE_UNSPECIFIED", "PESSIMISTIC", "OPTIMISTIC", "OPTIMISTIC_WITH_ENTITY_GROUPS"]
     #[serde(default, rename = "concurrencyMode")]
@@ -562,7 +563,7 @@ pub struct GoogleDatastoreAdminV1PrepareStepDetails {
 }
 
 /// Details for the REDIRECT_WRITES step.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDatastoreAdminV1RedirectWritesStepDetails {
     /// The concurrency mode for this database. // TODO: enum values: ["CONCURRENCY_MODE_UNSPECIFIED", "PESSIMISTIC", "OPTIMISTIC", "OPTIMISTIC_WITH_ENTITY_GROUPS"]
     #[serde(default, rename = "concurrencyMode")]
@@ -570,7 +571,7 @@ pub struct GoogleDatastoreAdminV1RedirectWritesStepDetails {
 }
 
 /// Metadata common to all Datastore Admin operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDatastoreAdminV1beta1CommonMetadata {
     /// The time the operation ended, either successfully or otherwise.
     #[serde(default, rename = "endTime")]
@@ -590,7 +591,7 @@ pub struct GoogleDatastoreAdminV1beta1CommonMetadata {
 }
 
 /// Identifies a subset of entities in a project. This is specified as combinations of kinds and namespaces (either or both of which may be all, as described in the following examples). Example usage: Entire project: kinds=[], namespace_ids=[] Kinds Foo and Bar in all namespaces: kinds=[''Foo'', ''Bar''], namespace_ids=[] Kinds Foo and Bar only in the default namespace: kinds=[''Foo'', ''Bar''], namespace_ids=[''''] Kinds Foo and Bar in both the default and Baz namespaces: kinds=[''Foo'', ''Bar''], namespace_ids=['''', ''Baz''] The entire Baz namespace: kinds=[], namespace_ids=[''Baz'']
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDatastoreAdminV1beta1EntityFilter {
     /// If empty, then this represents all kinds.
     #[serde(default)]
@@ -601,7 +602,7 @@ pub struct GoogleDatastoreAdminV1beta1EntityFilter {
 }
 
 /// Measures the progress of a particular metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDatastoreAdminV1beta1Progress {
     /// The amount of work that has been completed. Note that this may be greater than work_estimated.
     #[serde(default, rename = "workCompleted")]
@@ -612,7 +613,7 @@ pub struct GoogleDatastoreAdminV1beta1Progress {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -632,7 +633,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// A batch of aggregation results produced by an aggregation query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AggregationResultBatch {
     /// The aggregation results for this batch.
     #[serde(default, rename = "aggregationResults")]
@@ -646,7 +647,7 @@ pub struct AggregationResultBatch {
 }
 
 /// Datastore query for running an aggregation over a Query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AggregationQuery {
     /// Optional. Series of aggregations to apply over the results of the nested_query. Requires: * A minimum of one and maximum of five aggregations per query.
     #[serde(default)]
@@ -657,7 +658,7 @@ pub struct AggregationQuery {
 }
 
 /// Explain options for the query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExplainOptions {
     /// Optional. Whether to execute this query. When false (the default), the query will be planned, returning only metrics from the planning stages. When true, the query will be planned and executed, returning the full query results along with both planning and execution stage metrics.
     #[serde(default)]
@@ -665,7 +666,7 @@ pub struct ExplainOptions {
 }
 
 /// A [GQL query](https://cloud.google.com/datastore/docs/apis/gql/gql_reference).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GqlQuery {
     /// When false, the query string must not contain any literals and instead must bind all values. For example, SELECT * FROM Kind WHERE a = ''string literal'' is not allowed, while SELECT * FROM Kind WHERE a = @value is.
     #[serde(default, rename = "allowLiterals")]
@@ -682,7 +683,7 @@ pub struct GqlQuery {
 }
 
 /// The options shared by read requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReadOptions {
     /// Options for beginning a new transaction for this request. The new transaction identifier will be returned in the corresponding response as either LookupResponse.transaction or RunQueryResponse.transaction.
     #[serde(default, rename = "newTransaction")]
@@ -699,7 +700,7 @@ pub struct ReadOptions {
 }
 
 /// A batch of results produced by a query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryResultBatch {
     /// A cursor that points to the position after the last result in the batch.
     #[serde(default, rename = "endCursor")]
@@ -728,7 +729,7 @@ pub struct QueryResultBatch {
 }
 
 /// Explain metrics for the query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExplainMetrics {
     /// Aggregated stats from the execution of the query. Only present when ExplainOptions.analyze is set to true.
     #[serde(default, rename = "executionStats")]
@@ -739,7 +740,7 @@ pub struct ExplainMetrics {
 }
 
 /// The set of arbitrarily nested property paths used to restrict an operation to only a subset of properties in an entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PropertyMask {
     /// The paths to the properties covered by this mask. A path is a list of property names separated by dots (.), for example foo.bar means the property bar inside the entity property foo inside the entity associated with this path. If a property name contains a dot . or a backslash \, then that name must be escaped. A path must not be empty, and may not reference a value inside an array value.
     #[serde(default)]
@@ -747,7 +748,7 @@ pub struct PropertyMask {
 }
 
 /// A transformation of an entity property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PropertyTransform {
     /// Appends the given elements in order if they are not already present in the current property value. If the property is not an array, or if the property does not yet exist, it is first set to the empty array. Equivalent numbers of different types (e.g. 3L and 3.0) are considered equal when checking if a value is missing. NaN is equal to NaN, and the null value is equal to the null value. If the input contains multiple equivalent values, only the first will be considered. The corresponding transform result will be the null value.
     #[serde(default, rename = "appendMissingElements")]
@@ -773,7 +774,7 @@ pub struct PropertyTransform {
 }
 
 /// A property of an index.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDatastoreAdminV1IndexedProperty {
     /// Required. The indexed property''s direction. Must not be DIRECTION_UNSPECIFIED. // TODO: enum values: ["DIRECTION_UNSPECIFIED", "ASCENDING", "DESCENDING"]
     #[serde(default)]
@@ -784,7 +785,7 @@ pub struct GoogleDatastoreAdminV1IndexedProperty {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -798,7 +799,7 @@ pub struct Status {
 }
 
 /// The result of a single bucket from a Datastore aggregation query. The keys of aggregate_properties are the same for all results in an aggregation query, unlike entity queries which can have different fields present for each result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AggregationResult {
     /// The result of the aggregation functions, ex: COUNT(*) AS total_entities. The key is the alias assigned to the aggregation function on input and the size of this map equals the number of aggregation functions in the query.
     #[serde(default, rename = "aggregateProperties")]
@@ -806,7 +807,7 @@ pub struct AggregationResult {
 }
 
 /// Defines an aggregation that produces a single result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Aggregation {
     /// Optional. Optional name of the property to store the result of the aggregation. If not provided, Datastore will pick a default name following the format property_. For example:  AGGREGATE COUNT_UP_TO(1) AS count_up_to_1, COUNT_UP_TO(2), COUNT_UP_TO(3) AS count_up_to_3, COUNT(*) OVER ( ... );  becomes:  AGGREGATE COUNT_UP_TO(1) AS count_up_to_1, COUNT_UP_TO(2) AS property_1, COUNT_UP_TO(3) AS count_up_to_3, COUNT(*) AS property_2 OVER ( ... );  Requires: * Must be unique across all aggregation aliases. * Conform to entity property name limitations.
     #[serde(default)]
@@ -823,7 +824,7 @@ pub struct Aggregation {
 }
 
 /// A query for entities. The query stages are executed in the following order: 1. kind 2. filter 3. projection 4. order + start_cursor + end_cursor 5. offset 6. limit 7. find_nearest
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Query {
     /// The properties to make distinct. The query results will contain the first result for each distinct combination of values for the given properties (if empty, all results are returned). Requires: * If order is specified, the set of distinct on properties must appear before the non-distinct on properties in order.
     #[serde(default, rename = "distinctOn")]
@@ -858,7 +859,7 @@ pub struct Query {
 }
 
 /// A binding parameter for a GQL query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GqlQueryParameter {
     /// A query cursor. Query cursors are returned in query result batches.
     #[serde(default)]
@@ -869,7 +870,7 @@ pub struct GqlQueryParameter {
 }
 
 /// Options for beginning a new transaction. Transactions can be created explicitly with calls to Datastore.BeginTransaction or implicitly by setting ReadOptions.new_transaction in read requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransactionOptions {
     /// The transaction should only allow reads.
     #[serde(default, rename = "readOnly")]
@@ -880,7 +881,7 @@ pub struct TransactionOptions {
 }
 
 /// The result of fetching an entity from Datastore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EntityResult {
     /// The time at which the entity was created. This field is set for FULL entity results. If this entity is missing, this field will not be set.
     #[serde(default, rename = "createTime")]
@@ -900,7 +901,7 @@ pub struct EntityResult {
 }
 
 /// Execution statistics for the query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecutionStats {
     /// Debugging statistics from the execution of the query. Note that the debugging stats are subject to change as Firestore evolves. It could include: { "indexes_entries_scanned": "1000", "documents_scanned": "20", "billing_details" : { "documents_billable": "20", "index_entries_billable": "1000", "min_query_cost": "0" } }
     #[serde(default, rename = "debugStats")]
@@ -917,7 +918,7 @@ pub struct ExecutionStats {
 }
 
 /// Planning phase information for the query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlanSummary {
     /// The indexes selected for the query. For example: [ {"query_scope": "Collection", "properties": "(foo ASC, __name__ ASC)"}, {"query_scope": "Collection", "properties": "(bar ASC, __name__ ASC)"} ]
     #[serde(default, rename = "indexesUsed")]
@@ -925,7 +926,7 @@ pub struct PlanSummary {
 }
 
 /// Average of the values of the requested property. * Only numeric values will be aggregated. All non-numeric values including NULL are skipped. * If the aggregated values contain NaN, returns NaN. Infinity math follows IEEE-754 standards. * If the aggregated value set is empty, returns NULL. * Always returns the result as a double.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Avg {
     /// The property to aggregate on.
     #[serde(default)]
@@ -933,7 +934,7 @@ pub struct Avg {
 }
 
 /// Count of entities that match the query. The COUNT(*) aggregation function operates on the entire entity so it does not require a field reference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Count {
     /// Optional. Optional constraint on the maximum number of entities to count. This provides a way to set an upper bound on the number of entities to scan, limiting latency, and cost. Unspecified is interpreted as no bound. If a zero value is provided, a count result of zero should always be expected. High-Level Example:  AGGREGATE COUNT_UP_TO(1000) OVER ( SELECT * FROM k );  Requires: * Must be non-negative when present.
     #[serde(default, rename = "upTo")]
@@ -941,7 +942,7 @@ pub struct Count {
 }
 
 /// Sum of the values of the requested property. * Only numeric values will be aggregated. All non-numeric values including NULL are skipped. * If the aggregated values contain NaN, returns NaN. Infinity math follows IEEE-754 standards. * If the aggregated value set is empty, returns 0. * Returns a 64-bit integer if all aggregated numbers are integers and the sum result does not overflow. Otherwise, the result is returned as a double. Note that even if all the aggregated values are integers, the result is returned as a double if it cannot fit within a 64-bit signed integer. When this occurs, the returned value will lose precision. * When underflow occurs, floating-point aggregation is non-deterministic. This means that running the same query repeatedly without any changes to the underlying values could produce slightly different results each time. In those cases, values should be stored as integers over floating-point numbers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Sum {
     /// The property to aggregate on.
     #[serde(default)]
@@ -949,7 +950,7 @@ pub struct Sum {
 }
 
 /// Nearest Neighbors search config. The ordering provided by FindNearest supersedes the order_by stage. If multiple documents have the same vector distance, the returned document order is not guaranteed to be stable between queries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FindNearest {
     /// Required. The Distance Measure to use, required. // TODO: enum values: ["DISTANCE_MEASURE_UNSPECIFIED", "EUCLIDEAN", "COSINE", "DOT_PRODUCT"]
     #[serde(default, rename = "distanceMeasure")]
@@ -972,7 +973,7 @@ pub struct FindNearest {
 }
 
 /// A representation of a kind.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KindExpression {
     /// The name of the kind.
     #[serde(default)]
@@ -980,7 +981,7 @@ pub struct KindExpression {
 }
 
 /// The desired order for a specific property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PropertyOrder {
     /// The direction to order by. Defaults to ASCENDING. // TODO: enum values: ["DIRECTION_UNSPECIFIED", "ASCENDING", "DESCENDING"]
     #[serde(default)]
@@ -991,7 +992,7 @@ pub struct PropertyOrder {
 }
 
 /// A representation of a property in a projection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Projection {
     /// The property to project.
     #[serde(default)]
@@ -999,7 +1000,7 @@ pub struct Projection {
 }
 
 /// Options specific to read-only transactions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReadOnly {
     /// Reads entities at the given time. This must be a microsecond precision timestamp within the past one hour, or if Point-in-Time Recovery is enabled, can additionally be a whole minute timestamp within the past 7 days.
     #[serde(default, rename = "readTime")]
@@ -1007,7 +1008,7 @@ pub struct ReadOnly {
 }
 
 /// Options specific to read / write transactions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReadWrite {
     /// The transaction identifier of the transaction being retried.
     #[serde(default, rename = "previousTransaction")]
@@ -1015,7 +1016,7 @@ pub struct ReadWrite {
 }
 
 /// An array value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ArrayValue {
     /// Values in the array. The order of values in an array is preserved as long as all values have identical settings for ''exclude_from_indexes''.
     #[serde(default)]
@@ -1023,7 +1024,7 @@ pub struct ArrayValue {
 }
 
 /// A filter that merges multiple other filters using the given operator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompositeFilter {
     /// The list of filters to combine. Requires: * At least one filter is present.
     #[serde(default)]
@@ -1034,7 +1035,7 @@ pub struct CompositeFilter {
 }
 
 /// A Datastore data object. Must not exceed 1 MiB - 4 bytes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Entity {
     /// The entity''s key. An entity must have a key, unless otherwise documented (for example, an entity in Value.entity_value may have no key). An entity''s kind is its key path''s last element''s kind, or null if it has no key.
     #[serde(default)]
@@ -1045,7 +1046,7 @@ pub struct Entity {
 }
 
 /// A holder for any type of filter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Filter {
     /// A composite filter.
     #[serde(default, rename = "compositeFilter")]
@@ -1056,7 +1057,7 @@ pub struct Filter {
 }
 
 /// A unique identifier for an entity. If a key''s partition ID or any of its path kinds or names are reserved/read-only, the key is reserved/read-only. A reserved/read-only key is forbidden in certain documented contexts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Key {
     /// Entities are partitioned into subsets, currently identified by a project ID and namespace ID. Queries are scoped to a single partition.
     #[serde(default, rename = "partitionId")]
@@ -1067,7 +1068,7 @@ pub struct Key {
 }
 
 /// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LatLng {
     /// The latitude in degrees. It must be in the range [-90.0, +90.0].
     #[serde(default)]
@@ -1078,7 +1079,7 @@ pub struct LatLng {
 }
 
 /// A partition ID identifies a grouping of entities. The grouping is always by project and namespace, however the namespace ID may be empty. A partition ID contains several dimensions: project ID and namespace ID. Partition dimensions: - May be "". - Must be valid UTF-8 bytes. - Must have values that match regex [A-Za-z\d\.\-_]{1,100} If the value of any dimension matches regex __.*__, the partition is reserved/read-only. A reserved/read-only partition ID is forbidden in certain documented contexts. Foreign partition IDs (in which the project ID does not match the context project ID ) are discouraged. Reads and writes of foreign partition IDs may fail if the project is not in an active state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartitionId {
     /// If not empty, the ID of the database to which the entities belong.
     #[serde(default, rename = "databaseId")]
@@ -1092,7 +1093,7 @@ pub struct PartitionId {
 }
 
 /// A (kind, ID/name) pair used to construct a key path. If either name or ID is set, the element is complete. If neither is set, the element is incomplete.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PathElement {
     /// The auto-allocated ID of the entity. Never equal to zero. Values less than zero are discouraged and may not be supported in the future.
     #[serde(default)]
@@ -1106,7 +1107,7 @@ pub struct PathElement {
 }
 
 /// A filter on a specific property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PropertyFilter {
     /// The operator to filter by. // TODO: enum values: ["OPERATOR_UNSPECIFIED", "LESS_THAN", "LESS_THAN_OR_EQUAL", "GREATER_THAN", "GREATER_THAN_OR_EQUAL", "EQUAL", "IN", "NOT_EQUAL", "HAS_ANCESTOR", "NOT_IN"]
     #[serde(default)]
@@ -1120,7 +1121,7 @@ pub struct PropertyFilter {
 }
 
 /// A reference to a property relative to the kind expressions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PropertyReference {
     /// A reference to a property. Requires: * MUST be a dot-delimited (.) string of segments, where each segment conforms to entity property name limitations.
     #[serde(default)]
@@ -1128,7 +1129,7 @@ pub struct PropertyReference {
 }
 
 /// A message that can hold any of the supported value types and associated metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiValue {
     /// An array value. Cannot contain another array value. A Value instance that sets field array_value must not set fields meaning or exclude_from_indexes.
     #[serde(default, rename = "arrayValue")]

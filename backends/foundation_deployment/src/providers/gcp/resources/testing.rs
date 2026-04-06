@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request object for cancelling a Device Session.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelDeviceSessionRequest {}
 
 /// Response containing the current state of the specified test matrix.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelTestMatrixResponse {
     /// The current rolled-up state of the test matrix. If this state is already final, then the cancelation request will have no effect. // TODO: enum values: ["TEST_STATE_UNSPECIFIED", "VALIDATING", "PENDING", "RUNNING", "FINISHED", "ERROR", "UNSUPPORTED_ENVIRONMENT", "INCOMPATIBLE_ENVIRONMENT", "INCOMPATIBLE_ARCHITECTURE", "CANCELLED", "INVALID"]
     #[serde(default, rename = "testState")]
@@ -23,11 +24,11 @@ pub struct CancelTestMatrixResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Response containing the details of the specified Android application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetApkDetailsResponse {
     /// Details of the Android App.
     #[serde(default, rename = "apkDetail")]
@@ -35,15 +36,15 @@ pub struct GetApkDetailsResponse {
 }
 
 /// Enables automatic Google account login. If set, the service automatically generates a Google test account and adds it to the device, before executing the test. Note that test accounts might be reused. Many applications show their full set of functionalities when an account is present on the device. Logging into the device with these generated accounts allows testing more functionalities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAuto {}
 
 /// Specifies an intent that starts the main launcher activity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LauncherActivityIntent {}
 
 /// A list of device sessions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDeviceSessionsResponse {
     /// The sessions matching the specified filter in the given cloud project.
     #[serde(default, rename = "deviceSessions")]
@@ -54,11 +55,11 @@ pub struct ListDeviceSessionsResponse {
 }
 
 /// Skips the starting activity
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NoActivityIntent {}
 
 /// A description of a test environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestEnvironmentCatalog {
     /// Supported Android devices.
     #[serde(default, rename = "androidDeviceCatalog")]
@@ -78,7 +79,7 @@ pub struct TestEnvironmentCatalog {
 }
 
 /// TestMatrix captures all details about a test. It contains the environment configuration, test specification, test executions and overall state and outcome.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestMatrix {
     /// Information about the client which invoked the test.
     #[serde(default, rename = "clientInfo")]
@@ -125,14 +126,14 @@ pub struct TestMatrix {
 }
 
 /// Android application details based on application manifest and archive contents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApkDetail {
     #[serde(default, rename = "apkManifest")]
     pub apk_manifest: ::core::option::Option<ApkManifest>,
 }
 
 /// Protobuf message describing the device message, used from several RPCs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceSession {
     /// Output only. The timestamp that the session first became ACTIVE.
     #[serde(default, rename = "activeStartTime")]
@@ -167,7 +168,7 @@ pub struct DeviceSession {
 }
 
 /// The currently supported Android devices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AndroidDeviceCatalog {
     /// The set of supported Android device models.
     #[serde(default)]
@@ -181,7 +182,7 @@ pub struct AndroidDeviceCatalog {
 }
 
 /// List of IP blocks used by the Firebase Test Lab
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceIpBlockCatalog {
     /// The device IP blocks used by Firebase Test Lab
     #[serde(default, rename = "ipBlocks")]
@@ -189,7 +190,7 @@ pub struct DeviceIpBlockCatalog {
 }
 
 /// The currently supported iOS devices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IosDeviceCatalog {
     /// The set of supported iOS device models.
     #[serde(default)]
@@ -206,14 +207,14 @@ pub struct IosDeviceCatalog {
 }
 
 /// NetworkConfigurationCatalog resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkConfigurationCatalog {
     #[serde(default)]
     pub configurations: ::core::option::Option<::std::vec::Vec<NetworkConfiguration>>,
 }
 
 /// The currently provided software environment on the devices under test.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProvidedSoftwareCatalog {
     /// A string representing the current version of AndroidX Test Orchestrator that is used in the environment. The package is available at https://maven.google.com/web/index.html#androidx.test:orchestrator.
     #[serde(default, rename = "androidxOrchestratorVersion")]
@@ -224,7 +225,7 @@ pub struct ProvidedSoftwareCatalog {
 }
 
 /// Information about the client which invoked the test.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClientInfo {
     /// The list of detailed information about client.
     #[serde(default, rename = "clientInfoDetails")]
@@ -235,7 +236,7 @@ pub struct ClientInfo {
 }
 
 /// The matrix of environments in which the test is to be executed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnvironmentMatrix {
     /// A list of Android devices; the test will be run only on the specified devices.
     #[serde(default, rename = "androidDeviceList")]
@@ -249,7 +250,7 @@ pub struct EnvironmentMatrix {
 }
 
 /// Describes a single error or issue with a matrix.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MatrixErrorDetail {
     /// Output only. A human-readable message about how the error in the TestMatrix. Expands on the reason field with additional details and possible options to fix the issue.
     #[serde(default)]
@@ -260,7 +261,7 @@ pub struct MatrixErrorDetail {
 }
 
 /// Locations where the results of running the test are stored.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResultStorage {
     /// Required.
     #[serde(default, rename = "googleCloudStorage")]
@@ -277,7 +278,7 @@ pub struct ResultStorage {
 }
 
 /// A single test executed in a single environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestExecution {
     /// Output only. How the host machine(s) are configured.
     #[serde(default)]
@@ -312,7 +313,7 @@ pub struct TestExecution {
 }
 
 /// An Android app manifest. See http://developer.android.com/guide/topics/manifest/manifest-intro.html
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApkManifest {
     /// User-readable name for the application.
     #[serde(default, rename = "applicationLabel")]
@@ -354,7 +355,7 @@ pub struct ApkManifest {
 }
 
 /// A message encapsulating a series of Session states and the time that the DeviceSession first entered those states.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SessionStateEvent {
     /// Output only. The time that the session_state first encountered that state.
     #[serde(default, rename = "eventTime")]
@@ -368,7 +369,7 @@ pub struct SessionStateEvent {
 }
 
 /// A description of an Android device tests may be run on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AndroidModel {
     /// Reasons for access denial. This model is accessible if this list is empty, otherwise the model is viewable only.
     #[serde(default, rename = "accessDeniedReasons")]
@@ -427,7 +428,7 @@ pub struct AndroidModel {
 }
 
 /// Android configuration that can be selected at the time a test is run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AndroidRuntimeConfiguration {
     /// The set of available locales.
     #[serde(default)]
@@ -438,7 +439,7 @@ pub struct AndroidRuntimeConfiguration {
 }
 
 /// A version of the Android OS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AndroidVersion {
     /// The API level for this Android version. Examples: 18, 19.
     #[serde(default, rename = "apiLevel")]
@@ -464,7 +465,7 @@ pub struct AndroidVersion {
 }
 
 /// A single device IP block
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceIpBlock {
     /// The date this block was added to Firebase Test Lab
     #[serde(default, rename = "addedDate")]
@@ -478,7 +479,7 @@ pub struct DeviceIpBlock {
 }
 
 /// A description of an iOS device tests may be run on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IosModel {
     /// Device capabilities. Copied from https://developer.apple.com/library/archive/documentation/DeviceInformation/Reference/iOSDeviceCompatibility/DeviceCompatibilityMatrix/DeviceCompatibilityMatrix.html
     #[serde(default, rename = "deviceCapabilities")]
@@ -513,7 +514,7 @@ pub struct IosModel {
 }
 
 /// iOS configuration that can be selected at the time a test is run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IosRuntimeConfiguration {
     /// The set of available locales.
     #[serde(default)]
@@ -524,7 +525,7 @@ pub struct IosRuntimeConfiguration {
 }
 
 /// An iOS version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IosVersion {
     /// An opaque id for this iOS version. Use this id to invoke the TestExecutionService.
     #[serde(default)]
@@ -544,7 +545,7 @@ pub struct IosVersion {
 }
 
 /// An Xcode version that an iOS version is compatible with.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XcodeVersion {
     /// Tags for this Xcode version. Example: "default".
     #[serde(default)]
@@ -555,7 +556,7 @@ pub struct XcodeVersion {
 }
 
 /// NetworkConfiguration resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkConfiguration {
     /// The emulation rule applying to the download traffic.
     #[serde(default, rename = "downRule")]
@@ -569,7 +570,7 @@ pub struct NetworkConfiguration {
 }
 
 /// Key-value pair of detailed information about the client which invoked the test. Examples: {''Version'', ''1.0''}, {''Release Track'', ''BETA''}.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClientInfoDetail {
     /// Required. The key of detailed client information.
     #[serde(default)]
@@ -580,7 +581,7 @@ pub struct ClientInfoDetail {
 }
 
 /// A list of Android device configurations in which the test is to be executed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AndroidDeviceList {
     /// Required. A list of Android devices.
     #[serde(default, rename = "androidDevices")]
@@ -588,7 +589,7 @@ pub struct AndroidDeviceList {
 }
 
 /// A set of Android device configuration permutations is defined by the the cross-product of the given axes. Internally, the given AndroidMatrix will be expanded into a set of AndroidDevices. Only supported permutations will be instantiated. Invalid permutations (e.g., incompatible models/versions) are ignored.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AndroidMatrix {
     /// Required. The ids of the set of Android device to be used. Use the TestEnvironmentDiscoveryService to get supported options.
     #[serde(default, rename = "androidModelIds")]
@@ -605,7 +606,7 @@ pub struct AndroidMatrix {
 }
 
 /// A list of iOS device configurations in which the test is to be executed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IosDeviceList {
     /// Required. A list of iOS devices.
     #[serde(default, rename = "iosDevices")]
@@ -613,7 +614,7 @@ pub struct IosDeviceList {
 }
 
 /// A storage location within Google cloud storage (GCS).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudStorage {
     /// Required. The path to a directory in GCS that will eventually contain the results for this test. The requesting user must have write access on the bucket in the supplied path.
     #[serde(default, rename = "gcsPath")]
@@ -621,7 +622,7 @@ pub struct GoogleCloudStorage {
 }
 
 /// Represents a tool results execution resource. This has the results of a TestMatrix.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ToolResultsExecution {
     /// Output only. A tool results execution ID.
     #[serde(default, rename = "executionId")]
@@ -635,7 +636,7 @@ pub struct ToolResultsExecution {
 }
 
 /// Represents a tool results history resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ToolResultsHistory {
     /// Required. A tool results history ID.
     #[serde(default, rename = "historyId")]
@@ -646,7 +647,7 @@ pub struct ToolResultsHistory {
 }
 
 /// The environment in which the test is run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Environment {
     /// An Android device which must be used with an Android test.
     #[serde(default, rename = "androidDevice")]
@@ -657,7 +658,7 @@ pub struct Environment {
 }
 
 /// Output only. Details about the shard.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Shard {
     /// Output only. The estimated shard duration based on previous test case timing records, if available.
     #[serde(default, rename = "estimatedShardDuration")]
@@ -674,7 +675,7 @@ pub struct Shard {
 }
 
 /// Additional details about the progress of the running test.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestDetails {
     /// Output only. If the TestState is ERROR, then this string will contain human-readable details about the error.
     #[serde(default, rename = "errorMessage")]
@@ -685,7 +686,7 @@ pub struct TestDetails {
 }
 
 /// A description of how to run the test.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestSpecification {
     /// An Android instrumentation test.
     #[serde(default, rename = "androidInstrumentationTest")]
@@ -723,7 +724,7 @@ pub struct TestSpecification {
 }
 
 /// Represents a tool results step resource. This has the results of a TestExecution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ToolResultsStep {
     /// Output only. A tool results execution ID.
     #[serde(default, rename = "executionId")]
@@ -740,7 +741,7 @@ pub struct ToolResultsStep {
 }
 
 /// A tag within a manifest. https://developer.android.com/guide/topics/manifest/meta-data-element.html
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Metadata {
     /// The android:name value
     #[serde(default)]
@@ -751,7 +752,7 @@ pub struct Metadata {
 }
 
 /// The section of an tag. https://developer.android.com/guide/topics/manifest/service-element
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Service {
     /// Intent filters in the service
     #[serde(default, rename = "intentFilter")]
@@ -762,7 +763,7 @@ pub struct Service {
 }
 
 /// A tag within a manifest. https://developer.android.com/guide/topics/manifest/uses-feature-element.html
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UsesFeature {
     /// The android:required value
     #[serde(default, rename = "isRequired")]
@@ -773,7 +774,7 @@ pub struct UsesFeature {
 }
 
 /// The tag within a manifest. https://developer.android.com/guide/topics/manifest/uses-permission-element.html
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UsesPermissionTag {
     /// The android:name value
     #[serde(default, rename = "maxSdkVersion")]
@@ -784,7 +785,7 @@ pub struct UsesPermissionTag {
 }
 
 /// Lab specific information for a device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LabInfo {
     /// Lab name where the device is hosted. If empty, the device is hosted in a Google owned lab.
     #[serde(default)]
@@ -795,7 +796,7 @@ pub struct LabInfo {
 }
 
 /// A version-specific information of an Android model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PerAndroidVersionInfo {
     /// The number of online devices for an Android version. // TODO: enum values: ["DEVICE_CAPACITY_UNSPECIFIED", "DEVICE_CAPACITY_HIGH", "DEVICE_CAPACITY_MEDIUM", "DEVICE_CAPACITY_LOW", "DEVICE_CAPACITY_NONE"]
     #[serde(default, rename = "deviceCapacity")]
@@ -812,7 +813,7 @@ pub struct PerAndroidVersionInfo {
 }
 
 /// Data about the relative number of devices running a given configuration of the Android platform.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Distribution {
     /// Output only. The estimated fraction (0-1) of the total market with this configuration.
     #[serde(default, rename = "marketShare")]
@@ -823,7 +824,7 @@ pub struct Distribution {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -837,7 +838,7 @@ pub struct Date {
 }
 
 /// A version-specific information of an iOS model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PerIosVersionInfo {
     /// The number of online devices for an iOS version. // TODO: enum values: ["DEVICE_CAPACITY_UNSPECIFIED", "DEVICE_CAPACITY_HIGH", "DEVICE_CAPACITY_MEDIUM", "DEVICE_CAPACITY_LOW", "DEVICE_CAPACITY_NONE"]
     #[serde(default, rename = "deviceCapacity")]
@@ -848,7 +849,7 @@ pub struct PerIosVersionInfo {
 }
 
 /// A location/region designation for language.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Locale {
     /// The id for this locale. Example: "en_US".
     #[serde(default)]
@@ -865,7 +866,7 @@ pub struct Locale {
 }
 
 /// Screen orientation of the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Orientation {
     /// The id for this orientation. Example: "portrait".
     #[serde(default)]
@@ -879,7 +880,7 @@ pub struct Orientation {
 }
 
 /// Network emulation parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TrafficRule {
     /// Bandwidth in kbits/second.
     #[serde(default)]
@@ -899,7 +900,7 @@ pub struct TrafficRule {
 }
 
 /// A single Android device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AndroidDevice {
     /// Required. The id of the Android device to be used. Use the TestEnvironmentDiscoveryService to get supported options.
     #[serde(default, rename = "androidModelId")]
@@ -916,7 +917,7 @@ pub struct AndroidDevice {
 }
 
 /// A single iOS device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IosDevice {
     /// Required. The id of the iOS device to be used. Use the TestEnvironmentDiscoveryService to get supported options.
     #[serde(default, rename = "iosModelId")]
@@ -933,7 +934,7 @@ pub struct IosDevice {
 }
 
 /// A test of an Android application that can control an Android component independently of its normal lifecycle. Android instrumentation tests run an application APK and test APK inside the same process on a virtual or physical AndroidDevice. They also specify a test runner class, such as com.google.GoogleTestRunner, which can vary on the specific instrumentation framework chosen. See for more information on types of Android tests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AndroidInstrumentationTest {
     /// The APK for the application under test.
     #[serde(default, rename = "appApk")]
@@ -965,7 +966,7 @@ pub struct AndroidInstrumentationTest {
 }
 
 /// A test of an android application that explores the application on a virtual or physical Android Device, finding culprits and crashes as it goes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AndroidRoboTest {
     /// The APK for the application under test.
     #[serde(default, rename = "appApk")]
@@ -1000,7 +1001,7 @@ pub struct AndroidRoboTest {
 }
 
 /// A test of an Android Application with a Test Loop. The intent \ will be implicitly added, since Games is the only user of this api, for the time being.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AndroidTestLoop {
     /// The APK for the application under test.
     #[serde(default, rename = "appApk")]
@@ -1020,7 +1021,7 @@ pub struct AndroidTestLoop {
 }
 
 /// A test that explores an iOS application on an iOS device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IosRoboTest {
     /// The bundle ID for the app-under-test. This is determined by examining the application''s "Info.plist" file.
     #[serde(default, rename = "appBundleId")]
@@ -1034,7 +1035,7 @@ pub struct IosRoboTest {
 }
 
 /// A test of an iOS application that implements one or more game loop scenarios. This test type accepts an archived application (.ipa file) and a list of integer scenarios that will be executed on the app sequentially.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IosTestLoop {
     /// Output only. The bundle id for the application under test.
     #[serde(default, rename = "appBundleId")]
@@ -1048,7 +1049,7 @@ pub struct IosTestLoop {
 }
 
 /// A description of how to set up an iOS device prior to running the test.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IosTestSetup {
     /// iOS apps to install in addition to those being directly tested.
     #[serde(default, rename = "additionalIpas")]
@@ -1065,7 +1066,7 @@ pub struct IosTestSetup {
 }
 
 /// A test of an iOS application that uses the XCTest framework. Xcode supports the option to "build for testing", which generates an .xctestrun file that contains a test specification (arguments, test methods, etc). This test type accepts a zip file containing the .xctestrun file and the corresponding contents of the Build/Products directory that contains all the binaries needed to run the tests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IosXcTest {
     /// Output only. The bundle id for the application under test.
     #[serde(default, rename = "appBundleId")]
@@ -1085,7 +1086,7 @@ pub struct IosXcTest {
 }
 
 /// A description of how to set up the Android device prior to running the test.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestSetup {
     /// The device will be logged in on this account for the duration of the test.
     #[serde(default)]
@@ -1117,7 +1118,7 @@ pub struct TestSetup {
 }
 
 /// The section of an tag. https://developer.android.com/guide/topics/manifest/intent-filter-element.html
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntentFilter {
     /// The android:name value of the tag.
     #[serde(default, rename = "actionNames")]
@@ -1131,7 +1132,7 @@ pub struct IntentFilter {
 }
 
 /// Denotes whether Direct Access is supported, and by which client versions. DirectAccessService is currently available as a preview to select developers. You can register today on behalf of you and your team at https://developer.android.com/studio/preview/android-device-streaming
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DirectAccessVersionInfo {
     /// Whether direct access is supported at all. Clients are expected to filter down the device list to only android models and versions which support Direct Access when that is the user intent.
     #[serde(default, rename = "directAccessSupported")]
@@ -1142,7 +1143,7 @@ pub struct DirectAccessVersionInfo {
 }
 
 /// Options for enabling sharding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShardingOption {
     /// Shards test cases into the specified groups of packages, classes, and/or methods.
     #[serde(default, rename = "manualSharding")]
@@ -1156,7 +1157,7 @@ pub struct ShardingOption {
 }
 
 /// Directs Robo to interact with a specific UI element if it is encountered during the crawl. Currently, Robo can perform text entry or element click.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RoboDirective {
     /// Required. The type of action that Robo should perform on the specified element. // TODO: enum values: ["ACTION_TYPE_UNSPECIFIED", "SINGLE_CLICK", "ENTER_TEXT", "IGNORE"]
     #[serde(default, rename = "actionType")]
@@ -1170,7 +1171,7 @@ pub struct RoboDirective {
 }
 
 /// Message for specifying the start activities to crawl.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RoboStartingIntent {
     /// An intent that starts the main launcher activity.
     #[serde(default, rename = "launcherActivity")]
@@ -1187,7 +1188,7 @@ pub struct RoboStartingIntent {
 }
 
 /// An Android App Bundle file format, containing a BundleConfig.pb file, a base module directory, zero or more dynamic feature module directories. See https://developer.android.com/guide/app-bundle/build for guidance on building App Bundles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppBundle {
     /// .apk files generated by bundletool to install as a single android app.
     #[serde(default)]
@@ -1198,7 +1199,7 @@ pub struct AppBundle {
 }
 
 /// A file or directory to install on the device before the test starts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IosDeviceFile {
     /// The bundle id of the app where this file lives. iOS apps sandbox their own filesystem, so app files must specify which app installed on the device.
     #[serde(default, rename = "bundleId")]
@@ -1212,7 +1213,7 @@ pub struct IosDeviceFile {
 }
 
 /// Identifies an account and how to log into it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Account {
     /// An automatic google login account.
     #[serde(default, rename = "googleAuto")]
@@ -1220,7 +1221,7 @@ pub struct Account {
 }
 
 /// An Android package file to install.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Apk {
     /// The path to an APK to be installed on the device before the test begins.
     #[serde(default)]
@@ -1231,7 +1232,7 @@ pub struct Apk {
 }
 
 /// A key-value pair passed as an environment variable to the test.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnvironmentVariable {
     /// Key for the environment variable.
     #[serde(default)]
@@ -1242,7 +1243,7 @@ pub struct EnvironmentVariable {
 }
 
 /// A single device file description.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceFile {
     /// A reference to an opaque binary blob file.
     #[serde(default, rename = "obbFile")]
@@ -1253,7 +1254,7 @@ pub struct DeviceFile {
 }
 
 /// SystraceSetup resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SystraceSetup {
     /// Systrace duration in seconds. Should be between 1 and 30 seconds. 0 disables systrace.
     #[serde(default, rename = "durationSeconds")]
@@ -1261,7 +1262,7 @@ pub struct SystraceSetup {
 }
 
 /// Shards test cases into the specified groups of packages, classes, and/or methods. With manual sharding enabled, specifying test targets via environment_variables or in InstrumentationTest is invalid.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManualSharding {
     /// Required. Group of packages, classes, and/or test methods to be run for each manually-created shard. You must specify at least one shard if this field is present. When you select one or more physical devices, the number of repeated test_targets_for_shard must be &lt;= 50. When you select one or more ARM virtual devices, it must be &lt;= 200. When you select only x86 virtual devices, it must be &lt;= 500.
     #[serde(default, rename = "testTargetsForShard")]
@@ -1269,7 +1270,7 @@ pub struct ManualSharding {
 }
 
 /// Shards test based on previous test case timing records.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SmartSharding {
     /// The amount of time tests within a shard should take. Default: 300 seconds (5 minutes). The minimum allowed: 120 seconds (2 minutes). The shard count is dynamically set based on time, up to the maximum shard limit (described below). To guarantee at least one test case for each shard, the number of shards will not exceed the number of test cases. Shard duration will be exceeded if: - The maximum shard limit is reached and there is more calculated test time remaining to allocate into shards. - Any individual test is estimated to be longer than the targeted shard duration. Shard duration is not guaranteed because smart sharding uses test case history and default durations which may not be accurate. The rules for finding the test case timing records are: - If the service has processed a test case in the last 30 days, the record of the latest successful test case will be used. - For new test cases, the average duration of other known test cases will be used. - If there are no previous test case timing records available, the default test case duration is 15 seconds. Because the actual shard duration can exceed the targeted shard duration, we recommend that you set the targeted value at least 5 minutes less than the maximum allowed test timeout (45 minutes for physical devices and 60 minutes for virtual), or that you use the custom test timeout value that you set. This approach avoids cancelling the shard before all tests can finish. Note that there is a limit for maximum number of shards. When you select one or more physical devices, the number of shards must be &lt;= 50. When you select one or more ARM virtual devices, it must be &lt;= 200. When you select only x86 virtual devices, it must be &lt;= 500. To guarantee at least one test case for per shard, the number of shards will not exceed the number of test cases. Each shard created counts toward daily test quota.
     #[serde(default, rename = "targetedShardDuration")]
@@ -1277,7 +1278,7 @@ pub struct SmartSharding {
 }
 
 /// Uniformly shards test cases given a total number of shards. For instrumentation tests, it will be translated to "-e numShard" and "-e shardIndex" AndroidJUnitRunner arguments. With uniform sharding enabled, specifying either of these sharding arguments via environment_variables is invalid. Based on the sharding mechanism AndroidJUnitRunner uses, there is no guarantee that test cases will be distributed uniformly across all shards.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UniformSharding {
     /// Required. The total number of shards to create. This must always be a positive number that is no greater than the total number of test cases. When you select one or more physical devices, the number of shards must be &lt;= 50. When you select one or more ARM virtual devices, it must be &lt;= 200. When you select only x86 virtual devices, it must be &lt;= 500.
     #[serde(default, rename = "numShards")]
@@ -1285,7 +1286,7 @@ pub struct UniformSharding {
 }
 
 /// A starting intent specified by an action, uri, and categories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartActivityIntent {
     /// Action name. Required for START_ACTIVITY.
     #[serde(default)]
@@ -1299,7 +1300,7 @@ pub struct StartActivityIntent {
 }
 
 /// A single dynamic feature apk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApkSplits {
     /// A list of .apk files generated by bundletool to install to the device under test as a single android app with adb install-multiple. If specified, requires one or more bundle_splits. The first split specified represents the base APK, while subsequent splits represent feature apks.
     #[serde(default, rename = "bundleSplits")]
@@ -1307,7 +1308,7 @@ pub struct ApkSplits {
 }
 
 /// An opaque binary blob file to install on the device before the test starts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObbFile {
     /// Required. Opaque Binary Blob (OBB) file(s) to install on the device.
     #[serde(default)]
@@ -1318,7 +1319,7 @@ pub struct ObbFile {
 }
 
 /// A file or directory to install on the device before the test starts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegularFile {
     /// Required. The source file.
     #[serde(default)]
@@ -1329,7 +1330,7 @@ pub struct RegularFile {
 }
 
 /// Test targets for a shard.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestTargetsForShard {
     /// Group of packages, classes, and/or test methods to be run for each shard. The targets need to be specified in AndroidJUnitRunner argument format. For example, "package com.my.packages" "class com.my.package.MyClass". The number of test_targets must be greater than 0.
     #[serde(default, rename = "testTargets")]
@@ -1337,7 +1338,7 @@ pub struct TestTargetsForShard {
 }
 
 /// A reference to a file, used for user inputs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FileReference {
     /// A path to a file in Google Cloud Storage. Example: gs://build-app-1414623860166/app%40debug-unaligned.apk These paths are expected to be url encoded (percent encoding)
     #[serde(default, rename = "gcsPath")]

@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// JSON template for the ChangePlan rpc request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChangePlanRequest {
     /// Google-issued code (100 char max) for discounted pricing on subscription plans. Deal code must be included in changePlan request in order to receive discounted rate. This property is optional. If a deal code has already been added to a subscription, this property may be left empty and the existing discounted rate will still apply (if not empty, only provide the deal code that is already present on the subscription). If a deal code has never been added to a subscription and this property is left blank, regular pricing will apply.
     #[serde(default, rename = "dealCode")]
@@ -31,7 +32,7 @@ pub struct ChangePlanRequest {
 }
 
 /// When a Google customer''s account is registered with a reseller, the customer''s subscriptions for Google services are managed by this reseller. A customer is described by a primary domain name and a physical address.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Customer {
     /// Like the "Customer email" in the reseller tools, this email is the secondary contact used if something happens to the customer''s service such as service outage or a security issue. This property is required when creating a new "domain" customer and should not use the same domain as customerDomain. The alternateEmail field is not necessary to create a "team" customer.
     #[serde(default, rename = "alternateEmail")]
@@ -66,7 +67,7 @@ pub struct Customer {
 }
 
 /// JSON template for resellernotify getwatchdetails response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResellernotifyGetwatchdetailsResponse {
     /// List of registered service accounts.
     #[serde(default, rename = "serviceAccountEmailAddresses")]
@@ -77,7 +78,7 @@ pub struct ResellernotifyGetwatchdetailsResponse {
 }
 
 /// JSON template for resellernotify response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResellernotifyResource {
     /// Topic name of the PubSub
     #[serde(default, rename = "topicName")]
@@ -85,7 +86,7 @@ pub struct ResellernotifyResource {
 }
 
 /// A subscription manages the relationship of a Google customer''s payment plan with a product''s SKU, user licenses, 30-day free trial status, and renewal options. A primary role of a reseller is to manage the Google customer''s subscriptions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Subscriptions {
     /// Identifies the resource as a collection of subscriptions. Value: reseller#subscriptions
     #[serde(default)]
@@ -99,7 +100,7 @@ pub struct Subscriptions {
 }
 
 /// JSON template for address of a customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Address {
     /// A customer''s physical address. An address can be composed of one to three lines. The addressline2 and addressLine3 are optional.
     #[serde(default, rename = "addressLine1")]
@@ -134,7 +135,7 @@ pub struct Address {
 }
 
 /// JSON template for primary admin in case of TEAM customers
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrimaryAdmin {
     /// The business email of the primary administrator of the customer. The email verification link is sent to this email address at the time of customer creation. Primary administrators have access to the customer''s Admin Console, including the ability to invite and evict users and manage the administrative needs of the customer.
     #[serde(default, rename = "primaryEmail")]
@@ -142,7 +143,7 @@ pub struct PrimaryAdmin {
 }
 
 /// JSON template for a subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Subscription {
     /// Read-only field that returns the current billing method for a subscription.
     #[serde(default, rename = "billingMethod")]
@@ -201,7 +202,7 @@ pub struct Subscription {
 }
 
 /// JSON template for a subscription renewal settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RenewalSettings {
     /// Identifies the resource as a subscription renewal setting. Value: subscriptions#renewalSettings
     #[serde(default)]
@@ -212,7 +213,7 @@ pub struct RenewalSettings {
 }
 
 /// JSON template for subscription seats.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Seats {
     /// Identifies the resource as a subscription seat setting. Value: subscriptions#seats
     #[serde(default)]

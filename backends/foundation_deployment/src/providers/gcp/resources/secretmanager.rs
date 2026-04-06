@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Response message for SecretManagerService.AccessSecretVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSecretVersionResponse {
     /// The resource name of the SecretVersion in the format projects/*/secrets/*/versions/* or projects/*/locations/*/secrets/*/versions/*.
     #[serde(default)]
@@ -22,7 +23,7 @@ pub struct AccessSecretVersionResponse {
 }
 
 /// Request message for SecretManagerService.AddSecretVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddSecretVersionRequest {
     /// Required. The secret payload of the SecretVersion.
     #[serde(default)]
@@ -30,7 +31,7 @@ pub struct AddSecretVersionRequest {
 }
 
 /// Request message for SecretManagerService.DestroySecretVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DestroySecretVersionRequest {
     /// Optional. Etag of the SecretVersion. The request succeeds if it matches the etag of the currently stored secret version object. If the etag is omitted, the request succeeds.
     #[serde(default)]
@@ -38,7 +39,7 @@ pub struct DestroySecretVersionRequest {
 }
 
 /// Request message for SecretManagerService.DisableSecretVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisableSecretVersionRequest {
     /// Optional. Etag of the SecretVersion. The request succeeds if it matches the etag of the currently stored secret version object. If the etag is omitted, the request succeeds.
     #[serde(default)]
@@ -46,11 +47,11 @@ pub struct DisableSecretVersionRequest {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Request message for SecretManagerService.EnableSecretVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnableSecretVersionRequest {
     /// Optional. Etag of the SecretVersion. The request succeeds if it matches the etag of the currently stored secret version object. If the etag is omitted, the request succeeds.
     #[serde(default)]
@@ -58,7 +59,7 @@ pub struct EnableSecretVersionRequest {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -69,7 +70,7 @@ pub struct ListLocationsResponse {
 }
 
 /// Response message for SecretManagerService.ListSecretVersions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSecretVersionsResponse {
     /// A token to retrieve the next page of results. Pass this value in ListSecretVersionsRequest.page_token to retrieve the next page.
     #[serde(default, rename = "nextPageToken")]
@@ -83,7 +84,7 @@ pub struct ListSecretVersionsResponse {
 }
 
 /// Response message for SecretManagerService.ListSecrets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSecretsResponse {
     /// A token to retrieve the next page of results. Pass this value in ListSecretsRequest.page_token to retrieve the next page.
     #[serde(default, rename = "nextPageToken")]
@@ -97,7 +98,7 @@ pub struct ListSecretsResponse {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -117,7 +118,7 @@ pub struct Operation {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -143,7 +144,7 @@ pub struct OperationMetadata {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -154,7 +155,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -162,7 +163,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -170,7 +171,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// A secret payload resource in the Secret Manager API. This contains the sensitive secret payload that is associated with a SecretVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretPayload {
     /// The secret data. Must be no larger than 64KiB.
     #[serde(default)]
@@ -181,7 +182,7 @@ pub struct SecretPayload {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -201,7 +202,7 @@ pub struct Location {
 }
 
 /// A secret version resource in the Secret Manager API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretVersion {
     /// Output only. True if payload checksum specified in SecretPayload object has been received by SecretManagerService on SecretManagerService.AddSecretVersion.
     #[serde(default, rename = "clientSpecifiedPayloadChecksum")]
@@ -233,7 +234,7 @@ pub struct SecretVersion {
 }
 
 /// A Secret is a logical secret whose value and versions can be accessed. A Secret is made up of zero or more SecretVersions that represent the secret data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Secret {
     /// Optional. Custom metadata about the secret. Annotations are distinct from various forms of labels. Annotations exist to allow client tools to store their own state information without requiring a database. Annotation keys must be between 1 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, begin and end with an alphanumeric character ([a-z0-9A-Z]), and may have dashes (-), underscores (_), dots (.), and alphanumerics in between these symbols. The total size of annotation keys and values must be less than 16KiB.
     #[serde(default)]
@@ -280,7 +281,7 @@ pub struct Secret {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -294,7 +295,7 @@ pub struct Status {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -311,7 +312,7 @@ pub struct Policy {
 }
 
 /// The replication status of a SecretVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplicationStatus {
     /// Describes the replication status of a SecretVersion with automatic replication. Only populated if the parent Secret has an automatic replication policy.
     #[serde(default)]
@@ -322,7 +323,7 @@ pub struct ReplicationStatus {
 }
 
 /// A policy that defines the replication and encryption configuration of data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Replication {
     /// The Secret will automatically be replicated without any restrictions.
     #[serde(default)]
@@ -333,7 +334,7 @@ pub struct Replication {
 }
 
 /// The rotation time and period for a Secret. At next_rotation_time, Secret Manager will send a Pub/Sub notification to the topics configured on the Secret. Secret.topics must be set to configure rotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Rotation {
     /// Optional. Timestamp in UTC at which the Secret is scheduled to rotate. Cannot be set to less than 300s (5 min) in the future and at most 3153600000s (100 years). next_rotation_time MUST be set if rotation_period is set.
     #[serde(default, rename = "nextRotationTime")]
@@ -344,7 +345,7 @@ pub struct Rotation {
 }
 
 /// A Pub/Sub topic which Secret Manager will publish to when control plane events occur on this secret.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Topic {
     /// Identifier. The resource name of the Pub/Sub topic that will be published to, in the following format: projects/*/topics/*. For publication to succeed, the Secret Manager service agent must have the pubsub.topic.publish permission on the topic. The Pub/Sub Publisher role (roles/pubsub.publisher) includes this permission.
     #[serde(default)]
@@ -352,7 +353,7 @@ pub struct Topic {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -363,7 +364,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -377,7 +378,7 @@ pub struct Binding {
 }
 
 /// The replication status of a SecretVersion using automatic replication. Only populated if the parent Secret has an automatic replication policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutomaticStatus {
     /// Output only. The customer-managed encryption status of the SecretVersion. Only populated if customer-managed encryption is used.
     #[serde(default, rename = "customerManagedEncryption")]
@@ -385,7 +386,7 @@ pub struct AutomaticStatus {
 }
 
 /// The replication status of a SecretVersion using user-managed replication. Only populated if the parent Secret has a user-managed replication policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserManagedStatus {
     /// Output only. The list of replica statuses for the SecretVersion.
     #[serde(default)]
@@ -393,7 +394,7 @@ pub struct UserManagedStatus {
 }
 
 /// A replication policy that replicates the Secret payload without any restrictions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Automatic {
     /// Optional. The customer-managed encryption configuration of the Secret. If no configuration is provided, Google-managed default encryption is used. Updates to the Secret encryption configuration only apply to SecretVersions added afterwards. They do not apply retroactively to existing SecretVersions.
     #[serde(default, rename = "customerManagedEncryption")]
@@ -401,7 +402,7 @@ pub struct Automatic {
 }
 
 /// A replication policy that replicates the Secret payload into the locations specified in Replication.UserManaged.replicas
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserManaged {
     /// Required. The list of Replicas for this Secret. Cannot be empty.
     #[serde(default)]
@@ -409,7 +410,7 @@ pub struct UserManaged {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -420,7 +421,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -437,7 +438,7 @@ pub struct Expr {
 }
 
 /// Describes the status of a user-managed replica for the SecretVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplicaStatus {
     /// Output only. The customer-managed encryption status of the SecretVersion. Only populated if customer-managed encryption is used.
     #[serde(default, rename = "customerManagedEncryption")]
@@ -448,7 +449,7 @@ pub struct ReplicaStatus {
 }
 
 /// Represents a Replica for this Secret.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Replica {
     /// Optional. The customer-managed encryption configuration of the User-Managed Replica. If no configuration is provided, Google-managed default encryption is used. Updates to the Secret encryption configuration only apply to SecretVersions added afterwards. They do not apply retroactively to existing SecretVersions.
     #[serde(default, rename = "customerManagedEncryption")]
@@ -459,7 +460,7 @@ pub struct Replica {
 }
 
 /// Describes the status of customer-managed encryption.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerManagedEncryptionStatus {
     /// Required. The resource name of the Cloud KMS CryptoKeyVersion used to encrypt the secret payload, in the following format: projects/*/locations/*/keyRings/*/cryptoKeys/*/versions/*.
     #[serde(default, rename = "kmsKeyVersionName")]
@@ -467,7 +468,7 @@ pub struct CustomerManagedEncryptionStatus {
 }
 
 /// Configuration for encrypting secret payloads using customer-managed encryption keys (CMEK).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerManagedEncryption {
     /// Required. The resource name of the Cloud KMS CryptoKey used to encrypt secret payloads. For secrets using the UserManaged replication policy type, Cloud KMS CryptoKeys must reside in the same location as the replica location. For secrets using the Automatic replication policy type, Cloud KMS CryptoKeys must reside in global. The expected format is projects/*/locations/*/keyRings/*/cryptoKeys/*.
     #[serde(default, rename = "kmsKeyName")]

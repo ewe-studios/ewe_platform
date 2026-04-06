@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// BlogList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BlogList {
     /// Admin level list of blog per-user information.
     #[serde(default, rename = "blogUserInfos")]
@@ -25,7 +26,7 @@ pub struct BlogList {
 }
 
 /// CommentList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommentList {
     /// Etag of the response.
     #[serde(default)]
@@ -45,7 +46,7 @@ pub struct CommentList {
 }
 
 /// PageList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PageList {
     /// Etag of the response.
     #[serde(default)]
@@ -62,7 +63,7 @@ pub struct PageList {
 }
 
 /// Pageviews resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Pageviews {
     /// Blog Id.
     #[serde(default, rename = "blogId")]
@@ -76,7 +77,7 @@ pub struct Pageviews {
 }
 
 /// PostList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostList {
     /// Etag of the response.
     #[serde(default)]
@@ -96,7 +97,7 @@ pub struct PostList {
 }
 
 /// PostUserInfosList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostUserInfosList {
     /// The list of Posts with User information for the post, for this Blog.
     #[serde(default)]
@@ -110,7 +111,7 @@ pub struct PostUserInfosList {
 }
 
 /// User resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct User {
     /// Profile summary information.
     #[serde(default)]
@@ -142,7 +143,7 @@ pub struct User {
 }
 
 /// BlogUserInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BlogUserInfo {
     /// The Blog resource.
     #[serde(default)]
@@ -156,7 +157,7 @@ pub struct BlogUserInfo {
 }
 
 /// Comment resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Comment {
     /// The author of this Comment.
     #[serde(default)]
@@ -194,7 +195,7 @@ pub struct Comment {
 }
 
 /// Page resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Page {
     /// The author of this Page.
     #[serde(default)]
@@ -238,7 +239,7 @@ pub struct Page {
 }
 
 /// PostUserInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostUserInfo {
     /// The kind of this entity. Always blogger#postUserInfo.
     #[serde(default)]
@@ -252,7 +253,7 @@ pub struct PostUserInfo {
 }
 
 /// Blog resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Blog {
     /// The JSON custom meta-data for the Blog.
     #[serde(default, rename = "customMetaData")]
@@ -296,7 +297,7 @@ pub struct Blog {
 }
 
 /// BlogPerUserInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BlogPerUserInfo {
     /// ID of the Blog resource.
     #[serde(default, rename = "blogId")]
@@ -319,7 +320,7 @@ pub struct BlogPerUserInfo {
 }
 
 /// Post resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Post {
     /// The author of this Post.
     #[serde(default)]
@@ -384,7 +385,7 @@ pub struct Post {
 }
 
 /// PostPerUserInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostPerUserInfo {
     /// ID of the Blog that the post resource belongs to.
     #[serde(default, rename = "blogId")]

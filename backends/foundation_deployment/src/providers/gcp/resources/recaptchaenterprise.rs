@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The AddIpOverride request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1AddIpOverrideRequest {
     /// Required. IP override added to the key.
     #[serde(default, rename = "ipOverrideData")]
@@ -19,11 +20,11 @@ pub struct GoogleCloudRecaptchaenterpriseV1AddIpOverrideRequest {
 }
 
 /// Response for AddIpOverride.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1AddIpOverrideResponse {}
 
 /// The request message to annotate an Assessment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentRequest {
     /// Optional. A stable account identifier to apply to the assessment. This is an alternative to setting account_id in CreateAssessment, for example when a stable account identifier is not yet known in the initial request.
     #[serde(default, rename = "accountId")]
@@ -47,11 +48,11 @@ pub struct GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentRequest {
 }
 
 /// Empty response for AnnotateAssessment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1AnnotateAssessmentResponse {}
 
 /// A reCAPTCHA Enterprise assessment resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1Assessment {
     /// Output only. Assessment returned by account defender when an account identifier is provided.
     #[serde(default, rename = "accountDefenderAssessment")]
@@ -99,27 +100,27 @@ pub struct GoogleCloudRecaptchaenterpriseV1Assessment {
 }
 
 /// Settings specific to keys that can be used for reCAPTCHA Express.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1ExpressKeySettings {}
 
 /// An allow action continues processing a request unimpeded.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionAllowAction {}
 
 /// A block action serves an HTTP error code a prevents the request from hitting the backend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionBlockAction {}
 
 /// An include reCAPTCHA script action involves injecting reCAPTCHA JavaScript code into the HTML returned by the site backend. This reCAPTCHA script is tasked with collecting user signals on the requested web page, issuing tokens as a cookie within the site domain, and enabling their utilization in subsequent page requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionIncludeRecaptchaScriptAction {}
 
 /// A redirect action returns a 307 (temporary redirect) response, pointing the user to a reCAPTCHA interstitial page to attach a token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionRedirectAction {}
 
 /// Response to request to list firewall policies belonging to a project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1ListFirewallPoliciesResponse {
     /// Policy details.
     #[serde(default, rename = "firewallPolicies")]
@@ -131,7 +132,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1ListFirewallPoliciesResponse {
 }
 
 /// Response for ListIpOverrides.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1ListIpOverridesResponse {
     /// IP Overrides details.
     #[serde(default, rename = "ipOverrides")]
@@ -143,7 +144,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1ListIpOverridesResponse {
 }
 
 /// Response to request to list keys in a project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1ListKeysResponse {
     /// Key details.
     #[serde(default)]
@@ -154,7 +155,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1ListKeysResponse {
 }
 
 /// The response to a ListRelatedAccountGroupMemberships call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupMembershipsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -167,7 +168,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupMembershipsRes
 }
 
 /// The response to a ListRelatedAccountGroups call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -180,7 +181,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1ListRelatedAccountGroupsResponse {
 }
 
 /// Metrics for a single Key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1Metrics {
     /// Metrics are continuous and in order by dates, and in the granularity of day. Only challenge-based keys (CHECKBOX, INVISIBLE) have challenge-based data.
     #[serde(default, rename = "challengeMetrics")]
@@ -199,7 +200,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1Metrics {
 }
 
 /// The migrate key request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1MigrateKeyRequest {
     /// Optional. If true, skips the billing check. A reCAPTCHA Enterprise key or migrated key behaves differently than a reCAPTCHA (non-Enterprise version) key when you reach a quota limit (see https://docs.cloud.google.com/recaptcha/quotas#quota_limit). To avoid any disruption of your usage, we check that a billing account is present. If your usage of reCAPTCHA is under the free quota, you can safely skip the billing check and proceed with the migration. See https://cloud.google.com/recaptcha/docs/billing-information.
     #[serde(default, rename = "skipBillingCheck")]
@@ -207,7 +208,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1MigrateKeyRequest {
 }
 
 /// The RemoveIpOverride request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideRequest {
     /// Required. IP override to be removed from the key.
     #[serde(default, rename = "ipOverrideData")]
@@ -215,11 +216,11 @@ pub struct GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideRequest {
 }
 
 /// Response for RemoveIpOverride.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1RemoveIpOverrideResponse {}
 
 /// The reorder firewall policies request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesRequest {
     /// Required. A list containing all policy names, in the new order. Each name is in the format projects/{project}/firewallpolicies/{firewallpolicy}.
     #[serde(default)]
@@ -227,11 +228,11 @@ pub struct GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesRequest {
 }
 
 /// The reorder firewall policies response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1ReorderFirewallPoliciesResponse {}
 
 /// Secret key is used only in legacy reCAPTCHA. It must be used in a 3rd party integration with legacy reCAPTCHA.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1RetrieveLegacySecretKeyResponse {
     /// The secret key (also known as shared secret) authorizes communication between your application backend and the reCAPTCHA Enterprise server to create an assessment. The secret key needs to be kept safe for security purposes.
     #[serde(default, rename = "legacySecretKey")]
@@ -239,7 +240,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1RetrieveLegacySecretKeyResponse {
 }
 
 /// The request message to search related account group memberships.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1SearchRelatedAccountGroupMembershipsRequest {
     /// Optional. The unique stable account identifier used to search connections. The identifier should correspond to an account_id provided in a previous CreateAssessment or AnnotateAssessment call. Either hashed_account_id or account_id must be set, but not both.
     #[serde(default, rename = "accountId")]
@@ -256,7 +257,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1SearchRelatedAccountGroupMembershipsR
 }
 
 /// The response to a SearchRelatedAccountGroupMemberships call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1SearchRelatedAccountGroupMembershipsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -269,11 +270,11 @@ pub struct GoogleCloudRecaptchaenterpriseV1SearchRelatedAccountGroupMembershipsR
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// Details on a phone authentication event
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1PhoneAuthenticationEvent {
     /// Optional. The time at which the multi-factor authentication event (challenge or verification) occurred.
     #[serde(default, rename = "eventTime")]
@@ -284,7 +285,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1PhoneAuthenticationEvent {
 }
 
 /// Describes an event in the lifecycle of a payment transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1TransactionEvent {
     /// Optional. Timestamp when this transaction event occurred; otherwise assumed to be the time of the API call.
     #[serde(default, rename = "eventTime")]
@@ -301,7 +302,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1TransactionEvent {
 }
 
 /// Account defender risk assessment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessment {
     /// Output only. Account takeover risk assessment for this request.
     #[serde(default, rename = "accountTakeoverVerdict")]
@@ -314,7 +315,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessment {
 }
 
 /// Information about account verification, used for identity verification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1AccountVerificationInfo {
     /// Optional. Endpoints that can be used for identity verification.
     #[serde(default)]
@@ -333,7 +334,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1AccountVerificationInfo {
 }
 
 /// The environment creating the assessment. This describes your environment (the system invoking CreateAssessment), NOT the environment of your user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1AssessmentEnvironment {
     /// Optional. Identifies the client module initiating the CreateAssessment request. This can be the link to the client module''s project. Examples include: - "github.com/GoogleCloudPlatform/recaptcha-enterprise-google-tag-manager" - "wordpress.org/plugins/recaptcha-something"
     #[serde(default)]
@@ -344,7 +345,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1AssessmentEnvironment {
 }
 
 /// The event being assessed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1Event {
     /// Optional. The expected action for this type of event. This should be the same action provided at token generation time on client-side platforms already integrated with recaptcha enterprise.
     #[serde(default, rename = "expectedAction")]
@@ -397,7 +398,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1Event {
 }
 
 /// Policy config assessment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1FirewallPolicyAssessment {
     /// Output only. If the processing of a policy config fails, an error is populated and the firewall_policy is left empty.
     #[serde(default)]
@@ -408,7 +409,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1FirewallPolicyAssessment {
 }
 
 /// Assessment for Fraud Prevention.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessment {
     /// Output only. Assessment of this transaction for behavioral trust.
     #[serde(default, rename = "behavioralTrustVerdict")]
@@ -436,7 +437,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessment {
 }
 
 /// Fraud signals describing users and cards involved in the transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1FraudSignals {
     /// Output only. Signals describing the payment card or cards used in this transaction.
     #[serde(default, rename = "cardSignals")]
@@ -449,7 +450,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1FraudSignals {
 }
 
 /// Assessment for Phone Fraud
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1PhoneFraudAssessment {
     /// Output only. Assessment of this phone event for risk of SMS toll fraud.
     #[serde(default, rename = "smsTollFraudVerdict")]
@@ -458,7 +459,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1PhoneFraudAssessment {
 }
 
 /// Private password leak verification info.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1PrivatePasswordLeakVerification {
     /// Output only. List of prefixes of the encrypted potential password leaks that matched the given parameters. They must be compared with the client-side decryption prefix of reencrypted_user_credentials_hash
     #[serde(default, rename = "encryptedLeakMatchPrefixes")]
@@ -475,7 +476,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1PrivatePasswordLeakVerification {
 }
 
 /// Risk analysis result for an event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1RiskAnalysis {
     /// Output only. Challenge information for POLICY_BASED_CHALLENGE and INVISIBLE keys. // TODO: enum values: ["CHALLENGE_UNSPECIFIED", "NOCAPTCHA", "PASSED", "FAILED"]
     #[serde(default)]
@@ -495,7 +496,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1RiskAnalysis {
 }
 
 /// Properties of the provided event token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1TokenProperties {
     /// Output only. Action name provided at token generation.
     #[serde(default)]
@@ -521,7 +522,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1TokenProperties {
 }
 
 /// A key used to identify and configure applications (web and/or mobile) that use reCAPTCHA Enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1Key {
     /// Settings for keys that can be used by Android apps.
     #[serde(default, rename = "androidSettings")]
@@ -557,7 +558,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1Key {
 }
 
 /// A group of related accounts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1RelatedAccountGroup {
     /// Required. Identifier. The resource name for the related account group in the format projects/{project}/relatedaccountgroups/{related_account_group}.
     #[serde(default)]
@@ -565,7 +566,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1RelatedAccountGroup {
 }
 
 /// Metrics related to challenges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1ChallengeMetrics {
     /// Count of submitted challenge solutions that were incorrect or otherwise deemed suspicious such that a subsequent challenge was triggered.
     #[serde(default, rename = "failedCount")]
@@ -582,7 +583,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1ChallengeMetrics {
 }
 
 /// Metrics related to scoring.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1ScoreMetrics {
     /// Action-based metrics. The map key is the action name which specified by the site owners at time of the "execute" client-side call.
     #[serde(default, rename = "actionMetrics")]
@@ -593,7 +594,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1ScoreMetrics {
 }
 
 /// Information about the IP or IP range override.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1IpOverrideData {
     /// Required. The IP address to override (can be IPv4, IPv6 or CIDR). The IP override must be a valid IPv4 or IPv6 address, or a CIDR range. The IP override must be a public IP address. Example of IPv4: 168.192.5.6 Example of IPv6: 2001:0000:130F:0000:0000:09C0:876A:130B Example of IPv4 with CIDR: 168.192.5.0/24 Example of IPv6 with CIDR: 2001:0DB8:1234::/48
     #[serde(default)]
@@ -604,7 +605,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1IpOverrideData {
 }
 
 /// A membership in a group of related accounts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1RelatedAccountGroupMembership {
     /// The unique stable account identifier of the member. The identifier corresponds to an account_id provided in a previous CreateAssessment or AnnotateAssessment call.
     #[serde(default, rename = "accountId")]
@@ -618,7 +619,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1RelatedAccountGroupMembership {
 }
 
 /// Account takeover risk assessment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountTakeoverVerdict {
     /// Output only. Account takeover attempt probability. Values are from 0.0 (lowest risk) to 1.0 (highest risk).
     #[serde(default)]
@@ -638,7 +639,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountTakeo
 }
 
 /// Information about a verification endpoint that can be used for 2FA.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1EndpointVerificationInfo {
     /// Email address for which to trigger a verification request.
     #[serde(default, rename = "emailAddress")]
@@ -655,7 +656,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1EndpointVerificationInfo {
 }
 
 /// Transaction data associated with a payment protected by reCAPTCHA Enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1TransactionData {
     /// Optional. Address associated with the payment method when applicable.
     #[serde(default, rename = "billingAddress")]
@@ -706,7 +707,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1TransactionData {
 }
 
 /// User information associated with a request protected by reCAPTCHA Enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1UserInfo {
     /// Optional. For logged-in requests or login/registration requests, the unique account identifier associated with this user. You can use the username if it is stable (meaning it is the same for every request associated with the same user), or any stable user ID of your choice. Leave blank for non logged-in actions or guest checkout.
     #[serde(default, rename = "accountId")]
@@ -720,7 +721,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1UserInfo {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -734,7 +735,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// A FirewallPolicy represents a single matching pattern and resulting actions to take.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1FirewallPolicy {
     /// Optional. The actions that the caller should take regarding user access. There should be at most one terminal action. A terminal action is any action that forces a response, such as AllowAction, BlockAction or SubstituteAction. Zero or more non-terminal actions such as SetHeader might be specified. A single policy can contain up to 16 actions.
     #[serde(default)]
@@ -755,7 +756,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1FirewallPolicy {
 }
 
 /// Information about behavioral trust of the transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentBehavioralTrustVerdict {
     /// Output only. Probability of this transaction attempt being executed in a behaviorally trustworthy way. Values are from 0.0 (lowest) to 1.0 (highest).
     #[serde(default)]
@@ -763,7 +764,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentBehavioralTr
 }
 
 /// Information about card testing fraud, where an adversary is testing fraudulently obtained cards or brute forcing their details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentCardTestingVerdict {
     /// Output only. Probability of this transaction attempt being part of a card testing attack. Values are from 0.0 (lowest) to 1.0 (highest).
     #[serde(default)]
@@ -771,7 +772,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentCardTestingV
 }
 
 /// Risk reasons applicable to the Fraud Prevention assessment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentRiskReason {
     /// Output only. Risk reasons applicable to the Fraud Prevention assessment. // TODO: enum values: ["REASON_UNSPECIFIED", "HIGH_TRANSACTION_VELOCITY", "EXCESSIVE_ENUMERATION_PATTERN", "SHORT_IDENTITY_HISTORY", "GEOLOCATION_DISCREPANCY", "ASSOCIATED_WITH_FRAUD_CLUSTER"]
     #[serde(default)]
@@ -779,7 +780,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentRiskReason {
 }
 
 /// Information about stolen instrument fraud, where the user is not the legitimate owner of the instrument being used for the purchase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentStolenInstrumentVerdict {
     /// Output only. Probability of this transaction being executed with a stolen instrument. Values are from 0.0 (lowest) to 1.0 (highest).
     #[serde(default)]
@@ -787,7 +788,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1FraudPreventionAssessmentStolenInstru
 }
 
 /// Signals describing the payment card used in this transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1FraudSignalsCardSignals {
     /// Output only. The labels for the payment card in this transaction.
     #[serde(default, rename = "cardLabels")]
@@ -795,7 +796,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1FraudSignalsCardSignals {
 }
 
 /// Signals describing the user involved in this transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1FraudSignalsUserSignals {
     /// Output only. This user (based on email, phone, and other identifiers) has been seen on the internet for at least this number of days.
     #[serde(default, rename = "activeDaysLowerBound")]
@@ -806,7 +807,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1FraudSignalsUserSignals {
 }
 
 /// Information about SMS toll fraud.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1SmsTollFraudVerdict {
     /// Output only. Reasons contributing to the SMS toll fraud verdict.
     #[serde(default)]
@@ -817,7 +818,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1SmsTollFraudVerdict {
 }
 
 /// Bot information and metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1Bot {
     /// Optional. Enumerated field representing the type of bot. // TODO: enum values: ["BOT_TYPE_UNSPECIFIED", "AI_AGENT", "CONTENT_SCRAPER", "SEARCH_INDEXER"]
     #[serde(default, rename = "botType")]
@@ -828,7 +829,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1Bot {
 }
 
 /// Settings specific to keys that can be used by Android apps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1AndroidKeySettings {
     /// Optional. If set to true, allowed_package_names are not enforced.
     #[serde(default, rename = "allowAllPackageNames")]
@@ -842,7 +843,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1AndroidKeySettings {
 }
 
 /// Settings specific to keys that can be used by iOS apps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1iOSKeySettings {
     /// Optional. If set to true, allowed_bundle_ids are not enforced.
     #[serde(default, rename = "allowAllBundleIds")]
@@ -857,7 +858,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1iOSKeySettings {
 }
 
 /// Options for user acceptance testing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1TestingOptions {
     /// Optional. For challenge-based keys only (CHECKBOX, INVISIBLE), all challenge requests for this site return nocaptcha if NOCAPTCHA, or an unsolvable challenge if CHALLENGE. // TODO: enum values: ["TESTING_CHALLENGE_UNSPECIFIED", "NOCAPTCHA", "UNSOLVABLE_CHALLENGE"]
     #[serde(default, rename = "testingChallenge")]
@@ -868,7 +869,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1TestingOptions {
 }
 
 /// Settings specific to keys that can be used for WAF (Web Application Firewall).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1WafSettings {
     /// Required. The Web Application Firewall (WAF) feature for which this key is enabled. // TODO: enum values: ["WAF_FEATURE_UNSPECIFIED", "CHALLENGE_PAGE", "SESSION_TOKEN", "ACTION_TOKEN", "EXPRESS"]
     #[serde(default, rename = "wafFeature")]
@@ -879,7 +880,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1WafSettings {
 }
 
 /// Settings specific to keys that can be used by websites.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1WebKeySettings {
     /// Optional. If set to true, it means allowed_domains are not enforced.
     #[serde(default, rename = "allowAllDomains")]
@@ -903,7 +904,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1WebKeySettings {
 }
 
 /// Score distribution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1ScoreDistribution {
     /// Map key is score value multiplied by 100. The scores are discrete values between [0, 1]. The maximum number of buckets is on order of a few dozen, but typically much lower (ie. 10).
     #[serde(default, rename = "scoreBuckets")]
@@ -911,7 +912,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1ScoreDistribution {
 }
 
 /// Risk explainability reasons for account defender.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountRiskReason {
     /// Output only. A risk reason associated with this request. // TODO: enum values: ["RISK_REASON_UNSPECIFIED", "CLIENT_HISTORICAL_BOT_ACTIVITY", "ACCOUNT_IN_LARGE_RELATED_GROUP", "CLIENT_ACCESSED_MANY_ACCOUNTS"]
     #[serde(default)]
@@ -919,7 +920,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountRiskR
 }
 
 /// Trust explainability reasons for account defender.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountTrustReason {
     /// Output only. A trust reason associated with this request. // TODO: enum values: ["TRUST_REASON_UNSPECIFIED", "PROFILE_MATCH", "ACCOUNT_HISTORY_REPUTABLE"]
     #[serde(default)]
@@ -927,7 +928,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1AccountDefenderAssessmentAccountTrust
 }
 
 /// Structured address format for billing and shipping addresses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1TransactionDataAddress {
     /// Optional. The first lines of the address. The first line generally contains the street name and number, and further lines may include information such as an apartment number.
     #[serde(default)]
@@ -950,7 +951,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1TransactionDataAddress {
 }
 
 /// Details about the transaction from the gateway.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1TransactionDataGatewayInfo {
     /// Optional. AVS response code from the gateway (available only when reCAPTCHA Enterprise is called after authorization).
     #[serde(default, rename = "avsResponseCode")]
@@ -967,7 +968,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1TransactionDataGatewayInfo {
 }
 
 /// Line items being purchased in this transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1TransactionDataItem {
     /// Optional. When a merchant is specified, its corresponding account_id. Necessary to populate marketplace-style transactions.
     #[serde(default, rename = "merchantAccountId")]
@@ -984,7 +985,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1TransactionDataItem {
 }
 
 /// Details about a user''s account involved in the transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1TransactionDataUser {
     /// Optional. Unique account identifier for this user. If using account defender, this should match the hashed_account_id field. Otherwise, a unique and persistent identifier for this account.
     #[serde(default, rename = "accountId")]
@@ -1007,7 +1008,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1TransactionDataUser {
 }
 
 /// An identifier associated with a user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1UserId {
     /// Optional. An email address.
     #[serde(default)]
@@ -1021,7 +1022,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1UserId {
 }
 
 /// An individual action. Each action represents what to do if a policy matches.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1FirewallAction {
     /// The user request did not match any policy and should be allowed access to the requested resource.
     #[serde(default)]
@@ -1046,7 +1047,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1FirewallAction {
 }
 
 /// Contains fields that are required to perform Apple-specific integrity checks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1AppleDeveloperId {
     /// Required. The Apple developer key ID (10-character string).
     #[serde(default, rename = "keyId")]
@@ -1060,7 +1061,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1AppleDeveloperId {
 }
 
 /// Settings for POLICY_BASED_CHALLENGE keys to control when a challenge is triggered.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1WebKeySettingsChallengeSettings {
     /// Optional. The action to score threshold map. The action name should be the same as the action name passed in the data-action attribute (see https://cloud.google.com/recaptcha/docs/actions-website). Action names are case-insensitive. There is a maximum of 100 action settings. An action name has a maximum length of 100.
     #[serde(default, rename = "actionSettings")]
@@ -1072,7 +1073,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1WebKeySettingsChallengeSettings {
 }
 
 /// A set header action sets a header and forwards the request to the backend. This can be used to trigger custom protection implemented on the backend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionSetHeaderAction {
     /// Optional. The header key to set in the request to the backend server.
     #[serde(default)]
@@ -1083,7 +1084,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionSetHeaderAction {
 }
 
 /// A substitute action transparently serves a different page than the one requested.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionSubstituteAction {
     /// Optional. The address to redirect to. The target is a relative path in the current host. Example: "/blog/404.html".
     #[serde(default)]
@@ -1091,7 +1092,7 @@ pub struct GoogleCloudRecaptchaenterpriseV1FirewallActionSubstituteAction {
 }
 
 /// Per-action challenge settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecaptchaenterpriseV1WebKeySettingsActionSettings {
     /// Required. A challenge is triggered if the end-user score is below that threshold. Value must be between 0 and 1 (inclusive).
     #[serde(default, rename = "scoreThreshold")]

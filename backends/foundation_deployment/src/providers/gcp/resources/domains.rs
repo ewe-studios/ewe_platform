@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request for the ConfigureContactSettings method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigureContactSettingsRequest {
     /// The list of contact notices that the caller acknowledges. The notices needed here depend on the values specified in contact_settings.
     #[serde(default, rename = "contactNotices")]
@@ -28,7 +29,7 @@ pub struct ConfigureContactSettingsRequest {
 }
 
 /// Request for the ConfigureDnsSettings method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigureDnsSettingsRequest {
     /// Fields of the DnsSettings to update.
     #[serde(default, rename = "dnsSettings")]
@@ -42,7 +43,7 @@ pub struct ConfigureDnsSettingsRequest {
 }
 
 /// Request for the ConfigureManagementSettings method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigureManagementSettingsRequest {
     /// Fields of the ManagementSettings to update.
     #[serde(default, rename = "managementSettings")]
@@ -53,11 +54,11 @@ pub struct ConfigureManagementSettingsRequest {
 }
 
 /// Deprecated: For more information, see [Cloud Domains feature deprecation](https://cloud.google.com/domains/docs/deprecations/feature-deprecations). Request for the ExportRegistration method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportRegistrationRequest {}
 
 /// Deprecated: For more information, see [Cloud Domains feature deprecation](https://cloud.google.com/domains/docs/deprecations/feature-deprecations). Request for the ImportDomain method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportDomainRequest {
     /// Required. The domain name. Unicode domain names must be expressed in Punycode format.
     #[serde(default, rename = "domainName")]
@@ -68,7 +69,7 @@ pub struct ImportDomainRequest {
 }
 
 /// Request for the InitiatePushTransfer method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InitiatePushTransferRequest {
     /// Required. The Tag of the new registrar. Can be found at [List of registrars](https://nominet.uk/registrar-list/).
     #[serde(default)]
@@ -76,7 +77,7 @@ pub struct InitiatePushTransferRequest {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -87,7 +88,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -101,7 +102,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response for the ListRegistrations method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRegistrationsResponse {
     /// When present, there are more results to retrieve. Set page_token to this value on a subsequent call to get the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -112,7 +113,7 @@ pub struct ListRegistrationsResponse {
 }
 
 /// Represents the metadata of the long-running operation. Output only.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -135,7 +136,7 @@ pub struct OperationMetadata {
 }
 
 /// Request for the RegisterDomain method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegisterDomainRequest {
     /// The list of contact notices that the caller acknowledges. The notices needed here depend on the values specified in registration.contact_settings.
     #[serde(default, rename = "contactNotices")]
@@ -155,7 +156,7 @@ pub struct RegisterDomainRequest {
 }
 
 /// Request for the RenewDomain method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RenewDomainRequest {
     /// Optional. When true, only validation is performed, without actually renewing the domain. For more information, see [Request validation](https://cloud.google.com/apis/design/design_patterns#request_validation)
     #[serde(default, rename = "validateOnly")]
@@ -166,11 +167,11 @@ pub struct RenewDomainRequest {
 }
 
 /// Request for the ResetAuthorizationCode method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResetAuthorizationCodeRequest {}
 
 /// Response for the RetrieveGoogleDomainsDnsRecords method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetrieveGoogleDomainsDnsRecordsResponse {
     /// When present, there are more results to retrieve. Set page_token to this value on a subsequent call to get the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -181,7 +182,7 @@ pub struct RetrieveGoogleDomainsDnsRecordsResponse {
 }
 
 /// Response for the RetrieveGoogleDomainsForwardingConfig method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetrieveGoogleDomainsForwardingConfigResponse {
     /// The list of domain forwarding configurations. A forwarding configuration might not work correctly if the required DNS records are not present in the domain''s authoritative DNS zone.
     #[serde(default, rename = "domainForwardings")]
@@ -192,7 +193,7 @@ pub struct RetrieveGoogleDomainsForwardingConfigResponse {
 }
 
 /// Deprecated: For more information, see [Cloud Domains feature deprecation](https://cloud.google.com/domains/docs/deprecations/feature-deprecations). Response for the RetrieveImportableDomains method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetrieveImportableDomainsResponse {
     /// A list of domains that the calling user manages in Google Domains.
     #[serde(default)]
@@ -203,7 +204,7 @@ pub struct RetrieveImportableDomainsResponse {
 }
 
 /// Response for the RetrieveRegisterParameters method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetrieveRegisterParametersResponse {
     /// Parameters to use when calling the RegisterDomain method.
     #[serde(default, rename = "registerParameters")]
@@ -211,7 +212,7 @@ pub struct RetrieveRegisterParametersResponse {
 }
 
 /// Deprecated: For more information, see [Cloud Domains feature deprecation](https://cloud.google.com/domains/docs/deprecations/feature-deprecations). Response for the RetrieveTransferParameters method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetrieveTransferParametersResponse {
     /// Parameters to use when calling the TransferDomain method.
     #[serde(default, rename = "transferParameters")]
@@ -219,7 +220,7 @@ pub struct RetrieveTransferParametersResponse {
 }
 
 /// Response for the SearchDomains method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchDomainsResponse {
     /// Results of the domain name search.
     #[serde(default, rename = "registerParameters")]
@@ -227,7 +228,7 @@ pub struct SearchDomainsResponse {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -238,7 +239,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -246,7 +247,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -254,7 +255,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// Deprecated: For more information, see [Cloud Domains feature deprecation](https://cloud.google.com/domains/docs/deprecations/feature-deprecations). Request for the TransferDomain method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferDomainRequest {
     /// The domain''s transfer authorization code. You can obtain this from the domain''s current registrar.
     #[serde(default, rename = "authorizationCode")]
@@ -274,7 +275,7 @@ pub struct TransferDomainRequest {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -294,7 +295,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -314,7 +315,7 @@ pub struct Operation {
 }
 
 /// A unit of data that is returned by the DNS servers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceRecordSet {
     /// For example, www.example.com.
     #[serde(default)]
@@ -337,7 +338,7 @@ pub struct ResourceRecordSet {
 }
 
 /// Domain forwarding configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DomainForwarding {
     /// If true, forwards the path after the domain name to the same path at the new address.
     #[serde(default, rename = "pathForwarding")]
@@ -360,7 +361,7 @@ pub struct DomainForwarding {
 }
 
 /// Email forwarding configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailForwarding {
     /// An alias recipient email that forwards emails to the target_email_address. For example, admin@example.com or *@example.com (wildcard alias forwards all the emails under the registered domain).
     #[serde(default)]
@@ -371,7 +372,7 @@ pub struct EmailForwarding {
 }
 
 /// A domain that the calling user manages in Google Domains.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Domain {
     /// The domain name. Unicode domain names are expressed in Punycode format.
     #[serde(default, rename = "domainName")]
@@ -385,7 +386,7 @@ pub struct Domain {
 }
 
 /// Deprecated: For more information, see [Cloud Domains feature deprecation](https://cloud.google.com/domains/docs/deprecations/feature-deprecations). Parameters required to transfer a domain from another registrar.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferParameters {
     /// The registrar that currently manages the domain.
     #[serde(default, rename = "currentRegistrar")]
@@ -411,7 +412,7 @@ pub struct TransferParameters {
 }
 
 /// Parameters required to register a new domain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegisterParameters {
     /// Indicates whether the domain is available for registration. This value is accurate when obtained by calling RetrieveRegisterParameters, but is approximate when obtained by calling SearchDomains. // TODO: enum values: ["AVAILABILITY_UNSPECIFIED", "AVAILABLE", "UNAVAILABLE", "UNSUPPORTED", "UNKNOWN"]
     #[serde(default)]
@@ -431,7 +432,7 @@ pub struct RegisterParameters {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -448,7 +449,7 @@ pub struct Policy {
 }
 
 /// Defines an authorization code.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthorizationCode {
     /// The Authorization Code in ASCII. It can be used to transfer the domain to or from another registrar.
     #[serde(default)]
@@ -456,7 +457,7 @@ pub struct AuthorizationCode {
 }
 
 /// The Registration resource facilitates managing and configuring domain name registrations. There are several ways to create a new Registration resource: To create a new Registration resource, find a suitable domain name by calling the SearchDomains method with a query to see available domain name options. After choosing a name, call RetrieveRegisterParameters to ensure availability and obtain information like pricing, which is needed to build a call to RegisterDomain. Another way to create a new Registration is to transfer an existing domain from another registrar (Deprecated: For more information, see [Cloud Domains feature deprecation](https://cloud.google.com/domains/docs/deprecations/feature-deprecations)). First, go to the current registrar to unlock the domain for transfer and retrieve the domain''s transfer authorization code. Then call RetrieveTransferParameters to confirm that the domain is unlocked and to get values needed to build a call to TransferDomain. Finally, you can create a new Registration by importing an existing domain managed with [Google Domains](https://domains.google/) (Deprecated: For more information, see [Cloud Domains feature deprecation](https://cloud.google.com/domains/docs/deprecations/feature-deprecations)). First, call RetrieveImportableDomains to list domains to which the calling user has sufficient access. Then call ImportDomain on any domain names you want to use with Cloud Domains.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Registration {
     /// Required. Settings for contact information linked to the Registration. You cannot update these with the UpdateRegistration method. To update these settings, use the ConfigureContactSettings method.
     #[serde(default, rename = "contactSettings")]
@@ -506,7 +507,7 @@ pub struct Registration {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -520,7 +521,7 @@ pub struct Status {
 }
 
 /// A RRSetRoutingPolicy represents ResourceRecordSet data that is returned dynamically with the response varying based on configured properties such as geolocation or by weighted random selection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RRSetRoutingPolicy {
     #[serde(default)]
     pub geo: ::core::option::Option<GeoPolicy>,
@@ -538,7 +539,7 @@ pub struct RRSetRoutingPolicy {
 }
 
 /// Represents an amount of money with its currency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Money {
     /// The three-letter currency code defined in ISO 4217.
     #[serde(default, rename = "currencyCode")]
@@ -552,7 +553,7 @@ pub struct Money {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -563,7 +564,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -577,7 +578,7 @@ pub struct Binding {
 }
 
 /// Defines the contact information associated with a Registration. [ICANN](https://icann.org/) requires all domain names to have associated contact information. The registrant_contact is considered the domain''s legal owner, and often the other contacts are identical.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContactSettings {
     /// Required. The administrative contact for the Registration.
     #[serde(default, rename = "adminContact")]
@@ -594,7 +595,7 @@ pub struct ContactSettings {
 }
 
 /// Defines the DNS configuration of a Registration, including name servers, DNSSEC, and glue records.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsSettings {
     /// An arbitrary DNS provider identified by its name servers.
     #[serde(default, rename = "customDns")]
@@ -611,7 +612,7 @@ pub struct DnsSettings {
 }
 
 /// Defines renewal, billing, and transfer settings for a Registration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagementSettings {
     /// Output only. The actual transfer lock state for this Registration. // TODO: enum values: ["TRANSFER_LOCK_STATE_UNSPECIFIED", "UNLOCKED", "LOCKED"]
     #[serde(default, rename = "effectiveTransferLockState")]
@@ -628,7 +629,7 @@ pub struct ManagementSettings {
 }
 
 /// Configures a RRSetRoutingPolicy such that all queries are responded with the primary_targets if they are healthy. And if all of them are unhealthy, then we fallback to a geo localized policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrimaryBackupPolicy {
     /// Backup targets provide a regional failover policy for the otherwise global primary targets. If serving state is set to BACKUP, this policy essentially becomes a geo routing policy.
     #[serde(default, rename = "backupGeoTargets")]
@@ -642,14 +643,14 @@ pub struct PrimaryBackupPolicy {
 }
 
 /// Configures a RRSetRoutingPolicy that routes in a weighted round robin fashion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WrrPolicy {
     #[serde(default)]
     pub item: ::core::option::Option<::std::vec::Vec<WrrPolicyItem>>,
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -660,7 +661,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -677,7 +678,7 @@ pub struct Expr {
 }
 
 /// Details required for a contact associated with a Registration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Contact {
     /// Required. Email address of the contact.
     #[serde(default)]
@@ -694,7 +695,7 @@ pub struct Contact {
 }
 
 /// Configuration for an arbitrary DNS provider.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomDns {
     /// The list of DS records for this domain, which are used to enable DNSSEC. The domain''s DNS provider can provide the values to set here. If this field is empty, DNSSEC is disabled.
     #[serde(default, rename = "dsRecords")]
@@ -705,7 +706,7 @@ pub struct CustomDns {
 }
 
 /// Defines a host on your domain that is a DNS name server for your domain and/or other domains. Glue records are a way of making the IP address of a name server known, even when it serves DNS queries for its parent domain. For example, when ns.example.com is a name server for example.com, the host ns.example.com must have a glue record to break the circular DNS reference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GlueRecord {
     /// Required. Domain name of the host in Punycode format.
     #[serde(default, rename = "hostName")]
@@ -719,7 +720,7 @@ pub struct GlueRecord {
 }
 
 /// Deprecated: For more information, see [Cloud Domains feature deprecation](https://cloud.google.com/domains/docs/deprecations/feature-deprecations). Configuration for using the free DNS zone provided by Google Domains as a Registration''s dns_provider. You cannot configure the DNS zone itself using the API. To configure the DNS zone, go to [Google Domains](https://domains.google/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDomainsDns {
     /// Output only. The list of DS records published for this domain. The list is automatically populated when ds_state is DS_RECORDS_PUBLISHED, otherwise it remains empty.
     #[serde(default, rename = "dsRecords")]
@@ -733,7 +734,7 @@ pub struct GoogleDomainsDns {
 }
 
 /// Configures a RRSetRoutingPolicy that routes based on the geo location of the querying user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeoPolicy {
     /// Without fencing, if health check fails for all configured items in the current geo bucket, we failover to the next nearest geo bucket. With fencing, if health checking is enabled, as long as some targets in the current geo bucket are healthy, we return only the healthy targets. However, if all targets are unhealthy, we don''t failover to the next nearest bucket; instead, we return all the items in the current bucket even when all targets are unhealthy.
     #[serde(default, rename = "enableFencing")]
@@ -744,7 +745,7 @@ pub struct GeoPolicy {
 }
 
 /// A routing block which contains the routing information for one WRR item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WrrPolicyItem {
     /// Endpoints that are health checked before making the routing decision. The unhealthy endpoints are omitted from the result. If all endpoints within a bucket are unhealthy, we choose a different bucket (sampled with respect to its weight) for responding. If DNSSEC is enabled for this zone, only one of rrdata or health_checked_targets can be set.
     #[serde(default, rename = "healthCheckedTargets")]
@@ -760,7 +761,7 @@ pub struct WrrPolicyItem {
 }
 
 /// Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostalAddress {
     /// Unstructured address lines describing the lower levels of an address. Because values in address_lines do not have type information and may sometimes contain multiple values in a single field (for example, "Austin, TX"), it is important that the line order is clear. The order of address lines should be "envelope order" for the country or region of the address. In places where this can vary (for example, Japan), address_language is used to make it explicit (for example, "ja" for large-to-small ordering and "ja-Latn" or "en" for small-to-large). In this way, the most specific line of an address can be selected based on the language. The minimum permitted structural representation of an address consists of a region_code with all remaining information placed in the address_lines. It would be possible to format such an address very approximately without geocoding, but no semantic reasoning could be made about any of the address components until it was at least partially resolved. Creating an address only containing a region_code and address_lines and then geocoding is the recommended way to handle completely unstructured addresses (as opposed to guessing which parts of the address should be localities or administrative areas).
     #[serde(default, rename = "addressLines")]
@@ -798,7 +799,7 @@ pub struct PostalAddress {
 }
 
 /// Defines a Delegation Signer (DS) record, which is needed to enable DNSSEC for a domain. It contains a digest (hash) of a DNSKEY record that must be present in the domain''s DNS zone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DsRecord {
     /// The algorithm used to generate the referenced DNSKEY. // TODO: enum values: ["ALGORITHM_UNSPECIFIED", "RSAMD5", "DH", "DSA", "ECC", "RSASHA1", "DSANSEC3SHA1", "RSASHA1NSEC3SHA1", "RSASHA256", "RSASHA512", "ECCGOST", "ECDSAP256SHA256", "ECDSAP384SHA384", "ED25519", "ED448", "INDIRECT", "PRIVATEDNS", "PRIVATEOID"]
     #[serde(default)]
@@ -815,7 +816,7 @@ pub struct DsRecord {
 }
 
 /// ResourceRecordSet data for one geo location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeoPolicyItem {
     /// For A and AAAA types only. Endpoints to return in the query result only if they are healthy. These can be specified along with rrdata within this item.
     #[serde(default, rename = "healthCheckedTargets")]
@@ -831,7 +832,7 @@ pub struct GeoPolicyItem {
 }
 
 /// HealthCheckTargets describes endpoints to health-check when responding to Routing Policy queries. Only the healthy endpoints will be included in the response. Set either internal_load_balancer or external_endpoints. Do not set both.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HealthCheckTargets {
     /// The Internet IP addresses to be health checked. The format matches the format of ResourceRecordSet.rrdata as defined in RFC 1035 (section 5) and RFC 1034 (section 3.6.1)
     #[serde(default, rename = "externalEndpoints")]
@@ -842,7 +843,7 @@ pub struct HealthCheckTargets {
 }
 
 /// The configuration for an individual load balancer to health check.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancerTarget {
     /// The frontend IP address of the load balancer to health check.
     #[serde(default, rename = "ipAddress")]

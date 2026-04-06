@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request for sending validation feedback.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsAddressvalidationV1ProvideValidationFeedbackRequest {
     /// Required. The outcome of the sequence of validation attempts. If this field is set to VALIDATION_CONCLUSION_UNSPECIFIED, an INVALID_ARGUMENT error will be returned. // TODO: enum values: ["VALIDATION_CONCLUSION_UNSPECIFIED", "VALIDATED_VERSION_USED", "USER_VERSION_USED", "UNVALIDATED_VERSION_USED", "UNUSED"]
     #[serde(default)]
@@ -22,11 +23,11 @@ pub struct GoogleMapsAddressvalidationV1ProvideValidationFeedbackRequest {
 }
 
 /// The response for validation feedback. The response is empty if the feedback is sent successfully.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsAddressvalidationV1ProvideValidationFeedbackResponse {}
 
 /// The request for validating an address.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsAddressvalidationV1ValidateAddressRequest {
     /// Required. The address being validated. Unformatted addresses should be submitted via address_lines. The total length of the fields in this input must not exceed 280 characters. Supported regions can be found [here](https://developers.google.com/maps/documentation/address-validation/coverage). The language_code value in the input address is reserved for future uses and is ignored today. The validated address result will be populated based on the preferred language for the given address, as identified by the system. The Address Validation API ignores the values in recipients and organization. Any values in those fields will be discarded and not returned. Please do not set them.
     #[serde(default)]
@@ -46,7 +47,7 @@ pub struct GoogleMapsAddressvalidationV1ValidateAddressRequest {
 }
 
 /// The response to an address validation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsAddressvalidationV1ValidateAddressResponse {
     /// The UUID that identifies this response. If the address needs to be re-validated, this UUID *must* accompany the new request.
     #[serde(default, rename = "responseId")]
@@ -57,7 +58,7 @@ pub struct GoogleMapsAddressvalidationV1ValidateAddressResponse {
 }
 
 /// Preview: This feature is in Preview (pre-GA). Pre-GA products and features might have limited support, and changes to pre-GA products and features might not be compatible with other pre-GA versions. Pre-GA Offerings are covered by the [Google Maps Platform Service Specific Terms](https://cloud.google.com/maps-platform/terms/maps-service-terms). For more information, see the [launch stage descriptions](https://developers.google.com/maps/launch-stages). Enables the Address Validation API to include additional information in the response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsAddressvalidationV1LanguageOptions {
     /// Preview: Return a [google.maps.addressvalidation.v1.Address] in English. See [google.maps.addressvalidation.v1.ValidationResult.english_latin_address] for details.
     #[serde(default, rename = "returnEnglishLatinAddress")]
@@ -65,7 +66,7 @@ pub struct GoogleMapsAddressvalidationV1LanguageOptions {
 }
 
 /// The result of validating an address.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsAddressvalidationV1ValidationResult {
     /// Information about the address itself as opposed to the geocode.
     #[serde(default)]
@@ -88,7 +89,7 @@ pub struct GoogleMapsAddressvalidationV1ValidationResult {
 }
 
 /// Details of the post-processed address. Post-processing includes correcting misspelled parts of the address, replacing incorrect parts, and inferring missing parts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsAddressvalidationV1Address {
     /// Unordered list. The individual address components of the formatted and corrected address, along with validation information. This provides information on the validation status of the individual components. Address components are not ordered in a particular way. Do not make any assumptions on the ordering of the address components in the list.
     #[serde(default, rename = "addressComponents")]
@@ -112,7 +113,7 @@ pub struct GoogleMapsAddressvalidationV1Address {
 }
 
 /// Contains information about the place the input was geocoded to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsAddressvalidationV1Geocode {
     /// The bounds of the geocoded place.
     #[serde(default)]
@@ -135,7 +136,7 @@ pub struct GoogleMapsAddressvalidationV1Geocode {
 }
 
 /// The metadata for the post-processed address. metadata is not guaranteed to be fully populated for every address sent to the Address Validation API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsAddressvalidationV1AddressMetadata {
     /// Indicates that this is the address of a business. If unset, indicates that the value is unknown.
     #[serde(default)]
@@ -149,7 +150,7 @@ pub struct GoogleMapsAddressvalidationV1AddressMetadata {
 }
 
 /// The USPS data for the address. uspsData is not guaranteed to be fully populated for every US or PR address sent to the Address Validation API. It''s recommended to integrate the backup address fields in the response if you utilize uspsData as the primary part of the response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsAddressvalidationV1UspsData {
     /// Abbreviated city.
     #[serde(default, rename = "abbreviatedCity")]
@@ -265,7 +266,7 @@ pub struct GoogleMapsAddressvalidationV1UspsData {
 }
 
 /// High level overview of the address validation result and geocode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsAddressvalidationV1Verdict {
     /// The post-processed address is considered complete if there are no unresolved tokens, no unexpected or missing address components. If unset, indicates that the value is false. See missing_component_types, unresolved_tokens or unexpected fields for more details.
     #[serde(default, rename = "addressComplete")]
@@ -297,7 +298,7 @@ pub struct GoogleMapsAddressvalidationV1Verdict {
 }
 
 /// Represents an address component, such as a street, city, or state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsAddressvalidationV1AddressComponent {
     /// The name for this component.
     #[serde(default, rename = "componentName")]
@@ -323,7 +324,7 @@ pub struct GoogleMapsAddressvalidationV1AddressComponent {
 }
 
 /// Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypePostalAddress {
     /// Unstructured address lines describing the lower levels of an address. Because values in address_lines do not have type information and may sometimes contain multiple values in a single field (for example, "Austin, TX"), it is important that the line order is clear. The order of address lines should be "envelope order" for the country or region of the address. In places where this can vary (for example, Japan), address_language is used to make it explicit (for example, "ja" for large-to-small ordering and "ja-Latn" or "en" for small-to-large). In this way, the most specific line of an address can be selected based on the language. The minimum permitted structural representation of an address consists of a region_code with all remaining information placed in the address_lines. It would be possible to format such an address very approximately without geocoding, but no semantic reasoning could be made about any of the address components until it was at least partially resolved. Creating an address only containing a region_code and address_lines and then geocoding is the recommended way to handle completely unstructured addresses (as opposed to guessing which parts of the address should be localities or administrative areas).
     #[serde(default, rename = "addressLines")]
@@ -361,7 +362,7 @@ pub struct GoogleTypePostalAddress {
 }
 
 /// A latitude-longitude viewport, represented as two diagonally opposite low and high points. A viewport is considered a closed region, i.e. it includes its boundary. The latitude bounds must range between -90 to 90 degrees inclusive, and the longitude bounds must range between -180 to 180 degrees inclusive. Various cases include: - If low = high, the viewport consists of that single point. - If low.longitude &gt; high.longitude, the longitude range is inverted (the viewport crosses the 180 degree longitude line). - If low.longitude = -180 degrees and high.longitude = 180 degrees, the viewport includes all longitudes. - If low.longitude = 180 degrees and high.longitude = -180 degrees, the longitude range is empty. - If low.latitude &gt; high.latitude, the latitude range is empty. Both low and high must be populated, and the represented box cannot be empty (as specified by the definitions above). An empty viewport will result in an error. For example, this viewport fully encloses New York City: { "low": { "latitude": 40.477398, "longitude": -74.259087 }, "high": { "latitude": 40.91618, "longitude": -73.70018 } }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleGeoTypeViewport {
     /// Required. The high point of the viewport.
     #[serde(default)]
@@ -372,7 +373,7 @@ pub struct GoogleGeoTypeViewport {
 }
 
 /// Plus code (http://plus.codes) is a location reference with two formats: global code defining a 14mx14m (1/8000th of a degree) or smaller rectangle, and compound code, replacing the prefix with a reference location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsAddressvalidationV1PlusCode {
     /// Place''s compound code, such as "33GV+HQ, Ramberg, Norway", containing the suffix of the global code and replacing the prefix with a formatted name of a reference entity.
     #[serde(default, rename = "compoundCode")]
@@ -383,7 +384,7 @@ pub struct GoogleMapsAddressvalidationV1PlusCode {
 }
 
 /// USPS representation of a US address.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsAddressvalidationV1UspsAddress {
     /// City name.
     #[serde(default)]
@@ -415,7 +416,7 @@ pub struct GoogleMapsAddressvalidationV1UspsAddress {
 }
 
 /// A wrapper for the name of the component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMapsAddressvalidationV1ComponentName {
     /// The BCP-47 language code. This will not be present if the component name is not associated with a language, such as a street number.
     #[serde(default, rename = "languageCode")]
@@ -426,7 +427,7 @@ pub struct GoogleMapsAddressvalidationV1ComponentName {
 }
 
 /// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeLatLng {
     /// The latitude in degrees. It must be in the range [-90.0, +90.0].
     #[serde(default)]

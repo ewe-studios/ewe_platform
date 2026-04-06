@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// CheckAccessResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckAccessResponse {
     /// Returns true if principal has access. Returns false otherwise.
     #[serde(default, rename = "hasAccess")]
@@ -19,7 +20,7 @@ pub struct CheckAccessResponse {
 }
 
 /// Represents settings at a customer level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerSettings {
     /// Audit Logging settings for the customer. If update_mask is empty then this field will be updated based on UpdateCustomerSettings request.
     #[serde(default, rename = "auditLoggingSettings")]
@@ -30,7 +31,7 @@ pub struct CustomerSettings {
 }
 
 /// DeleteQueueItemsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteQueueItemsRequest {
     /// The name of connector making this call. Format: datasources/{source_id}/connectors/{ID}
     #[serde(default, rename = "connectorName")]
@@ -44,7 +45,7 @@ pub struct DeleteQueueItemsRequest {
 }
 
 /// Wrapper proto for the Assist cards.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickAssistCardProto {
     /// Agenda group card.
     #[serde(default, rename = "agendaGroupCardProto")]
@@ -131,7 +132,7 @@ pub struct EnterpriseTopazSidekickAssistCardProto {
 }
 
 /// GetCustomerIndexStatsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetCustomerIndexStatsResponse {
     /// Average item count for the given date range for which billing is done.
     #[serde(default, rename = "averageIndexedItemCount")]
@@ -142,7 +143,7 @@ pub struct GetCustomerIndexStatsResponse {
 }
 
 /// GetCustomerQueryStatsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetCustomerQueryStatsResponse {
     #[serde(default)]
     pub stats: ::core::option::Option<::std::vec::Vec<CustomerQueryStats>>,
@@ -152,7 +153,7 @@ pub struct GetCustomerQueryStatsResponse {
 }
 
 /// Response format for search application stats for a customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetCustomerSearchApplicationStatsResponse {
     /// Average search application count for the given date range.
     #[serde(default, rename = "averageSearchApplicationCount")]
@@ -163,21 +164,21 @@ pub struct GetCustomerSearchApplicationStatsResponse {
 }
 
 /// GetCustomerSessionStatsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetCustomerSessionStatsResponse {
     #[serde(default)]
     pub stats: ::core::option::Option<::std::vec::Vec<CustomerSessionStats>>,
 }
 
 /// GetCustomerUserStatsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetCustomerUserStatsResponse {
     #[serde(default)]
     pub stats: ::core::option::Option<::std::vec::Vec<CustomerUserStats>>,
 }
 
 /// GetDataSourceIndexStatsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetDataSourceIndexStatsResponse {
     /// Average item count for the given date range for which billing is done.
     #[serde(default, rename = "averageIndexedItemCount")]
@@ -188,7 +189,7 @@ pub struct GetDataSourceIndexStatsResponse {
 }
 
 /// Response format for getting query stats for a search application between given dates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetSearchApplicationQueryStatsResponse {
     /// Query stats per date for a search application.
     #[serde(default)]
@@ -199,21 +200,21 @@ pub struct GetSearchApplicationQueryStatsResponse {
 }
 
 /// GetSearchApplicationSessionStatsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetSearchApplicationSessionStatsResponse {
     #[serde(default)]
     pub stats: ::core::option::Option<::std::vec::Vec<SearchApplicationSessionStats>>,
 }
 
 /// GetSearchApplicationUserStatsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetSearchApplicationUserStatsResponse {
     #[serde(default)]
     pub stats: ::core::option::Option<::std::vec::Vec<SearchApplicationUserStats>>,
 }
 
 /// IndexItemRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IndexItemRequest {
     /// The name of connector making this call. Format: datasources/{source_id}/connectors/{ID}
     #[serde(default, rename = "connectorName")]
@@ -232,11 +233,11 @@ pub struct IndexItemRequest {
 }
 
 /// Request message for InitializeCustomer method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InitializeCustomerRequest {}
 
 /// ListDataSourceResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDataSourceResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -246,7 +247,7 @@ pub struct ListDataSourceResponse {
 }
 
 /// ListItemNamesForUnmappedIdentityResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListItemNamesForUnmappedIdentityResponse {
     #[serde(default, rename = "itemNames")]
     pub item_names: ::core::option::Option<::std::vec::Vec<String>>,
@@ -256,7 +257,7 @@ pub struct ListItemNamesForUnmappedIdentityResponse {
 }
 
 /// ListItemsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListItemsResponse {
     #[serde(default)]
     pub items: ::core::option::Option<::std::vec::Vec<Item>>,
@@ -266,7 +267,7 @@ pub struct ListItemsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -280,7 +281,7 @@ pub struct ListOperationsResponse {
 }
 
 /// List sources response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListQuerySourcesResponse {
     #[serde(default, rename = "nextPageToken")]
     pub next_page_token: ::core::option::Option<String>,
@@ -289,7 +290,7 @@ pub struct ListQuerySourcesResponse {
 }
 
 /// ListSearchApplicationsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSearchApplicationsResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -299,7 +300,7 @@ pub struct ListSearchApplicationsResponse {
 }
 
 /// ListUnmappedIdentitiesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUnmappedIdentitiesResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -309,7 +310,7 @@ pub struct ListUnmappedIdentitiesResponse {
 }
 
 /// Media resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Media {
     /// Name of the media resource.
     #[serde(default, rename = "resourceName")]
@@ -317,7 +318,7 @@ pub struct Media {
 }
 
 /// PollItemsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PollItemsRequest {
     /// The name of connector making this call. Format: datasources/{source_id}/connectors/{ID}
     #[serde(default, rename = "connectorName")]
@@ -337,7 +338,7 @@ pub struct PollItemsRequest {
 }
 
 /// PollItemsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PollItemsResponse {
     /// Set of items from the queue available for connector to process. These items have the following subset of fields populated: version metadata.hash structured_data.hash content.hash payload status queue
     #[serde(default)]
@@ -345,7 +346,7 @@ pub struct PollItemsResponse {
 }
 
 /// PushItemRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PushItemRequest {
     /// The name of connector making this call. Format: datasources/{source_id}/connectors/{ID}
     #[serde(default, rename = "connectorName")]
@@ -359,7 +360,7 @@ pub struct PushItemRequest {
 }
 
 /// Information relevant only to a query entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryItem {
     /// True if the text was generated by means other than a previous user search.
     #[serde(default, rename = "isSynthetic")]
@@ -367,7 +368,7 @@ pub struct QueryItem {
 }
 
 /// Remove Logged Activity Request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveActivityRequest {
     /// Request options, such as the search application and clientId.
     #[serde(default, rename = "requestOptions")]
@@ -378,11 +379,11 @@ pub struct RemoveActivityRequest {
 }
 
 /// Remove Logged Activity Response. will return an empty response for now. Will be revisited in later phases.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveActivityResponse {}
 
 /// ResetSearchApplicationRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResetSearchApplicationRequest {
     /// Common debug options.
     #[serde(default, rename = "debugOptions")]
@@ -390,7 +391,7 @@ pub struct ResetSearchApplicationRequest {
 }
 
 /// Information relevant only to a restrict entry. NextId: 12
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestrictItem {
     #[serde(default, rename = "driveFollowUpRestrict")]
     pub drive_follow_up_restrict: ::core::option::Option<DriveFollowUpRestrict>,
@@ -407,7 +408,7 @@ pub struct RestrictItem {
 }
 
 /// SearchItemsByViewUrlRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchItemsByViewUrlRequest {
     /// Common debug options.
     #[serde(default, rename = "debugOptions")]
@@ -421,7 +422,7 @@ pub struct SearchItemsByViewUrlRequest {
 }
 
 /// SearchItemsByViewUrlResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchItemsByViewUrlResponse {
     #[serde(default)]
     pub items: ::core::option::Option<::std::vec::Vec<Item>>,
@@ -431,7 +432,7 @@ pub struct SearchItemsByViewUrlResponse {
 }
 
 /// The search API request. NEXT ID: 25
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchRequest {
     /// Context attributes for the request which will be used to adjust ranking of search results. The maximum number of elements is 10.
     #[serde(default, rename = "contextAttributes")]
@@ -462,7 +463,7 @@ pub struct SearchRequest {
 }
 
 /// The search API response. NEXT ID: 19
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchResponse {
     /// Debugging information about the response.
     #[serde(default, rename = "debugInfo")]
@@ -500,7 +501,7 @@ pub struct SearchResponse {
 }
 
 /// Start upload file request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartUploadItemRequest {
     /// The name of connector making this call. Format: datasources/{source_id}/connectors/{ID}
     #[serde(default, rename = "connectorName")]
@@ -511,7 +512,7 @@ pub struct StartUploadItemRequest {
 }
 
 /// Request of suggest API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuggestRequest {
     /// The sources to use for suggestions. If not specified, the data sources are taken from the current search application. NOTE: Suggestions are only supported for the following sources: * Third-party data sources * PredefinedSource.PERSON * PredefinedSource.GOOGLE_DRIVE
     #[serde(default, rename = "dataSourceRestrictions")]
@@ -525,7 +526,7 @@ pub struct SuggestRequest {
 }
 
 /// Response of the suggest API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuggestResponse {
     /// List of suggestions.
     #[serde(default, rename = "suggestResults")]
@@ -533,7 +534,7 @@ pub struct SuggestResponse {
 }
 
 /// UnreserveItemsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnreserveItemsRequest {
     /// The name of connector making this call. Format: datasources/{source_id}/connectors/{ID}
     #[serde(default, rename = "connectorName")]
@@ -547,7 +548,7 @@ pub struct UnreserveItemsRequest {
 }
 
 /// UpdateDataSourceRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateDataSourceRequest {
     /// Common debug options.
     #[serde(default, rename = "debugOptions")]
@@ -560,7 +561,7 @@ pub struct UpdateDataSourceRequest {
 }
 
 /// UpdateSchemaRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateSchemaRequest {
     /// Common debug options.
     #[serde(default, rename = "debugOptions")]
@@ -574,7 +575,7 @@ pub struct UpdateSchemaRequest {
 }
 
 /// Represents the settings for Cloud audit logging
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLoggingSettings {
     /// Indicates whether audit logging is on/off for admin activity read APIs i.e. Get/List DataSources, Get/List SearchApplications etc.
     #[serde(default, rename = "logAdminReadActions")]
@@ -591,7 +592,7 @@ pub struct AuditLoggingSettings {
 }
 
 /// VPCSettings resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VPCSettings {
     /// The resource name of the GCP Project to be used for VPC SC policy check. VPC security settings on this project will be honored for Cloud Search APIs after project_name has been updated through CustomerService. Format: projects/{project_id}
     #[serde(default)]
@@ -599,7 +600,7 @@ pub struct VPCSettings {
 }
 
 /// EnterpriseTopazSidekickAgendaGroupCardProto resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickAgendaGroupCardProto {
     #[serde(default, rename = "agendaItem")]
     pub agenda_item: ::core::option::Option<::std::vec::Vec<EnterpriseTopazSidekickAgendaItem>>,
@@ -610,7 +611,7 @@ pub struct EnterpriseTopazSidekickAgendaGroupCardProto {
 }
 
 /// Card metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickCardMetadata {
     /// Declares a preference for how this card should be packed in MSCR. All cards in a response must correspond to a single category. As a result, cards may be dropped from the response if this field is set. Any card that does not match the category of the card with the highest priority in the response will be dropped. // TODO: enum values: ["DEFAULT", "ANSWER", "KNOWLEDGE", "HOMEPAGE"]
     #[serde(default, rename = "cardCategory")]
@@ -636,7 +637,7 @@ pub struct EnterpriseTopazSidekickCardMetadata {
 }
 
 /// Response to find meeting time among a set of people.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickFindMeetingTimeCardProto {
     /// Slots when all attendees have availability.
     #[serde(default, rename = "commonAvailableTimeSlots")]
@@ -663,7 +664,7 @@ pub struct EnterpriseTopazSidekickFindMeetingTimeCardProto {
 }
 
 /// EnterpriseTopazSidekickGenericAnswerCard resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickGenericAnswerCard {
     /// The answer.
     #[serde(default)]
@@ -674,7 +675,7 @@ pub struct EnterpriseTopazSidekickGenericAnswerCard {
 }
 
 /// Get and keep ahead card
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickGetAndKeepAheadCardProto {
     #[serde(default, rename = "declinedEvents")]
     pub declined_events:
@@ -686,7 +687,7 @@ pub struct EnterpriseTopazSidekickGetAndKeepAheadCardProto {
 }
 
 /// Information about the meeting notes created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickMeetingNotesCardProto {
     /// The event to request meeting notes creation.
     #[serde(default)]
@@ -703,7 +704,7 @@ pub struct EnterpriseTopazSidekickMeetingNotesCardProto {
 }
 
 /// Meeting notes card request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickMeetingNotesCardRequest {
     /// Who are the meeting notes created for.
     #[serde(default, rename = "canCreateFor")]
@@ -717,7 +718,7 @@ pub struct EnterpriseTopazSidekickMeetingNotesCardRequest {
 }
 
 /// EnterpriseTopazSidekickPeopleDisambiguationCard resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickPeopleDisambiguationCard {
     /// Candidate persons for the query.
     #[serde(default)]
@@ -725,14 +726,14 @@ pub struct EnterpriseTopazSidekickPeopleDisambiguationCard {
 }
 
 /// PeoplePromotionCard resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PeoplePromotionCard {
     #[serde(default)]
     pub people: ::std::vec::Vec<::std::boxed::Box<PersonCore>>,
 }
 
 /// An answer card for a single person.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickPeopleAnswerPersonAnswerCard {
     /// List of answers.
     #[serde(default)]
@@ -759,7 +760,7 @@ pub struct EnterpriseTopazSidekickPeopleAnswerPersonAnswerCard {
 }
 
 /// EnterpriseTopazSidekickPersonProfileCard resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickPersonProfileCard {
     #[serde(default, rename = "relatedPeople")]
     pub related_people: ::core::option::Option<
@@ -771,7 +772,7 @@ pub struct EnterpriseTopazSidekickPersonProfileCard {
 }
 
 /// Personalized docs card proto.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickPersonalizedDocsCardProto {
     /// Document group.
     #[serde(default, rename = "documentGroup")]
@@ -780,7 +781,7 @@ pub struct EnterpriseTopazSidekickPersonalizedDocsCardProto {
 }
 
 /// An answer card for a list of people that are related to the subject of the query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickPeopleAnswerRelatedPeopleAnswerCard {
     /// Disambiguation information.
     #[serde(default, rename = "disambiguationInfo")]
@@ -807,7 +808,7 @@ pub struct EnterpriseTopazSidekickPeopleAnswerRelatedPeopleAnswerCard {
 }
 
 /// Share meeting docs card proto.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickShareMeetingDocsCardProto {
     /// Documents to share for the given meeting.
     #[serde(default)]
@@ -818,7 +819,7 @@ pub struct EnterpriseTopazSidekickShareMeetingDocsCardProto {
 }
 
 /// Contains a list of suggested queries. Allows the user to determine what natural language queries they can ask Cloud Search (e.g. "what can I search for?").
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickAnswerSuggestedQueryAnswerCard {
     /// A list of queries to suggest.
     #[serde(default, rename = "suggestedQueryCategory")]
@@ -828,7 +829,7 @@ pub struct EnterpriseTopazSidekickAnswerSuggestedQueryAnswerCard {
 }
 
 /// ThirdPartyGenericCard resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThirdPartyGenericCard {
     /// Unique identifier for the card.
     #[serde(default, rename = "cardId")]
@@ -851,14 +852,14 @@ pub struct ThirdPartyGenericCard {
 }
 
 /// EnterpriseTopazSidekickRecentDocumentsCardProto resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickRecentDocumentsCardProto {
     #[serde(default)]
     pub document: ::core::option::Option<::std::vec::Vec<EnterpriseTopazSidekickCommonDocument>>,
 }
 
 /// Aggregation of items by status code as of the specified date.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerIndexStats {
     /// The date for which statistics were calculated.
     #[serde(default)]
@@ -869,7 +870,7 @@ pub struct CustomerIndexStats {
 }
 
 /// CustomerQueryStats resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerQueryStats {
     /// The date for which query stats were calculated. Stats calculated on the next day close to midnight are returned.
     #[serde(default)]
@@ -879,7 +880,7 @@ pub struct CustomerQueryStats {
 }
 
 /// Search application stats for a customer for the given date.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerSearchApplicationStats {
     /// The count of search applications for the date.
     #[serde(default)]
@@ -890,7 +891,7 @@ pub struct CustomerSearchApplicationStats {
 }
 
 /// CustomerSessionStats resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerSessionStats {
     /// The date for which session stats were calculated. Stats are calculated on the following day, close to midnight PST, and then returned.
     #[serde(default)]
@@ -901,7 +902,7 @@ pub struct CustomerSessionStats {
 }
 
 /// CustomerUserStats resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerUserStats {
     /// The date for which session stats were calculated. Stats calculated on the next day close to midnight are returned.
     #[serde(default)]
@@ -918,7 +919,7 @@ pub struct CustomerUserStats {
 }
 
 /// Aggregation of items by status code as of the specified date.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataSourceIndexStats {
     /// The date for which index stats were calculated. If the date of request is not the current date then stats calculated on the next day are returned. Stats are calculated close to mid night in this case. If date of request is current date, then real time stats are returned.
     #[serde(default)]
@@ -929,7 +930,7 @@ pub struct DataSourceIndexStats {
 }
 
 /// Search application level query stats per date
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchApplicationQueryStats {
     /// The date for which query stats were calculated. Stats calculated on the next day close to midnight are returned.
     #[serde(default)]
@@ -939,7 +940,7 @@ pub struct SearchApplicationQueryStats {
 }
 
 /// SearchApplicationSessionStats resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchApplicationSessionStats {
     /// The date for which session stats were calculated. Stats are calculated on the following day, close to midnight PST, and then returned.
     #[serde(default)]
@@ -950,7 +951,7 @@ pub struct SearchApplicationSessionStats {
 }
 
 /// SearchApplicationUserStats resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchApplicationUserStats {
     /// The date for which session stats were calculated. Stats calculated on the next day close to midnight are returned.
     #[serde(default)]
@@ -967,7 +968,7 @@ pub struct SearchApplicationUserStats {
 }
 
 /// IndexItemOptions resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IndexItemOptions {
     /// Specifies if the index request should allow Google Workspace principals that do not exist or are deleted.
     #[serde(default, rename = "allowUnknownGsuitePrincipals")]
@@ -975,7 +976,7 @@ pub struct IndexItemOptions {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -995,7 +996,7 @@ pub struct Operation {
 }
 
 /// List of sources that the user can search using the query API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuerySource {
     /// Display name of the data source.
     #[serde(default, rename = "displayName")]
@@ -1012,7 +1013,7 @@ pub struct QuerySource {
 }
 
 /// SearchApplication
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchApplication {
     /// Retrictions applied to the configurations. The maximum number of elements is 10.
     #[serde(default, rename = "dataSourceRestrictions")]
@@ -1050,7 +1051,7 @@ pub struct SearchApplication {
 }
 
 /// UnmappedIdentity resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnmappedIdentity {
     /// The resource name for an external user.
     #[serde(default, rename = "externalIdentity")]
@@ -1061,7 +1062,7 @@ pub struct UnmappedIdentity {
 }
 
 /// Represents an item to be pushed to the indexing queue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PushItem {
     /// Content hash of the item according to the repository. If specified, this is used to determine how to modify this item''s status. Setting this field and the type field results in argument error. The maximum length is 2048 characters.
     #[serde(default, rename = "contentHash")]
@@ -1087,7 +1088,7 @@ pub struct PushItem {
 }
 
 /// User''s single or bulk query activity. This can be a logging query or deletion query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserActivity {
     /// Contains data which needs to be logged/removed.
     #[serde(default, rename = "queryActivity")]
@@ -1095,7 +1096,7 @@ pub struct UserActivity {
 }
 
 /// Drive follow-up search restricts (e.g. "followup:suggestions").
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DriveFollowUpRestrict {
     /// TODO: enum values: ["UNSPECIFIED", "FOLLOWUP_SUGGESTIONS", "FOLLOWUP_ACTION_ITEMS"]
     #[serde(default, rename = "type")]
@@ -1103,7 +1104,7 @@ pub struct DriveFollowUpRestrict {
 }
 
 /// Drive location search restricts (e.g. "is:starred").
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DriveLocationRestrict {
     /// TODO: enum values: ["UNSPECIFIED", "TRASHED", "STARRED"]
     #[serde(default, rename = "type")]
@@ -1111,7 +1112,7 @@ pub struct DriveLocationRestrict {
 }
 
 /// Drive mime-type search restricts (e.g. "type:pdf").
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DriveMimeTypeRestrict {
     /// TODO: enum values: ["UNSPECIFIED", "PDF", "DOCUMENT", "PRESENTATION", "SPREADSHEET", "FORM", "DRAWING", "SCRIPT", "MAP", "IMAGE", "AUDIO", "VIDEO", "FOLDER", "ARCHIVE", "SITE"]
     #[serde(default, rename = "type")]
@@ -1119,7 +1120,7 @@ pub struct DriveMimeTypeRestrict {
 }
 
 /// The time span search restrict (e.g. "after:2017-09-11 before:2017-09-12").
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DriveTimeSpanRestrict {
     /// TODO: enum values: ["UNSPECIFIED", "TODAY", "YESTERDAY", "LAST_7_DAYS", "LAST_30_DAYS", "LAST_90_DAYS"]
     #[serde(default, rename = "type")]
@@ -1127,7 +1128,7 @@ pub struct DriveTimeSpanRestrict {
 }
 
 /// Represents a single object that is an item in the search index, such as a file, folder, or a database record.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Item {
     /// Access control list for this item.
     #[serde(default)]
@@ -1162,7 +1163,7 @@ pub struct Item {
 }
 
 /// Options to interpret user query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryInterpretationOptions {
     /// Flag to disable natural language (NL) interpretation of queries. Default is false, Set to true to disable natural language interpretation. NL interpretation only applies to predefined datasources.
     #[serde(default, rename = "disableNlInterpretation")]
@@ -1176,7 +1177,7 @@ pub struct QueryInterpretationOptions {
 }
 
 /// Debugging information about the response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResponseDebugInfo {
     /// General debug info formatted for display.
     #[serde(default, rename = "formattedDebugInfo")]
@@ -1184,14 +1185,14 @@ pub struct ResponseDebugInfo {
 }
 
 /// Error information about the response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorInfo {
     #[serde(default, rename = "errorMessages")]
     pub error_messages: ::core::option::Option<::std::vec::Vec<ErrorMessage>>,
 }
 
 /// Source specific facet response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FacetResult {
     /// FacetBuckets for values in response containing at least a single result with the corresponding filter.
     #[serde(default)]
@@ -1208,7 +1209,7 @@ pub struct FacetResult {
 }
 
 /// QueryInterpretation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryInterpretation {
     /// TODO: enum values: ["NONE", "BLEND", "REPLACE"]
     #[serde(default, rename = "interpretationType")]
@@ -1228,7 +1229,7 @@ pub struct QueryInterpretation {
 }
 
 /// Result count information
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResultCounts {
     /// Result count information for each source with results.
     #[serde(default, rename = "sourceResultCounts")]
@@ -1236,7 +1237,7 @@ pub struct ResultCounts {
 }
 
 /// Results containing indexed information for a document. Next ID: 16
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchResult {
     /// If source is clustered, provide list of clustered results. There will only be one level of clustered results. If current source is not enabled for clustering, this field will be empty.
     #[serde(default, rename = "clusteredResults")]
@@ -1259,7 +1260,7 @@ pub struct SearchResult {
 }
 
 /// SpellResult resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpellResult {
     /// The suggested spelling of the query.
     #[serde(default, rename = "suggestedQuery")]
@@ -1273,7 +1274,7 @@ pub struct SpellResult {
 }
 
 /// Structured results that are returned as part of search request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StructuredResult {
     /// Representation of a person
     #[serde(default)]
@@ -1281,7 +1282,7 @@ pub struct StructuredResult {
 }
 
 /// Shared request options for all RPC methods.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RequestOptions {
     /// Debug options of the request
     #[serde(default, rename = "debugOptions")]
@@ -1298,7 +1299,7 @@ pub struct RequestOptions {
 }
 
 /// One suggestion result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuggestResult {
     /// This is present when the suggestion indicates a person. It contains more information about the person - like their email ID, name etc.
     #[serde(default, rename = "peopleSuggestion")]
@@ -1315,7 +1316,7 @@ pub struct SuggestResult {
 }
 
 /// Datasource is a logical namespace for items to be indexed. All items must belong to a datasource. This is the prerequisite before items can be indexed into Cloud Search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataSource {
     /// If true, sets the datasource to read-only mode. In read-only mode, the Indexing API rejects any requests to index or delete items in this source. Enabling read-only mode does not stop the processing of previously accepted data.
     #[serde(default, rename = "disableModifications")]
@@ -1347,7 +1348,7 @@ pub struct DataSource {
 }
 
 /// The schema definition for a data source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Schema {
     /// The list of top-level objects for the data source. The maximum number of elements is 10.
     #[serde(default, rename = "objectDefinitions")]
@@ -1358,7 +1359,7 @@ pub struct Schema {
 }
 
 /// EnterpriseTopazSidekickAgendaItem resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickAgendaItem {
     #[serde(default, rename = "conflictedGroup")]
     pub conflicted_group: ::core::option::Option<EnterpriseTopazSidekickConflictingEventsCardProto>,
@@ -1369,7 +1370,7 @@ pub struct EnterpriseTopazSidekickAgendaItem {
 }
 
 /// The context that resulted in the generation of the card.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickAgendaGroupCardProtoContext {
     /// User friendly free text that describes the context of the card (e.g. "Next meeting with Bob"). This is largely only applicable when the card is generated from a query.
     #[serde(default)]
@@ -1383,7 +1384,7 @@ pub struct EnterpriseTopazSidekickAgendaGroupCardProtoContext {
 }
 
 /// Metadata about the NLP interpretation of the query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickNlpMetadata {
     /// Confidence of the interpretation that generated this card.
     #[serde(default)]
@@ -1391,7 +1392,7 @@ pub struct EnterpriseTopazSidekickNlpMetadata {
 }
 
 /// Ranking params.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickRankingParams {
     /// The end-time that this object will expect to occur. If the type is marked as FIXED, then this end-time will persist after bidding. If the type is marked as FLEXIBLE, this field is NOT expected to be filled and will be filled in after it has won a bid. Expected to be set when type is set to FIXED.
     #[serde(default, rename = "endTimeMs")]
@@ -1414,7 +1415,7 @@ pub struct EnterpriseTopazSidekickRankingParams {
 }
 
 /// Details about scheduled meetings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickScheduledMeeting {
     /// The meeting location.
     #[serde(default, rename = "meetingLocation")]
@@ -1428,14 +1429,14 @@ pub struct EnterpriseTopazSidekickScheduledMeeting {
 }
 
 /// A list of events where all guests declined.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickGetAndKeepAheadCardProtoDeclinedEvents {
     #[serde(default)]
     pub events: ::core::option::Option<::std::vec::Vec<EnterpriseTopazSidekickAgendaEntry>>,
 }
 
 /// EnterpriseTopazSidekickDocumentPerCategoryList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickDocumentPerCategoryList {
     #[serde(default)]
     pub documents: ::core::option::Option<
@@ -1456,7 +1457,7 @@ pub struct EnterpriseTopazSidekickDocumentPerCategoryList {
 }
 
 /// Errors in the creation of meeting notes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickMeetingNotesCardError {
     /// The description of the reason why create-meeting-notes failed.
     #[serde(default)]
@@ -1470,7 +1471,7 @@ pub struct EnterpriseTopazSidekickMeetingNotesCardError {
 }
 
 /// Information for rendering a person. NEXT ID: 37
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PersonCore {
     /// Instructions for how to address this person (e.g. custom pronouns). For google.com this is a set of pronouns from a defined list of options.
     #[serde(default, rename = "addressMeAs")]
@@ -1580,7 +1581,7 @@ pub struct PersonCore {
 }
 
 /// A list of answers represented as free text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickAnswerAnswerList {
     /// Answers that have a corresponding label.
     #[serde(default, rename = "labeledAnswer")]
@@ -1593,7 +1594,7 @@ pub struct EnterpriseTopazSidekickAnswerAnswerList {
 }
 
 /// EnterpriseTopazSidekickPersonProfileCardRelatedPeople resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickPersonProfileCardRelatedPeople {
     /// Related people.
     #[serde(default, rename = "relatedPerson")]
@@ -1604,7 +1605,7 @@ pub struct EnterpriseTopazSidekickPersonProfileCardRelatedPeople {
 }
 
 /// Represents a mapping between a document type and its corresponding documents. Use for Work in Progress card in v1 homepage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickDocumentGroup {
     /// Document group type // TODO: enum values: ["UNKNOWN_TYPE", "ALL"]
     #[serde(default, rename = "groupType")]
@@ -1616,7 +1617,7 @@ pub struct EnterpriseTopazSidekickDocumentGroup {
 }
 
 /// Metadata for disambiguation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickPeopleAnswerDisambiguationInfo {
     /// A list of people that also matched the query. This list is not complete.
     #[serde(default)]
@@ -1629,7 +1630,7 @@ pub struct EnterpriseTopazSidekickPeopleAnswerDisambiguationInfo {
 }
 
 /// Recommended header to display for the card.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickPeopleAnswerPeopleAnswerCardHeader {
     /// The suggested title to display. This defaults to the user''s query.
     #[serde(default)]
@@ -1637,7 +1638,7 @@ pub struct EnterpriseTopazSidekickPeopleAnswerPeopleAnswerCardHeader {
 }
 
 /// Contains a list of suggested queries for a single category.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickAnswerSuggestedQueryCategory {
     /// The query list category. // TODO: enum values: ["UNKNOWN", "CALENDAR", "DOCUMENT", "PEOPLE"]
     #[serde(default)]
@@ -1651,7 +1652,7 @@ pub struct EnterpriseTopazSidekickAnswerSuggestedQueryCategory {
 }
 
 /// Content resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Content {
     /// [Optional] Actions for this card.
     #[serde(default)]
@@ -1668,7 +1669,7 @@ pub struct Content {
 }
 
 /// Context resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Context {
     /// [Optional] App where the card should be shown. If missing, the card will be shown in TOPAZ.
     #[serde(default)]
@@ -1706,7 +1707,7 @@ pub struct Context {
 }
 
 /// ItemCountByStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ItemCountByStatus {
     /// Number of items matching the status code.
     #[serde(default)]
@@ -1720,7 +1721,7 @@ pub struct ItemCountByStatus {
 }
 
 /// QueryCountByStatus resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryCountByStatus {
     #[serde(default)]
     pub count: ::core::option::Option<String>,
@@ -1730,7 +1731,7 @@ pub struct QueryCountByStatus {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1744,7 +1745,7 @@ pub struct Status {
 }
 
 /// The definition of a operator that can be used in a Search/Suggest request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryOperator {
     /// Display name of the operator
     #[serde(default, rename = "displayName")]
@@ -1785,7 +1786,7 @@ pub struct QueryOperator {
 }
 
 /// Restriction on Datasource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataSourceRestriction {
     /// Filter options restricting the results. If multiple filters are present, they are grouped by object type before joining. Filters with the same object type are joined conjunctively, then the resulting expressions are joined disjunctively. The maximum number of elements is 20. NOTE: Suggest API supports only few filters at the moment: "objecttype", "type" and "mimetype". For now, schema specific filters cannot be used to filter suggestions.
     #[serde(default, rename = "filterOptions")]
@@ -1796,7 +1797,7 @@ pub struct DataSourceRestriction {
 }
 
 /// Specifies operators to return facet results for. There will be one FacetResult for every source_name/object_type/operator_name combination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FacetOptions {
     /// If set, describes integer faceting options for the given integer property. The corresponding integer property in the schema should be marked isFacetable. The number of buckets returned would be minimum of this and num_facet_buckets.
     #[serde(default, rename = "integerFacetingOptions")]
@@ -1816,7 +1817,7 @@ pub struct FacetOptions {
 }
 
 /// SortOptions resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SortOptions {
     /// The name of the operator corresponding to the field to sort on. The corresponding property must be marked as sortable.
     #[serde(default, rename = "operatorName")]
@@ -1827,7 +1828,7 @@ pub struct SortOptions {
 }
 
 /// Default options to interpret user query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryInterpretationConfig {
     /// Set this flag to disable supplemental results retrieval, setting a flag here will not retrieve supplemental results for queries associated with a given search application. If this flag is set to True, it will take precedence over the option set at Query level. For the default value of False, query level flag will set the correct interpretation for supplemental results.
     #[serde(default, rename = "forceDisableSupplementalResults")]
@@ -1838,7 +1839,7 @@ pub struct QueryInterpretationConfig {
 }
 
 /// Scoring configurations for a source while processing a Search or Suggest request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScoringConfig {
     /// Whether to use freshness as a ranking signal. By default, freshness is used as a ranking signal. Note that this setting is not available in the Admin UI.
     #[serde(default, rename = "disableFreshness")]
@@ -1849,7 +1850,7 @@ pub struct ScoringConfig {
 }
 
 /// Configurations for a source while processing a Search or Suggest request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceConfig {
     /// The crowding configuration for the source.
     #[serde(default, rename = "crowdingConfig")]
@@ -1863,7 +1864,7 @@ pub struct SourceConfig {
 }
 
 /// Details about a user''s query activity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryActivity {
     /// User input query to be logged/removed.
     #[serde(default)]
@@ -1871,7 +1872,7 @@ pub struct QueryActivity {
 }
 
 /// Access control list information for the item. For more information see [Map ACLs](https://developers.google.com/workspace/cloud-search/docs/guides/acls).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ItemAcl {
     /// Sets the type of access rules to apply when an item inherits its ACL from a parent. This should always be set in tandem with the inheritAclFrom field. Also, when the inheritAclFrom field is set, this field should be set to a valid AclInheritanceType. // TODO: enum values: ["NOT_APPLICABLE", "CHILD_OVERRIDE", "PARENT_OVERRIDE", "BOTH_PERMIT"]
     #[serde(default, rename = "aclInheritanceType")]
@@ -1891,7 +1892,7 @@ pub struct ItemAcl {
 }
 
 /// Content of an item to be indexed and surfaced by Cloud Search. Only UTF-8 encoded strings are allowed as inlineContent. If the content is uploaded and not binary, it must be UTF-8 encoded.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ItemContent {
     /// Upload reference ID of a previously uploaded content via write method.
     #[serde(default, rename = "contentDataRef")]
@@ -1908,7 +1909,7 @@ pub struct ItemContent {
 }
 
 /// Available metadata fields for the item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ItemMetadata {
     /// The name of the container for this item. Deletion of the container item leads to automatic deletion of this item. Note: ACLs are not inherited from a container item. To provide ACL inheritance for an item, use the inheritAclFrom field. The maximum length is 1536 characters.
     #[serde(default, rename = "containerName")]
@@ -1952,7 +1953,7 @@ pub struct ItemMetadata {
 }
 
 /// This contains item''s status and any errors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ItemStatus {
     /// Status code. // TODO: enum values: ["CODE_UNSPECIFIED", "ERROR", "MODIFIED", "NEW_ITEM", "ACCEPTED"]
     #[serde(default)]
@@ -1966,7 +1967,7 @@ pub struct ItemStatus {
 }
 
 /// Available structured data fields for the item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ItemStructuredData {
     /// Hashing value provided by the API caller. This can be used with the items.push method to calculate modified state. The maximum length is 2048 characters.
     #[serde(default)]
@@ -1977,7 +1978,7 @@ pub struct ItemStructuredData {
 }
 
 /// Error message per source response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorMessage {
     #[serde(default, rename = "errorMessage")]
     pub error_message: ::core::option::Option<String>,
@@ -1986,7 +1987,7 @@ pub struct ErrorMessage {
 }
 
 /// A bucket in a facet is the basic unit of operation. A bucket can comprise either a single value OR a contiguous range of values, depending on the type of the field bucketed. FacetBucket is currently used only for returning the response object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FacetBucket {
     /// Number of results that match the bucket value. Counts are only returned for searches when count accuracy is ensured. Cloud Search does not guarantee facet counts for any query and facet counts might be present only intermittently, even for identical queries. Do not build dependencies on facet count existence; instead use facet ount percentages which are always returned.
     #[serde(default)]
@@ -2002,7 +2003,7 @@ pub struct FacetBucket {
 }
 
 /// Per source result count information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceResultCount {
     /// Whether there are more search results for this source.
     #[serde(default, rename = "hasMoreResults")]
@@ -2019,7 +2020,7 @@ pub struct SourceResultCount {
 }
 
 /// Debugging information about the result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResultDebugInfo {
     /// General debug info formatted for display.
     #[serde(default, rename = "formattedDebugInfo")]
@@ -2027,7 +2028,7 @@ pub struct ResultDebugInfo {
 }
 
 /// Metadata of a matched search result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Metadata {
     /// The creation time for this document or object in the search result.
     #[serde(default, rename = "createTime")]
@@ -2059,7 +2060,7 @@ pub struct Metadata {
 }
 
 /// Snippet of the search result, which summarizes the content of the resulting page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Snippet {
     /// The matched ranges in the snippet.
     #[serde(default, rename = "matchRanges")]
@@ -2070,7 +2071,7 @@ pub struct Snippet {
 }
 
 /// Shared request debug options for all cloudsearch RPC methods.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DebugOptions {
     /// If you are asked by Google to help with debugging, set this field. Otherwise, ignore this field.
     #[serde(default, rename = "enableDebugging")]
@@ -2078,7 +2079,7 @@ pub struct DebugOptions {
 }
 
 /// This field contains information about the person being suggested.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PeopleSuggestion {
     /// Suggested person. All fields of the person object might not be populated.
     #[serde(default)]
@@ -2086,7 +2087,7 @@ pub struct PeopleSuggestion {
 }
 
 /// This field does not contain anything as of now and is just used as an indicator that the suggest result was a phrase completion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuerySuggestion {
     /// Last query time of the suggestion for query history suggestions.
     #[serde(default, rename = "lastQueryTime")]
@@ -2097,7 +2098,7 @@ pub struct QuerySuggestion {
 }
 
 /// The definition for an object within a data source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObjectDefinition {
     /// The name for the object, which then defines its type. Item indexing requests should set the objectType field equal to this value. For example, if *name* is *Document*, then indexing requests for items of type Document should set objectType equal to *Document*. Each object definition must be uniquely named within a schema. The name must start with a letter and can only contain letters (A-Z, a-z) or numbers (0-9). The maximum length is 256 characters.
     #[serde(default)]
@@ -2111,7 +2112,7 @@ pub struct ObjectDefinition {
 }
 
 /// Conflicting meetings card proto.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickConflictingEventsCardProto {
     /// All the events that conflict with main_event.
     #[serde(default, rename = "conflictingEvent")]
@@ -2123,7 +2124,7 @@ pub struct EnterpriseTopazSidekickConflictingEventsCardProto {
 }
 
 /// EnterpriseTopazSidekickGap resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickGap {
     /// Localized time string in the format: 1 hour 15 minutes
     #[serde(default, rename = "displayRemainingTime")]
@@ -2143,7 +2144,7 @@ pub struct EnterpriseTopazSidekickGap {
 }
 
 /// Slot of time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickTimeSlot {
     /// Day end time at the user''s timezone.
     #[serde(default, rename = "endTimeDay")]
@@ -2166,7 +2167,7 @@ pub struct EnterpriseTopazSidekickTimeSlot {
 }
 
 /// EnterpriseTopazSidekickDocumentPerCategoryListDocumentPerCategoryListEntry resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickDocumentPerCategoryListDocumentPerCategoryListEntry {
     /// TODO: enum values: ["UNKNOWN_DOCUMENT", "ACTIONABLE", "VIEWED", "REPLIED", "MENTION_VIEWED", "MENTION_REPLIED", "MENTION_NOT_VIEWED", "SHARED_AND_VIEWED", "SHARED_NOT_VIEWED", "EDITED"]
     #[serde(default)]
@@ -2179,7 +2180,7 @@ pub struct EnterpriseTopazSidekickDocumentPerCategoryListDocumentPerCategoryList
 }
 
 /// Geo information used for rendering a map that shows the user''s work location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MapInfo {
     /// Latitude in degrees
     #[serde(default)]
@@ -2199,7 +2200,7 @@ pub struct MapInfo {
 }
 
 /// EnterpriseTopazFrontendTeamsLink resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazFrontendTeamsLink {
     /// The identifying link type
     #[serde(default, rename = "type")]
@@ -2209,7 +2210,7 @@ pub struct EnterpriseTopazFrontendTeamsLink {
 }
 
 /// EnterpriseTopazFrontendTeamsPersonCorePhoneNumber resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazFrontendTeamsPersonCorePhoneNumber {
     /// Phone number in no particular format (as comes from the Focus profile).
     #[serde(default, rename = "phoneNumber")]
@@ -2223,7 +2224,7 @@ pub struct EnterpriseTopazFrontendTeamsPersonCorePhoneNumber {
 }
 
 /// An answer with a corresponding label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickAnswerAnswerListLabeledAnswer {
     /// The free text answer.
     #[serde(default)]
@@ -2234,7 +2235,7 @@ pub struct EnterpriseTopazSidekickAnswerAnswerListLabeledAnswer {
 }
 
 /// A person that also matches the query, but was not selected due to a lower affinity with the requesting user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickPeopleAnswerDisambiguationInfoDisambiguationPerson {
     /// The profile of this person.
     #[serde(default)]
@@ -2245,7 +2246,7 @@ pub struct EnterpriseTopazSidekickPeopleAnswerDisambiguationInfoDisambiguationPe
 }
 
 /// Action resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Action {
     /// [Required] Title of the action.
     #[serde(default)]
@@ -2256,7 +2257,7 @@ pub struct Action {
 }
 
 /// IMPORTANT: It is unsafe to accept this message from an untrusted source, since it''s trivial for an attacker to forge serialized messages that don''t fulfill the type''s safety contract -- for example, it could contain attacker controlled script. A system which receives a SafeHtmlProto implicitly trusts the producer of the SafeHtmlProto. So, it''s generally safe to return this message in RPC responses, but generally unsafe to accept it in RPC requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SafeHtmlProto {
     /// IMPORTANT: Never set or read this field, even from tests, it is private. See documentation at the top of .proto file for programming language packages with which to create or read this message.
     #[serde(default, rename = "privateDoNotAccessOrElseSafeHtmlWrappedValue")]
@@ -2264,7 +2265,7 @@ pub struct SafeHtmlProto {
 }
 
 /// BackgroundColoredText resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackgroundColoredText {
     /// [Optional] Color of the background. The text color can change depending on the selected background color, and the client does not have control over this. If missing, the background will be WHITE. // TODO: enum values: ["UNKNOWN_COLOR", "WHITE", "YELLOW", "ORANGE", "GREEN", "BLUE", "GREY"]
     #[serde(default, rename = "backgroundColor")]
@@ -2275,7 +2276,7 @@ pub struct BackgroundColoredText {
 }
 
 /// Filter options to be applied on query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FilterOptions {
     /// Generic filter to restrict the search, such as lang:en, site:xyz.
     #[serde(default)]
@@ -2286,7 +2287,7 @@ pub struct FilterOptions {
 }
 
 /// Set search results crowding limits. Crowding is a situation in which multiple results from the same source or host "crowd out" other results, diminishing the quality of search for users. To foster better search quality and source diversity in search results, you can set a condition to reduce repetitive results by source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceCrowdingConfig {
     /// Maximum number of results allowed from a datasource in a result page as long as results from other sources are not exhausted. Value specified must not be negative. A default value is used if this value is equal to 0. To disable crowding, set the value greater than 100.
     #[serde(default, rename = "numResults")]
@@ -2297,7 +2298,7 @@ pub struct SourceCrowdingConfig {
 }
 
 /// Set the scoring configuration. This allows modifying the ranking of results for a source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceScoringConfig {
     /// Importance of the source. // TODO: enum values: ["DEFAULT", "LOW", "HIGH"]
     #[serde(default, rename = "sourceImportance")]
@@ -2305,7 +2306,7 @@ pub struct SourceScoringConfig {
 }
 
 /// Represents an upload session reference. This reference is created via upload method. This reference is valid for 30 days after its creation. Updating of item content may refer to this uploaded content via contentDataRef.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadItemRef {
     /// The name of the content reference. The maximum length is 2048 characters.
     #[serde(default)]
@@ -2313,7 +2314,7 @@ pub struct UploadItemRef {
 }
 
 /// A named attribute associated with an item which can be used for influencing the ranking of the item based on the context in the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContextAttribute {
     /// The name of the attribute. It should not be empty. The maximum length is 32 characters. The name must start with a letter and can only contain letters (A-Z, a-z) or numbers (0-9). The name will be normalized (lower-cased) before being matched.
     #[serde(default)]
@@ -2324,7 +2325,7 @@ pub struct ContextAttribute {
 }
 
 /// Represents an interaction between a user and an item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Interaction {
     /// The time when the user acted on the item. If multiple actions of the same type exist for a single user, only the most recent action is recorded.
     #[serde(default, rename = "interactionTime")]
@@ -2338,7 +2339,7 @@ pub struct Interaction {
 }
 
 /// Additional search quality metadata of the item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchQualityMetadata {
     /// An indication of the quality of the item, used to influence search quality. Value should be between 0.0 (lowest quality) and 1.0 (highest quality). The default value is 0.0.
     #[serde(default)]
@@ -2346,7 +2347,7 @@ pub struct SearchQualityMetadata {
 }
 
 /// ProcessingError resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProcessingError {
     /// Error code indicating the nature of the error. // TODO: enum values: ["PROCESSING_ERROR_CODE_UNSPECIFIED", "MALFORMED_REQUEST", "UNSUPPORTED_CONTENT_FORMAT", "INDIRECT_BROKEN_ACL", "ACL_CYCLE"]
     #[serde(default)]
@@ -2360,7 +2361,7 @@ pub struct ProcessingError {
 }
 
 /// Errors when the connector is communicating to the source repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RepositoryError {
     /// Message that describes the error. The maximum allowable length of the message is 8192 characters.
     #[serde(default, rename = "errorMessage")]
@@ -2374,7 +2375,7 @@ pub struct RepositoryError {
 }
 
 /// ResultDisplayMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResultDisplayMetadata {
     /// The metalines content to be displayed with the result.
     #[serde(default)]
@@ -2385,7 +2386,7 @@ pub struct ResultDisplayMetadata {
 }
 
 /// Defines sources for the suggest/search APIs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Source {
     /// Source name for content indexed by the Indexing API.
     #[serde(default)]
@@ -2396,7 +2397,7 @@ pub struct Source {
 }
 
 /// Matched range of a snippet [start, end).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MatchRange {
     /// End of the match in the snippet.
     #[serde(default)]
@@ -2407,7 +2408,7 @@ pub struct MatchRange {
 }
 
 /// Object to represent a person.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Person {
     /// The person''s email addresses
     #[serde(default, rename = "emailAddresses")]
@@ -2430,7 +2431,7 @@ pub struct Person {
 }
 
 /// The options for an object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObjectOptions {
     /// The options that determine how the object is displayed in the Cloud Search results page.
     #[serde(default, rename = "displayOptions")]
@@ -2444,7 +2445,7 @@ pub struct ObjectOptions {
 }
 
 /// An AgendaEntry, e.g., a Calendar Event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickAgendaEntry {
     /// URL of the agenda item.
     #[serde(default, rename = "agendaItemUrl")]
@@ -2533,7 +2534,7 @@ pub struct EnterpriseTopazSidekickAgendaEntry {
 }
 
 /// Information used to render a map tile image in the proper location on a map.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MapTile {
     /// URL to an image file containing an office layout of the user''s location for their organization, if one is available. For google.com, this image is from Corp Campus Maps.
     #[serde(default, rename = "imageUrl")]
@@ -2547,7 +2548,7 @@ pub struct MapTile {
 }
 
 /// Reference to a user, group, or domain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Principal {
     /// This principal is a group identified using an external identity. The name field must specify the group resource name with this format: identitysources/{source_id}/groups/{ID}
     #[serde(default, rename = "groupResourceName")]
@@ -2561,7 +2562,7 @@ pub struct Principal {
 }
 
 /// FieldViolation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FieldViolation {
     /// The description of the error.
     #[serde(default)]
@@ -2572,14 +2573,14 @@ pub struct FieldViolation {
 }
 
 /// The collection of fields that make up a displayed line
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResultDisplayLine {
     #[serde(default)]
     pub fields: ::core::option::Option<::std::vec::Vec<ResultDisplayField>>,
 }
 
 /// A person''s email address.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailAddress {
     /// If the value of type is custom, this property contains the custom type string.
     #[serde(default, rename = "customType")]
@@ -2599,7 +2600,7 @@ pub struct EmailAddress {
 }
 
 /// A person''s name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Name {
     /// The read-only display name formatted according to the locale specified by the viewer''s account or the Accept-Language HTTP header.
     #[serde(default, rename = "displayName")]
@@ -2607,7 +2608,7 @@ pub struct Name {
 }
 
 /// A person''s Phone Number
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PhoneNumber {
     /// The phone number of the person.
     #[serde(default, rename = "phoneNumber")]
@@ -2618,7 +2619,7 @@ pub struct PhoneNumber {
 }
 
 /// A person''s photo.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Photo {
     /// The URL of the photo.
     #[serde(default)]
@@ -2626,7 +2627,7 @@ pub struct Photo {
 }
 
 /// The display options for an object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObjectDisplayOptions {
     /// Defines the properties that are displayed in the metalines of the search results. The property values are displayed in the order given here. If a property holds multiple values, all of the values are displayed before the next properties. For this reason, it is a good practice to specify singular properties before repeated properties in this list. All of the properties must set is_returnable to true. The maximum number of metalines is 3.
     #[serde(default)]
@@ -2637,7 +2638,7 @@ pub struct ObjectDisplayOptions {
 }
 
 /// Indicates which freshness property to use when adjusting search ranking for an item. Fresher, more recent dates indicate higher quality. Use the freshness option property that best works with your data. For fileshare documents, last modified time is most relevant. For calendar event data, the time when the event occurs is a more relevant freshness indicator. In this way, calendar events that occur closer to the time of the search query are considered higher quality and ranked accordingly.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FreshnessOptions {
     /// The duration after which an object should be considered stale. The default value is 180 days (in seconds).
     #[serde(default, rename = "freshnessDuration")]
@@ -2648,7 +2649,7 @@ pub struct FreshnessOptions {
 }
 
 /// Person.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickPerson {
     /// The level of affinity this person has with the requesting user. // TODO: enum values: ["UNKNOWN", "LOW", "MEDIUM", "HIGH"]
     #[serde(default, rename = "affinityLevel")]
@@ -2677,7 +2678,7 @@ pub struct EnterpriseTopazSidekickPerson {
 }
 
 /// Representation of a document. NEXT_TAG: 15
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickCommonDocument {
     /// Access type, i.e., whether the user has access to the document or not. // TODO: enum values: ["UNKNOWN_ACCESS", "ALLOWED", "NOT_ALLOWED"]
     #[serde(default, rename = "accessType")]
@@ -2725,7 +2726,7 @@ pub struct EnterpriseTopazSidekickCommonDocument {
 }
 
 /// Message containing a string that is safe to use in URL contexts in DOM APIs and HTML documents, where the URL context does not refer to a resource that loads code.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SafeUrlProto {
     /// IMPORTANT: Never set or read this field, even from tests, it is private. See documentation at the top of .proto file for programming language packages with which to create or read this message.
     #[serde(default, rename = "privateDoNotAccessOrElseSafeUrlWrappedValue")]
@@ -2733,7 +2734,7 @@ pub struct SafeUrlProto {
 }
 
 /// GSuitePrincipal resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GSuitePrincipal {
     /// This principal represents all users of the Google Workspace domain of the customer.
     #[serde(default, rename = "gsuiteDomain")]
@@ -2747,7 +2748,7 @@ pub struct GSuitePrincipal {
 }
 
 /// Display Fields for Search Results
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResultDisplayField {
     /// The display label for the property.
     #[serde(default)]
@@ -2761,7 +2762,7 @@ pub struct ResultDisplayField {
 }
 
 /// A metaline is a list of properties that are displayed along with the search result to provide context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Metaline {
     /// The list of displayed properties for the metaline. The maximum number of properties is 5.
     #[serde(default)]
@@ -2769,7 +2770,7 @@ pub struct Metaline {
 }
 
 /// Container of debugging information in all object levels. Extend as needed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickCommonDebugInfo {
     /// Debug message.
     #[serde(default)]
@@ -2777,7 +2778,7 @@ pub struct EnterpriseTopazSidekickCommonDebugInfo {
 }
 
 /// Meta data for drive documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickCommonDocumentDriveDocumentMetadata {
     /// The drive document cosmo id. Client could use the id to build a URL to open a document. Please use Document.document_id.
     #[serde(default, rename = "documentId")]
@@ -2809,7 +2810,7 @@ pub struct EnterpriseTopazSidekickCommonDocumentDriveDocumentMetadata {
 }
 
 /// Justification of why we are reporting the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickCommonDocumentJustification {
     /// A locale aware message that explains why this document was selected.
     #[serde(default)]
@@ -2820,7 +2821,7 @@ pub struct EnterpriseTopazSidekickCommonDocumentJustification {
 }
 
 /// A reference to a top-level property within the object that should be displayed in search results. The values of the chosen properties is displayed in the search results along with the display label for that property if one is specified. If a display label is not specified, only the values is shown.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisplayedProperty {
     /// The name of the top-level property as defined in a property definition for the object. If the name is not a defined property in the schema, an error is given when attempting to update the schema.
     #[serde(default, rename = "propertyName")]
@@ -2828,7 +2829,7 @@ pub struct DisplayedProperty {
 }
 
 /// Common representation of a person.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickCommonPerson {
     /// The birthday.
     #[serde(default)]
@@ -2881,7 +2882,7 @@ pub struct EnterpriseTopazSidekickCommonPerson {
 }
 
 /// EnterpriseTopazSidekickCommonPersonBirthday resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseTopazSidekickCommonPersonBirthday {
     /// Unstructured birthday.
     #[serde(default)]
@@ -2889,7 +2890,7 @@ pub struct EnterpriseTopazSidekickCommonPersonBirthday {
 }
 
 /// Used to provide a search operator for boolean properties. This is optional. Search operators let users restrict the query to specific fields relevant to the type of item being searched.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BooleanOperatorOptions {
     /// Indicates the operator name required in the query in order to isolate the boolean property. For example, if operatorName is *closed* and the property''s name is *isClosed*, then queries like *closed:&lt;value&gt;* show results only where the value of the property named *isClosed* matches *&lt;value&gt;*. By contrast, a search that uses the same *&lt;value&gt;* without an operator returns all items where *&lt;value&gt;* matches the value of any String properties or text within the content field for the item. The operator name can only contain lowercase letters (a-z). The maximum length is 32 characters.
     #[serde(default, rename = "operatorName")]
@@ -2897,7 +2898,7 @@ pub struct BooleanOperatorOptions {
 }
 
 /// The options for boolean properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BooleanPropertyOptions {
     /// If set, describes how the boolean should be used as a search operator.
     #[serde(default, rename = "operatorOptions")]
@@ -2905,7 +2906,7 @@ pub struct BooleanPropertyOptions {
 }
 
 /// CompositeFilter resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompositeFilter {
     /// The logic operator of the sub filter. // TODO: enum values: ["AND", "OR", "NOT"]
     #[serde(default, rename = "logicOperator")]
@@ -2916,7 +2917,7 @@ pub struct CompositeFilter {
 }
 
 /// Represents a whole calendar date, for example a date of birth. The time of day and time zone are either specified elsewhere or are not significant. The date is relative to the [Proleptic Gregorian Calendar](https://en.wikipedia.org/wiki/Proleptic_Gregorian_calendar). The date must be a valid calendar date between the year 1 and 9999.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of month. Must be from 1 to 31 and valid for the year and month.
     #[serde(default)]
@@ -2930,7 +2931,7 @@ pub struct Date {
 }
 
 /// Optional. Provides a search operator for date properties. Search operators let users restrict the query to specific fields relevant to the type of item being searched.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DateOperatorOptions {
     /// Indicates the operator name required in the query in order to isolate the date property using the greater-than operator. For example, if greaterThanOperatorName is *closedafter* and the property''s name is *closeDate*, then queries like *closedafter:&lt;value&gt;* show results only where the value of the property named *closeDate* is later than *&lt;value&gt;*. The operator name can only contain lowercase letters (a-z). The maximum length is 32 characters.
     #[serde(default, rename = "greaterThanOperatorName")]
@@ -2944,7 +2945,7 @@ pub struct DateOperatorOptions {
 }
 
 /// The options for date properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatePropertyOptions {
     /// If set, describes how the date should be used as a search operator.
     #[serde(default, rename = "operatorOptions")]
@@ -2952,14 +2953,14 @@ pub struct DatePropertyOptions {
 }
 
 /// List of date values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DateValues {
     #[serde(default)]
     pub values: ::std::vec::Vec<::std::boxed::Box<Date>>,
 }
 
 /// Used to provide a search operator for double properties. This is optional. Search operators let users restrict the query to specific fields relevant to the type of item being searched.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DoubleOperatorOptions {
     /// Indicates the operator name required in the query in order to use the double property in sorting or as a facet. The operator name can only contain lowercase letters (a-z). The maximum length is 32 characters.
     #[serde(default, rename = "operatorName")]
@@ -2967,7 +2968,7 @@ pub struct DoubleOperatorOptions {
 }
 
 /// The options for double properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DoublePropertyOptions {
     /// If set, describes how the double should be used as a search operator.
     #[serde(default, rename = "operatorOptions")]
@@ -2975,14 +2976,14 @@ pub struct DoublePropertyOptions {
 }
 
 /// List of double values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DoubleValues {
     #[serde(default)]
     pub values: ::core::option::Option<::std::vec::Vec<f64>>,
 }
 
 /// Used to provide a search operator for enum properties. This is optional. Search operators let users restrict the query to specific fields relevant to the type of item being searched. For example, if you provide no operator for a *priority* enum property with possible values *p0* and *p1*, a query that contains the term *p0* returns items that have *p0* as the value of the *priority* property, as well as any items that contain the string *p0* in other fields. If you provide an operator name for the enum, such as *priority*, then search users can use that operator to refine results to only items that have *p0* as this property''s value, with the query *priority:p0*.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnumOperatorOptions {
     /// Indicates the operator name required in the query in order to isolate the enum property. For example, if operatorName is *priority* and the property''s name is *priorityVal*, then queries like *priority:&lt;value&gt;* show results only where the value of the property named *priorityVal* matches *&lt;value&gt;*. By contrast, a search that uses the same *&lt;value&gt;* without an operator returns all items where *&lt;value&gt;* matches the value of any String properties or text within the content field for the item. The operator name can only contain lowercase letters (a-z). The maximum length is 32 characters.
     #[serde(default, rename = "operatorName")]
@@ -2990,7 +2991,7 @@ pub struct EnumOperatorOptions {
 }
 
 /// The options for enum properties, which allow you to define a restricted set of strings to match user queries, set rankings for those string values, and define an operator name to be paired with those strings so that users can narrow results to only items with a specific value. For example, for items in a request tracking system with priority information, you could define *p0* as an allowable enum value and tie this enum to the operator name *priority* so that search users could add *priority:p0* to their query to restrict the set of results to only those items indexed with the value *p0*.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnumPropertyOptions {
     /// If set, describes how the enum should be used as a search operator.
     #[serde(default, rename = "operatorOptions")]
@@ -3004,7 +3005,7 @@ pub struct EnumPropertyOptions {
 }
 
 /// The enumeration value pair defines two things: a required string value and an optional integer value. The string value defines the necessary query term required to retrieve that item, such as *p0* for a priority item. The integer value determines the ranking of that string value relative to other enumerated values for the same property. For example, you might associate *p0* with *0* and define another enum pair such as *p1* and *1*. You must use the integer value in combination with ordered ranking to set the ranking of a given value relative to other enumerated values for the same property name. Here, a ranking order of DESCENDING for *priority* properties results in a ranking boost for items indexed with a value of *p0* compared to items indexed with a value of *p1*. Without a specified ranking order, the integer value has no effect on item ranking.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnumValuePair {
     /// The integer value of the EnumValuePair which must be non-negative. Optional.
     #[serde(default, rename = "integerValue")]
@@ -3015,7 +3016,7 @@ pub struct EnumValuePair {
 }
 
 /// List of enum values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnumValues {
     /// The maximum allowable length for string values is 32 characters.
     #[serde(default)]
@@ -3023,7 +3024,7 @@ pub struct EnumValues {
 }
 
 /// A generic way of expressing filters in a query, which supports two approaches: **1. Setting a ValueFilter.** The name must match an operator_name defined in the schema for your data source. **2. Setting a CompositeFilter.** The filters are evaluated using the logical operator. The top-level operators can only be either an AND or a NOT. AND can appear only at the top-most level. OR can appear only under a top-level AND.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Filter {
     #[serde(default, rename = "compositeFilter")]
     pub composite_filter: ::core::option::Option<::std::boxed::Box<CompositeFilter>>,
@@ -3032,7 +3033,7 @@ pub struct Filter {
 }
 
 /// Used to provide a search operator for html properties. This is optional. Search operators let users restrict the query to specific fields relevant to the type of item being searched.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HtmlOperatorOptions {
     /// Indicates the operator name required in the query in order to isolate the html property. For example, if operatorName is *subject* and the property''s name is *subjectLine*, then queries like *subject:&lt;value&gt;* show results only where the value of the property named *subjectLine* matches *&lt;value&gt;*. By contrast, a search that uses the same *&lt;value&gt;* without an operator return all items where *&lt;value&gt;* matches the value of any html properties or text within the content field for the item. The operator name can only contain lowercase letters (a-z). The maximum length is 32 characters.
     #[serde(default, rename = "operatorName")]
@@ -3040,7 +3041,7 @@ pub struct HtmlOperatorOptions {
 }
 
 /// The options for html properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HtmlPropertyOptions {
     /// If set, describes how the property should be used as a search operator.
     #[serde(default, rename = "operatorOptions")]
@@ -3051,7 +3052,7 @@ pub struct HtmlPropertyOptions {
 }
 
 /// List of html values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HtmlValues {
     /// The maximum allowable length for html values is 2048 characters.
     #[serde(default)]
@@ -3059,7 +3060,7 @@ pub struct HtmlValues {
 }
 
 /// Used to specify integer faceting options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntegerFacetingOptions {
     /// Buckets for given integer values should be in strictly ascending order. For example, if values supplied are (1,5,10,100), the following facet buckets will be formed {&lt;1, [1,5), [5-10), [10-100), &gt;=100}.
     #[serde(default, rename = "integerBuckets")]
@@ -3067,7 +3068,7 @@ pub struct IntegerFacetingOptions {
 }
 
 /// Used to provide a search operator for integer properties. This is optional. Search operators let users restrict the query to specific fields relevant to the type of item being searched.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntegerOperatorOptions {
     /// Indicates the operator name required in the query in order to isolate the integer property using the greater-than operator. For example, if greaterThanOperatorName is *priorityabove* and the property''s name is *priorityVal*, then queries like *priorityabove:&lt;value&gt;* show results only where the value of the property named *priorityVal* is greater than *&lt;value&gt;*. The operator name can only contain lowercase letters (a-z). The maximum length is 32 characters.
     #[serde(default, rename = "greaterThanOperatorName")]
@@ -3081,7 +3082,7 @@ pub struct IntegerOperatorOptions {
 }
 
 /// The options for integer properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntegerPropertyOptions {
     /// If set, describes integer faceting options for the given integer property. The corresponding integer property should be marked isFacetable.
     #[serde(default, rename = "integerFacetingOptions")]
@@ -3101,14 +3102,14 @@ pub struct IntegerPropertyOptions {
 }
 
 /// List of integer values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntegerValues {
     #[serde(default)]
     pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// A typed name-value pair for structured data. The type of the value should be the same as the registered type for the name property in the object definition of objectType.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NamedProperty {
     #[serde(default, rename = "booleanValue")]
     pub boolean_value: ::core::option::Option<bool>,
@@ -3134,7 +3135,7 @@ pub struct NamedProperty {
 }
 
 /// The options for object properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObjectPropertyOptions {
     /// The properties of the sub-object. These properties represent a nested object. For example, if this property represents a postal address, the subobjectProperties might be named *street*, *city*, and *state*. The maximum number of elements is 1000.
     #[serde(default, rename = "subobjectProperties")]
@@ -3142,14 +3143,14 @@ pub struct ObjectPropertyOptions {
 }
 
 /// List of object values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObjectValues {
     #[serde(default)]
     pub values: ::std::vec::Vec<::std::boxed::Box<StructuredDataObject>>,
 }
 
 /// The definition of a property within an object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PropertyDefinition {
     #[serde(default, rename = "booleanPropertyOptions")]
     pub boolean_property_options: ::core::option::Option<::std::boxed::Box<BooleanPropertyOptions>>,
@@ -3197,7 +3198,7 @@ pub struct PropertyDefinition {
 }
 
 /// The display options for a property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PropertyDisplayOptions {
     /// The user friendly label for the property that is used if the property is specified to be displayed in ObjectDisplayOptions. If provided, the display label is shown in front of the property values when the property is part of the object display options. For example, if the property value is ''1'', the value by itself may not be useful context for the user. If the display name given was ''priority'', then the user sees ''priority : 1'' in the search results which provides clear context to search users. This is OPTIONAL; if not given, only the property values are displayed. The maximum length is 64 characters.
     #[serde(default, rename = "displayLabel")]
@@ -3205,7 +3206,7 @@ pub struct PropertyDisplayOptions {
 }
 
 /// RetrievalImportance resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetrievalImportance {
     /// Indicates the ranking importance given to property when it is matched during retrieval. Once set, the token importance of a property cannot be changed. // TODO: enum values: ["DEFAULT", "HIGHEST", "HIGH", "LOW", "NONE"]
     #[serde(default)]
@@ -3213,7 +3214,7 @@ pub struct RetrievalImportance {
 }
 
 /// A structured data object consisting of named properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StructuredDataObject {
     /// The properties for the object. The maximum number of elements is 1000.
     #[serde(default)]
@@ -3221,7 +3222,7 @@ pub struct StructuredDataObject {
 }
 
 /// Used to provide a search operator for text properties. This is optional. Search operators let users restrict the query to specific fields relevant to the type of item being searched.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextOperatorOptions {
     /// If true, the text value is tokenized as one atomic value in operator searches and facet matches. For example, if the operator name is "genre" and the value is "science-fiction" the query restrictions "genre:science" and "genre:fiction" doesn''t match the item; "genre:science-fiction" does. Text value matching is case-sensitive and does not remove special characters. If false, the text is tokenized. For example, if the value is "science-fiction" the queries "genre:science" and "genre:fiction" matches the item.
     #[serde(default, rename = "exactMatchWithOperator")]
@@ -3232,7 +3233,7 @@ pub struct TextOperatorOptions {
 }
 
 /// The options for text properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextPropertyOptions {
     /// If set, describes how the property should be used as a search operator.
     #[serde(default, rename = "operatorOptions")]
@@ -3243,7 +3244,7 @@ pub struct TextPropertyOptions {
 }
 
 /// List of text values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextValues {
     /// The maximum allowable length for text values is 2048 characters.
     #[serde(default)]
@@ -3251,7 +3252,7 @@ pub struct TextValues {
 }
 
 /// Used to provide a search operator for timestamp properties. This is optional. Search operators let users restrict the query to specific fields relevant to the type of item being searched.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimestampOperatorOptions {
     /// Indicates the operator name required in the query in order to isolate the timestamp property using the greater-than operator. For example, if greaterThanOperatorName is *closedafter* and the property''s name is *closeDate*, then queries like *closedafter:&lt;value&gt;* show results only where the value of the property named *closeDate* is later than *&lt;value&gt;*. The operator name can only contain lowercase letters (a-z). The maximum length is 32 characters.
     #[serde(default, rename = "greaterThanOperatorName")]
@@ -3265,7 +3266,7 @@ pub struct TimestampOperatorOptions {
 }
 
 /// The options for timestamp properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimestampPropertyOptions {
     /// If set, describes how the timestamp should be used as a search operator.
     #[serde(default, rename = "operatorOptions")]
@@ -3273,14 +3274,14 @@ pub struct TimestampPropertyOptions {
 }
 
 /// List of timestamp values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimestampValues {
     #[serde(default)]
     pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Definition of a single value with generic type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiValue {
     #[serde(default, rename = "booleanValue")]
     pub boolean_value: ::core::option::Option<bool>,
@@ -3297,7 +3298,7 @@ pub struct ApiValue {
 }
 
 /// ValueFilter resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValueFilter {
     /// The operator_name applied to the query, such as *price_greater_than*. The filter can work against both types of filters defined in the schema for your data source: 1. operator_name, where the query filters results by the property that matches the value. 2. greater_than_operator_name or less_than_operator_name in your schema. The query filters the results for the property values that are greater than or less than the supplied value in the query.
     #[serde(default, rename = "operatorName")]

@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Configuration for an InsightType.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1InsightTypeConfig {
     /// Allows clients to store small amounts of arbitrary data. Annotations must follow the Kubernetes syntax. The total size of all keys and values combined is limited to 256k. Key can have 2 segments: prefix (optional) and name (required), separated by a slash (/). Prefix must be a DNS subdomain. Name must be 63 characters or less, begin and end with alphanumerics, with dashes (-), underscores (_), dots (.), and alphanumerics between.
     #[serde(default)]
@@ -38,7 +39,7 @@ pub struct GoogleCloudRecommenderV1InsightTypeConfig {
 }
 
 /// Response to the ListInsights method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1ListInsightsResponse {
     /// The set of insights for the parent resource.
     #[serde(default)]
@@ -49,7 +50,7 @@ pub struct GoogleCloudRecommenderV1ListInsightsResponse {
 }
 
 /// Response to the ListRecommendations method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1ListRecommendationsResponse {
     /// A token that can be used to request the next page of results. This field is empty if there are no additional results.
     #[serde(default, rename = "nextPageToken")]
@@ -61,7 +62,7 @@ pub struct GoogleCloudRecommenderV1ListRecommendationsResponse {
 }
 
 /// Request for the MarkInsightAccepted method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1MarkInsightAcceptedRequest {
     /// Required. Fingerprint of the Insight. Provides optimistic locking.
     #[serde(default)]
@@ -72,7 +73,7 @@ pub struct GoogleCloudRecommenderV1MarkInsightAcceptedRequest {
 }
 
 /// Request for the MarkRecommendationClaimed Method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1MarkRecommendationClaimedRequest {
     /// Required. Fingerprint of the Recommendation. Provides optimistic locking.
     #[serde(default)]
@@ -83,7 +84,7 @@ pub struct GoogleCloudRecommenderV1MarkRecommendationClaimedRequest {
 }
 
 /// Request for the MarkRecommendationDismissed Method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1MarkRecommendationDismissedRequest {
     /// Fingerprint of the Recommendation. Provides optimistic locking.
     #[serde(default)]
@@ -91,7 +92,7 @@ pub struct GoogleCloudRecommenderV1MarkRecommendationDismissedRequest {
 }
 
 /// Request for the MarkRecommendationFailed Method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1MarkRecommendationFailedRequest {
     /// Required. Fingerprint of the Recommendation. Provides optimistic locking.
     #[serde(default)]
@@ -102,7 +103,7 @@ pub struct GoogleCloudRecommenderV1MarkRecommendationFailedRequest {
 }
 
 /// Request for the MarkRecommendationSucceeded Method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1MarkRecommendationSucceededRequest {
     /// Required. Fingerprint of the Recommendation. Provides optimistic locking.
     #[serde(default)]
@@ -113,7 +114,7 @@ pub struct GoogleCloudRecommenderV1MarkRecommendationSucceededRequest {
 }
 
 /// Configuration for a Recommender.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1RecommenderConfig {
     /// Allows clients to store small amounts of arbitrary data. Annotations must follow the Kubernetes syntax. The total size of all keys and values combined is limited to 256k. Key can have 2 segments: prefix (optional) and name (required), separated by a slash (/). Prefix must be a DNS subdomain. Name must be 63 characters or less, begin and end with alphanumerics, with dashes (-), underscores (_), dots (.), and alphanumerics between.
     #[serde(default)]
@@ -140,7 +141,7 @@ pub struct GoogleCloudRecommenderV1RecommenderConfig {
 }
 
 /// A configuration to customize the generation of insights. Eg, customizing the lookback period considered when generating a insight.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1InsightTypeGenerationConfig {
     /// Parameters for this InsightTypeGenerationConfig. These configs can be used by or are applied to all subtypes.
     #[serde(default)]
@@ -148,7 +149,7 @@ pub struct GoogleCloudRecommenderV1InsightTypeGenerationConfig {
 }
 
 /// An insight along with the information used to derive the insight. The insight may have associated recommendations as well.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1Insight {
     /// Recommendations derived from this insight.
     #[serde(default, rename = "associatedRecommendations")]
@@ -191,7 +192,7 @@ pub struct GoogleCloudRecommenderV1Insight {
 }
 
 /// A recommendation along with a suggested action. E.g., a rightsizing recommendation for an underutilized VM, IAM role recommendations, etc
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1Recommendation {
     /// Optional set of additional impact that this recommendation may have when trying to optimize for the primary category. These may be positive or negative.
     #[serde(default, rename = "additionalImpact")]
@@ -237,7 +238,7 @@ pub struct GoogleCloudRecommenderV1Recommendation {
 }
 
 /// A Configuration to customize the generation of recommendations. Eg, customizing the lookback period considered when generating a recommendation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1RecommenderGenerationConfig {
     /// Parameters for this RecommenderGenerationConfig. These configs can be used by or are applied to all subtypes.
     #[serde(default)]
@@ -245,7 +246,7 @@ pub struct GoogleCloudRecommenderV1RecommenderGenerationConfig {
 }
 
 /// Reference to an associated recommendation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1InsightRecommendationReference {
     /// Recommendation resource name, e.g. projects/[PROJECT_NUMBER]/locations/[LOCATION]/recommenders/[RECOMMENDER_ID]/recommendations/[RECOMMENDATION_ID]
     #[serde(default)]
@@ -253,7 +254,7 @@ pub struct GoogleCloudRecommenderV1InsightRecommendationReference {
 }
 
 /// Information related to insight state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1InsightStateInfo {
     /// Insight state. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "ACCEPTED", "DISMISSED"]
     #[serde(default)]
@@ -264,7 +265,7 @@ pub struct GoogleCloudRecommenderV1InsightStateInfo {
 }
 
 /// Contains the impact a recommendation can have for a given category.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1Impact {
     /// Category that is being targeted. // TODO: enum values: ["CATEGORY_UNSPECIFIED", "COST", "SECURITY", "PERFORMANCE", "MANAGEABILITY", "SUSTAINABILITY", "RELIABILITY"]
     #[serde(default)]
@@ -289,7 +290,7 @@ pub struct GoogleCloudRecommenderV1Impact {
 }
 
 /// Reference to an associated insight.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1RecommendationInsightReference {
     /// Insight resource name, e.g. projects/[PROJECT_NUMBER]/locations/[LOCATION]/insightTypes/[INSIGHT_TYPE_ID]/insights/[INSIGHT_ID]
     #[serde(default)]
@@ -297,7 +298,7 @@ pub struct GoogleCloudRecommenderV1RecommendationInsightReference {
 }
 
 /// Contains what resources are changing and how they are changing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1RecommendationContent {
     /// Operations to one or more Google Cloud resources grouped in such a way that, all operations within one group are expected to be performed atomically and in an order.
     #[serde(default, rename = "operationGroups")]
@@ -309,7 +310,7 @@ pub struct GoogleCloudRecommenderV1RecommendationContent {
 }
 
 /// Information for state. Contains state and metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1RecommendationStateInfo {
     /// The state of the recommendation, Eg ACTIVE, SUCCEEDED, FAILED. // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "CLAIMED", "SUCCEEDED", "FAILED", "DISMISSED"]
     #[serde(default)]
@@ -320,7 +321,7 @@ pub struct GoogleCloudRecommenderV1RecommendationStateInfo {
 }
 
 /// Contains metadata about how much money a recommendation can save or incur.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1CostProjection {
     /// An approximate projection on amount saved or amount incurred. Negative cost units indicate cost savings and positive cost units indicate increase. See google.type.Money documentation for positive/negative units. A user''s permissions may affect whether the cost is computed using list prices or custom contract prices.
     #[serde(default)]
@@ -334,7 +335,7 @@ pub struct GoogleCloudRecommenderV1CostProjection {
 }
 
 /// Contains information on the impact of a reliability recommendation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1ReliabilityProjection {
     /// Per-recommender projection.
     #[serde(default)]
@@ -345,7 +346,7 @@ pub struct GoogleCloudRecommenderV1ReliabilityProjection {
 }
 
 /// Contains various ways of describing the impact on Security.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1SecurityProjection {
     /// Additional security impact details that is provided by the recommender.
     #[serde(default)]
@@ -353,7 +354,7 @@ pub struct GoogleCloudRecommenderV1SecurityProjection {
 }
 
 /// Contains metadata about how much sustainability a recommendation can save or incur.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1SustainabilityProjection {
     /// Duration for which this sustainability applies.
     #[serde(default)]
@@ -364,7 +365,7 @@ pub struct GoogleCloudRecommenderV1SustainabilityProjection {
 }
 
 /// Group of operations that need to be performed atomically.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1OperationGroup {
     /// List of operations across one or more resources that belong to this group. Loosely based on RFC6902 and should be performed in the order they appear.
     #[serde(default)]
@@ -372,7 +373,7 @@ pub struct GoogleCloudRecommenderV1OperationGroup {
 }
 
 /// Represents an amount of money with its currency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeMoney {
     /// The three-letter currency code defined in ISO 4217.
     #[serde(default, rename = "currencyCode")]
@@ -386,7 +387,7 @@ pub struct GoogleTypeMoney {
 }
 
 /// Contains an operation for a resource loosely based on the JSON-PATCH format with support for: * Custom filters for describing partial array patch. * Extended path values for describing nested arrays. * Custom fields for describing the resource for which the operation is being described. * Allows extension to custom operations not natively supported by RFC6902. See https://tools.ietf.org/html/rfc6902 for details on the original RFC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1Operation {
     /// Type of this operation. Contains one of ''add'', ''remove'', ''replace'', ''move'', ''copy'', ''test'' and custom operations. This field is case-insensitive and always populated.
     #[serde(default)]
@@ -421,7 +422,7 @@ pub struct GoogleCloudRecommenderV1Operation {
 }
 
 /// Contains various matching options for values for a GCP resource field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommenderV1ValueMatcher {
     /// To be used for full regex matching. The regular expression is using the Google RE2 syntax (https://github.com/google/re2/wiki/Syntax), so to be used with RE2::FullMatch
     #[serde(default, rename = "matchesPattern")]

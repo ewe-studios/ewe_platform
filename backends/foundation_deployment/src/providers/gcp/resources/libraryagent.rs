@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Response message for LibraryAgent.ListBooks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleExampleLibraryagentV1ListBooksResponse {
     /// The list of books.
     #[serde(default)]
@@ -22,7 +23,7 @@ pub struct GoogleExampleLibraryagentV1ListBooksResponse {
 }
 
 /// Response message for LibraryAgent.ListShelves.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleExampleLibraryagentV1ListShelvesResponse {
     /// A token to retrieve next page of results. Pass this value in the ListShelvesRequest.page_token field in the subsequent call to ListShelves method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -33,7 +34,7 @@ pub struct GoogleExampleLibraryagentV1ListShelvesResponse {
 }
 
 /// A single book in the library.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleExampleLibraryagentV1Book {
     /// The name of the book author.
     #[serde(default)]
@@ -50,7 +51,7 @@ pub struct GoogleExampleLibraryagentV1Book {
 }
 
 /// A Shelf contains a collection of books with a theme.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleExampleLibraryagentV1Shelf {
     /// Output only. The resource name of the shelf. Shelf names have the form shelves/{shelf_id}. The name is ignored when creating a shelf.
     #[serde(default)]

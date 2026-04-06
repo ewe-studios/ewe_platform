@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// TaskLists resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaskLists {
     /// ETag of the resource.
     #[serde(default)]
@@ -28,7 +29,7 @@ pub struct TaskLists {
 }
 
 /// Tasks resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Tasks {
     /// ETag of the resource.
     #[serde(default)]
@@ -45,7 +46,7 @@ pub struct Tasks {
 }
 
 /// TaskList resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaskList {
     /// ETag of the resource.
     #[serde(default)]
@@ -68,7 +69,7 @@ pub struct TaskList {
 }
 
 /// Task resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Task {
     /// Output only. Context information for assigned tasks. A task can be assigned to a user, currently possible from surfaces like Docs and Chat Spaces. This field is populated for tasks assigned to the current user and identifies where the task was assigned from. This field is read-only.
     #[serde(default, rename = "assignmentInfo")]
@@ -124,7 +125,7 @@ pub struct Task {
 }
 
 /// Information about the source of the task assignment (Document, Chat Space).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssignmentInfo {
     /// Output only. Information about the Drive file where this task originates from. Currently, the Drive file can only be a document. This field is read-only.
     #[serde(default, rename = "driveResourceInfo")]
@@ -141,7 +142,7 @@ pub struct AssignmentInfo {
 }
 
 /// Information about the Drive resource where a task was assigned from (the document, sheet, etc.).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DriveResourceInfo {
     /// Output only. Identifier of the file in the Drive API.
     #[serde(default, rename = "driveFileId")]
@@ -152,7 +153,7 @@ pub struct DriveResourceInfo {
 }
 
 /// Information about the Chat Space where a task was assigned from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpaceInfo {
     /// Output only. The Chat space where this task originates from. The format is "spaces/{space}".
     #[serde(default)]

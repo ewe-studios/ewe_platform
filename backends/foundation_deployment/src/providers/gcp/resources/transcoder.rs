@@ -8,46 +8,47 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Configuration for AES-128 encryption.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Aes128Encryption {}
 
 /// Clearkey configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Clearkey {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Fairplay configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Fairplay {}
 
 /// Convert the input video to a Hybrid Log Gamma (HLG) video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct H264ColorFormatHLG {}
 
 /// Convert the input video to a Standard Dynamic Range (SDR) video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct H264ColorFormatSDR {}
 
 /// Convert the input video to a High Dynamic Range 10 (HDR10) video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct H265ColorFormatHDR10 {}
 
 /// Convert the input video to a Hybrid Log Gamma (HLG) video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct H265ColorFormatHLG {}
 
 /// Convert the input video to a Standard Dynamic Range (SDR) video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct H265ColorFormatSDR {}
 
 /// Response message for TranscoderService.ListJobTemplates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListJobTemplatesResponse {
     /// List of job templates in the specified region.
     #[serde(default, rename = "jobTemplates")]
@@ -61,7 +62,7 @@ pub struct ListJobTemplatesResponse {
 }
 
 /// Response message for TranscoderService.ListJobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListJobsResponse {
     /// List of jobs in the specified region.
     #[serde(default)]
@@ -75,27 +76,27 @@ pub struct ListJobsResponse {
 }
 
 /// Playready configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Playready {}
 
 /// Configuration for SAMPLE-AES encryption.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SampleAesEncryption {}
 
 /// Convert the input video to a Hybrid Log Gamma (HLG) video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Vp9ColorFormatHLG {}
 
 /// Convert the input video to a Standard Dynamic Range (SDR) video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Vp9ColorFormatSDR {}
 
 /// Widevine configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Widevine {}
 
 /// Transcoding job template resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobTemplate {
     /// The configuration for this template.
     #[serde(default)]
@@ -109,7 +110,7 @@ pub struct JobTemplate {
 }
 
 /// Transcoding job resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Job {
     /// The processing priority of a batch job. This field can only be set for batch mode jobs. The default value is 0. This value cannot be negative. Higher values correspond to higher priorities for the job.
     #[serde(default, rename = "batchModePriority")]
@@ -162,7 +163,7 @@ pub struct Job {
 }
 
 /// Job configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobConfig {
     /// List of ad breaks. Specifies where to insert ad break tags in the output manifests.
     #[serde(default, rename = "adBreaks")]
@@ -200,7 +201,7 @@ pub struct JobConfig {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -214,7 +215,7 @@ pub struct Status {
 }
 
 /// Ad break.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdBreak {
     /// Start time in seconds for the ad break, relative to the output file timeline. The default is 0s.
     #[serde(default, rename = "startTimeOffset")]
@@ -222,7 +223,7 @@ pub struct AdBreak {
 }
 
 /// Edit atom.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EditAtom {
     /// End time in seconds for the atom, relative to the input file timeline. When end_time_offset is not specified, the inputs are used until the end of the atom.
     #[serde(default, rename = "endTimeOffset")]
@@ -239,7 +240,7 @@ pub struct EditAtom {
 }
 
 /// Encoding of an input file such as an audio, video, or text track. Elementary streams must be packaged before mapping and sharing between different output formats.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ElementaryStream {
     /// Encoding of an audio stream.
     #[serde(default, rename = "audioStream")]
@@ -256,7 +257,7 @@ pub struct ElementaryStream {
 }
 
 /// Encryption settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Encryption {
     /// Configuration for AES-128 encryption.
     #[serde(default)]
@@ -279,7 +280,7 @@ pub struct Encryption {
 }
 
 /// Input asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Input {
     /// Optional. Input Attributes.
     #[serde(default)]
@@ -296,7 +297,7 @@ pub struct Input {
 }
 
 /// Manifest configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Manifest {
     /// DASH manifest configuration.
     #[serde(default)]
@@ -313,7 +314,7 @@ pub struct Manifest {
 }
 
 /// Multiplexing settings for output stream.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MuxStream {
     /// The container format. The default is mp4 Supported streaming formats: - ts - fmp4- the corresponding file extension is .m4s Supported standalone file formats: - mp4 - mp3 - ogg - vtt See also: [Supported input and output formats](https://cloud.google.com/transcoder/docs/concepts/supported-input-and-output-formats)
     #[serde(default)]
@@ -339,7 +340,7 @@ pub struct MuxStream {
 }
 
 /// Location of output file(s) in a Cloud Storage bucket.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Output {
     /// URI for the output file(s). For example, gs://my-bucket/outputs/. Must be a directory and not a top-level bucket. If empty, the value is populated from Job.output_uri. See [Supported input and output formats](https://cloud.google.com/transcoder/docs/concepts/supported-input-and-output-formats).
     #[serde(default)]
@@ -347,7 +348,7 @@ pub struct Output {
 }
 
 /// Overlay configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Overlay {
     /// List of animations. The list should be chronological, without any time overlap.
     #[serde(default)]
@@ -358,7 +359,7 @@ pub struct Overlay {
 }
 
 /// A Pub/Sub destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PubsubDestination {
     /// The name of the Pub/Sub topic to publish job completion notification to. For example: projects/{project}/topics/{topic}.
     #[serde(default)]
@@ -366,7 +367,7 @@ pub struct PubsubDestination {
 }
 
 /// Sprite sheet configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpriteSheet {
     /// The maximum number of sprites per row in a sprite sheet. The default is 0, which indicates no maximum limit.
     #[serde(default, rename = "columnCount")]
@@ -404,7 +405,7 @@ pub struct SpriteSheet {
 }
 
 /// Audio stream resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AudioStream {
     /// Required. Audio bitrate in bits per second. Must be between 1 and 10,000,000.
     #[serde(default, rename = "bitrateBps")]
@@ -433,7 +434,7 @@ pub struct AudioStream {
 }
 
 /// Encoding of a text stream. For example, closed captions or subtitles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextStream {
     /// The codec for this text stream. The default is webvtt. Supported text codecs: - srt - ttml - cea608 - cea708 - webvtt
     #[serde(default)]
@@ -450,7 +451,7 @@ pub struct TextStream {
 }
 
 /// Video stream resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoStream {
     /// H264 codec settings.
     #[serde(default)]
@@ -464,7 +465,7 @@ pub struct VideoStream {
 }
 
 /// Defines configuration for DRM systems in use.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DrmSystems {
     /// Clearkey configuration.
     #[serde(default)]
@@ -481,7 +482,7 @@ pub struct DrmSystems {
 }
 
 /// Configuration for MPEG Common Encryption (MPEG-CENC).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MpegCommonEncryption {
     /// Required. Specify the encryption scheme. Supported encryption schemes: - cenc - cbcs
     #[serde(default)]
@@ -489,7 +490,7 @@ pub struct MpegCommonEncryption {
 }
 
 /// Configuration for secrets stored in Google Secret Manager.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretManagerSource {
     /// Required. The name of the Secret Version containing the encryption key in the following format: projects/{project}/secrets/{secret_id}/versions/{version_number} Note that only numbered versions are supported. Aliases like "latest" are not supported.
     #[serde(default, rename = "secretVersion")]
@@ -497,7 +498,7 @@ pub struct SecretManagerSource {
 }
 
 /// Input attributes that provide additional information about the input asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InputAttributes {
     /// Optional. A list of track definitions for the input asset.
     #[serde(default, rename = "trackDefinitions")]
@@ -505,7 +506,7 @@ pub struct InputAttributes {
 }
 
 /// Preprocessing configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PreprocessingConfig {
     /// Audio preprocessing configuration.
     #[serde(default)]
@@ -531,7 +532,7 @@ pub struct PreprocessingConfig {
 }
 
 /// DASH manifest configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DashConfig {
     /// The segment reference scheme for a DASH manifest. The default is SEGMENT_LIST. // TODO: enum values: ["SEGMENT_REFERENCE_SCHEME_UNSPECIFIED", "SEGMENT_LIST", "SEGMENT_TEMPLATE_NUMBER"]
     #[serde(default, rename = "segmentReferenceScheme")]
@@ -539,7 +540,7 @@ pub struct DashConfig {
 }
 
 /// fmp4 container configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Fmp4Config {
     /// Optional. Specify the codec tag string that will be used in the media bitstream. When not specified, the codec appropriate value is used. Supported H265 codec tags: - hvc1 (default) - hev1
     #[serde(default, rename = "codecTag")]
@@ -547,7 +548,7 @@ pub struct Fmp4Config {
 }
 
 /// Segment settings for ts, fmp4 and vtt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SegmentSettings {
     /// Required. Create an individual segment file. The default is false.
     #[serde(default, rename = "individualSegments")]
@@ -558,7 +559,7 @@ pub struct SegmentSettings {
 }
 
 /// Animation types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Animation {
     /// End previous animation.
     #[serde(default, rename = "animationEnd")]
@@ -572,7 +573,7 @@ pub struct Animation {
 }
 
 /// Overlaid image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Image {
     /// Target image opacity. Valid values are from 1.0 (solid, default) to 0.0 (transparent), exclusive. Set this to a value greater than 0.0.
     #[serde(default)]
@@ -586,7 +587,7 @@ pub struct Image {
 }
 
 /// The mapping for the JobConfig.edit_list atoms with audio EditAtom.inputs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AudioMapping {
     /// Required. The EditAtom.key that references the atom with audio inputs in the JobConfig.edit_list.
     #[serde(default, rename = "atomKey")]
@@ -609,7 +610,7 @@ pub struct AudioMapping {
 }
 
 /// The mapping for the JobConfig.edit_list atoms with text EditAtom.inputs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextMapping {
     /// Required. The EditAtom.key that references atom with text inputs in the JobConfig.edit_list.
     #[serde(default, rename = "atomKey")]
@@ -623,7 +624,7 @@ pub struct TextMapping {
 }
 
 /// H264 codec settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct H264CodecSettings {
     /// Specifies whether an open Group of Pictures (GOP) structure should be allowed or not. The default is false.
     #[serde(default, rename = "allowOpenGop")]
@@ -697,7 +698,7 @@ pub struct H264CodecSettings {
 }
 
 /// H265 codec settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct H265CodecSettings {
     /// Specifies whether an open Group of Pictures (GOP) structure should be allowed or not. The default is false.
     #[serde(default, rename = "allowOpenGop")]
@@ -771,7 +772,7 @@ pub struct H265CodecSettings {
 }
 
 /// VP9 codec settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Vp9CodecSettings {
     /// Required. The video bitrate in bits per second. The minimum value is 1,000. The maximum value is 480,000,000.
     #[serde(default, rename = "bitrateBps")]
@@ -815,7 +816,7 @@ pub struct Vp9CodecSettings {
 }
 
 /// Track definition for the input asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TrackDefinition {
     /// Optional. Whether to automatically detect the languages present in the track. If true, the system will attempt to identify all the languages present in the track and populate the languages field.
     #[serde(default, rename = "detectLanguages")]
@@ -832,7 +833,7 @@ pub struct TrackDefinition {
 }
 
 /// Audio preprocessing configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Audio {
     /// Enable boosting high frequency components. The default is false. **Note:** This field is not supported.
     #[serde(default, rename = "highBoost")]
@@ -846,7 +847,7 @@ pub struct Audio {
 }
 
 /// Color preprocessing configuration. **Note:** This configuration is not supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Color {
     /// Control brightness of the video. Enter a value between -1 and 1, where -1 is minimum brightness and 1 is maximum brightness. 0 is no change. The default is 0.
     #[serde(default)]
@@ -860,7 +861,7 @@ pub struct Color {
 }
 
 /// Video cropping configuration for the input video. The cropped input video is scaled to match the output resolution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Crop {
     /// The number of pixels to crop from the bottom. The default is 0.
     #[serde(default, rename = "bottomPixels")]
@@ -877,7 +878,7 @@ pub struct Crop {
 }
 
 /// Deblock preprocessing configuration. **Note:** This configuration is not supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Deblock {
     /// Enable deblocker. The default is false.
     #[serde(default)]
@@ -888,7 +889,7 @@ pub struct Deblock {
 }
 
 /// Deinterlace configuration for input video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Deinterlace {
     /// Specifies the Bob Weaver Deinterlacing Filter Configuration.
     #[serde(default)]
@@ -899,7 +900,7 @@ pub struct Deinterlace {
 }
 
 /// Denoise preprocessing configuration. **Note:** This configuration is not supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Denoise {
     /// Set strength of the denoise. Enter a value between 0 and 1. The higher the value, the smoother the image. 0 is no denoising. The default is 0.
     #[serde(default)]
@@ -910,7 +911,7 @@ pub struct Denoise {
 }
 
 /// Pad filter configuration for the input video. The padded input video is scaled after padding with black to match the output resolution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Pad {
     /// The number of pixels to add to the bottom. The default is 0.
     #[serde(default, rename = "bottomPixels")]
@@ -927,7 +928,7 @@ pub struct Pad {
 }
 
 /// End previous overlay animation from the video. Without AnimationEnd, the overlay object will keep the state of previous animation until the end of the video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnimationEnd {
     /// The time to end overlay object, in seconds. Default: 0
     #[serde(default, rename = "startTimeOffset")]
@@ -935,7 +936,7 @@ pub struct AnimationEnd {
 }
 
 /// Display overlay object with fade animation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnimationFade {
     /// The time to end the fade animation, in seconds. Default: start_time_offset + 1s
     #[serde(default, rename = "endTimeOffset")]
@@ -952,7 +953,7 @@ pub struct AnimationFade {
 }
 
 /// Display static overlay object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnimationStatic {
     /// The time to start displaying the overlay object, in seconds. Default: 0
     #[serde(default, rename = "startTimeOffset")]
@@ -963,7 +964,7 @@ pub struct AnimationStatic {
 }
 
 /// Bob Weaver Deinterlacing Filter Configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BwdifConfig {
     /// Deinterlace all frames rather than just the frames identified as interlaced. The default is false.
     #[serde(default, rename = "deinterlaceAllFrames")]
@@ -977,7 +978,7 @@ pub struct BwdifConfig {
 }
 
 /// Yet Another Deinterlacing Filter Configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YadifConfig {
     /// Deinterlace all frames rather than just the frames identified as interlaced. The default is false.
     #[serde(default, rename = "deinterlaceAllFrames")]
@@ -994,7 +995,7 @@ pub struct YadifConfig {
 }
 
 /// 2D normalized coordinates. Default: {0.0, 0.0}
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NormalizedCoordinate {
     /// Normalized x coordinate.
     #[serde(default)]

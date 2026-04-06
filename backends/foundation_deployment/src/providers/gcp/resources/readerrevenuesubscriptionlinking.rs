@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Response to deleting a reader of a publication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteReaderResponse {}
 
 /// A reader of a publication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Reader {
     /// Output only. Time the publication reader was created and associated with a Google user.
     #[serde(default, rename = "createTime")]
@@ -35,7 +36,7 @@ pub struct Reader {
 }
 
 /// A singleton containing all of a reader''s entitlements for a publication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReaderEntitlements {
     /// All of the entitlements for a publication reader.
     #[serde(default)]
@@ -46,7 +47,7 @@ pub struct ReaderEntitlements {
 }
 
 /// A single entitlement for a publication reader
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Entitlement {
     /// The detail field can carry a description of the SKU that corresponds to what the user has been granted access to. This description, which is opaque to Google, can be displayed in the Google user subscription console for users who linked the subscription to a Google Account. Max 80 character limit.
     #[serde(default)]

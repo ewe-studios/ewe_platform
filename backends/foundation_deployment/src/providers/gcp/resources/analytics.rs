@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// JSON template for a linked account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountRef {
     /// Link for this account.
     #[serde(default)]
@@ -28,7 +29,7 @@ pub struct AccountRef {
 }
 
 /// An AccountSummary collection lists a summary of accounts, properties and views (profiles) to which the user has access. Each resource in the collection corresponds to a single AccountSummary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountSummaries {
     /// A list of AccountSummaries.
     #[serde(default)]
@@ -57,7 +58,7 @@ pub struct AccountSummaries {
 }
 
 /// JSON template for an Analytics account ticket. The account ticket consists of the ticket ID and the basic information for the account, property and profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountTicket {
     /// Account for this ticket.
     #[serde(default)]
@@ -80,7 +81,7 @@ pub struct AccountTicket {
 }
 
 /// JSON template for an Analytics account tree requests. The account tree request is used in the provisioning api to create an account, property, and view (profile). It contains the basic information required to make these fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountTreeRequest {
     #[serde(default, rename = "accountName")]
     pub account_name: ::core::option::Option<String>,
@@ -98,7 +99,7 @@ pub struct AccountTreeRequest {
 }
 
 /// JSON template for an Analytics account tree response. The account tree response is used in the provisioning api to return the result of creating an account, property, and view (profile).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountTreeResponse {
     /// The account created.
     #[serde(default)]
@@ -115,7 +116,7 @@ pub struct AccountTreeResponse {
 }
 
 /// An account collection provides a list of Analytics accounts to which a user has access. The account collection is the entry point to all management information. Each resource in the collection corresponds to a single Analytics account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Accounts {
     /// A list of accounts.
     #[serde(default)]
@@ -144,7 +145,7 @@ pub struct Accounts {
 }
 
 /// Request template for the delete upload data request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyticsDataimportDeleteUploadDataRequest {
     /// A list of upload UIDs.
     #[serde(default, rename = "customDataImportUids")]
@@ -152,7 +153,7 @@ pub struct AnalyticsDataimportDeleteUploadDataRequest {
 }
 
 /// Lists columns (dimensions and metrics) for a particular report type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Columns {
     /// List of attributes names returned by columns.
     #[serde(default, rename = "attributeNames")]
@@ -172,7 +173,7 @@ pub struct Columns {
 }
 
 /// Lists Analytics custom data sources to which the user has access. Each resource in the collection corresponds to a single Analytics custom data source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomDataSources {
     /// Collection of custom data sources.
     #[serde(default)]
@@ -201,7 +202,7 @@ pub struct CustomDataSources {
 }
 
 /// A custom dimension collection lists Analytics custom dimensions to which the user has access. Each resource in the collection corresponds to a single Analytics custom dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomDimensions {
     /// Collection of custom dimensions.
     #[serde(default)]
@@ -230,7 +231,7 @@ pub struct CustomDimensions {
 }
 
 /// A custom metric collection lists Analytics custom metrics to which the user has access. Each resource in the collection corresponds to a single Analytics custom metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomMetrics {
     /// Collection of custom metrics.
     #[serde(default)]
@@ -259,7 +260,7 @@ pub struct CustomMetrics {
 }
 
 /// An entity Google Ads link collection provides a list of GA-Google Ads links Each resource in this collection corresponds to a single link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EntityAdWordsLinks {
     /// A list of entity Google Ads links.
     #[serde(default)]
@@ -285,7 +286,7 @@ pub struct EntityAdWordsLinks {
 }
 
 /// An entity user link collection provides a list of Analytics ACL links Each resource in this collection corresponds to a single link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EntityUserLinks {
     /// A list of entity user links.
     #[serde(default)]
@@ -311,7 +312,7 @@ pub struct EntityUserLinks {
 }
 
 /// An experiment collection lists Analytics experiments to which the user has access. Each view (profile) can have a set of experiments. Each resource in the Experiment collection corresponds to a single Analytics experiment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Experiments {
     /// A list of experiments.
     #[serde(default)]
@@ -340,7 +341,7 @@ pub struct Experiments {
 }
 
 /// A filter collection lists filters created by users in an Analytics account. Each resource in the collection corresponds to a filter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Filters {
     /// A list of filters.
     #[serde(default)]
@@ -369,7 +370,7 @@ pub struct Filters {
 }
 
 /// Analytics data for a given view (profile).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GaData {
     /// Column headers that list dimension names followed by the metric names. The order of dimensions and metrics is same as specified in the request.
     #[serde(default, rename = "columnHeaders")]
@@ -424,7 +425,7 @@ pub struct GaData {
 }
 
 /// A goal collection lists Analytics goals to which the user has access. Each view (profile) can have a set of goals. Each resource in the Goal collection corresponds to a single Analytics goal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Goals {
     /// A list of goals.
     #[serde(default)]
@@ -453,7 +454,7 @@ pub struct Goals {
 }
 
 /// JSON template for a hash Client Id request resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HashClientIdRequest {
     #[serde(default, rename = "clientId")]
     pub client_id: ::core::option::Option<String>,
@@ -464,7 +465,7 @@ pub struct HashClientIdRequest {
 }
 
 /// JSON template for a hash Client Id response resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HashClientIdResponse {
     #[serde(default, rename = "clientId")]
     pub client_id: ::core::option::Option<String>,
@@ -477,7 +478,7 @@ pub struct HashClientIdResponse {
 }
 
 /// JSON template for an Analytics Remarketing Include Conditions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IncludeConditions {
     /// The look-back window lets you specify a time frame for evaluating the behavior that qualifies users for your audience. For example, if your filters include users from Central Asia, and Transactions Greater than 2, and you set the look-back window to 14 days, then any user from Central Asia whose cumulative transactions exceed 2 during the last 14 days is added to the audience.
     #[serde(default, rename = "daysToLookBack")]
@@ -497,7 +498,7 @@ pub struct IncludeConditions {
 }
 
 /// Multi-Channel Funnels data for a given view (profile).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct McfData {
     /// Column headers that list dimension names followed by the metric names. The order of dimensions and metrics is same as specified in the request.
     #[serde(default, rename = "columnHeaders")]
@@ -547,7 +548,7 @@ pub struct McfData {
 }
 
 /// A profile filter link collection lists profile filter links between profiles and filters. Each resource in the collection corresponds to a profile filter link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProfileFilterLinks {
     /// A list of profile filter links.
     #[serde(default)]
@@ -576,7 +577,7 @@ pub struct ProfileFilterLinks {
 }
 
 /// A view (profile) collection lists Analytics views (profiles) to which the user has access. Each resource in the collection corresponds to a single Analytics view (profile).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Profiles {
     /// A list of views (profiles).
     #[serde(default)]
@@ -605,7 +606,7 @@ pub struct Profiles {
 }
 
 /// Real time data for a given view (profile).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RealtimeData {
     /// Column headers that list dimension names followed by the metric names. The order of dimensions and metrics is same as specified in the request.
     #[serde(default, rename = "columnHeaders")]
@@ -637,7 +638,7 @@ pub struct RealtimeData {
 }
 
 /// A remarketing audience collection lists Analytics remarketing audiences to which the user has access. Each resource in the collection corresponds to a single Analytics remarketing audience.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemarketingAudiences {
     /// A list of remarketing audiences.
     #[serde(default)]
@@ -666,7 +667,7 @@ pub struct RemarketingAudiences {
 }
 
 /// An segment collection lists Analytics segments that the user has access to. Each resource in the collection corresponds to a single Analytics segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Segments {
     /// A list of segments.
     #[serde(default)]
@@ -695,7 +696,7 @@ pub struct Segments {
 }
 
 /// An unsampled report collection lists Analytics unsampled reports to which the user has access. Each view (profile) can have a set of unsampled reports. Each resource in the unsampled report collection corresponds to a single Analytics unsampled report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnsampledReports {
     /// A list of unsampled reports.
     #[serde(default)]
@@ -724,7 +725,7 @@ pub struct UnsampledReports {
 }
 
 /// Upload collection lists Analytics uploads to which the user has access. Each custom data source can have a set of uploads. Each resource in the upload collection corresponds to a single Analytics data upload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Uploads {
     /// A list of uploads.
     #[serde(default)]
@@ -750,7 +751,7 @@ pub struct Uploads {
 }
 
 /// JSON template for a user deletion request resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserDeletionRequest {
     /// This marks the point in time for which all user data before should be deleted
     #[serde(default, rename = "deletionRequestTime")]
@@ -773,7 +774,7 @@ pub struct UserDeletionRequest {
 }
 
 /// JSON template for a web property reference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WebPropertyRef {
     /// Account ID to which this web property belongs.
     #[serde(default, rename = "accountId")]
@@ -796,7 +797,7 @@ pub struct WebPropertyRef {
 }
 
 /// A web property collection lists Analytics web properties to which the user has access. Each resource in the collection corresponds to a single Analytics web property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Webproperties {
     /// A list of web properties.
     #[serde(default)]
@@ -825,7 +826,7 @@ pub struct Webproperties {
 }
 
 /// JSON template for an Analytics AccountSummary. An AccountSummary is a lightweight tree comprised of properties/profiles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountSummary {
     /// Account ID.
     #[serde(default)]
@@ -845,7 +846,7 @@ pub struct AccountSummary {
 }
 
 /// JSON template for Analytics account entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Account {
     /// Child link for an account entry. Points to the list of web properties for this account.
     #[serde(default, rename = "childLink")]
@@ -877,7 +878,7 @@ pub struct Account {
 }
 
 /// JSON template for a metadata column.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Column {
     /// Map of attribute name and value for this column.
     #[serde(default)]
@@ -891,7 +892,7 @@ pub struct Column {
 }
 
 /// JSON template for an Analytics custom data source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomDataSource {
     /// Account ID to which this custom data source belongs.
     #[serde(default, rename = "accountId")]
@@ -942,7 +943,7 @@ pub struct CustomDataSource {
 }
 
 /// JSON template for Analytics Custom Dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomDimension {
     /// Account ID.
     #[serde(default, rename = "accountId")]
@@ -983,7 +984,7 @@ pub struct CustomDimension {
 }
 
 /// JSON template for Analytics Custom Metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomMetric {
     /// Account ID.
     #[serde(default, rename = "accountId")]
@@ -1033,7 +1034,7 @@ pub struct CustomMetric {
 }
 
 /// JSON template for Analytics Entity Google Ads Link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EntityAdWordsLink {
     /// A list of Google Ads client accounts. These cannot be MCC accounts. This field is required when creating a Google Ads link. It cannot be empty.
     #[serde(default, rename = "adWordsAccounts")]
@@ -1059,7 +1060,7 @@ pub struct EntityAdWordsLink {
 }
 
 /// JSON template for an Analytics Entity-User Link. Returns permissions that a user has for an entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EntityUserLink {
     /// Entity for this link. It can be an account, a web property, or a view (profile).
     #[serde(default)]
@@ -1082,7 +1083,7 @@ pub struct EntityUserLink {
 }
 
 /// JSON template for Analytics experiment resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Experiment {
     /// Account ID to which this experiment belongs. This field is read-only.
     #[serde(default, rename = "accountId")]
@@ -1171,7 +1172,7 @@ pub struct Experiment {
 }
 
 /// JSON template for an Analytics account filter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Filter {
     /// Account ID to which this filter belongs.
     #[serde(default, rename = "accountId")]
@@ -1221,7 +1222,7 @@ pub struct Filter {
 }
 
 /// JSON template for Analytics goal resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Goal {
     /// Account ID to which this goal belongs.
     #[serde(default, rename = "accountId")]
@@ -1280,7 +1281,7 @@ pub struct Goal {
 }
 
 /// JSON template for an Analytics profile filter link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProfileFilterLink {
     /// Filter for this link.
     #[serde(default, rename = "filterRef")]
@@ -1303,7 +1304,7 @@ pub struct ProfileFilterLink {
 }
 
 /// JSON template for an Analytics view (profile).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Profile {
     /// Account ID to which this view (profile) belongs.
     #[serde(default, rename = "accountId")]
@@ -1386,7 +1387,7 @@ pub struct Profile {
 }
 
 /// JSON template for an Analytics remarketing audience.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemarketingAudience {
     /// Account ID to which this remarketing audience belongs.
     #[serde(default, rename = "accountId")]
@@ -1433,7 +1434,7 @@ pub struct RemarketingAudience {
 }
 
 /// JSON template for an Analytics segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Segment {
     /// Time the segment was created.
     #[serde(default)]
@@ -1465,7 +1466,7 @@ pub struct Segment {
 }
 
 /// JSON template for Analytics unsampled report resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnsampledReport {
     /// Account ID to which this unsampled report belongs.
     #[serde(default, rename = "accountId")]
@@ -1527,7 +1528,7 @@ pub struct UnsampledReport {
 }
 
 /// Metadata returned for an upload operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Upload {
     /// Account Id to which this upload belongs.
     #[serde(default, rename = "accountId")]
@@ -1553,7 +1554,7 @@ pub struct Upload {
 }
 
 /// JSON template for an Analytics web property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Webproperty {
     /// Account ID to which this web property belongs.
     #[serde(default, rename = "accountId")]
@@ -1615,7 +1616,7 @@ pub struct Webproperty {
 }
 
 /// JSON template for an Analytics WebPropertySummary. WebPropertySummary returns basic information (i.e., summary) for a web property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WebPropertySummary {
     /// Web property ID of the form UA-XXXXX-YY.
     #[serde(default)]
@@ -1644,7 +1645,7 @@ pub struct WebPropertySummary {
 }
 
 /// JSON template for an Google Ads account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdWordsAccount {
     /// True if auto-tagging is enabled on the Google Ads account. Read-only after the insert operation.
     #[serde(default, rename = "autoTaggingEnabled")]
@@ -1658,7 +1659,7 @@ pub struct AdWordsAccount {
 }
 
 /// JSON template for a user reference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserRef {
     /// Email ID of this user.
     #[serde(default)]
@@ -1671,7 +1672,7 @@ pub struct UserRef {
 }
 
 /// JSON template for an Analytics filter expression.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FilterExpression {
     /// Determines if the filter is case sensitive.
     #[serde(default, rename = "caseSensitive")]
@@ -1694,7 +1695,7 @@ pub struct FilterExpression {
 }
 
 /// JSON template for a profile filter link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FilterRef {
     /// Account ID to which this filter belongs.
     #[serde(default, rename = "accountId")]
@@ -1714,7 +1715,7 @@ pub struct FilterRef {
 }
 
 /// JSON template for a linked view (profile).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProfileRef {
     /// Account ID to which this view (profile) belongs.
     #[serde(default, rename = "accountId")]
@@ -1740,7 +1741,7 @@ pub struct ProfileRef {
 }
 
 /// JSON template for an Analytics Remarketing Audience Foreign Link.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LinkedForeignAccount {
     /// Account ID to which this linked foreign account belongs.
     #[serde(default, rename = "accountId")]
@@ -1775,7 +1776,7 @@ pub struct LinkedForeignAccount {
 }
 
 /// JSON template for an Analytics ProfileSummary. ProfileSummary returns basic information (i.e., summary) for a profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProfileSummary {
     /// View (profile) ID.
     #[serde(default)]

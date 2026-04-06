@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Message included in the metadata field of operations returned from AddPublicKey.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddPublicKeyMetadata {}
 
 /// Request message for AddPublicKey.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddPublicKeyRequest {
     /// Key that should be added to the environment. Supported formats are ssh-dss (see RFC4253), ssh-rsa (see RFC4253), ecdsa-sha2-nistp256 (see RFC5656), ecdsa-sha2-nistp384 (see RFC5656) and ecdsa-sha2-nistp521 (see RFC5656). It should be structured as &lt;format&gt; &lt;content&gt;, where &lt;content&gt; part is encoded with Base64.
     #[serde(default)]
@@ -23,7 +24,7 @@ pub struct AddPublicKeyRequest {
 }
 
 /// Response message for AddPublicKey.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddPublicKeyResponse {
     /// Key that was added to the environment.
     #[serde(default)]
@@ -31,11 +32,11 @@ pub struct AddPublicKeyResponse {
 }
 
 /// Message included in the metadata field of operations returned from AuthorizeEnvironment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthorizeEnvironmentMetadata {}
 
 /// Request message for AuthorizeEnvironment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthorizeEnvironmentRequest {
     /// The OAuth access token that should be sent to the environment.
     #[serde(default, rename = "accessToken")]
@@ -49,27 +50,27 @@ pub struct AuthorizeEnvironmentRequest {
 }
 
 /// Response message for AuthorizeEnvironment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthorizeEnvironmentResponse {}
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// Message included in the metadata field of operations returned from CreateEnvironment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateEnvironmentMetadata {}
 
 /// Message included in the metadata field of operations returned from DeleteEnvironment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteEnvironmentMetadata {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Response message for GenerateAccessToken.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateAccessTokenResponse {
     /// The access token.
     #[serde(default, rename = "accessToken")]
@@ -77,7 +78,7 @@ pub struct GenerateAccessTokenResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -91,11 +92,11 @@ pub struct ListOperationsResponse {
 }
 
 /// Message included in the metadata field of operations returned from RemovePublicKey.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemovePublicKeyMetadata {}
 
 /// Request message for RemovePublicKey.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemovePublicKeyRequest {
     /// Key that should be removed from the environment.
     #[serde(default)]
@@ -103,11 +104,11 @@ pub struct RemovePublicKeyRequest {
 }
 
 /// Response message for RemovePublicKey.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemovePublicKeyResponse {}
 
 /// Message included in the metadata field of operations returned from StartEnvironment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartEnvironmentMetadata {
     /// Current state of the environment being started. // TODO: enum values: ["STATE_UNSPECIFIED", "STARTING", "UNARCHIVING_DISK", "AWAITING_COMPUTE_RESOURCES", "FINISHED"]
     #[serde(default)]
@@ -115,7 +116,7 @@ pub struct StartEnvironmentMetadata {
 }
 
 /// Request message for StartEnvironment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartEnvironmentRequest {
     /// The initial access token passed to the environment. If this is present and valid, the environment will be pre-authenticated with gcloud so that the user can run gcloud commands in Cloud Shell without having to log in. This code can be updated later by calling AuthorizeEnvironment.
     #[serde(default, rename = "accessToken")]
@@ -126,7 +127,7 @@ pub struct StartEnvironmentRequest {
 }
 
 /// Message included in the response field of operations returned from StartEnvironment once the operation is complete.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartEnvironmentResponse {
     /// Environment that was started.
     #[serde(default)]
@@ -134,7 +135,7 @@ pub struct StartEnvironmentResponse {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -154,7 +155,7 @@ pub struct Operation {
 }
 
 /// A Cloud Shell environment, which is defined as the combination of a Docker image specifying what is installed on the environment and a home directory containing the user''s data that will remain across sessions. Each user has at least an environment with the ID "default".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Environment {
     /// Required. Immutable. Full path to the Docker image used to run this environment, e.g. "gcr.io/dev-con/cloud-devshell:latest".
     #[serde(default, rename = "dockerImage")]
@@ -186,7 +187,7 @@ pub struct Environment {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]

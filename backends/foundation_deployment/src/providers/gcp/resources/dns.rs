@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The response to a request to enumerate Changes to a ResourceRecordSets collection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChangesListResponse {
     /// The requested changes.
     #[serde(default)]
@@ -25,7 +26,7 @@ pub struct ChangesListResponse {
 }
 
 /// The response to a request to enumerate DnsKeys in a ManagedZone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsKeysListResponse {
     /// The requested resources.
     #[serde(default, rename = "dnsKeys")]
@@ -39,7 +40,7 @@ pub struct DnsKeysListResponse {
 }
 
 /// Request message for GetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1GetIamPolicyRequest {
     /// OPTIONAL: A GetPolicyOptions object for specifying options to GetIamPolicy.
     #[serde(default)]
@@ -47,7 +48,7 @@ pub struct GoogleIamV1GetIamPolicyRequest {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -58,7 +59,7 @@ pub struct GoogleIamV1SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -66,7 +67,7 @@ pub struct GoogleIamV1TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -74,7 +75,7 @@ pub struct GoogleIamV1TestIamPermissionsResponse {
 }
 
 /// ManagedZoneOperationsListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedZoneOperationsListResponse {
     /// Type of resource.
     #[serde(default)]
@@ -88,7 +89,7 @@ pub struct ManagedZoneOperationsListResponse {
 }
 
 /// ManagedZonesListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedZonesListResponse {
     /// Type of resource.
     #[serde(default)]
@@ -102,7 +103,7 @@ pub struct ManagedZonesListResponse {
 }
 
 /// PoliciesListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PoliciesListResponse {
     /// Type of resource.
     #[serde(default)]
@@ -116,21 +117,21 @@ pub struct PoliciesListResponse {
 }
 
 /// PoliciesPatchResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PoliciesPatchResponse {
     #[serde(default)]
     pub policy: ::core::option::Option<Policy>,
 }
 
 /// PoliciesUpdateResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PoliciesUpdateResponse {
     #[serde(default)]
     pub policy: ::core::option::Option<Policy>,
 }
 
 /// A project resource. The project is a top level container for resources including Cloud DNS ManagedZones. Projects can be created only in the APIs console.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Project {
     /// User assigned unique identifier for the resource (output only).
     #[serde(default)]
@@ -146,11 +147,11 @@ pub struct Project {
 }
 
 /// ResourceRecordSetsDeleteResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceRecordSetsDeleteResponse {}
 
 /// ResourceRecordSetsListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceRecordSetsListResponse {
     /// Type of resource.
     #[serde(default)]
@@ -164,7 +165,7 @@ pub struct ResourceRecordSetsListResponse {
 }
 
 /// ResponsePoliciesListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResponsePoliciesListResponse {
     /// This field indicates that more results are available beyond the last page displayed. To fetch the results, make another list request and use this value as your page token. This lets you retrieve the complete contents of a very large collection one page at a time. However, if the contents of the collection change between the first and last paginated list request, the set of all elements returned are an inconsistent view of the collection. You can''t retrieve a consistent snapshot of a collection larger than the maximum page size.
     #[serde(default, rename = "nextPageToken")]
@@ -175,21 +176,21 @@ pub struct ResponsePoliciesListResponse {
 }
 
 /// ResponsePoliciesPatchResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResponsePoliciesPatchResponse {
     #[serde(default, rename = "responsePolicy")]
     pub response_policy: ::core::option::Option<ResponsePolicy>,
 }
 
 /// ResponsePoliciesUpdateResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResponsePoliciesUpdateResponse {
     #[serde(default, rename = "responsePolicy")]
     pub response_policy: ::core::option::Option<ResponsePolicy>,
 }
 
 /// ResponsePolicyRulesListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResponsePolicyRulesListResponse {
     /// This field indicates that more results are available beyond the last page displayed. To fetch the results, make another list request and use this value as your page token. This lets you retrieve the complete contents of a very large collection one page at a time. However, if the contents of the collection change between the first and last paginated list request, the set of all elements returned are an inconsistent view of the collection. You can''t retrieve a consistent snapshot of a collection larger than the maximum page size.
     #[serde(default, rename = "nextPageToken")]
@@ -200,21 +201,21 @@ pub struct ResponsePolicyRulesListResponse {
 }
 
 /// ResponsePolicyRulesPatchResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResponsePolicyRulesPatchResponse {
     #[serde(default, rename = "responsePolicyRule")]
     pub response_policy_rule: ::core::option::Option<ResponsePolicyRule>,
 }
 
 /// ResponsePolicyRulesUpdateResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResponsePolicyRulesUpdateResponse {
     #[serde(default, rename = "responsePolicyRule")]
     pub response_policy_rule: ::core::option::Option<ResponsePolicyRule>,
 }
 
 /// A Change represents a set of ResourceRecordSet additions and deletions applied atomically to a ManagedZone. ResourceRecordSets within a ManagedZone are modified by creating a new Change element in the Changes collection. In turn the Changes collection also records the past modifications to the ResourceRecordSets in a ManagedZone. The current state of the ManagedZone is the sum effect of applying all Change elements in the Changes collection in sequence.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Change {
     /// Which ResourceRecordSets to add?
     #[serde(default)]
@@ -239,7 +240,7 @@ pub struct Change {
 }
 
 /// Encapsulates settings provided to GetIamPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1GetPolicyOptions {
     /// Optional. The maximum policy version that will be used to format the policy. Valid values are 0, 1, and 3. Requests specifying an invalid value will be rejected. Requests for policies with any conditional role bindings must specify version 3. Policies with no conditional role bindings may specify any valid value or leave the field unset. The policy in the response might use the policy version that you specified, or it might use a lower policy version. For example, if you specify version 3, but the policy has no conditional role bindings, the response uses version 1. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default, rename = "requestedPolicyVersion")]
@@ -247,7 +248,7 @@ pub struct GoogleIamV1GetPolicyOptions {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -264,7 +265,7 @@ pub struct GoogleIamV1Policy {
 }
 
 /// An operation represents a successful mutation performed on a Cloud DNS resource. Operations provide: - An audit log of server resource mutations. - A way to recover/retry API calls in the case where the response is never received by the caller. Use the caller specified client_operation_id.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// Only populated if the operation targeted a DnsKey (output only).
     #[serde(default, rename = "dnsKeyContext")]
@@ -292,7 +293,7 @@ pub struct Operation {
 }
 
 /// A policy is a collection of DNS rules applied to one or more Virtual Private Cloud resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Sets an alternative name server for the associated networks. When specified, all DNS queries are forwarded to a name server that you choose. Names such as .internal are not available when an alternative name server is specified.
     #[serde(default, rename = "alternativeNameServerConfig")]
@@ -323,7 +324,7 @@ pub struct Policy {
 }
 
 /// Limits associated with a Project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Quota {
     /// Maximum allowed number of DnsKeys per ManagedZone.
     #[serde(default, rename = "dnsKeysPerManagedZone")]
@@ -404,7 +405,7 @@ pub struct Quota {
 }
 
 /// A Response Policy is a collection of selectors that apply to queries made against one or more Virtual Private Cloud networks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResponsePolicy {
     /// User-provided description for this Response Policy.
     #[serde(default)]
@@ -429,7 +430,7 @@ pub struct ResponsePolicy {
 }
 
 /// A Response Policy Rule is a selector that applies its behavior to queries that match the selector. Selectors are DNS names, which may be wildcards or exact matches. Each DNS query subject to a Response Policy matches at most one ResponsePolicyRule, as identified by the dns_name field with the longest matching suffix.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResponsePolicyRule {
     /// Answer this query with a behavior rather than DNS data. // TODO: enum values: ["behaviorUnspecified", "bypassResponsePolicy"]
     #[serde(default)]
@@ -448,7 +449,7 @@ pub struct ResponsePolicyRule {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -459,7 +460,7 @@ pub struct GoogleIamV1AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -473,7 +474,7 @@ pub struct GoogleIamV1Binding {
 }
 
 /// OperationDnsKeyContext resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationDnsKeyContext {
     /// The post-operation DnsKey resource.
     #[serde(default, rename = "newValue")]
@@ -484,7 +485,7 @@ pub struct OperationDnsKeyContext {
 }
 
 /// OperationManagedZoneContext resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationManagedZoneContext {
     /// The post-operation ManagedZone resource.
     #[serde(default, rename = "newValue")]
@@ -495,7 +496,7 @@ pub struct OperationManagedZoneContext {
 }
 
 /// PolicyAlternativeNameServerConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyAlternativeNameServerConfig {
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
@@ -506,7 +507,7 @@ pub struct PolicyAlternativeNameServerConfig {
 }
 
 /// DNS64 policies
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyDns64Config {
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
@@ -516,7 +517,7 @@ pub struct PolicyDns64Config {
 }
 
 /// PolicyNetwork resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyNetwork {
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
@@ -526,7 +527,7 @@ pub struct PolicyNetwork {
 }
 
 /// ResponsePolicyGKECluster resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResponsePolicyGKECluster {
     /// The resource name of the cluster to bind this response policy to. This should be specified in the format like: projects/*/locations/*/clusters/*. This is referenced from GKE projects.locations.clusters.get API: https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.locations.clusters/get
     #[serde(default, rename = "gkeClusterName")]
@@ -536,7 +537,7 @@ pub struct ResponsePolicyGKECluster {
 }
 
 /// ResponsePolicyNetwork resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResponsePolicyNetwork {
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
@@ -546,7 +547,7 @@ pub struct ResponsePolicyNetwork {
 }
 
 /// ResponsePolicyRuleLocalData resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResponsePolicyRuleLocalData {
     /// All resource record sets for this selector, one per resource record type. The name must match the dns_name.
     #[serde(default, rename = "localDatas")]
@@ -554,7 +555,7 @@ pub struct ResponsePolicyRuleLocalData {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -565,7 +566,7 @@ pub struct GoogleIamV1AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -582,7 +583,7 @@ pub struct Expr {
 }
 
 /// A DNSSEC key pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsKey {
     /// String mnemonic specifying the DNSSEC algorithm of this key. Immutable after creation time. // TODO: enum values: ["rsasha1", "rsasha256", "rsasha512", "ecdsap256sha256", "ecdsap384sha384"]
     #[serde(default)]
@@ -619,7 +620,7 @@ pub struct DnsKey {
 }
 
 /// A zone is a subtree of the DNS namespace under one administrative responsibility. A ManagedZone is a resource that represents a DNS zone hosted by the Cloud DNS service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedZone {
     #[serde(default, rename = "cloudLoggingConfig")]
     pub cloud_logging_config: ::core::option::Option<ManagedZoneCloudLoggingConfig>,
@@ -673,7 +674,7 @@ pub struct ManagedZone {
 }
 
 /// PolicyAlternativeNameServerConfigTargetNameServer resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyAlternativeNameServerConfigTargetNameServer {
     /// Forwarding path for this TargetNameServer. If unset or set to DEFAULT, Cloud DNS makes forwarding decisions based on address ranges; that is, RFC1918 addresses go to the VPC network, non-RFC1918 addresses go to the internet. When set to PRIVATE, Cloud DNS always sends queries through the VPC network for this target. // TODO: enum values: ["default", "private"]
     #[serde(default, rename = "forwardingPath")]
@@ -689,7 +690,7 @@ pub struct PolicyAlternativeNameServerConfigTargetNameServer {
 }
 
 /// PolicyDns64ConfigScope resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyDns64ConfigScope {
     /// Controls whether DNS64 is enabled globally for all networks bound to the policy.
     #[serde(default, rename = "allQueries")]
@@ -699,7 +700,7 @@ pub struct PolicyDns64ConfigScope {
 }
 
 /// A unit of data that is returned by the DNS servers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceRecordSet {
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
@@ -724,7 +725,7 @@ pub struct ResourceRecordSet {
 }
 
 /// DnsKeyDigest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsKeyDigest {
     /// The base-16 encoded bytes of this digest. Suitable for use in a DS resource record.
     #[serde(default)]
@@ -735,7 +736,7 @@ pub struct DnsKeyDigest {
 }
 
 /// Cloud Logging configurations for publicly visible zones.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedZoneCloudLoggingConfig {
     /// If set, enable query logging for this ManagedZone. False by default, making logging opt-in.
     #[serde(default, rename = "enableLogging")]
@@ -745,7 +746,7 @@ pub struct ManagedZoneCloudLoggingConfig {
 }
 
 /// ManagedZoneDnsSecConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedZoneDnsSecConfig {
     /// Specifies parameters for generating initial DnsKeys for this ManagedZone. Can only be changed while the state is OFF.
     #[serde(default, rename = "defaultKeySpecs")]
@@ -761,7 +762,7 @@ pub struct ManagedZoneDnsSecConfig {
 }
 
 /// ManagedZoneForwardingConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedZoneForwardingConfig {
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
@@ -772,7 +773,7 @@ pub struct ManagedZoneForwardingConfig {
 }
 
 /// ManagedZonePeeringConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedZonePeeringConfig {
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
@@ -782,7 +783,7 @@ pub struct ManagedZonePeeringConfig {
 }
 
 /// ManagedZonePrivateVisibilityConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedZonePrivateVisibilityConfig {
     /// The list of Google Kubernetes Engine clusters that can see this zone.
     #[serde(default, rename = "gkeClusters")]
@@ -797,14 +798,14 @@ pub struct ManagedZonePrivateVisibilityConfig {
 }
 
 /// ManagedZoneReverseLookupConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedZoneReverseLookupConfig {
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
 }
 
 /// Contains information about Service Directory-backed zones.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedZoneServiceDirectoryConfig {
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
@@ -814,7 +815,7 @@ pub struct ManagedZoneServiceDirectoryConfig {
 }
 
 /// A RRSetRoutingPolicy represents ResourceRecordSet data that is returned dynamically with the response varying based on configured properties such as geolocation or by weighted random selection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RRSetRoutingPolicy {
     #[serde(default)]
     pub geo: ::core::option::Option<RRSetRoutingPolicyGeoPolicy>,
@@ -830,7 +831,7 @@ pub struct RRSetRoutingPolicy {
 }
 
 /// Parameters for DnsKey key generation. Used for generating initial keys for a new ManagedZone and as default when adding a new DnsKey.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsKeySpec {
     /// String mnemonic specifying the DNSSEC algorithm of this key. // TODO: enum values: ["rsasha1", "rsasha256", "rsasha512", "ecdsap256sha256", "ecdsap384sha384"]
     #[serde(default)]
@@ -846,7 +847,7 @@ pub struct DnsKeySpec {
 }
 
 /// ManagedZoneForwardingConfigNameServerTarget resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedZoneForwardingConfigNameServerTarget {
     /// Fully qualified domain name for the forwarding target.
     #[serde(default, rename = "domainName")]
@@ -865,7 +866,7 @@ pub struct ManagedZoneForwardingConfigNameServerTarget {
 }
 
 /// ManagedZonePeeringConfigTargetNetwork resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedZonePeeringConfigTargetNetwork {
     /// The time at which the zone was deactivated, in RFC 3339 date-time format. An empty string indicates that the peering connection is active. The producer network can deactivate a zone. The zone is automatically deactivated if the producer network that the zone targeted is deleted. Output only.
     #[serde(default, rename = "deactivateTime")]
@@ -878,7 +879,7 @@ pub struct ManagedZonePeeringConfigTargetNetwork {
 }
 
 /// ManagedZonePrivateVisibilityConfigGKECluster resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedZonePrivateVisibilityConfigGKECluster {
     /// The resource name of the cluster to bind this ManagedZone to. This should be specified in the format like: projects/*/locations/*/clusters/*. This is referenced from GKE projects.locations.clusters.get API: https://cloud.google.com/kubernetes-engine/docs/reference/rest/v1/projects.locations.clusters/get
     #[serde(default, rename = "gkeClusterName")]
@@ -888,7 +889,7 @@ pub struct ManagedZonePrivateVisibilityConfigGKECluster {
 }
 
 /// ManagedZonePrivateVisibilityConfigNetwork resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedZonePrivateVisibilityConfigNetwork {
     #[serde(default)]
     pub kind: ::core::option::Option<String>,
@@ -898,7 +899,7 @@ pub struct ManagedZonePrivateVisibilityConfigNetwork {
 }
 
 /// ManagedZoneServiceDirectoryConfigNamespace resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedZoneServiceDirectoryConfigNamespace {
     /// The time that the namespace backing this zone was deleted; an empty string if it still exists. This is in RFC3339 text format. Output only.
     #[serde(default, rename = "deletionTime")]
@@ -911,7 +912,7 @@ pub struct ManagedZoneServiceDirectoryConfigNamespace {
 }
 
 /// Configures a RRSetRoutingPolicy such that all queries are responded with the primary_targets if they are healthy. And if all of them are unhealthy, then we fallback to a geo localized policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RRSetRoutingPolicyPrimaryBackupPolicy {
     /// Backup targets provide a regional failover policy for the otherwise global primary targets. If serving state is set to BACKUP, this policy essentially becomes a geo routing policy.
     #[serde(default, rename = "backupGeoTargets")]
@@ -927,7 +928,7 @@ pub struct RRSetRoutingPolicyPrimaryBackupPolicy {
 }
 
 /// Configures a RRSetRoutingPolicy that routes in a weighted round robin fashion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RRSetRoutingPolicyWrrPolicy {
     #[serde(default)]
     pub items: ::core::option::Option<::std::vec::Vec<RRSetRoutingPolicyWrrPolicyWrrPolicyItem>>,
@@ -936,7 +937,7 @@ pub struct RRSetRoutingPolicyWrrPolicy {
 }
 
 /// Configures a RRSetRoutingPolicy that routes based on the geo location of the querying user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RRSetRoutingPolicyGeoPolicy {
     /// Without fencing, if health check fails for all configured items in the current geo bucket, we failover to the next nearest geo bucket. With fencing, if health checking is enabled, as long as some targets in the current geo bucket are healthy, we return only the healthy targets. However, if all targets are unhealthy, we don''t failover to the next nearest bucket; instead, we return all the items in the current bucket even when all targets are unhealthy.
     #[serde(default, rename = "enableFencing")]
@@ -949,7 +950,7 @@ pub struct RRSetRoutingPolicyGeoPolicy {
 }
 
 /// A routing block which contains the routing information for one WRR item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RRSetRoutingPolicyWrrPolicyWrrPolicyItem {
     /// Endpoints that are health checked before making the routing decision. The unhealthy endpoints are omitted from the result. If all endpoints within a bucket are unhealthy, we choose a different bucket (sampled with respect to its weight) for responding. If DNSSEC is enabled for this zone, only one of rrdata or health_checked_targets can be set.
     #[serde(default, rename = "healthCheckedTargets")]
@@ -967,7 +968,7 @@ pub struct RRSetRoutingPolicyWrrPolicyWrrPolicyItem {
 }
 
 /// ResourceRecordSet data for one geo location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RRSetRoutingPolicyGeoPolicyGeoPolicyItem {
     /// For A and AAAA types only. Endpoints to return in the query result only if they are healthy. These can be specified along with rrdata within this item.
     #[serde(default, rename = "healthCheckedTargets")]
@@ -985,7 +986,7 @@ pub struct RRSetRoutingPolicyGeoPolicyGeoPolicyItem {
 }
 
 /// HealthCheckTargets describes endpoints to health-check when responding to Routing Policy queries. Only the healthy endpoints will be included in the response. Set either internal_load_balancer or external_endpoints. Do not set both.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RRSetRoutingPolicyHealthCheckTargets {
     /// The Internet IP addresses to be health checked. The format matches the format of ResourceRecordSet.rrdata as defined in RFC 1035 (section 5) and RFC 1034 (section 3.6.1)
     #[serde(default, rename = "externalEndpoints")]
@@ -997,7 +998,7 @@ pub struct RRSetRoutingPolicyHealthCheckTargets {
 }
 
 /// The configuration for an individual load balancer to health check.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RRSetRoutingPolicyLoadBalancerTarget {
     /// The frontend IP address of the load balancer to health check.
     #[serde(default, rename = "ipAddress")]

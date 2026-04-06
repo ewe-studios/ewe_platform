@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// JSON template for Group resource
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Groups {
     /// Identifies whether members external to your organization can join the group. Possible values are:  
     #[serde(default, rename = "allowExternalMembers")]

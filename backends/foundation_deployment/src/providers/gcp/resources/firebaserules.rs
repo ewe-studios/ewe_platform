@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// The response for FirebaseRulesService.GetReleaseExecutable
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetReleaseExecutableResponse {
     /// Executable view of the Ruleset referenced by the Release.
     #[serde(default)]
@@ -38,7 +39,7 @@ pub struct GetReleaseExecutableResponse {
 }
 
 /// The response for FirebaseRulesService.ListReleases.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListReleasesResponse {
     /// The pagination token to retrieve the next page of results. If the value is empty, no further results remain.
     #[serde(default, rename = "nextPageToken")]
@@ -49,7 +50,7 @@ pub struct ListReleasesResponse {
 }
 
 /// The response for FirebaseRulesService.ListRulesets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRulesetsResponse {
     /// The pagination token to retrieve the next page of results. If the value is empty, no further results remain.
     #[serde(default, rename = "nextPageToken")]
@@ -60,7 +61,7 @@ pub struct ListRulesetsResponse {
 }
 
 /// The request for FirebaseRulesService.TestRuleset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestRulesetRequest {
     /// Optional. Optional Source to be checked for correctness. This field must not be set when the resource name refers to a Ruleset.
     #[serde(default)]
@@ -71,7 +72,7 @@ pub struct TestRulesetRequest {
 }
 
 /// The response for FirebaseRulesService.TestRuleset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestRulesetResponse {
     /// Syntactic and semantic Source issues of varying severity. Issues of ERROR severity will prevent tests from executing.
     #[serde(default)]
@@ -82,7 +83,7 @@ pub struct TestRulesetResponse {
 }
 
 /// The request for FirebaseRulesService.UpdateRelease.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateReleaseRequest {
     /// Required. Release to update.
     #[serde(default)]
@@ -93,7 +94,7 @@ pub struct UpdateReleaseRequest {
 }
 
 /// Ruleset is an immutable copy of Source with a globally unique identifier and a creation time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Ruleset {
     /// Immutable. Intended resource to which this Ruleset should be released. May be left blank to signify the resource associated with the default release. Expected format: firestore.googleapis.com/projects//databases/
     #[serde(default, rename = "attachmentPoint")]
@@ -113,7 +114,7 @@ pub struct Ruleset {
 }
 
 /// TestSuite is a collection of TestCase instances that validate the logical correctness of a Ruleset. The TestSuite may be referenced in-line within a TestRuleset invocation or as part of a Release object as a pre-release check.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestSuite {
     /// Collection of test cases associated with the TestSuite.
     #[serde(default, rename = "testCases")]
@@ -121,7 +122,7 @@ pub struct TestSuite {
 }
 
 /// Issues include warnings, errors, and deprecation notices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Issue {
     /// Short error description.
     #[serde(default)]
@@ -135,7 +136,7 @@ pub struct Issue {
 }
 
 /// Test result message containing the state of the test as well as a description and source position for test failures.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestResult {
     /// Debug messages related to test execution issues encountered during evaluation. Debug messages may be related to too many or too few invocations of function mocks or to runtime errors that occur during evaluation. For example: Unable to read variable [name: "resource"]
     #[serde(default, rename = "debugMessages")]
@@ -158,7 +159,7 @@ pub struct TestResult {
 }
 
 /// Release is a named reference to a Ruleset. Once a Release refers to a Ruleset, rules-enabled services will be able to enforce the Ruleset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Release {
     /// Output only. Time the release was created.
     #[serde(default, rename = "createTime")]
@@ -175,7 +176,7 @@ pub struct Release {
 }
 
 /// Metadata for a Ruleset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Metadata {
     /// Services that this ruleset has declarations for (e.g., "cloud.firestore"). There may be 0+ of these.
     #[serde(default)]
@@ -183,7 +184,7 @@ pub struct Metadata {
 }
 
 /// Source is one or more File messages comprising a logical set of rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Source {
     /// Required. File set constituting the Source bundle.
     #[serde(default)]
@@ -191,7 +192,7 @@ pub struct Source {
 }
 
 /// TestCase messages provide the request context and an expectation as to whether the given context will be allowed or denied. Test cases may specify the request, resource, and function_mocks to mock a function call to a service-provided function. The request object represents context present at request-time. The resource is the value of the target resource as it appears in persistent storage before the request is executed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestCase {
     /// Test expectation. // TODO: enum values: ["EXPECTATION_UNSPECIFIED", "ALLOW", "DENY"]
     #[serde(default)]
@@ -214,7 +215,7 @@ pub struct TestCase {
 }
 
 /// Describes where in a file an expression is found and what it was evaluated to over the course of its use.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExpressionReport {
     /// Subexpressions
     #[serde(default)]
@@ -228,7 +229,7 @@ pub struct ExpressionReport {
 }
 
 /// Represents a service-defined function call that was invoked during test execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FunctionCall {
     /// The arguments that were provided to the function.
     #[serde(default)]
@@ -239,7 +240,7 @@ pub struct FunctionCall {
 }
 
 /// Store the position and access outcome for an expression visited in rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VisitedExpression {
     /// Position in the Source or Ruleset where an expression was visited.
     #[serde(default, rename = "sourcePosition")]
@@ -250,7 +251,7 @@ pub struct VisitedExpression {
 }
 
 /// File containing source content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct File {
     /// Required. Textual Content.
     #[serde(default)]
@@ -264,7 +265,7 @@ pub struct File {
 }
 
 /// Mock function definition. Mocks must refer to a function declared by the target service. The type of the function args and result will be inferred at test time. If either the arg or result values are not compatible with function type declaration, the request will be considered invalid. More than one FunctionMock may be provided for a given function name so long as the Arg matchers are distinct. There may be only one function for a given overload where all Arg values are Arg.any_value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FunctionMock {
     /// The list of Arg values to match. The order in which the arguments are provided is the order in which they must appear in the function invocation.
     #[serde(default)]
@@ -278,7 +279,7 @@ pub struct FunctionMock {
 }
 
 /// Tuple for how many times an Expression was evaluated to a particular ExpressionValue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValueCount {
     /// The amount of times that expression returned.
     #[serde(default)]
@@ -289,7 +290,7 @@ pub struct ValueCount {
 }
 
 /// Position in the Source content including its line, column number, and an index of the File in the Source message. Used for debug purposes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourcePosition {
     /// First column on the source line associated with the source fragment.
     #[serde(default)]
@@ -309,7 +310,7 @@ pub struct SourcePosition {
 }
 
 /// Arg matchers for the mock function.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Arg {
     /// Argument matches any value provided.
     #[serde(default, rename = "anyValue")]
@@ -320,7 +321,7 @@ pub struct Arg {
 }
 
 /// Possible result values from the function mock invocation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiResult {
     /// The result is undefined, meaning the result could not be computed.
     #[serde(default)]

@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Request message for PlatformPolicyEvaluationService.EvaluateGkePolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EvaluateGkePolicyRequest {
     /// Required. JSON or YAML blob representing a Kubernetes resource.
     #[serde(default)]
@@ -23,7 +24,7 @@ pub struct EvaluateGkePolicyRequest {
 }
 
 /// Response message for PlatformPolicyEvaluationService.EvaluateGkePolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EvaluateGkePolicyResponse {
     /// Evaluation result for each Pod contained in the request.
     #[serde(default)]
@@ -34,7 +35,7 @@ pub struct EvaluateGkePolicyResponse {
 }
 
 /// Response message for BinauthzManagementServiceV1.ListAttestors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAttestorsResponse {
     /// The list of attestors.
     #[serde(default)]
@@ -45,7 +46,7 @@ pub struct ListAttestorsResponse {
 }
 
 /// Response message for PlatformPolicyManagementService.ListPlatformPolicies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPlatformPoliciesResponse {
     /// A token to retrieve the next page of results. Pass this value in the ListPlatformPoliciesRequest.page_token field in the subsequent call to the ListPlatformPolicies method to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -56,7 +57,7 @@ pub struct ListPlatformPoliciesResponse {
 }
 
 /// A policy for container image binary authorization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Optional. Admission policy allowlisting. A matching admission request will always be permitted. This feature is typically used to exclude Google or third-party infrastructure images from Binary Authorization policies.
     #[serde(default, rename = "admissionWhitelistPatterns")]
@@ -95,7 +96,7 @@ pub struct Policy {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -103,7 +104,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -111,7 +112,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -119,7 +120,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// Request message for ValidationHelperV1.ValidateAttestationOccurrence.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValidateAttestationOccurrenceRequest {
     /// Required. An AttestationOccurrence to be checked that it can be verified by the Attestor. It does not have to be an existing entity in Container Analysis. It must otherwise be a valid AttestationOccurrence.
     #[serde(default)]
@@ -133,7 +134,7 @@ pub struct ValidateAttestationOccurrenceRequest {
 }
 
 /// Response message for ValidationHelperV1.ValidateAttestationOccurrence.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValidateAttestationOccurrenceResponse {
     /// The reason for denial if the Attestation couldn''t be validated.
     #[serde(default, rename = "denialReason")]
@@ -144,7 +145,7 @@ pub struct ValidateAttestationOccurrenceResponse {
 }
 
 /// Result of evaluating the whole GKE policy for one Pod.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PodResult {
     /// Per-image details.
     #[serde(default, rename = "imageResults")]
@@ -164,7 +165,7 @@ pub struct PodResult {
 }
 
 /// An attestor that attests to container image artifacts. An existing attestor cannot be modified except where indicated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Attestor {
     /// Optional. A descriptive comment. This field may be updated. The field may be displayed in chooser dialogs.
     #[serde(default)]
@@ -184,7 +185,7 @@ pub struct Attestor {
 }
 
 /// A Binary Authorization platform policy for deployments on various platforms.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlatformPolicy {
     /// Optional. A description comment about the policy.
     #[serde(default)]
@@ -204,7 +205,7 @@ pub struct PlatformPolicy {
 }
 
 /// An admission allowlist pattern exempts images from checks by admission rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdmissionWhitelistPattern {
     /// An image name pattern to allowlist, in the form registry/path/to/image. This supports a trailing * wildcard, but this is allowed only in text after the registry/ part. This also supports a trailing ** wildcard which matches subdirectories of a given entry.
     #[serde(default, rename = "namePattern")]
@@ -212,7 +213,7 @@ pub struct AdmissionWhitelistPattern {
 }
 
 /// An admission rule specifies either that all container images used in a pod creation request must be attested to by one or more attestors, that all pod creations will be allowed, or that all pod creations will be denied. Images matching an admission allowlist pattern are exempted from admission rules and will never block a pod creation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdmissionRule {
     /// Required. The action when a pod creation is denied by the admission rule. // TODO: enum values: ["ENFORCEMENT_MODE_UNSPECIFIED", "ENFORCED_BLOCK_AND_AUDIT_LOG", "DRYRUN_AUDIT_LOG_ONLY"]
     #[serde(default, rename = "enforcementMode")]
@@ -226,7 +227,7 @@ pub struct AdmissionRule {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IamPolicy {
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
@@ -240,7 +241,7 @@ pub struct IamPolicy {
 }
 
 /// Occurrence that represents a single "attestation". The authenticity of an attestation can be verified using the attached signature. If the verifier trusts the public key of the signer, then verifying the signature is sufficient to establish trust. In this circumstance, the authority to which this attestation is attached is primarily useful for lookup (how to find this attestation if you already know the authority and artifact to be verified) and intent (for which authority this attestation was intended to sign.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttestationOccurrence {
     /// One or more JWTs encoding a self-contained attestation. Each JWT encodes the payload that it verifies within the JWT itself. Verifier implementation SHOULD ignore the serialized_payload field when verifying these JWTs. If only JWTs are present on this AttestationOccurrence, then the serialized_payload SHOULD be left empty. Each JWT SHOULD encode a claim specific to the resource_uri of this Occurrence, but this is not validated by Grafeas metadata API implementations. The JWT itself is opaque to Grafeas.
     #[serde(default)]
@@ -254,7 +255,7 @@ pub struct AttestationOccurrence {
 }
 
 /// Result of evaluating one image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageResult {
     /// If the image was exempted by a top-level allow_pattern, contains the allowlist pattern that the image name matched.
     #[serde(default, rename = "allowlistResult")]
@@ -274,7 +275,7 @@ pub struct ImageResult {
 }
 
 /// An user owned Grafeas note references a Grafeas Attestation.Authority Note created by the user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserOwnedGrafeasNote {
     /// Output only. This field will contain the service account email address that this attestor will use as the principal when querying Container Analysis. Attestor administrators must grant this service account the IAM role needed to read attestations from the note_reference in Container Analysis (containeranalysis.notes.occurrences.viewer). This email address is fixed for the lifetime of the attestor, but callers should not make any other assumptions about the service account email; future versions may use an email based on a different naming pattern.
     #[serde(default, rename = "delegationServiceAccountEmail")]
@@ -288,7 +289,7 @@ pub struct UserOwnedGrafeasNote {
 }
 
 /// A Binary Authorization policy for a GKE cluster. This is one type of policy that can occur as a PlatformPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GkePolicy {
     /// Optional. The CheckSet objects to apply, scoped by namespace or namespace and service account. Exactly one CheckSet will be evaluated for a given Pod (unless the list is empty, in which case the behavior is "always allow"). If multiple CheckSet objects have scopes that match the namespace and service account of the Pod being evaluated, only the CheckSet with the MOST SPECIFIC scope will match. CheckSet objects must be listed in order of decreasing specificity, i.e. if a scope matches a given service account (which must include the namespace), it must come before a CheckSet with a scope matching just that namespace. This property is enforced by server-side validation. The purpose of this restriction is to ensure that if more than one CheckSet matches a given Pod, the CheckSet that will be evaluated will always be the first in the list to match (because if any other matches, it must be less specific). If check_sets is empty, the default behavior is to allow all images. If check_sets is non-empty, the last check_sets entry must always be a CheckSet with no scope set, i.e. a catchall to handle any situation not caught by the preceding CheckSet objects.
     #[serde(default, rename = "checkSets")]
@@ -299,7 +300,7 @@ pub struct GkePolicy {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -313,7 +314,7 @@ pub struct Binding {
 }
 
 /// Jwt resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Jwt {
     /// The compact encoding of a JWS, which is always three base64 encoded strings joined by periods. For details, see: https://tools.ietf.org/html/rfc7515.html#section-3.1
     #[serde(default, rename = "compactJwt")]
@@ -321,7 +322,7 @@ pub struct Jwt {
 }
 
 /// Verifiers (e.g. Kritis implementations) MUST verify signatures with respect to the trust anchors defined in policy (e.g. a Kritis policy). Typically this means that the verifier has been configured with a map from public_key_id to public key material (and any required parameters, e.g. signing algorithm). In particular, verification implementations MUST NOT treat the signature public_key_id as anything more than a key lookup hint. The public_key_id DOES NOT validate or authenticate a public key; it only provides a mechanism for quickly selecting a public key ALREADY CONFIGURED on the verifier through a trusted channel. Verification implementations MUST reject signatures in any of the following circumstances: * The public_key_id is not recognized by the verifier. * The public key that public_key_id refers to does not verify the signature with respect to the payload. The signature contents SHOULD NOT be "attached" (where the payload is included with the serialized signature bytes). Verifiers MUST ignore any "attached" payload and only verify signatures with respect to explicitly provided payload (e.g. a payload field on the proto message that holds this Signature, or the canonical serialization of the proto message that holds this signature).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Signature {
     /// The identifier for the public key that verifies this signature. * The public_key_id is required. * The public_key_id SHOULD be an RFC3986 conformant URI. * When possible, the public_key_id SHOULD be an immutable reference, such as a cryptographic digest. Examples of valid public_key_ids: OpenPGP V4 public key fingerprint: * "openpgp4fpr:74FAF3B861BDA0870C7B6DEF607E48D2A663AEEA" See https://www.iana.org/assignments/uri-schemes/prov/openpgp4fpr for more details on this scheme. RFC6920 digest-named SubjectPublicKeyInfo (digest of the DER serialization): * "ni:///sha-256;cD9o9Cq6LG3jD0iKXqEi_vdjJGecm_iXkbqVoScViaU" * "nih:///sha-256;703f68f42aba2c6de30f488a5ea122fef76324679c9bf89791ba95a1271589a5"
     #[serde(default, rename = "publicKeyId")]
@@ -332,7 +333,7 @@ pub struct Signature {
 }
 
 /// Result of evaluating one check set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckSetResult {
     /// If the image was exempted by an allow_pattern in the check set, contains the pattern that the image name matched.
     #[serde(default, rename = "allowlistResult")]
@@ -355,7 +356,7 @@ pub struct CheckSetResult {
 }
 
 /// An attestor public key that will be used to verify attestations signed by this attestor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttestorPublicKey {
     /// ASCII-armored representation of a PGP public key, as the entire output by the command gpg --export --armor foo@example.com (either LF or CRLF line endings). When using this field, id should be left blank. The Binary Authorization API handlers will calculate the ID and fill it in automatically. Binary Authorization computes this ID as the OpenPGP RFC4880 V4 fingerprint, represented as upper-case hex. If id is provided by the caller, it will be overwritten by the API-calculated ID.
     #[serde(default, rename = "asciiArmoredPgpPublicKey")]
@@ -372,7 +373,7 @@ pub struct AttestorPublicKey {
 }
 
 /// A conjunction of policy checks, scoped to a particular namespace or Kubernetes service account. In order for evaluation of a CheckSet to return "allowed" for a given image in a given Pod, one of the following conditions must be satisfied: * The image is explicitly exempted by an entry in image_allowlist, OR * ALL of the checks evaluate to "allowed".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckSet {
     /// Optional. The checks to apply. The ultimate result of evaluating the check set will be "allow" if and only if every check in checks evaluates to "allow". If checks is empty, the default behavior is "always allow".
     #[serde(default)]
@@ -389,7 +390,7 @@ pub struct CheckSet {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -406,7 +407,7 @@ pub struct Expr {
 }
 
 /// Result of evaluating one or more checks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckResults {
     /// Per-check details.
     #[serde(default)]
@@ -414,7 +415,7 @@ pub struct CheckResults {
 }
 
 /// A single check to perform against a Pod. Checks are grouped into CheckSet objects, which are defined by the top-level policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Check {
     /// Optional. A special-case check that always denies. Note that this still only applies when the scope of the CheckSet applies and the image isn''t exempted by an image allowlist. This check is primarily useful for testing, or to set the default behavior for all unmatched scopes to "deny".
     #[serde(default, rename = "alwaysDeny")]
@@ -446,7 +447,7 @@ pub struct Check {
 }
 
 /// A scope specifier for CheckSet objects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Scope {
     /// Optional. Matches all Kubernetes service accounts in the provided namespace, unless a more specific kubernetes_service_account scope already matched.
     #[serde(default, rename = "kubernetesNamespace")]
@@ -457,7 +458,7 @@ pub struct Scope {
 }
 
 /// Result of evaluating one check.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckResult {
     /// If the image was exempted by an allow_pattern in the check, contains the pattern that the image name matched.
     #[serde(default, rename = "allowlistResult")]
@@ -480,7 +481,7 @@ pub struct CheckResult {
 }
 
 /// Images that are exempted from normal checks based on name pattern only.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageAllowlist {
     /// Required. A disjunction of image patterns to allow. If any of these patterns match, then the image is considered exempted by this allowlist.
     #[serde(default, rename = "allowPattern")]
@@ -488,7 +489,7 @@ pub struct ImageAllowlist {
 }
 
 /// An image freshness check, which rejects images that were uploaded before the set number of days ago to the supported repositories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageFreshnessCheck {
     /// Required. The max number of days that is allowed since the image was uploaded. Must be greater than zero.
     #[serde(default, rename = "maxUploadAgeDays")]
@@ -496,7 +497,7 @@ pub struct ImageFreshnessCheck {
 }
 
 /// A Sigstore signature check, which verifies the Sigstore signature associated with an image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SigstoreSignatureCheck {
     /// Required. The authorities required by this check to verify the signature. A signature only needs to be verified by one authority to pass the check.
     #[serde(default, rename = "sigstoreAuthorities")]
@@ -504,7 +505,7 @@ pub struct SigstoreSignatureCheck {
 }
 
 /// Require a signed [DSSE](https://github.com/secure-systems-lab/dsse) attestation with type SimpleSigning.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SimpleSigningAttestationCheck {
     /// Required. The authenticators required by this check to verify an attestation. Typically this is one or more PKIX public keys for signature verification. Only one authenticator needs to consider an attestation verified in order for an attestation to be considered fully authenticated. In otherwords, this list of authenticators is an "OR" of the authenticator results. At least one authenticator is required.
     #[serde(default, rename = "attestationAuthenticators")]
@@ -516,7 +517,7 @@ pub struct SimpleSigningAttestationCheck {
 }
 
 /// A SLSA provenance attestation check, which ensures that images are built by a trusted builder using source code from its trusted repositories only.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SlsaCheck {
     /// Specifies a list of verification rules for the SLSA attestations. An image is considered compliant with the SlsaCheck if any of the rules are satisfied.
     #[serde(default)]
@@ -524,7 +525,7 @@ pub struct SlsaCheck {
 }
 
 /// A trusted directory check, which rejects images that do not come from the set of user-configured trusted directories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TrustedDirectoryCheck {
     /// Required. List of trusted directory patterns. A pattern is in the form "registry/path/to/directory". The registry domain part is defined as two or more dot-separated words, e.g., us.pkg.dev, or gcr.io. Additionally, * can be used in three ways as wildcards: 1. leading * to match varying prefixes in registry subdomain (useful for location prefixes); 2. trailing * after registry/ to match varying endings; 3. trailing ** after registry/ to match "/" as well. For example: -- gcr.io/my-project/my-repo is valid to match a single directory -- *-docker.pkg.dev/my-project/my-repo or *.gcr.io/my-project are valid to match varying prefixes -- gcr.io/my-project/* will match all direct directories in my-project -- gcr.io/my-project/** would match all directories in my-project -- gcr.i* is not allowed since the registry is not completely specified -- sub*domain.gcr.io/nginx is not valid because only leading * or trailing * are allowed. -- *pkg.dev/my-project/my-repo is not valid because leading * can only match subdomain -- **-docker.pkg.dev is not valid because one leading * is allowed, and that it cannot match /
     #[serde(default, rename = "trustedDirPatterns")]
@@ -532,7 +533,7 @@ pub struct TrustedDirectoryCheck {
 }
 
 /// An image vulnerability check, which rejects images that violate the configured vulnerability rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VulnerabilityCheck {
     /// Optional. A list of specific CVEs to ignore even if the vulnerability level violates maximumUnfixableSeverity or maximumFixableSeverity. CVEs are listed in the format of Container Analysis note id. For example: - CVE-2021-20305 - CVE-2020-10543 The CVEs are applicable regardless of note provider project, e.g., an entry of CVE-2021-20305 will allow vulnerabilities with a note name of either projects/goog-vulnz/notes/CVE-2021-20305 or projects/CUSTOM-PROJECT/notes/CVE-2021-20305.
     #[serde(default, rename = "allowedCves")]
@@ -552,7 +553,7 @@ pub struct VulnerabilityCheck {
 }
 
 /// Result of evaluating an image name allowlist.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllowlistResult {
     /// The allowlist pattern that the image matched.
     #[serde(default, rename = "matchedPattern")]
@@ -560,7 +561,7 @@ pub struct AllowlistResult {
 }
 
 /// Result of evaluating one check.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EvaluationResult {
     /// The result of evaluating this check. // TODO: enum values: ["CHECK_VERDICT_UNSPECIFIED", "CONFORMANT", "NON_CONFORMANT", "ERROR"]
     #[serde(default)]
@@ -568,7 +569,7 @@ pub struct EvaluationResult {
 }
 
 /// A Sigstore authority, used to verify signatures that are created by Sigstore. An authority is analogous to an attestation authenticator, verifying that a signature is valid or invalid.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SigstoreAuthority {
     /// Optional. A user-provided name for this SigstoreAuthority. This field has no effect on the policy evaluation behavior except to improve readability of messages in evaluation results.
     #[serde(default, rename = "displayName")]
@@ -579,7 +580,7 @@ pub struct SigstoreAuthority {
 }
 
 /// An attestation authenticator that will be used to verify attestations. Typically this is just a set of public keys. Conceptually, an authenticator can be treated as always returning either "authenticated" or "not authenticated" when presented with a signed attestation (almost always assumed to be a [DSSE](https://github.com/secure-systems-lab/dsse) attestation). The details of how an authenticator makes this decision are specific to the type of ''authenticator'' that this message wraps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttestationAuthenticator {
     /// Optional. A user-provided name for this AttestationAuthenticator. This field has no effect on the policy evaluation behavior except to improve readability of messages in evaluation results.
     #[serde(default, rename = "displayName")]
@@ -590,7 +591,7 @@ pub struct AttestationAuthenticator {
 }
 
 /// Specifies verification rules for evaluating the SLSA attestations including: which builders to trust, where to fetch the SLSA attestations generated by those builders, and other builder-specific evaluation rules such as which source repositories are trusted. An image is considered verified by the rule if any of the fetched SLSA attestations is verified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerificationRule {
     /// Specifies where to fetch the provenances attestations generated by the builder (group).
     #[serde(default, rename = "attestationSource")]
@@ -610,7 +611,7 @@ pub struct VerificationRule {
 }
 
 /// A bundle of Sigstore public keys, used to verify Sigstore signatures. A signature is authenticated by a SigstorePublicKeySet if any of the keys verify it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SigstorePublicKeySet {
     /// Required. public_keys must have at least one entry.
     #[serde(default, rename = "publicKeys")]
@@ -618,7 +619,7 @@ pub struct SigstorePublicKeySet {
 }
 
 /// A bundle of PKIX public keys, used to authenticate attestation signatures. Generally, a signature is considered to be authenticated by a PkixPublicKeySet if any of the public keys verify it (i.e. it is an "OR" of the keys).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PkixPublicKeySet {
     /// Required. pkix_public_keys must have at least one entry.
     #[serde(default, rename = "pkixPublicKeys")]
@@ -626,7 +627,7 @@ pub struct PkixPublicKeySet {
 }
 
 /// Specifies the locations for fetching the provenance attestations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttestationSource {
     /// The IDs of the Google Cloud projects that store the SLSA attestations as Container Analysis Occurrences, in the format projects/[PROJECT_ID]. Maximum number of container_analysis_attestation_projects allowed in each AttestationSource is 10.
     #[serde(default, rename = "containerAnalysisAttestationProjects")]
@@ -634,7 +635,7 @@ pub struct AttestationSource {
 }
 
 /// A Sigstore public key. SigstorePublicKey is the public key material used to authenticate Sigstore signatures.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SigstorePublicKey {
     /// The public key material in PEM format.
     #[serde(default, rename = "publicKeyPem")]
@@ -642,7 +643,7 @@ pub struct SigstorePublicKey {
 }
 
 /// A public key in the PkixPublicKey [format](https://tools.ietf.org/html/rfc5280#section-4.1.2.7). Public keys of this type are typically textually encoded using the PEM format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PkixPublicKey {
     /// Optional. The ID of this public key. Signatures verified by Binary Authorization must include the ID of the public key that can be used to verify them. The ID must match exactly contents of the key_id field exactly. The ID may be explicitly provided by the caller, but it MUST be a valid RFC3986 URI. If key_id is left blank and this PkixPublicKey is not used in the context of a wrapper (see next paragraph), a default key ID will be computed based on the digest of the DER encoding of the public key. If this PkixPublicKey is used in the context of a wrapper that has its own notion of key ID (e.g. AttestorPublicKey), then this field can either match that value exactly, or be left blank, in which case it behaves exactly as though it is equal to that wrapper value.
     #[serde(default, rename = "keyId")]

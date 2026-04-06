@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request message for CreateOrUpdateTags. VerifyToken.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateOrUpdateTagsRequest {
     /// Tags to be inserted or updated.
     #[serde(default)]
@@ -19,7 +20,7 @@ pub struct CreateOrUpdateTagsRequest {
 }
 
 /// Response message for CreateOrUpdateTags.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateOrUpdateTagsResponse {
     /// All requested tags are returned, including pre-existing ones.
     #[serde(default)]
@@ -27,7 +28,7 @@ pub struct CreateOrUpdateTagsResponse {
 }
 
 /// Request message for VerifyToken.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerifyTokenRequest {
     /// Required. Persona represented by the token. Format: personas/{persona}
     #[serde(default)]
@@ -35,11 +36,11 @@ pub struct VerifyTokenRequest {
 }
 
 /// Response message for VerifyToken.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerifyTokenResponse {}
 
 /// A tag is associated with exactly one package name and user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Tag {
     /// A boolean value of the tag.
     #[serde(default, rename = "booleanValue")]

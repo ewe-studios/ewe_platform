@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Response for the ListCrawledUrls method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCrawledUrlsResponse {
     /// The list of CrawledUrls returned.
     #[serde(default, rename = "crawledUrls")]
@@ -26,7 +27,7 @@ pub struct ListCrawledUrlsResponse {
 }
 
 /// Response for the ListFindingTypeStats method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListFindingTypeStatsResponse {
     /// The list of FindingTypeStats returned.
     #[serde(default, rename = "findingTypeStats")]
@@ -34,7 +35,7 @@ pub struct ListFindingTypeStatsResponse {
 }
 
 /// Response for the ListFindings method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListFindingsResponse {
     /// The list of Findings returned.
     #[serde(default)]
@@ -45,7 +46,7 @@ pub struct ListFindingsResponse {
 }
 
 /// Response for the ListScanConfigs method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListScanConfigsResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -56,7 +57,7 @@ pub struct ListScanConfigsResponse {
 }
 
 /// Response for the ListScanRuns method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListScanRunsResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -67,15 +68,15 @@ pub struct ListScanRunsResponse {
 }
 
 /// Request for the StartScanRun method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartScanRunRequest {}
 
 /// Request for the StopScanRun method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StopScanRunRequest {}
 
 /// A CrawledUrl resource represents a URL that was crawled during a ScanRun. Web Security Scanner Service crawls the web applications, following all links within the scope of sites, to find the URLs to test against.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CrawledUrl {
     /// Output only. The body of the request that was used to visit the URL.
     #[serde(default)]
@@ -89,7 +90,7 @@ pub struct CrawledUrl {
 }
 
 /// A FindingTypeStats resource represents stats regarding a specific FindingType of Findings under a given ScanRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FindingTypeStats {
     /// Output only. The count of findings belonging to this finding type.
     #[serde(default, rename = "findingCount")]
@@ -100,7 +101,7 @@ pub struct FindingTypeStats {
 }
 
 /// A Finding resource represents a vulnerability instance identified during a ScanRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Finding {
     /// Output only. The body of the request that triggered the vulnerability.
     #[serde(default)]
@@ -159,7 +160,7 @@ pub struct Finding {
 }
 
 /// A ScanConfig resource contains the configurations to launch a scan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScanConfig {
     /// The authentication configuration. If specified, service will use the authentication configuration during scanning.
     #[serde(default)]
@@ -208,7 +209,7 @@ pub struct ScanConfig {
 }
 
 /// ! Information about a vulnerability with an HTML.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Form {
     /// ! The URI where to send the form when it''s submitted.
     #[serde(default, rename = "actionUri")]
@@ -219,7 +220,7 @@ pub struct Form {
 }
 
 /// Information reported for an outdated library.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OutdatedLibrary {
     /// URLs to learn more information about the vulnerabilities in the library.
     #[serde(default, rename = "learnMoreUrls")]
@@ -233,7 +234,7 @@ pub struct OutdatedLibrary {
 }
 
 /// Information regarding any resource causing the vulnerability such as JavaScript sources, image, audio files, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ViolatingResource {
     /// The MIME type of this resource.
     #[serde(default, rename = "contentType")]
@@ -244,7 +245,7 @@ pub struct ViolatingResource {
 }
 
 /// Information about vulnerable or missing HTTP Headers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VulnerableHeaders {
     /// List of vulnerable headers.
     #[serde(default)]
@@ -255,7 +256,7 @@ pub struct VulnerableHeaders {
 }
 
 /// Information about vulnerable request parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VulnerableParameters {
     /// The vulnerable parameter names.
     #[serde(default, rename = "parameterNames")]
@@ -263,7 +264,7 @@ pub struct VulnerableParameters {
 }
 
 /// Information reported for an XSS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Xss {
     /// The attack vector of the payload triggering this XSS. // TODO: enum values: ["ATTACK_VECTOR_UNSPECIFIED", "LOCAL_STORAGE", "SESSION_STORAGE", "WINDOW_NAME", "REFERRER", "FORM_INPUT", "COOKIE", "POST_MESSAGE", "GET_PARAMETERS", "URL_FRAGMENT", "HTML_COMMENT", "POST_PARAMETERS", "PROTOCOL", "STORED_XSS", "SAME_ORIGIN", "USER_CONTROLLABLE_URL"]
     #[serde(default, rename = "attackVector")]
@@ -280,7 +281,7 @@ pub struct Xss {
 }
 
 /// Information reported for an XXE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Xxe {
     /// Location within the request where the payload was placed. // TODO: enum values: ["LOCATION_UNSPECIFIED", "COMPLETE_REQUEST_BODY"]
     #[serde(default, rename = "payloadLocation")]
@@ -291,7 +292,7 @@ pub struct Xxe {
 }
 
 /// Scan authentication configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Authentication {
     /// Authentication using a custom account.
     #[serde(default, rename = "customAccount")]
@@ -305,7 +306,7 @@ pub struct Authentication {
 }
 
 /// A ScanRun is a output-only resource representing an actual run of the scan. Next id: 12
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScanRun {
     /// Output only. The time at which the ScanRun reached termination state - that the ScanRun is either finished or stopped by user.
     #[serde(default, rename = "endTime")]
@@ -343,7 +344,7 @@ pub struct ScanRun {
 }
 
 /// Scan schedule configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Schedule {
     /// Required. The duration of time between executions in days.
     #[serde(default, rename = "intervalDurationDays")]
@@ -354,7 +355,7 @@ pub struct Schedule {
 }
 
 /// Describes a HTTP Header.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Header {
     /// Header name.
     #[serde(default)]
@@ -365,7 +366,7 @@ pub struct Header {
 }
 
 /// Describes authentication configuration that uses a custom account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomAccount {
     /// Required. The login form URL of the website.
     #[serde(default, rename = "loginUrl")]
@@ -379,7 +380,7 @@ pub struct CustomAccount {
 }
 
 /// Describes authentication configuration that uses a Google account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAccount {
     /// Required. Input only. The password of the Google account. The credential is stored encrypted and not returned in any response nor included in audit logs.
     #[serde(default)]
@@ -390,7 +391,7 @@ pub struct GoogleAccount {
 }
 
 /// Describes authentication configuration for Identity-Aware-Proxy (IAP).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IapCredential {
     /// Authentication configuration when Web-Security-Scanner service account is added in Identity-Aware-Proxy (IAP) access policies.
     #[serde(default, rename = "iapTestServiceAccountInfo")]
@@ -398,7 +399,7 @@ pub struct IapCredential {
 }
 
 /// Output only. Defines an error trace message for a ScanRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScanRunErrorTrace {
     /// Output only. Indicates the error reason code. // TODO: enum values: ["CODE_UNSPECIFIED", "INTERNAL_ERROR", "SCAN_CONFIG_ISSUE", "AUTHENTICATION_CONFIG_ISSUE", "TIMED_OUT_WHILE_SCANNING", "TOO_MANY_REDIRECTS", "TOO_MANY_HTTP_ERRORS", "STARTING_URLS_CRAWL_HTTP_ERRORS"]
     #[serde(default)]
@@ -412,7 +413,7 @@ pub struct ScanRunErrorTrace {
 }
 
 /// Output only. Defines a warning trace message for ScanRun. Warning traces provide customers with useful information that helps make the scanning process more effective.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScanRunWarningTrace {
     /// Output only. Indicates the warning code. // TODO: enum values: ["CODE_UNSPECIFIED", "INSUFFICIENT_CRAWL_RESULTS", "TOO_MANY_CRAWL_RESULTS", "TOO_MANY_FUZZ_TASKS", "BLOCKED_BY_IAP", "NO_STARTING_URL_FOUND_FOR_MANAGED_SCAN"]
     #[serde(default)]
@@ -420,7 +421,7 @@ pub struct ScanRunWarningTrace {
 }
 
 /// Describes authentication configuration when Web-Security-Scanner service account is added in Identity-Aware-Proxy (IAP) access policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IapTestServiceAccountInfo {
     /// Required. Describes OAuth2 client id of resources protected by Identity-Aware-Proxy (IAP).
     #[serde(default, rename = "targetAudienceClientId")]
@@ -428,7 +429,7 @@ pub struct IapTestServiceAccountInfo {
 }
 
 /// Defines a custom error message used by CreateScanConfig and UpdateScanConfig APIs when scan configuration validation fails. It is also reported as part of a ScanRunErrorTrace message if scan validation fails due to a scan configuration error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScanConfigError {
     /// Output only. Indicates the reason code for a configuration failure. // TODO: enum values: ["CODE_UNSPECIFIED", "OK", "INTERNAL_ERROR", "APPENGINE_API_BACKEND_ERROR", "APPENGINE_API_NOT_ACCESSIBLE", "APPENGINE_DEFAULT_HOST_MISSING", "CANNOT_USE_GOOGLE_COM_ACCOUNT", "CANNOT_USE_OWNER_ACCOUNT", "COMPUTE_API_BACKEND_ERROR", "COMPUTE_API_NOT_ACCESSIBLE", "CUSTOM_LOGIN_URL_DOES_NOT_BELONG_TO_CURRENT_PROJECT", "CUSTOM_LOGIN_URL_MALFORMED", "CUSTOM_LOGIN_URL_MAPPED_TO_NON_ROUTABLE_ADDRESS", "CUSTOM_LOGIN_URL_MAPPED_TO_UNRESERVED_ADDRESS", "CUSTOM_LOGIN_URL_HAS_NON_ROUTABLE_IP_ADDRESS", "CUSTOM_LOGIN_URL_HAS_UNRESERVED_IP_ADDRESS", "DUPLICATE_SCAN_NAME", "INVALID_FIELD_VALUE", "FAILED_TO_AUTHENTICATE_TO_TARGET", "FINDING_TYPE_UNSPECIFIED", "FORBIDDEN_TO_SCAN_COMPUTE", "FORBIDDEN_UPDATE_TO_MANAGED_SCAN", "MALFORMED_FILTER", "MALFORMED_RESOURCE_NAME", "PROJECT_INACTIVE", "REQUIRED_FIELD", "RESOURCE_NAME_INCONSISTENT", "SCAN_ALREADY_RUNNING", "SCAN_NOT_RUNNING", "SEED_URL_DOES_NOT_BELONG_TO_CURRENT_PROJECT", "SEED_URL_MALFORMED", "SEED_URL_MAPPED_TO_NON_ROUTABLE_ADDRESS", "SEED_URL_MAPPED_TO_UNRESERVED_ADDRESS", "SEED_URL_HAS_NON_ROUTABLE_IP_ADDRESS", "SEED_URL_HAS_UNRESERVED_IP_ADDRESS", "SERVICE_ACCOUNT_NOT_CONFIGURED", "TOO_MANY_SCANS", "UNABLE_TO_RESOLVE_PROJECT_INFO", "UNSUPPORTED_BLACKLIST_PATTERN_FORMAT", "UNSUPPORTED_FILTER", "UNSUPPORTED_FINDING_TYPE", "UNSUPPORTED_URL_SCHEME", "CLOUD_ASSET_INVENTORY_ASSET_NOT_FOUND"]
     #[serde(default)]

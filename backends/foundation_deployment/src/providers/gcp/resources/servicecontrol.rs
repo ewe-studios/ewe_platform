@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Common audit log format for Google Cloud Platform API operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLog {
     /// Authentication information.
     #[serde(default, rename = "authenticationInfo")]
@@ -61,7 +62,7 @@ pub struct AuditLog {
 }
 
 /// Request message for the Check method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckRequest {
     /// Describes attributes about the operation being executed by the service.
     #[serde(default)]
@@ -78,7 +79,7 @@ pub struct CheckRequest {
 }
 
 /// Response message for the Check method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckResponse {
     /// Optional response metadata that will be emitted as dynamic metadata to be consumed by the caller of ServiceController. For compatibility with the ext_authz interface.
     #[serde(default, rename = "dynamicMetadata")]
@@ -92,7 +93,7 @@ pub struct CheckResponse {
 }
 
 /// Request message for the Report method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportRequest {
     /// Describes the list of operations to be reported. Each operation is represented as an AttributeContext, and contains all attributes around an API access.
     #[serde(default)]
@@ -103,7 +104,7 @@ pub struct ReportRequest {
 }
 
 /// Response message for the Report method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportResponse {
     /// The extension field to store serialized OTel responses. e.g. ExportLogsServiceResponse, ExportMetricsServiceResponse.
     #[serde(default)]
@@ -111,7 +112,7 @@ pub struct ReportResponse {
 }
 
 /// The context of a span. This is attached to an Exemplar in Distribution values during aggregation. It contains the name of a span with format: projects/[PROJECT_ID_OR_NUMBER]/traces/[TRACE_ID]/spans/[SPAN_ID]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpanContext {
     /// The resource name of the span. The format is: projects/[PROJECT_ID_OR_NUMBER]/traces/[TRACE_ID]/spans/[SPAN_ID] [TRACE_ID] is a unique identifier for a trace within a project; it is a 32-character hexadecimal encoding of a 16-byte array. [SPAN_ID] is a unique identifier for a span within a trace; it is a 16-character hexadecimal encoding of an 8-byte array.
     #[serde(default, rename = "spanName")]
@@ -119,7 +120,7 @@ pub struct SpanContext {
 }
 
 /// An individual log entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V2LogEntry {
     /// Optional. Information about the HTTP request associated with this log entry, if applicable.
     #[serde(default, rename = "httpRequest")]
@@ -163,7 +164,7 @@ pub struct V2LogEntry {
 }
 
 /// Report v2 extension proto for passing the resource metadata associated with a resource create/update/delete/undelete event from ESF to Chemist. ResourceEvent proto should be serialized into the ReportRequest.operations.extensions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V2ResourceEvent {
     /// The ESF unique context id of the api request, from which this resource event originated. This field is only needed for CAIS integration via api annotation. See go/cais-lro-delete for more details.
     #[serde(default, rename = "contextId")]
@@ -189,7 +190,7 @@ pub struct V2ResourceEvent {
 }
 
 /// Authentication information for the operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthenticationInfo {
     /// The authority selector specified by the requestor, if any. It is not guaranteed that the principal was allowed to use this authority.
     #[serde(default, rename = "authoritySelector")]
@@ -222,7 +223,7 @@ pub struct AuthenticationInfo {
 }
 
 /// Authorization information for the operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthorizationInfo {
     /// Whether or not authorization for resource and permission was granted.
     #[serde(default)]
@@ -242,7 +243,7 @@ pub struct AuthorizationInfo {
 }
 
 /// Information related to policy violations for this request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyViolationInfo {
     /// Indicates the orgpolicy violations for this resource.
     #[serde(default, rename = "orgPolicyViolationInfo")]
@@ -250,7 +251,7 @@ pub struct PolicyViolationInfo {
 }
 
 /// Metadata about the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RequestMetadata {
     /// The IP address of the caller. For a caller from the internet, this will be the public IPv4 or IPv6 address. For calls made from inside Google''s internal production network from one GCP service to another, caller_ip will be redacted to "private". For a caller from a Compute Engine VM with a external IP address, caller_ip will be the VM''s external IP address. For a caller from a Compute Engine VM without a external IP address, if the VM is in the same organization (or project) as the accessed resource, caller_ip will be the VM''s internal IPv4 address, otherwise caller_ip will be redacted to "gce-internal-ip". See https://cloud.google.com/compute/docs/vpc/ for more information.
     #[serde(default, rename = "callerIp")]
@@ -270,7 +271,7 @@ pub struct RequestMetadata {
 }
 
 /// Location information about a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceLocation {
     /// The locations of a resource after the execution of the operation. Requests to create or delete a location based resource must populate the ''current_locations'' field and not the ''original_locations'' field. For example: "europe-west1-a" "us-east1" "nam3"
     #[serde(default, rename = "currentLocations")]
@@ -281,7 +282,7 @@ pub struct ResourceLocation {
 }
 
 /// Describes a resource referenced in the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceInfo {
     /// Optional. The identifier of the container of this resource. For Google Cloud APIs, the resource container must be one of the following formats: - projects/ - folders/ - organizations/ Required for the policy enforcement on the container level (e.g. VPCSC, Location Policy check, Org Policy check).
     #[serde(default)]
@@ -301,7 +302,7 @@ pub struct ResourceInfo {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -315,7 +316,7 @@ pub struct Status {
 }
 
 /// This message defines the standard attribute vocabulary for Google APIs. An attribute is a piece of metadata that describes an activity on a network service. For example, the size of an HTTP request, or the status code of an HTTP response. Each attribute has a type and a name, which is logically defined as a proto message field in AttributeContext. The field type becomes the attribute type, and the field path becomes the attribute name. For example, the attribute source.ip maps to field AttributeContext.source.ip. This message definition is guaranteed not to have any wire breaking change. So you can use it directly for passing attributes across different systems. NOTE: Different system may generate different subset of attributes. Please verify the system specification before relying on an attribute generated a system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttributeContext {
     /// Represents an API operation that is involved to a network activity.
     #[serde(default)]
@@ -344,7 +345,7 @@ pub struct AttributeContext {
 }
 
 /// A common proto for logging HTTP requests. Only contains semantics defined by the HTTP specification. Product-specific logging information MUST be defined in a separate message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V2HttpRequest {
     /// The number of HTTP response bytes inserted into cache. Set only when a cache fill was attempted.
     #[serde(default, rename = "cacheFillBytes")]
@@ -394,7 +395,7 @@ pub struct V2HttpRequest {
 }
 
 /// Additional information about a potentially long-running operation with which a log entry is associated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V2LogEntryOperation {
     /// Optional. Set this to True if this is the first log entry in the operation.
     #[serde(default)]
@@ -411,7 +412,7 @@ pub struct V2LogEntryOperation {
 }
 
 /// Additional information about the source code location that produced the log entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V2LogEntrySourceLocation {
     /// Optional. Source file name. Depending on the runtime environment, this might be a simple name or a fully-qualified name.
     #[serde(default)]
@@ -425,7 +426,7 @@ pub struct V2LogEntrySourceLocation {
 }
 
 /// OAuth related information about the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OAuthInfo {
     /// The OAuth client ID of the 1P or 3P application acting on behalf of the user.
     #[serde(default, rename = "oauthClientId")]
@@ -433,7 +434,7 @@ pub struct OAuthInfo {
 }
 
 /// Identity delegation history of an authenticated service account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceAccountDelegationInfo {
     /// First party (Google) identity as the real authority.
     #[serde(default, rename = "firstPartyPrincipal")]
@@ -447,7 +448,7 @@ pub struct ServiceAccountDelegationInfo {
 }
 
 /// The history of delegation across multiple services as the result of the original user''s action. Such as "service A uses its own account to do something for user B". This differs from ServiceAccountDelegationInfo, which only tracks the history of direct token exchanges (impersonation).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceDelegationHistory {
     /// The original end user who initiated the request to GCP.
     #[serde(default, rename = "originalPrincipal")]
@@ -458,7 +459,7 @@ pub struct ServiceDelegationHistory {
 }
 
 /// Represents OrgPolicy Violation information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrgPolicyViolationInfo {
     /// Optional. Deprecated. Resource payload that is currently in scope and is subjected to orgpolicy conditions. This payload may be the subset of the actual Resource that may come in the request.
     #[serde(default)]
@@ -475,7 +476,7 @@ pub struct OrgPolicyViolationInfo {
 }
 
 /// This message defines attributes associated with API operations, such as a network API request. The terminology is based on the conventions used by Google APIs, Istio, and OpenAPI.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Api {
     /// The API operation name. For gRPC requests, it is the fully qualified API method name, such as "google.pubsub.v1.Publisher.Publish". For OpenAPI requests, it is the operationId, such as "getPet".
     #[serde(default)]
@@ -492,7 +493,7 @@ pub struct Api {
 }
 
 /// This message defines attributes for a node that handles a network request. The node can be either a service or an application that sends, forwards, or receives the request. Service peers should fill in principal and labels as appropriate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Peer {
     /// The IP address of the peer.
     #[serde(default)]
@@ -512,7 +513,7 @@ pub struct Peer {
 }
 
 /// This message defines attributes for an HTTP request. If the actual request is not an HTTP request, the runtime system should try to map the actual request to an equivalent HTTP request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Request {
     /// The request authentication. May be absent for unauthenticated requests. Derived from the HTTP request Authorization header or equivalent.
     #[serde(default)]
@@ -556,7 +557,7 @@ pub struct Request {
 }
 
 /// This message defines core attributes for a resource. A resource is an addressable (named) entity provided by the destination service. For example, a file stored on a network storage service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Resource {
     /// Annotations is an unstructured key-value map stored with a resource that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects. More info: https://kubernetes.io/docs/concepts/overview/working-with-objects/annotations/
     #[serde(default)]
@@ -597,7 +598,7 @@ pub struct Resource {
 }
 
 /// This message defines attributes for a typical network response. It generally models semantics of an HTTP response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Response {
     /// The amount of time it takes the backend service to fully respond to a request. Measured from when the destination service starts to send the request to the backend until when the destination service receives the complete response from the backend.
     #[serde(default, rename = "backendLatency")]
@@ -617,7 +618,7 @@ pub struct Response {
 }
 
 /// First party identity principal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirstPartyPrincipal {
     /// The email address of a Google account. .
     #[serde(default, rename = "principalEmail")]
@@ -628,7 +629,7 @@ pub struct FirstPartyPrincipal {
 }
 
 /// Third party identity principal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThirdPartyPrincipal {
     /// Metadata about third party identity.
     #[serde(default, rename = "thirdPartyClaims")]
@@ -636,7 +637,7 @@ pub struct ThirdPartyPrincipal {
 }
 
 /// Metadata describing the service and additional service specific information used to identify the job or unit of work at hand.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceMetadata {
     /// Additional metadata provided by service teams to describe service specific job information that was triggered by the original principal.
     #[serde(default, rename = "jobMetadata")]
@@ -650,7 +651,7 @@ pub struct ServiceMetadata {
 }
 
 /// Provides information about the Policy violation info for this request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ViolationInfo {
     /// Optional. Value that is being checked for the policy. This could be in encrypted form (if pii sensitive). This field will only be emitted in LIST_POLICY types
     #[serde(default, rename = "checkedValue")]
@@ -670,7 +671,7 @@ pub struct ViolationInfo {
 }
 
 /// This message defines request authentication attributes. Terminology is based on the JSON Web Token (JWT) standard, but the terms also correlate to concepts in other standards.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Auth {
     /// A list of access level resource names that allow resources to be accessed by authenticated requester. It is part of Secure GCP processing for the incoming request. An access level string has the format: "//{api_service_name}/accessPolicies/{policy_id}/accessLevels/{short_name}" Example: "//accesscontextmanager.googleapis.com/accessPolicies/MY_POLICY_ID/accessLevels/MY_LEVEL"
     #[serde(default, rename = "accessLevels")]
@@ -693,7 +694,7 @@ pub struct Auth {
 }
 
 /// This message defines attributes associated with OAuth credentials.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Oauth {
     /// The optional OAuth client ID. This is the unique public identifier issued by an authorization server to a registered client application. Empty string is equivalent to no oauth client id. WARNING: This is for MCP tools/call and tools/list authorization and not for general use.
     #[serde(default, rename = "clientId")]

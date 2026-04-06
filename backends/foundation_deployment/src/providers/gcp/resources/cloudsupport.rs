@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for the CloseCase endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloseCaseRequest {}
 
 /// The request message for the CreateAttachment endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateAttachmentRequest {
     /// Required. The attachment to be created.
     #[serde(default)]
@@ -23,7 +24,7 @@ pub struct CreateAttachmentRequest {
 }
 
 /// The request message for the EscalateCase endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EscalateCaseRequest {
     /// The escalation information to be sent with the escalation request.
     #[serde(default)]
@@ -31,7 +32,7 @@ pub struct EscalateCaseRequest {
 }
 
 /// The response message for the ListAttachments endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAttachmentsResponse {
     /// The list of attachments associated with a case.
     #[serde(default)]
@@ -42,7 +43,7 @@ pub struct ListAttachmentsResponse {
 }
 
 /// The response message for the ListCases endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCasesResponse {
     /// The list of cases associated with the parent after any filters have been applied.
     #[serde(default)]
@@ -53,7 +54,7 @@ pub struct ListCasesResponse {
 }
 
 /// The response message for the ListComments endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCommentsResponse {
     /// List of the comments associated with the case.
     #[serde(default)]
@@ -64,7 +65,7 @@ pub struct ListCommentsResponse {
 }
 
 /// # gdata.* are outside protos with mising documentation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Media {
     /// # gdata.* are outside protos with mising documentation
     #[serde(default)]
@@ -159,7 +160,7 @@ pub struct Media {
 }
 
 /// The response message for SearchCaseClassifications endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchCaseClassificationsResponse {
     /// The classifications retrieved.
     #[serde(default, rename = "caseClassifications")]
@@ -170,7 +171,7 @@ pub struct SearchCaseClassificationsResponse {
 }
 
 /// The response message for the SearchCases endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchCasesResponse {
     /// The list of cases associated with the parent after any filters have been applied.
     #[serde(default)]
@@ -181,7 +182,7 @@ pub struct SearchCasesResponse {
 }
 
 /// An escalation of a support case.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Escalation {
     /// Required. A free text description to accompany the reason field above. Provides additional context on why the case is being escalated.
     #[serde(default)]
@@ -192,7 +193,7 @@ pub struct Escalation {
 }
 
 /// An Attachment contains metadata about a file that was uploaded to a case - it is NOT a file itself. That being said, the name of an Attachment object can be used to download its accompanying file through the media.download endpoint. While attachments can be uploaded in the console at the same time as a comment, they''re associated on a "case" level, not a "comment" level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Attachment {
     /// Output only. The time at which the attachment was created.
     #[serde(default, rename = "createTime")]
@@ -215,7 +216,7 @@ pub struct Attachment {
 }
 
 /// A comment associated with a support case. Case comments are the primary way for Google Support to communicate with a user who has opened a case. When a user responds to Google Support, the user''s responses also appear as comments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Comment {
     /// The full comment body. Maximum of 12800 characters.
     #[serde(default)]
@@ -235,7 +236,7 @@ pub struct Comment {
 }
 
 /// # gdata.* are outside protos with mising documentation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentTypeInfo {
     /// # gdata.* are outside protos with mising documentation
     #[serde(default, rename = "bestGuess")]
@@ -255,7 +256,7 @@ pub struct ContentTypeInfo {
 }
 
 /// # gdata.* are outside protos with mising documentation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiffChecksumsResponse {
     /// # gdata.* are outside protos with mising documentation
     #[serde(default, rename = "checksumsLocation")]
@@ -275,7 +276,7 @@ pub struct DiffChecksumsResponse {
 }
 
 /// # gdata.* are outside protos with mising documentation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiffDownloadResponse {
     /// # gdata.* are outside protos with mising documentation
     #[serde(default, rename = "objectLocation")]
@@ -283,7 +284,7 @@ pub struct DiffDownloadResponse {
 }
 
 /// # gdata.* are outside protos with mising documentation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiffUploadRequest {
     /// # gdata.* are outside protos with mising documentation
     #[serde(default, rename = "checksumsInfo")]
@@ -297,7 +298,7 @@ pub struct DiffUploadRequest {
 }
 
 /// # gdata.* are outside protos with mising documentation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiffUploadResponse {
     /// # gdata.* are outside protos with mising documentation
     #[serde(default, rename = "objectVersion")]
@@ -308,7 +309,7 @@ pub struct DiffUploadResponse {
 }
 
 /// # gdata.* are outside protos with mising documentation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiffVersionResponse {
     /// # gdata.* are outside protos with mising documentation
     #[serde(default, rename = "objectSizeBytes")]
@@ -319,7 +320,7 @@ pub struct DiffVersionResponse {
 }
 
 /// # gdata.* are outside protos with mising documentation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DownloadParameters {
     /// # gdata.* are outside protos with mising documentation
     #[serde(default, rename = "allowGzipCompression")]
@@ -330,7 +331,7 @@ pub struct DownloadParameters {
 }
 
 /// A Case is an object that contains the details of a support case. It contains fields for the time it was created, its priority, its classification, and more. Cases can also have comments and attachments that get added over time. A case is parented by a Google Cloud organization or project. Organizations are identified by a number, so the name of a case parented by an organization would look like this:  organizations/123/cases/456  Projects have two unique identifiers, an ID and a number, and they look like this:  projects/abc/cases/456   projects/123/cases/456  You can use either of them when calling the API. To learn more about project identifiers, see [AIP-2510](https://google.aip.dev/cloud/2510).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Case {
     /// The issue classification applicable to this case.
     #[serde(default)]
@@ -380,7 +381,7 @@ pub struct Case {
 }
 
 /// # gdata.* are outside protos with mising documentation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompositeMedia {
     /// # gdata.* are outside protos with mising documentation
     #[serde(default, rename = "blobRef")]
@@ -418,7 +419,7 @@ pub struct CompositeMedia {
 }
 
 /// A Case Classification represents the topic that a case is about. It''s very important to use accurate classifications, because they''re used to route your cases to specialists who can help you. A classification always has an ID that is its unique identifier. A valid ID is required when creating a case.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CaseClassification {
     /// A display name for the classification. The display name is not static and can change. To uniquely and consistently identify classifications, use the CaseClassification.id field.
     #[serde(default, rename = "displayName")]
@@ -429,7 +430,7 @@ pub struct CaseClassification {
 }
 
 /// An Actor represents an entity that performed an action. For example, an actor could be a user who posted a comment on a support case, a user who uploaded an attachment, or a service account that created a support case.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Actor {
     /// The name to display for the actor. If not provided, it is inferred from credentials supplied during case creation. When an email is provided, a display name must also be provided. This will be obfuscated if the user is a Google Support agent.
     #[serde(default, rename = "displayName")]
@@ -446,7 +447,7 @@ pub struct Actor {
 }
 
 /// # gdata.* are outside protos with mising documentation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Blobstore2Info {
     /// # gdata.* are outside protos with mising documentation
     #[serde(default, rename = "blobGeneration")]
@@ -472,7 +473,7 @@ pub struct Blobstore2Info {
 }
 
 /// # gdata.* are outside protos with mising documentation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObjectId {
     /// # gdata.* are outside protos with mising documentation
     #[serde(default, rename = "bucketName")]

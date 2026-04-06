@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The entity analysis request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyzeEntitiesRequest {
     /// Required. Input document.
     #[serde(default)]
@@ -22,7 +23,7 @@ pub struct AnalyzeEntitiesRequest {
 }
 
 /// The entity analysis response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyzeEntitiesResponse {
     /// The recognized entities in the input document.
     #[serde(default)]
@@ -36,7 +37,7 @@ pub struct AnalyzeEntitiesResponse {
 }
 
 /// The sentiment analysis request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyzeSentimentRequest {
     /// Required. Input document.
     #[serde(default)]
@@ -47,7 +48,7 @@ pub struct AnalyzeSentimentRequest {
 }
 
 /// The sentiment analysis response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyzeSentimentResponse {
     /// The overall sentiment of the input document.
     #[serde(default, rename = "documentSentiment")]
@@ -64,7 +65,7 @@ pub struct AnalyzeSentimentResponse {
 }
 
 /// The request message for the text annotation API, which can perform multiple analysis types in one call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnnotateTextRequest {
     /// Required. Input document.
     #[serde(default)]
@@ -78,7 +79,7 @@ pub struct AnnotateTextRequest {
 }
 
 /// The text annotations response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnnotateTextResponse {
     /// Categories identified in the input document.
     #[serde(default)]
@@ -104,7 +105,7 @@ pub struct AnnotateTextResponse {
 }
 
 /// The document classification request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClassifyTextRequest {
     /// Required. Input document.
     #[serde(default)]
@@ -112,7 +113,7 @@ pub struct ClassifyTextRequest {
 }
 
 /// The document classification response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClassifyTextResponse {
     /// Categories representing the input document.
     #[serde(default)]
@@ -126,7 +127,7 @@ pub struct ClassifyTextResponse {
 }
 
 /// The document moderation request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModerateTextRequest {
     /// Required. Input document.
     #[serde(default)]
@@ -137,7 +138,7 @@ pub struct ModerateTextRequest {
 }
 
 /// The document moderation response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModerateTextResponse {
     /// The language of the text, which will be the same as the language specified in the request or, if not specified, the automatically-detected language. See Document.language_code field for more details.
     #[serde(default, rename = "languageCode")]
@@ -151,7 +152,7 @@ pub struct ModerateTextResponse {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -165,7 +166,7 @@ pub struct Status {
 }
 
 /// XPSBatchPredictResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSBatchPredictResponse {
     /// Examples for batch prediction result. Under full API implementation, results are stored in shared RecordIO of AnnotatedExample protobufs, the annotations field of which is populated by XPS backend.
     #[serde(default, rename = "exampleSet")]
@@ -173,7 +174,7 @@ pub struct XPSBatchPredictResponse {
 }
 
 /// XPSColumnSpec resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSColumnSpec {
     /// The unique id of the column. When Preprocess, the Tables BE will popuate the order id of the column, which reflects the order of the column inside the table, i.e. 0 means the first column in the table, N-1 means the last column. AutoML BE will persist this order id in Spanner and set the order id here when calling RefreshTablesStats and Train. Note: it''s different than the column_spec_id that is generated in AutoML BE.
     #[serde(default, rename = "columnId")]
@@ -196,15 +197,15 @@ pub struct XPSColumnSpec {
 }
 
 /// A model format used for iOS mobile devices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSCoreMlFormat {}
 
 /// A model format used for [Edge TPU](https://cloud.google.com/edge-tpu/) devices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSEdgeTpuTfLiteFormat {}
 
 /// XPSPreprocessResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSPreprocessResponse {
     /// Preprocessed examples, that are to be imported into AutoML storage. This should point to RecordIO file(s) of PreprocessedExample messages. The PreprocessedExample.mvp_training_data-s returned here are later verbatim passed to Train() call in TrainExample.mvp_training_data.
     #[serde(default, rename = "outputExampleSet")]
@@ -218,7 +219,7 @@ pub struct XPSPreprocessResponse {
 }
 
 /// Metadata of the input of a feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSResponseExplanationMetadataInputMetadata {
     /// Name of the input tensor for this model. Only needed in train response.
     #[serde(default, rename = "inputTensorName")]
@@ -232,7 +233,7 @@ pub struct XPSResponseExplanationMetadataInputMetadata {
 }
 
 /// Metadata of the prediction output to be explained.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSResponseExplanationMetadataOutputMetadata {
     /// Name of the output tensor. Only needed in train response.
     #[serde(default, rename = "outputTensorName")]
@@ -240,7 +241,7 @@ pub struct XPSResponseExplanationMetadataOutputMetadata {
 }
 
 /// The data statistics of a series of STRING values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSStringStats {
     #[serde(default, rename = "commonStats")]
     pub common_stats: ::core::option::Option<::std::boxed::Box<XPSCommonStats>>,
@@ -250,7 +251,7 @@ pub struct XPSStringStats {
 }
 
 /// The statistics of a unigram.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSStringStatsUnigramStats {
     /// The number of occurrences of this unigram in the series.
     #[serde(default)]
@@ -261,23 +262,23 @@ pub struct XPSStringStatsUnigramStats {
 }
 
 /// TextToSpeech train response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTextToSpeechTrainResponse {}
 
 /// A [TensorFlow.js](https://www.tensorflow.org/js) model that can be used in the browser and in Node.js using JavaScript.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTfJsFormat {}
 
 /// LINT.IfChange A model format used for mobile and IoT devices. See https://www.tensorflow.org/lite.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTfLiteFormat {}
 
 /// A tensorflow model format in SavedModel format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTfSavedModelFormat {}
 
 /// Stats split by a defined in context granularity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTimestampStatsGranularStats {
     /// A map from granularity key to example count for that key. E.g. for hour_of_day 13 means 1pm, or for month_of_year 5 means May).
     #[serde(default)]
@@ -285,7 +286,7 @@ pub struct XPSTimestampStatsGranularStats {
 }
 
 /// XPSTrainResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTrainResponse {
     /// Estimated model size in bytes once deployed.
     #[serde(default, rename = "deployedModelSizeBytes")]
@@ -336,7 +337,7 @@ pub struct XPSTrainResponse {
 }
 
 /// XPSXpsOperationMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSXpsOperationMetadata {
     /// Optional. XPS server can opt to provide example count of the long running operation (e.g. training, data importing, batch prediction).
     #[serde(default, rename = "exampleCount")]
@@ -359,7 +360,7 @@ pub struct XPSXpsOperationMetadata {
 }
 
 /// All available features. Setting each one to true will enable that specific analysis for the input.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnnotateTextRequestFeatures {
     /// Optional. Classify the full document into categories.
     #[serde(default, rename = "classifyText")]
@@ -376,7 +377,7 @@ pub struct AnnotateTextRequestFeatures {
 }
 
 /// Represents a phrase in the text that is a known entity, such as a person, an organization, or location. The API associates information, such as probability and mentions, with entities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Entity {
     /// The mentions of this entity in the input document. The API currently supports proper noun mentions.
     #[serde(default)]
@@ -396,7 +397,7 @@ pub struct Entity {
 }
 
 /// Represents a sentence in the input document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Sentence {
     /// For calls to AnalyzeSentiment or if AnnotateTextRequest.Features.extract_document_sentiment is set to true, this field will contain the sentiment for the sentence.
     #[serde(default)]
@@ -407,7 +408,7 @@ pub struct Sentence {
 }
 
 /// Represents the input to API methods.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Document {
     /// The content of the input in string format. Cloud audit logging exempt since it is based on user data.
     #[serde(default)]
@@ -424,7 +425,7 @@ pub struct Document {
 }
 
 /// Represents a category returned from the text classifier.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClassificationCategory {
     /// The classifier''s confidence of the category. Number represents how certain the classifier is that this category represents the given text.
     #[serde(default)]
@@ -438,7 +439,7 @@ pub struct ClassificationCategory {
 }
 
 /// Indicated the type of data that can be stored in a structured data entity (e.g. a table).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSDataType {
     /// The highly compatible data types to this data type.
     #[serde(default, rename = "compatibleDataTypes")]
@@ -461,7 +462,7 @@ pub struct XPSDataType {
 }
 
 /// XPSColumnSpecForecastingMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSColumnSpecForecastingMetadata {
     /// The type of the column for FORECASTING model training purposes. // TODO: enum values: ["COLUMN_TYPE_UNSPECIFIED", "KEY", "KEY_METADATA", "TIME_SERIES_AVAILABLE_PAST_ONLY", "TIME_SERIES_AVAILABLE_PAST_AND_FUTURE"]
     #[serde(default, rename = "columnType")]
@@ -469,7 +470,7 @@ pub struct XPSColumnSpecForecastingMetadata {
 }
 
 /// Identifies a table''s column, and its correlation with the column this ColumnSpec describes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSColumnSpecCorrelatedColumn {
     #[serde(default, rename = "columnId")]
     pub column_id: ::core::option::Option<i32>,
@@ -478,7 +479,7 @@ pub struct XPSColumnSpecCorrelatedColumn {
 }
 
 /// XPSSpeechPreprocessResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSSpeechPreprocessResponse {
     /// Location od shards of sstables (test data) of DataUtterance protos.
     #[serde(default, rename = "cnsTestDataPath")]
@@ -495,7 +496,7 @@ pub struct XPSSpeechPreprocessResponse {
 }
 
 /// XPSTablesPreprocessResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTablesPreprocessResponse {
     /// The table/column id, column_name and the DataTypes of the columns will be populated.
     #[serde(default, rename = "tablesDatasetMetadata")]
@@ -503,7 +504,7 @@ pub struct XPSTablesPreprocessResponse {
 }
 
 /// Translation preprocess response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTranslationPreprocessResponse {
     /// Total example count parsed.
     #[serde(default, rename = "parsedExampleCount")]
@@ -514,7 +515,7 @@ pub struct XPSTranslationPreprocessResponse {
 }
 
 /// Visualization configurations for image explanation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSVisualization {
     /// Excludes attributions below the specified percentile, from the highlighted areas. Defaults to 62.
     #[serde(default, rename = "clipPercentLowerbound")]
@@ -537,7 +538,7 @@ pub struct XPSVisualization {
 }
 
 /// The vision model error analysis configuration. Next tag: 3
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSVisionErrorAnalysisConfig {
     /// The number of query examples in error analysis.
     #[serde(default, rename = "exampleCount")]
@@ -548,7 +549,7 @@ pub struct XPSVisionErrorAnalysisConfig {
 }
 
 /// Set of examples or input sources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSExampleSet {
     /// File spec of the examples or input sources.
     #[serde(default, rename = "fileSpec")]
@@ -565,7 +566,7 @@ pub struct XPSExampleSet {
 }
 
 /// Specifies location of model evaluation metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSEvaluationMetricsSet {
     /// Inline EvaluationMetrics - should be relatively small. For passing large quantities of exhaustive metrics, use file_spec.
     #[serde(default, rename = "evaluationMetrics")]
@@ -579,7 +580,7 @@ pub struct XPSEvaluationMetricsSet {
 }
 
 /// Specification of Model explanation. Feature-based XAI in AutoML Vision ICN is deprecated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSResponseExplanationSpec {
     /// Explanation type. For AutoML Image Classification models, possible values are: * image-integrated-gradients * image-xrai
     #[serde(default, rename = "explanationType")]
@@ -593,7 +594,7 @@ pub struct XPSResponseExplanationSpec {
 }
 
 /// XPSImageClassificationTrainResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSImageClassificationTrainResponse {
     /// Total number of classes.
     #[serde(default, rename = "classCount")]
@@ -618,7 +619,7 @@ pub struct XPSImageClassificationTrainResponse {
 }
 
 /// XPSImageObjectDetectionModelSpec resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSImageObjectDetectionModelSpec {
     /// Total number of classes.
     #[serde(default, rename = "classCount")]
@@ -642,7 +643,7 @@ pub struct XPSImageObjectDetectionModelSpec {
 }
 
 /// XPSImageSegmentationTrainResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSImageSegmentationTrainResponse {
     /// Color map of the model.
     #[serde(default, rename = "colorMaps")]
@@ -664,7 +665,7 @@ pub struct XPSImageSegmentationTrainResponse {
 }
 
 /// XPSSpeechModelSpec resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSSpeechModelSpec {
     /// Required for speech xps backend. Speech xps has to use dataset_id and model_id as the primary key in db so that speech API can query the db directly.
     #[serde(default, rename = "datasetId")]
@@ -677,7 +678,7 @@ pub struct XPSSpeechModelSpec {
 }
 
 /// XPSTablesTrainResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTablesTrainResponse {
     #[serde(default, rename = "modelStructure")]
     pub model_structure: ::core::option::Option<XPSTablesModelStructure>,
@@ -693,7 +694,7 @@ pub struct XPSTablesTrainResponse {
 }
 
 /// XPSTextTrainResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTextTrainResponse {
     /// Component submodels.
     #[serde(default, rename = "componentModel")]
@@ -701,7 +702,7 @@ pub struct XPSTextTrainResponse {
 }
 
 /// Train response for translation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTranslationTrainResponse {
     /// Type of the model. // TODO: enum values: ["MODEL_TYPE_UNSPECIFIED", "LEGACY", "CURRENT"]
     #[serde(default, rename = "modelType")]
@@ -709,7 +710,7 @@ pub struct XPSTranslationTrainResponse {
 }
 
 /// XPSVideoActionRecognitionTrainResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSVideoActionRecognitionTrainResponse {
     /// ## The fields below are only populated under uCAIP request scope.
     #[serde(default, rename = "modelArtifactSpec")]
@@ -720,7 +721,7 @@ pub struct XPSVideoActionRecognitionTrainResponse {
 }
 
 /// XPSVideoClassificationTrainResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSVideoClassificationTrainResponse {
     /// ## The fields below are only populated under uCAIP request scope.
     #[serde(default, rename = "modelArtifactSpec")]
@@ -731,7 +732,7 @@ pub struct XPSVideoClassificationTrainResponse {
 }
 
 /// XPSVideoObjectTrackingTrainResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSVideoObjectTrackingTrainResponse {
     /// Populated for AutoML request only.
     #[serde(default, rename = "exportModelSpec")]
@@ -745,7 +746,7 @@ pub struct XPSVideoObjectTrackingTrainResponse {
 }
 
 /// XPSReportingMetrics resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSReportingMetrics {
     /// The effective time training used. If set, this is used for quota management and billing. Deprecated. AutoML BE doesn''t use this. Don''t set.
     #[serde(default, rename = "effectiveTrainingDuration")]
@@ -756,7 +757,7 @@ pub struct XPSReportingMetrics {
 }
 
 /// XPSTablesTrainingOperationMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTablesTrainingOperationMetadata {
     /// Current stage of creating model. // TODO: enum values: ["CREATE_MODEL_STAGE_UNSPECIFIED", "DATA_PREPROCESSING", "TRAINING", "EVALUATING", "MODEL_POST_PROCESSING"]
     #[serde(default, rename = "createModelStage")]
@@ -780,7 +781,7 @@ pub struct XPSTablesTrainingOperationMetadata {
 }
 
 /// XPSVideoBatchPredictOperationMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSVideoBatchPredictOperationMetadata {
     /// All the partial batch prediction results that are completed at the moment. Output examples are sorted by completion time. The order will not be changed. Each output example should be the path of a single RecordIO file of AnnotatedExamples.
     #[serde(default, rename = "outputExamples")]
@@ -788,7 +789,7 @@ pub struct XPSVideoBatchPredictOperationMetadata {
 }
 
 /// XPSVideoTrainingOperationMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSVideoTrainingOperationMetadata {
     /// This is an estimation of the node hours necessary for training a model, expressed in milli node hours (i.e. 1,000 value in this field means 1 node hour). A node hour represents the time a virtual machine spends running your training job. The cost of one node running for one hour is a node hour.
     #[serde(default, rename = "trainCostMilliNodeHour")]
@@ -796,7 +797,7 @@ pub struct XPSVideoTrainingOperationMetadata {
 }
 
 /// XPSVisionTrainingOperationMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSVisionTrainingOperationMetadata {
     /// Aggregated infra usage within certain time period, for billing report purpose if XAI is enable in training request.
     #[serde(default, rename = "explanationUsage")]
@@ -804,7 +805,7 @@ pub struct XPSVisionTrainingOperationMetadata {
 }
 
 /// Represents a mention for an entity in the text. Currently, proper noun mentions are supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EntityMention {
     /// Probability score associated with the entity. The score shows the probability of the entity mention being the entity type. The score is in (0, 1] range.
     #[serde(default)]
@@ -821,7 +822,7 @@ pub struct EntityMention {
 }
 
 /// StructType defines the DataType-s of a STRUCT type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSStructType {
     /// Unordered map of struct field names to their data types.
     #[serde(default)]
@@ -829,7 +830,7 @@ pub struct XPSStructType {
 }
 
 /// A correlation statistics between two series of DataType values. The series may have differing DataType-s, but within a single series the DataType must be the same.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSCorrelationStats {
     /// The correlation value using the Cramer''s V measure.
     #[serde(default, rename = "cramersV")]
@@ -837,7 +838,7 @@ pub struct XPSCorrelationStats {
 }
 
 /// XPSSpeechEvaluationMetrics resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSSpeechEvaluationMetrics {
     /// Evaluation metrics for all submodels contained in this model.
     #[serde(default, rename = "subModelEvaluationMetrics")]
@@ -846,7 +847,7 @@ pub struct XPSSpeechEvaluationMetrics {
 }
 
 /// XPSSpeechPreprocessStats resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSSpeechPreprocessStats {
     /// Different types of data errors and the counts associated with them.
     #[serde(default, rename = "dataErrors")]
@@ -881,7 +882,7 @@ pub struct XPSSpeechPreprocessStats {
 }
 
 /// Metadata for a dataset used for AutoML Tables.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTablesDatasetMetadata {
     /// Id the column to split the table.
     #[serde(default, rename = "mlUseColumnId")]
@@ -901,7 +902,7 @@ pub struct XPSTablesDatasetMetadata {
 }
 
 /// Contains xPS-specific model evaluation metrics either for a single annotation spec (label), or for the model overall. Next tag: 18.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSEvaluationMetrics {
     /// The annotation_spec for which this evaluation metrics instance had been created. Empty iff this is an overall model evaluation (like Tables evaluation metrics), i.e. aggregated across all labels. The value comes from the input annotations in AnnotatedExample. For MVP product or for text sentiment models where annotation_spec_id_token is not available, set label instead.
     #[serde(default, rename = "annotationSpecIdToken")]
@@ -952,7 +953,7 @@ pub struct XPSEvaluationMetrics {
 }
 
 /// Spec of input and output files, on external file systems (for example, Colossus Namespace System or Google Cloud Storage).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSFileSpec {
     /// Deprecated. Use file_spec.
     #[serde(default, rename = "directoryPath")]
@@ -969,7 +970,7 @@ pub struct XPSFileSpec {
 }
 
 /// XPSResponseExplanationMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSResponseExplanationMetadata {
     /// Metadata of the input.
     #[serde(default)]
@@ -980,7 +981,7 @@ pub struct XPSResponseExplanationMetadata {
 }
 
 /// XPSResponseExplanationParameters resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSResponseExplanationParameters {
     /// An attribution method that computes Aumann-Shapley values taking advantage of the model''s fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1703.01365
     #[serde(default, rename = "integratedGradientsAttribution")]
@@ -991,7 +992,7 @@ pub struct XPSResponseExplanationParameters {
 }
 
 /// Map from color to display name. Will only be used by Image Segmentation for uCAIP.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSColorMap {
     /// Should be used during training.
     #[serde(default, rename = "annotationSpecIdToken")]
@@ -1007,7 +1008,7 @@ pub struct XPSColorMap {
 }
 
 /// Information of downloadable models that are pre-generated as part of training flow and will be persisted in AutoMl backend. Upon receiving ExportModel request from user, AutoMl backend can serve the pre-generated models to user if exists (by copying the files from internal path to user provided location), otherwise, AutoMl backend will call xPS ExportModel API to generate the model on the fly with the requesting format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSImageExportModelSpec {
     /// Contains the model format and internal location of the model files to be exported/downloaded. Use the Google Cloud Storage bucket name which is provided via TrainRequest.gcs_bucket_name to store the model files.
     #[serde(default, rename = "exportModelOutputConfig")]
@@ -1016,7 +1017,7 @@ pub struct XPSImageExportModelSpec {
 }
 
 /// Stores the locations and related metadata of the model artifacts. Populated for uCAIP requests only.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSImageModelArtifactSpec {
     /// The Tensorflow checkpoint files. e.g. Used for resumable training.
     #[serde(default, rename = "checkpointArtifact")]
@@ -1039,7 +1040,7 @@ pub struct XPSImageModelArtifactSpec {
 }
 
 /// Serving specification for image models.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSImageModelServingSpec {
     /// Populate under uCAIP request scope.
     #[serde(default, rename = "modelThroughputEstimation")]
@@ -1054,7 +1055,7 @@ pub struct XPSImageModelServingSpec {
 }
 
 /// XPSSpeechModelSpecSubModelSpec resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSSpeechModelSpecSubModelSpec {
     /// Type of the biasing model. // TODO: enum values: ["BIASING_MODEL_TYPE_UNSPECIFIED", "COMMAND_AND_SEARCH", "PHONE_CALL", "VIDEO", "DEFAULT"]
     #[serde(default, rename = "biasingModelType")]
@@ -1071,7 +1072,7 @@ pub struct XPSSpeechModelSpecSubModelSpec {
 }
 
 /// XPSRow resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSRow {
     /// The ids of the columns. Note: The below values field must match order of this field, if this field is set.
     #[serde(default, rename = "columnIds")]
@@ -1082,7 +1083,7 @@ pub struct XPSRow {
 }
 
 /// An information specific to given column and Tables Model, in context of the Model and the predictions created by it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTablesModelColumnInfo {
     /// The ID of the column.
     #[serde(default, rename = "columnId")]
@@ -1093,7 +1094,7 @@ pub struct XPSTablesModelColumnInfo {
 }
 
 /// Component model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTextComponentModel {
     /// The Cloud Storage resource path to hold batch prediction model.
     #[serde(default, rename = "batchPredictionModelGcsUri")]
@@ -1125,7 +1126,7 @@ pub struct XPSTextComponentModel {
 }
 
 /// Information of downloadable models that are pre-generated as part of training flow and will be persisted in AutoMl backend. Upon receiving ExportModel request from user, AutoMl backend can serve the pre-generated models to user if exists (by copying the files from internal path to user provided location), otherwise, AutoMl backend will call xPS ExportModel API to generate the model on the fly with the requesting format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSVideoExportModelSpec {
     /// Contains the model format and internal location of the model files to be exported/downloaded. Use the Google Cloud Storage bucket name which is provided via TrainRequest.gcs_bucket_name to store the model files.
     #[serde(default, rename = "exportModelOutputConfig")]
@@ -1134,7 +1135,7 @@ pub struct XPSVideoExportModelSpec {
 }
 
 /// XPSVideoModelArtifactSpec resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSVideoModelArtifactSpec {
     /// The model binary files in different formats for model export.
     #[serde(default, rename = "exportArtifact")]
@@ -1145,7 +1146,7 @@ pub struct XPSVideoModelArtifactSpec {
 }
 
 /// XPSMetricEntry resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSMetricEntry {
     /// For billing metrics that are using legacy sku''s, set the legacy billing metric id here. This will be sent to Chemist as the "cloudbilling.googleapis.com/argentum_metric_id" label. Otherwise leave empty.
     #[serde(default, rename = "argentumMetricId")]
@@ -1165,7 +1166,7 @@ pub struct XPSMetricEntry {
 }
 
 /// Metrics for a tuning job generated, will get forwarded to Stackdriver as model tuning logs. Setting this as a standalone message out of CreateModelMetadata to avoid confusion as we expose this message only to users.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTuningTrial {
     /// Model parameters for the trial.
     #[serde(default, rename = "modelStructure")]
@@ -1176,7 +1177,7 @@ pub struct XPSTuningTrial {
 }
 
 /// LINT: LEGACY_NAMES Infra Usage of billing metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InfraUsage {
     /// Aggregated core metrics since requested start_time.
     #[serde(default, rename = "cpuMetrics")]
@@ -1196,7 +1197,7 @@ pub struct InfraUsage {
 }
 
 /// Represents the feeling associated with the entire text or entities in the text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Sentiment {
     /// A non-negative number in the [0, +inf] range, which represents the absolute magnitude of sentiment regardless of score (positive or negative).
     #[serde(default)]
@@ -1207,7 +1208,7 @@ pub struct Sentiment {
 }
 
 /// Represents a text span in the input document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextSpan {
     /// The API calculates the beginning offset of the content in the original document according to the EncodingType specified in the API request.
     #[serde(default, rename = "beginOffset")]
@@ -1218,7 +1219,7 @@ pub struct TextSpan {
 }
 
 /// XPSSpeechEvaluationMetricsSubModelEvaluationMetric resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSSpeechEvaluationMetricsSubModelEvaluationMetric {
     /// Type of the biasing model. // TODO: enum values: ["BIASING_MODEL_TYPE_UNSPECIFIED", "COMMAND_AND_SEARCH", "PHONE_CALL", "VIDEO", "DEFAULT"]
     #[serde(default, rename = "biasingModelType")]
@@ -1247,7 +1248,7 @@ pub struct XPSSpeechEvaluationMetricsSubModelEvaluationMetric {
 }
 
 /// Different types of errors and the stats associatesd with each error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSDataErrors {
     /// Number of records having errors associated with the enum.
     #[serde(default)]
@@ -1258,7 +1259,7 @@ pub struct XPSDataErrors {
 }
 
 /// XPSTableSpec resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTableSpec {
     /// Mapping from column id to column spec.
     #[serde(default, rename = "columnSpecs")]
@@ -1278,7 +1279,7 @@ pub struct XPSTableSpec {
 }
 
 /// Model evaluation metrics for classification problems. It can be used for image and video classification. Next tag: 9.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSClassificationEvaluationMetrics {
     /// The Area under precision recall curve metric.
     #[serde(default, rename = "auPrc")]
@@ -1305,7 +1306,7 @@ pub struct XPSClassificationEvaluationMetrics {
 }
 
 /// Model evaluation metrics for image object detection problems. Evaluates prediction quality of labeled bounding boxes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSImageObjectDetectionEvaluationMetrics {
     /// The single metric for bounding boxes evaluation: the mean_average_precision averaged over all bounding_box_metrics_entries.
     #[serde(default, rename = "boundingBoxMeanAveragePrecision")]
@@ -1320,7 +1321,7 @@ pub struct XPSImageObjectDetectionEvaluationMetrics {
 }
 
 /// Model evaluation metrics for image segmentation problems. Next tag: 4.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSImageSegmentationEvaluationMetrics {
     /// Metrics that have confidence thresholds. Precision-recall curve can be derived from it.
     #[serde(default, rename = "confidenceMetricsEntries")]
@@ -1330,7 +1331,7 @@ pub struct XPSImageSegmentationEvaluationMetrics {
 }
 
 /// Model evaluation metrics for regression problems. It can be used for Tables.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSRegressionEvaluationMetrics {
     /// Mean Absolute Error (MAE).
     #[serde(default, rename = "meanAbsoluteError")]
@@ -1354,7 +1355,7 @@ pub struct XPSRegressionEvaluationMetrics {
 }
 
 /// XPSTablesEvaluationMetrics resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTablesEvaluationMetrics {
     /// Classification metrics.
     #[serde(default, rename = "classificationMetrics")]
@@ -1365,7 +1366,7 @@ pub struct XPSTablesEvaluationMetrics {
 }
 
 /// XPSTextExtractionEvaluationMetrics resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTextExtractionEvaluationMetrics {
     /// Values are at the highest F1 score on the precision-recall curve. Only confidence_threshold, recall, precision, and f1_score will be set.
     #[serde(default, rename = "bestF1ConfidenceMetrics")]
@@ -1383,7 +1384,7 @@ pub struct XPSTextExtractionEvaluationMetrics {
 }
 
 /// Model evaluation metrics for text sentiment problems.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTextSentimentEvaluationMetrics {
     /// Output only. Confusion matrix of the evaluation. Only set for the overall model evaluation, not for evaluation of a single annotation spec.
     #[serde(default, rename = "confusionMatrix")]
@@ -1412,7 +1413,7 @@ pub struct XPSTextSentimentEvaluationMetrics {
 }
 
 /// Evaluation metrics for the dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTranslationEvaluationMetrics {
     /// BLEU score for base model.
     #[serde(default, rename = "baseBleuScore")]
@@ -1423,7 +1424,7 @@ pub struct XPSTranslationEvaluationMetrics {
 }
 
 /// Model evaluation metrics for video action recognition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSVideoActionRecognitionEvaluationMetrics {
     /// Output only. The number of ground truth actions used to create this evaluation.
     #[serde(default, rename = "evaluatedActionCount")]
@@ -1435,7 +1436,7 @@ pub struct XPSVideoActionRecognitionEvaluationMetrics {
 }
 
 /// Model evaluation metrics for ObjectTracking problems. Next tag: 10.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSVideoObjectTrackingEvaluationMetrics {
     /// Output only. The single metric for bounding boxes evaluation: the mean_average_precision averaged over all bounding_box_metrics_entries.
     #[serde(default, rename = "boundingBoxMeanAveragePrecision")]
@@ -1468,7 +1469,7 @@ pub struct XPSVideoObjectTrackingEvaluationMetrics {
 }
 
 /// An attribution method that computes the Aumann-Shapley value taking advantage of the model''s fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1703.01365
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSIntegratedGradientsAttribution {
     /// The number of steps for approximating the path integral. A good value to start is 50 and gradually increase until the sum to diff property is within the desired error range. Valid range of its value is [1, 100], inclusively.
     #[serde(default, rename = "stepCount")]
@@ -1476,7 +1477,7 @@ pub struct XPSIntegratedGradientsAttribution {
 }
 
 /// An explanation method that redistributes Integrated Gradients attributions to segmented regions, taking advantage of the model''s fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1906.02825 Only supports image Models (modality is IMAGE).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSXraiAttribution {
     /// The number of steps for approximating the path integral. A good value to start is 50 and gradually increase until the sum to diff property is met within the desired error range. Valid range of its value is [1, 100], inclusively.
     #[serde(default, rename = "stepCount")]
@@ -1484,7 +1485,7 @@ pub struct XPSXraiAttribution {
 }
 
 /// Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of java.awt.Color in Java; it can also be trivially provided to UIColor''s +colorWithRed:green:blue:alpha method in iOS; and, with just a little work, it can be easily formatted into a CSS rgba() string in JavaScript. This reference page doesn''t have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most 1e-5. Example (Java): import com.google.type.Color; // ... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha() ? protocolor.getAlpha().getValue() : 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color .newBuilder() .setRed(red / denominator) .setGreen(green / denominator) .setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha != 255) { result.setAlpha( FloatValue .newBuilder() .setValue(((float) alpha) / denominator) .build()); } return resultBuilder.build(); } // ... Example (iOS / Obj-C): // ... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper != nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha &lt;= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } // ... Example (JavaScript): // ... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!(''alpha'' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join('',''); return [''rgba('', rgbParams, '','', alphaFrac, '')''].join(''''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red &lt;&lt; 16) | (green &lt;&lt; 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = [''#'']; for (var i = 0; i &lt; missingZeros; i++) { resultBuilder.push(''0''); } resultBuilder.push(hexString); return resultBuilder.join(''''); }; // ...
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Color {
     /// The fraction of this color that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (this color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color. This uses a wrapper message rather than a simple float scalar so that it is possible to distinguish between a default value and the value being unset. If omitted, this color object is rendered as a solid color (as if the alpha value had been explicitly given a value of 1.0).
     #[serde(default)]
@@ -1501,7 +1502,7 @@ pub struct Color {
 }
 
 /// RGB color and each channel is represented by an integer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSColorMapIntColor {
     /// The value should be in range of [0, 255].
     #[serde(default)]
@@ -1515,7 +1516,7 @@ pub struct XPSColorMapIntColor {
 }
 
 /// XPSImageModelServingSpecModelThroughputEstimation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSImageModelServingSpecModelThroughputEstimation {
     /// TODO: enum values: ["UNSPECIFIED", "NVIDIA_TESLA_K80", "NVIDIA_TESLA_P100", "NVIDIA_TESLA_V100", "NVIDIA_TESLA_P4", "NVIDIA_TESLA_T4", "NVIDIA_TESLA_A100", "NVIDIA_A100_80GB", "NVIDIA_L4", "NVIDIA_H100_80GB", "NVIDIA_H100_MEGA_80GB", "NVIDIA_H200_141GB", "NVIDIA_B200", "NVIDIA_GB200", "TPU_V2", "TPU_V3", "TPU_V4_POD", "TPU_V5_LITEPOD"]
     #[serde(default, rename = "computeEngineAcceleratorType")]
@@ -1532,7 +1533,7 @@ pub struct XPSImageModelServingSpecModelThroughputEstimation {
 }
 
 /// XPSExportModelOutputConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSExportModelOutputConfig {
     #[serde(default, rename = "coreMlFormat")]
     pub core_ml_format: ::core::option::Option<serde_json::Value>,
@@ -1558,7 +1559,7 @@ pub struct XPSExportModelOutputConfig {
 }
 
 /// A single model artifact item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSModelArtifactItem {
     /// The model artifact format. // TODO: enum values: ["ARTIFACT_FORMAT_UNSPECIFIED", "TF_CHECKPOINT", "TF_SAVED_MODEL", "TF_LITE", "EDGE_TPU_TF_LITE", "TF_JS", "CORE_ML"]
     #[serde(default, rename = "artifactFormat")]
@@ -1569,7 +1570,7 @@ pub struct XPSModelArtifactItem {
 }
 
 /// XPSMetricEntryLabel resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSMetricEntryLabel {
     /// The name of the label.
     #[serde(default, rename = "labelName")]
@@ -1580,7 +1581,7 @@ pub struct XPSMetricEntryLabel {
 }
 
 /// A description of Tables model structure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTablesModelStructure {
     /// A list of models.
     #[serde(default, rename = "modelParameters")]
@@ -1589,7 +1590,7 @@ pub struct XPSTablesModelStructure {
 }
 
 /// XPSTrainingObjectivePoint resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTrainingObjectivePoint {
     /// The time at which this point was recorded.
     #[serde(default, rename = "createTime")]
@@ -1600,7 +1601,7 @@ pub struct XPSTrainingObjectivePoint {
 }
 
 /// Metric for billing reports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CpuMetric {
     /// Required. Number of CPU cores.
     #[serde(default, rename = "coreNumber")]
@@ -1620,7 +1621,7 @@ pub struct CpuMetric {
 }
 
 /// DiskMetric resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskMetric {
     /// Required. Type of Disk, e.g. REGIONAL_SSD. // TODO: enum values: ["UNKNOWN_DISK_TYPE", "REGIONAL_SSD", "REGIONAL_STORAGE", "PD_SSD", "PD_STANDARD", "STORAGE_SNAPSHOT"]
     #[serde(default, rename = "diskType")]
@@ -1631,7 +1632,7 @@ pub struct DiskMetric {
 }
 
 /// GpuMetric resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GpuMetric {
     /// Required. Seconds of GPU usage, e.g. 3600.
     #[serde(default, rename = "gpuSec")]
@@ -1648,7 +1649,7 @@ pub struct GpuMetric {
 }
 
 /// RamMetric resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RamMetric {
     /// Required. VM memory in Gigabyte second, e.g. 3600. Using int64 type to match billing metrics definition.
     #[serde(default, rename = "gibSec")]
@@ -1668,7 +1669,7 @@ pub struct RamMetric {
 }
 
 /// TpuMetric resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TpuMetric {
     /// Required. Seconds of TPU usage, e.g. 3600.
     #[serde(default, rename = "tpuSec")]
@@ -1679,7 +1680,7 @@ pub struct TpuMetric {
 }
 
 /// Metrics for a single confidence threshold.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSImageSegmentationEvaluationMetricsConfidenceMetricsEntry {
     /// The confidence threshold value used to compute the metrics.
     #[serde(default, rename = "confidenceThreshold")]
@@ -1702,7 +1703,7 @@ pub struct XPSImageSegmentationEvaluationMetricsConfidenceMetricsEntry {
 }
 
 /// Metrics for Tables classification problems.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTablesClassificationMetrics {
     /// Metrics building a curve.
     #[serde(default, rename = "curveMetrics")]
@@ -1711,7 +1712,7 @@ pub struct XPSTablesClassificationMetrics {
 }
 
 /// Metrics for Tables regression problems.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTablesRegressionMetrics {
     /// Mean absolute error.
     #[serde(default, rename = "meanAbsoluteError")]
@@ -1735,7 +1736,7 @@ pub struct XPSTablesRegressionMetrics {
 }
 
 /// ConfidenceMetricsEntry includes generic precision, recall, f1 score etc. Next tag: 16.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSConfidenceMetricsEntry {
     /// Metrics are computed with an assumption that the model never return predictions with score lower than this value.
     #[serde(default, rename = "confidenceThreshold")]
@@ -1782,7 +1783,7 @@ pub struct XPSConfidenceMetricsEntry {
 }
 
 /// The Evaluation metrics entry given a specific precision_window_length.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSVideoActionMetricsEntry {
     /// Metrics for each label-match confidence_threshold from 0.05,0.10,...,0.95,0.96,0.97,0.98,0.99.
     #[serde(default, rename = "confidenceMetricsEntries")]
@@ -1797,7 +1798,7 @@ pub struct XPSVideoActionMetricsEntry {
 }
 
 /// Bounding box matching model metrics for a single intersection-over-union threshold and multiple label match confidence thresholds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSBoundingBoxMetricsEntry {
     /// Metrics for each label-match confidence_threshold from 0.05,0.10,...,0.95,0.96,0.97,0.98,0.99.
     #[serde(default, rename = "confidenceMetricsEntries")]
@@ -1812,7 +1813,7 @@ pub struct XPSBoundingBoxMetricsEntry {
 }
 
 /// Track matching model metrics for a single track match threshold and multiple label match confidence thresholds. Next tag: 6.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTrackMetricsEntry {
     /// Output only. Metrics for each label-match confidence_threshold from 0.05,0.10,...,0.95,0.96,0.97,0.98,0.99. Precision-recall curve is derived from them.
     #[serde(default, rename = "confidenceMetricsEntries")]
@@ -1833,7 +1834,7 @@ pub struct XPSTrackMetricsEntry {
 }
 
 /// A model format used for Docker containers. Use the params field to customize the container. The container is verified to work correctly on ubuntu 16.04 operating system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSDockerFormat {
     /// Optional. Additional cpu information describing the requirements for the to be exported model files. // TODO: enum values: ["CPU_ARCHITECTURE_UNSPECIFIED", "CPU_ARCHITECTURE_X86_64"]
     #[serde(default, rename = "cpuArchitecture")]
@@ -1844,7 +1845,7 @@ pub struct XPSDockerFormat {
 }
 
 /// Model hyper-parameters for a model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTablesModelStructureModelParameters {
     #[serde(default)]
     pub hyperparameters:
@@ -1852,7 +1853,7 @@ pub struct XPSTablesModelStructureModelParameters {
 }
 
 /// Confusion matrix of the model running the classification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSConfusionMatrix {
     /// For the following three repeated fields, only one is intended to be set. annotation_spec_id_token is preferable to be set. ID tokens of the annotation specs used in the confusion matrix.
     #[serde(default, rename = "annotationSpecIdToken")]
@@ -1869,7 +1870,7 @@ pub struct XPSConfusionMatrix {
 }
 
 /// Metrics curve data point for a single value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTablesClassificationMetricsCurveMetrics {
     /// The area under the precision-recall curve.
     #[serde(default, rename = "aucPr")]
@@ -1893,7 +1894,7 @@ pub struct XPSTablesClassificationMetricsCurveMetrics {
 }
 
 /// A pair of actual & observed values for the model being evaluated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSRegressionMetricsEntry {
     /// The observed value for a row in the dataset.
     #[serde(default, rename = "predictedValue")]
@@ -1904,7 +1905,7 @@ pub struct XPSRegressionMetricsEntry {
 }
 
 /// Metrics for a single confidence threshold.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSVideoActionMetricsEntryConfidenceMetricsEntry {
     /// Output only. The confidence threshold value used to compute the metrics.
     #[serde(default, rename = "confidenceThreshold")]
@@ -1921,7 +1922,7 @@ pub struct XPSVideoActionMetricsEntryConfidenceMetricsEntry {
 }
 
 /// Metrics for a single confidence threshold.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSBoundingBoxMetricsEntryConfidenceMetricsEntry {
     /// The confidence threshold value used to compute the metrics.
     #[serde(default, rename = "confidenceThreshold")]
@@ -1938,7 +1939,7 @@ pub struct XPSBoundingBoxMetricsEntryConfidenceMetricsEntry {
 }
 
 /// Metrics for a single confidence threshold. Next tag: 6.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTrackMetricsEntryConfidenceMetricsEntry {
     /// Output only. Bounding box intersection-over-union precision. Measures how well the bounding boxes overlap between each other (e.g. complete overlap or just barely above iou_threshold).
     #[serde(default, rename = "boundingBoxIou")]
@@ -1958,7 +1959,7 @@ pub struct XPSTrackMetricsEntryConfidenceMetricsEntry {
 }
 
 /// XPSTablesModelStructureModelParametersParameter resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTablesModelStructureModelParametersParameter {
     /// Float type parameter value.
     #[serde(default, rename = "floatValue")]
@@ -1975,7 +1976,7 @@ pub struct XPSTablesModelStructureModelParametersParameter {
 }
 
 /// A row in the confusion matrix.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSConfusionMatrixRow {
     /// Same as above except intended to represent other counts (for e.g. for segmentation this is pixel count). NOTE(params): Only example_count or count is set (oneoff does not support repeated fields unless they are embedded inside another message).
     #[serde(default)]
@@ -1986,7 +1987,7 @@ pub struct XPSConfusionMatrixRow {
 }
 
 /// Metrics for a single confidence threshold.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTablesConfidenceMetricsEntry {
     /// The confidence threshold value used to compute the metrics.
     #[serde(default, rename = "confidenceThreshold")]
@@ -2021,7 +2022,7 @@ pub struct XPSTablesConfidenceMetricsEntry {
 }
 
 /// The data statistics of a series of ARRAY values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSArrayStats {
     #[serde(default, rename = "commonStats")]
     pub common_stats: ::core::option::Option<::std::boxed::Box<XPSCommonStats>>,
@@ -2031,7 +2032,7 @@ pub struct XPSArrayStats {
 }
 
 /// The data statistics of a series of CATEGORY values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSCategoryStats {
     #[serde(default, rename = "commonStats")]
     pub common_stats: ::core::option::Option<::std::boxed::Box<XPSCommonStats>>,
@@ -2041,7 +2042,7 @@ pub struct XPSCategoryStats {
 }
 
 /// The statistics of a single CATEGORY value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSCategoryStatsSingleCategoryStats {
     /// The number of occurrences of this value in the series.
     #[serde(default)]
@@ -2052,7 +2053,7 @@ pub struct XPSCategoryStatsSingleCategoryStats {
 }
 
 /// Common statistics for a column with a specified data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSCommonStats {
     #[serde(default, rename = "distinctValueCount")]
     pub distinct_value_count: ::core::option::Option<String>,
@@ -2063,7 +2064,7 @@ pub struct XPSCommonStats {
 }
 
 /// The data statistics of a series of values that share the same DataType.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSDataStats {
     /// The statistics for ARRAY DataType.
     #[serde(default, rename = "arrayStats")]
@@ -2095,7 +2096,7 @@ pub struct XPSDataStats {
 }
 
 /// The data statistics of a series of FLOAT64 values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSFloat64Stats {
     #[serde(default, rename = "commonStats")]
     pub common_stats: ::core::option::Option<::std::boxed::Box<XPSCommonStats>>,
@@ -2114,7 +2115,7 @@ pub struct XPSFloat64Stats {
 }
 
 /// A bucket of a histogram.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSFloat64StatsHistogramBucket {
     /// The number of data values that are in the bucket, i.e. are between min and max values.
     #[serde(default)]
@@ -2128,7 +2129,7 @@ pub struct XPSFloat64StatsHistogramBucket {
 }
 
 /// The data statistics of a series of STRUCT values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSStructStats {
     #[serde(default, rename = "commonStats")]
     pub common_stats: ::core::option::Option<::std::boxed::Box<XPSCommonStats>>,
@@ -2138,7 +2139,7 @@ pub struct XPSStructStats {
 }
 
 /// The data statistics of a series of TIMESTAMP values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct XPSTimestampStats {
     #[serde(default, rename = "commonStats")]
     pub common_stats: ::core::option::Option<::std::boxed::Box<XPSCommonStats>>,

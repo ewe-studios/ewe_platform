@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A list of all connection strings that can be used to connect to the Autonomous Database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllConnectionStrings {
     /// Output only. The database service provides the highest level of resources to each SQL statement.
     #[serde(default)]
@@ -25,7 +26,7 @@ pub struct AllConnectionStrings {
 }
 
 /// The connection string used to connect to the Autonomous Database. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/AutonomousDatabaseConnectionStrings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutonomousDatabaseConnectionStrings {
     /// Output only. Returns all connection strings that can be used to connect to the Autonomous Database.
     #[serde(default, rename = "allConnectionStrings")]
@@ -48,11 +49,11 @@ pub struct AutonomousDatabaseConnectionStrings {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// The connection string profile to allow clients to group. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/DatabaseConnectionStringProfile
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseConnectionStringProfile {
     /// Output only. The current consumer group being used by the connection. // TODO: enum values: ["CONSUMER_GROUP_UNSPECIFIED", "HIGH", "MEDIUM", "LOW", "TP", "TPURGENT"]
     #[serde(default, rename = "consumerGroup")]
@@ -84,7 +85,7 @@ pub struct DatabaseConnectionStringProfile {
 }
 
 /// Wrapper message for the value of a defined tag.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DefinedTagValue {
     /// The tags within the namespace.
     #[serde(default)]
@@ -92,11 +93,11 @@ pub struct DefinedTagValue {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// The request for OracleDatabase.FailoverAutonomousDatabase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FailoverAutonomousDatabaseRequest {
     /// Optional. The peer database name to fail over to. Required for cross-region standby, and must be omitted for in-region Data Guard.
     #[serde(default, rename = "peerAutonomousDatabase")]
@@ -104,7 +105,7 @@ pub struct FailoverAutonomousDatabaseRequest {
 }
 
 /// The request for AutonomousDatabase.GenerateWallet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateAutonomousDatabaseWalletRequest {
     /// Optional. True when requesting regional connection strings in PDB connect info, applicable to cross-region Data Guard only.
     #[serde(default, rename = "isRegional")]
@@ -118,7 +119,7 @@ pub struct GenerateAutonomousDatabaseWalletRequest {
 }
 
 /// The response for AutonomousDatabase.GenerateWallet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateAutonomousDatabaseWalletResponse {
     /// Output only. The base64 encoded wallet files.
     #[serde(default, rename = "archiveContent")]
@@ -126,7 +127,7 @@ pub struct GenerateAutonomousDatabaseWalletResponse {
 }
 
 /// The response for AutonomousDatabaseBackup.List.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAutonomousDatabaseBackupsResponse {
     /// The list of Autonomous Database Backups.
     #[serde(default, rename = "autonomousDatabaseBackups")]
@@ -138,7 +139,7 @@ pub struct ListAutonomousDatabaseBackupsResponse {
 }
 
 /// The response for AutonomousDatabaseCharacterSet.List.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAutonomousDatabaseCharacterSetsResponse {
     /// The list of Autonomous Database Character Sets.
     #[serde(default, rename = "autonomousDatabaseCharacterSets")]
@@ -150,7 +151,7 @@ pub struct ListAutonomousDatabaseCharacterSetsResponse {
 }
 
 /// The response for AutonomousDatabase.List.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAutonomousDatabasesResponse {
     /// The list of Autonomous Databases.
     #[serde(default, rename = "autonomousDatabases")]
@@ -161,7 +162,7 @@ pub struct ListAutonomousDatabasesResponse {
 }
 
 /// The response for AutonomousDbVersion.List.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAutonomousDbVersionsResponse {
     /// The list of Autonomous Database versions.
     #[serde(default, rename = "autonomousDbVersions")]
@@ -172,7 +173,7 @@ pub struct ListAutonomousDbVersionsResponse {
 }
 
 /// The response for CloudExadataInfrastructures.list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCloudExadataInfrastructuresResponse {
     /// The list of Exadata Infrastructures.
     #[serde(default, rename = "cloudExadataInfrastructures")]
@@ -184,7 +185,7 @@ pub struct ListCloudExadataInfrastructuresResponse {
 }
 
 /// The response for CloudVmCluster.List.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCloudVmClustersResponse {
     /// The list of VM Clusters.
     #[serde(default, rename = "cloudVmClusters")]
@@ -195,7 +196,7 @@ pub struct ListCloudVmClustersResponse {
 }
 
 /// The response for DatabaseCharacterSet.List.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDatabaseCharacterSetsResponse {
     /// The list of DatabaseCharacterSets.
     #[serde(default, rename = "databaseCharacterSets")]
@@ -206,7 +207,7 @@ pub struct ListDatabaseCharacterSetsResponse {
 }
 
 /// The response for Database.List.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDatabasesResponse {
     /// The list of Databases.
     #[serde(default)]
@@ -217,7 +218,7 @@ pub struct ListDatabasesResponse {
 }
 
 /// The response for DbNode.List.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDbNodesResponse {
     /// The list of DB Nodes
     #[serde(default, rename = "dbNodes")]
@@ -228,7 +229,7 @@ pub struct ListDbNodesResponse {
 }
 
 /// The response for DbServer.List.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDbServersResponse {
     /// The list of database servers.
     #[serde(default, rename = "dbServers")]
@@ -239,7 +240,7 @@ pub struct ListDbServersResponse {
 }
 
 /// The response for DbSystemInitialStorageSizes.List.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDbSystemInitialStorageSizesResponse {
     /// The list of DbSystemInitialStorageSizes.
     #[serde(default, rename = "dbSystemInitialStorageSizes")]
@@ -251,7 +252,7 @@ pub struct ListDbSystemInitialStorageSizesResponse {
 }
 
 /// The response for DbSystemShape.List.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDbSystemShapesResponse {
     /// The list of Database System shapes.
     #[serde(default, rename = "dbSystemShapes")]
@@ -262,7 +263,7 @@ pub struct ListDbSystemShapesResponse {
 }
 
 /// The response for DbSystem.List.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDbSystemsResponse {
     /// The list of DbSystems.
     #[serde(default, rename = "dbSystems")]
@@ -273,7 +274,7 @@ pub struct ListDbSystemsResponse {
 }
 
 /// The response for DbVersions.List.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDbVersionsResponse {
     /// The list of DbVersions.
     #[serde(default, rename = "dbVersions")]
@@ -284,7 +285,7 @@ pub struct ListDbVersionsResponse {
 }
 
 /// The response for Entitlement.List.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListEntitlementsResponse {
     /// The list of Entitlements
     #[serde(default)]
@@ -295,7 +296,7 @@ pub struct ListEntitlementsResponse {
 }
 
 /// The response for ExadbVmCluster.List.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListExadbVmClustersResponse {
     /// The list of ExadbVmClusters.
     #[serde(default, rename = "exadbVmClusters")]
@@ -306,7 +307,7 @@ pub struct ListExadbVmClustersResponse {
 }
 
 /// The response for ExascaleDbStorageVault.List.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListExascaleDbStorageVaultsResponse {
     /// The ExascaleDbStorageVaults.
     #[serde(default, rename = "exascaleDbStorageVaults")]
@@ -317,7 +318,7 @@ pub struct ListExascaleDbStorageVaultsResponse {
 }
 
 /// The response for GiVersion.List.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGiVersionsResponse {
     /// The list of Oracle Grid Infrastructure (GI) versions.
     #[serde(default, rename = "giVersions")]
@@ -328,7 +329,7 @@ pub struct ListGiVersionsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -339,7 +340,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response for MinorVersion.List.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMinorVersionsResponse {
     /// The list of MinorVersions.
     #[serde(default, rename = "minorVersions")]
@@ -350,7 +351,7 @@ pub struct ListMinorVersionsResponse {
 }
 
 /// The response for OdbNetwork.List.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOdbNetworksResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -364,7 +365,7 @@ pub struct ListOdbNetworksResponse {
 }
 
 /// The response for OdbSubnet.List.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOdbSubnetsResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -378,7 +379,7 @@ pub struct ListOdbSubnetsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -392,7 +393,7 @@ pub struct ListOperationsResponse {
 }
 
 /// The response for PluggableDatabase.List.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPluggableDatabasesResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -403,7 +404,7 @@ pub struct ListPluggableDatabasesResponse {
 }
 
 /// Metadata for a given Location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocationMetadata {
     /// Output only. Google Cloud Platform Oracle zones in a location.
     #[serde(default, rename = "gcpOracleZones")]
@@ -411,7 +412,7 @@ pub struct LocationMetadata {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -440,7 +441,7 @@ pub struct OperationMetadata {
 }
 
 /// The connection strings used to connect to the Oracle Database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PluggableDatabaseConnectionStrings {
     /// Optional. All connection strings to use to connect to the pluggable database.
     #[serde(default, rename = "allConnectionStrings")]
@@ -454,7 +455,7 @@ pub struct PluggableDatabaseConnectionStrings {
 }
 
 /// The request for ExadbVmCluster.RemoveVirtualMachine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveVirtualMachineExadbVmClusterRequest {
     /// Required. The list of host names of db nodes to be removed from the ExadbVmCluster.
     #[serde(default)]
@@ -465,11 +466,11 @@ pub struct RemoveVirtualMachineExadbVmClusterRequest {
 }
 
 /// The request for AutonomousDatabase.Restart.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestartAutonomousDatabaseRequest {}
 
 /// The request for AutonomousDatabase.Restore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestoreAutonomousDatabaseRequest {
     /// Required. The time and date to restore the database to.
     #[serde(default, rename = "restoreTime")]
@@ -477,15 +478,15 @@ pub struct RestoreAutonomousDatabaseRequest {
 }
 
 /// The request for AutonomousDatabase.Start.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartAutonomousDatabaseRequest {}
 
 /// The request for AutonomousDatabase.Stop.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StopAutonomousDatabaseRequest {}
 
 /// The request for OracleDatabase.SwitchoverAutonomousDatabase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SwitchoverAutonomousDatabaseRequest {
     /// Optional. The peer database name to switch over to. Required for cross-region standby, and must be omitted for in-region Data Guard.
     #[serde(default, rename = "peerAutonomousDatabase")]
@@ -493,7 +494,7 @@ pub struct SwitchoverAutonomousDatabaseRequest {
 }
 
 /// Details of the Autonomous Database Backup resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/AutonomousDatabaseBackup/
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutonomousDatabaseBackup {
     /// Required. The name of the Autonomous Database resource for which the backup is being created. Format: projects/{project}/locations/{region}/autonomousDatabases/{autonomous_database}
     #[serde(default, rename = "autonomousDatabase")]
@@ -513,7 +514,7 @@ pub struct AutonomousDatabaseBackup {
 }
 
 /// Details of the Autonomous Database character set resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/AutonomousDatabaseCharacterSets/
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutonomousDatabaseCharacterSet {
     /// Output only. The character set name for the Autonomous Database which is the ID in the resource name.
     #[serde(default, rename = "characterSet")]
@@ -527,7 +528,7 @@ pub struct AutonomousDatabaseCharacterSet {
 }
 
 /// Details of the Autonomous Database resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/AutonomousDatabase/
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutonomousDatabase {
     /// Optional. Immutable. The password for the default ADMIN user. Note: Only one of admin_password_secret_version or admin_password can be populated.
     #[serde(default, rename = "adminPassword")]
@@ -580,7 +581,7 @@ pub struct AutonomousDatabase {
 }
 
 /// Details of the Autonomous Database version. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/AutonomousDbVersionSummary/
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutonomousDbVersion {
     /// Output only. The Autonomous Database workload type. // TODO: enum values: ["DB_WORKLOAD_UNSPECIFIED", "OLTP", "DW", "AJD", "APEX"]
     #[serde(default, rename = "dbWorkload")]
@@ -597,7 +598,7 @@ pub struct AutonomousDbVersion {
 }
 
 /// Represents CloudExadataInfrastructure resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/CloudExadataInfrastructure/
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudExadataInfrastructure {
     /// Output only. The date and time that the Exadata Infrastructure was created.
     #[serde(default, rename = "createTime")]
@@ -623,7 +624,7 @@ pub struct CloudExadataInfrastructure {
 }
 
 /// Details of the Cloud VM Cluster resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/CloudVmCluster/
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudVmCluster {
     /// Optional. The name of the backup OdbSubnet associated with the VM Cluster. Format: projects/{project}/locations/{location}/odbNetworks/{odb_network}/odbSubnets/{odb_subnet}
     #[serde(default, rename = "backupOdbSubnet")]
@@ -670,7 +671,7 @@ pub struct CloudVmCluster {
 }
 
 /// Details of the Database character set resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseCharacterSet {
     /// Output only. The character set name for the Database which is the ID in the resource name.
     #[serde(default, rename = "characterSet")]
@@ -684,7 +685,7 @@ pub struct DatabaseCharacterSet {
 }
 
 /// Details of the database node resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/DbNode/
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DbNode {
     /// Identifier. The name of the database node resource in the following format: projects/{project}/locations/{location}/cloudVmClusters/{cloud_vm_cluster}/dbNodes/{db_node}
     #[serde(default)]
@@ -695,7 +696,7 @@ pub struct DbNode {
 }
 
 /// Details of the database server resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/DbServer/
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DbServer {
     /// Optional. User friendly name for this resource.
     #[serde(default, rename = "displayName")]
@@ -709,7 +710,7 @@ pub struct DbServer {
 }
 
 /// Summary of the DbSystem initial storage size.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DbSystemInitialStorageSize {
     /// Output only. The name of the resource.
     #[serde(default)]
@@ -720,7 +721,7 @@ pub struct DbSystemInitialStorageSize {
 }
 
 /// Details of the Database System Shapes resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/DbSystemShapeSummary/
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DbSystemShape {
     /// Optional. Number of cores per node.
     #[serde(default, rename = "availableCoreCountPerNode")]
@@ -761,7 +762,7 @@ pub struct DbSystemShape {
 }
 
 /// Details of the DbSystem (BaseDB) resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/DbSystem/
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DbSystem {
     /// Output only. The date and time that the DbSystem was created.
     #[serde(default, rename = "createTime")]
@@ -796,7 +797,7 @@ pub struct DbSystem {
 }
 
 /// A valid Oracle Database version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DbVersion {
     /// Output only. The name of the DbVersion resource in the following format: projects/{project}/locations/{region}/dbVersions/{db_version}
     #[serde(default)]
@@ -807,7 +808,7 @@ pub struct DbVersion {
 }
 
 /// Details of the Entitlement resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Entitlement {
     /// Details of the OCI Cloud Account.
     #[serde(default, rename = "cloudAccountDetails")]
@@ -824,7 +825,7 @@ pub struct Entitlement {
 }
 
 /// ExadbVmCluster represents a cluster of VMs that are used to run Exadata workloads. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/ExadbVmCluster/
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExadbVmCluster {
     /// Required. Immutable. The name of the backup OdbSubnet associated with the ExadbVmCluster. Format: projects/{project}/locations/{location}/odbNetworks/{odb_network}/odbSubnets/{odb_subnet}
     #[serde(default, rename = "backupOdbSubnet")]
@@ -859,7 +860,7 @@ pub struct ExadbVmCluster {
 }
 
 /// ExascaleDbStorageVault represents a storage vault exadb vm cluster resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/ExascaleDbStorageVault/
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExascaleDbStorageVault {
     /// Output only. The date and time when the ExascaleDbStorageVault was created.
     #[serde(default, rename = "createTime")]
@@ -885,7 +886,7 @@ pub struct ExascaleDbStorageVault {
 }
 
 /// Details of the Oracle Grid Infrastructure (GI) version resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/GiVersionSummary/
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GiVersion {
     /// Identifier. The name of the Oracle Grid Infrastructure (GI) version resource with the format: projects/{project}/locations/{region}/giVersions/{gi_versions}
     #[serde(default)]
@@ -896,7 +897,7 @@ pub struct GiVersion {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -916,7 +917,7 @@ pub struct Location {
 }
 
 /// MinorVersion represents a minor version of a GI. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/GiMinorVersionSummary/
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MinorVersion {
     /// Optional. The ID of the Grid Image.
     #[serde(default, rename = "gridImageId")]
@@ -930,7 +931,7 @@ pub struct MinorVersion {
 }
 
 /// Represents OdbNetwork resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OdbNetwork {
     /// Output only. The date and time that the OdbNetwork was created.
     #[serde(default, rename = "createTime")]
@@ -956,7 +957,7 @@ pub struct OdbNetwork {
 }
 
 /// Represents OdbSubnet resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OdbSubnet {
     /// Required. The CIDR range of the subnet.
     #[serde(default, rename = "cidrRange")]
@@ -979,7 +980,7 @@ pub struct OdbSubnet {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -999,7 +1000,7 @@ pub struct Operation {
 }
 
 /// The PluggableDatabase resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/PluggableDatabase/
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PluggableDatabase {
     /// Output only. The date and time that the PluggableDatabase was created.
     #[serde(default, rename = "createTime")]
@@ -1016,7 +1017,7 @@ pub struct PluggableDatabase {
 }
 
 /// Properties of the Autonomous Database Backup resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutonomousDatabaseBackupProperties {
     /// Output only. Timestamp until when the backup will be available.
     #[serde(default, rename = "availableTillTime")]
@@ -1081,7 +1082,7 @@ pub struct AutonomousDatabaseBackupProperties {
 }
 
 /// The properties of an Autonomous Database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutonomousDatabaseProperties {
     /// Output only. The amount of storage currently being used for user and system data, in terabytes.
     #[serde(default, rename = "actualUsedDataStorageSizeTb")]
@@ -1283,7 +1284,7 @@ pub struct AutonomousDatabaseProperties {
 }
 
 /// The source configuration for the standby Autonomous Database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceConfig {
     /// Optional. This field specifies if the replication of automatic backups is enabled when creating a Data Guard.
     #[serde(default, rename = "automaticBackupsReplicationEnabled")]
@@ -1294,7 +1295,7 @@ pub struct SourceConfig {
 }
 
 /// Various properties of Exadata Infrastructure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudExadataInfrastructureProperties {
     /// Output only. The requested number of additional storage servers activated for the Exadata Infrastructure.
     #[serde(default, rename = "activatedStorageCount")]
@@ -1389,7 +1390,7 @@ pub struct CloudExadataInfrastructureProperties {
 }
 
 /// The identity connector details which will allow OCI to securely access the resources in the customer project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentityConnector {
     /// Output only. The connection state of the identity connector. // TODO: enum values: ["CONNECTION_STATE_UNSPECIFIED", "CONNECTED", "PARTIALLY_CONNECTED", "DISCONNECTED", "UNKNOWN"]
     #[serde(default, rename = "connectionState")]
@@ -1400,7 +1401,7 @@ pub struct IdentityConnector {
 }
 
 /// Various properties and settings associated with Exadata VM cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudVmClusterProperties {
     /// Optional. OCI Cluster name.
     #[serde(default, rename = "clusterName")]
@@ -1504,7 +1505,7 @@ pub struct CloudVmClusterProperties {
 }
 
 /// Various properties and settings associated with Db node.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DbNodeProperties {
     /// Output only. The date and time that the database node was created.
     #[serde(default, rename = "createTime")]
@@ -1536,7 +1537,7 @@ pub struct DbNodeProperties {
 }
 
 /// Various properties and settings associated with Exadata database server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DbServerProperties {
     /// Output only. OCID of database nodes associated with the database server.
     #[serde(default, rename = "dbNodeIds")]
@@ -1571,7 +1572,7 @@ pub struct DbServerProperties {
 }
 
 /// The properties of a DbSystem initial storage size summary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DbSystemInitialStorageSizeProperties {
     /// Output only. List of storage disk details available for launches from backup.
     #[serde(default, rename = "launchFromBackupStorageSizeDetails")]
@@ -1589,7 +1590,7 @@ pub struct DbSystemInitialStorageSizeProperties {
 }
 
 /// The properties of a DbSystem.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DbSystemProperties {
     /// Required. The number of CPU cores to enable for the DbSystem.
     #[serde(default, rename = "computeCount")]
@@ -1657,7 +1658,7 @@ pub struct DbSystemProperties {
 }
 
 /// The properties of a DbVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DbVersionProperties {
     /// Output only. True if this version of the Oracle Database software is the latest version for a release.
     #[serde(default, rename = "isLatestForMajorVersion")]
@@ -1677,7 +1678,7 @@ pub struct DbVersionProperties {
 }
 
 /// Details of the OCI Cloud Account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAccountDetails {
     /// Output only. URL to create a new account and link.
     #[serde(default, rename = "accountCreationUri")]
@@ -1694,7 +1695,7 @@ pub struct CloudAccountDetails {
 }
 
 /// The properties of an ExadbVmCluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExadbVmClusterProperties {
     /// Optional. Immutable. The number of additional ECPUs per node for an Exadata VM cluster on exascale infrastructure.
     #[serde(default, rename = "additionalEcpuCountPerNode")]
@@ -1756,7 +1757,7 @@ pub struct ExadbVmClusterProperties {
 }
 
 /// The properties of the ExascaleDbStorageVault. next ID: 12
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExascaleDbStorageVaultProperties {
     /// Optional. The size of additional flash cache in percentage of high capacity database storage.
     #[serde(default, rename = "additionalFlashCachePercent")]
@@ -1794,7 +1795,7 @@ pub struct ExascaleDbStorageVaultProperties {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1808,7 +1809,7 @@ pub struct Status {
 }
 
 /// The properties of a PluggableDatabase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PluggableDatabaseProperties {
     /// Required. The OCID of the compartment.
     #[serde(default, rename = "compartmentId")]
@@ -1853,7 +1854,7 @@ pub struct PluggableDatabaseProperties {
 }
 
 /// Oracle APEX Application Development. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/AutonomousDatabaseApex
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutonomousDatabaseApex {
     /// Output only. The Oracle APEX Application Development version.
     #[serde(default, rename = "apexVersion")]
@@ -1864,7 +1865,7 @@ pub struct AutonomousDatabaseApex {
 }
 
 /// The URLs for accessing Oracle Application Express (APEX) and SQL Developer Web with a browser from a Compute instance. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/AutonomousDatabaseConnectionUrls
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutonomousDatabaseConnectionUrls {
     /// Output only. Oracle Application Express (APEX) URL.
     #[serde(default, rename = "apexUri")]
@@ -1893,7 +1894,7 @@ pub struct AutonomousDatabaseConnectionUrls {
 }
 
 /// The history of the encryption keys used to encrypt the Autonomous Database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptionKeyHistoryEntry {
     /// Output only. The date and time when the encryption key was activated on the Autonomous Database..
     #[serde(default, rename = "activationTime")]
@@ -1904,7 +1905,7 @@ pub struct EncryptionKeyHistoryEntry {
 }
 
 /// Autonomous Data Guard standby database details. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/AutonomousDatabaseStandbySummary
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutonomousDatabaseStandbySummary {
     /// Output only. The date and time the Autonomous Data Guard role was switched for the standby Autonomous Database.
     #[serde(default, rename = "dataGuardRoleChangedTime")]
@@ -1924,7 +1925,7 @@ pub struct AutonomousDatabaseStandbySummary {
 }
 
 /// Details of scheduled operation. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/ScheduledOperationDetails
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScheduledOperationDetails {
     /// Output only. Day of week. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default, rename = "dayOfWeek")]
@@ -1938,7 +1939,7 @@ pub struct ScheduledOperationDetails {
 }
 
 /// The CustomerContact reference as defined by Oracle. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/CustomerContact
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerContact {
     /// Required. The email address used by Oracle to send notifications regarding databases and infrastructure.
     #[serde(default)]
@@ -1946,7 +1947,7 @@ pub struct CustomerContact {
 }
 
 /// Maintenance window as defined by Oracle. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/MaintenanceWindow
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaintenanceWindow {
     /// Optional. Determines the amount of time the system will wait before the start of each database server patching operation. Custom action timeout is in minutes and valid value is between 15 to 120 (inclusive).
     #[serde(default, rename = "customActionTimeoutMins")]
@@ -1978,7 +1979,7 @@ pub struct MaintenanceWindow {
 }
 
 /// Data collection options for diagnostics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataCollectionOptions {
     /// Optional. Indicates whether diagnostic collection is enabled for the VM cluster
     #[serde(default, rename = "diagnosticsEventsEnabled")]
@@ -1992,7 +1993,7 @@ pub struct DataCollectionOptions {
 }
 
 /// The initial storage size, in gigabytes, that is applicable for virtual machine DBSystem.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StorageSizeDetails {
     /// Output only. The data storage size, in gigabytes, that is applicable for virtual machine DBSystem.
     #[serde(default, rename = "dataStorageSizeInGbs")]
@@ -2003,7 +2004,7 @@ pub struct StorageSizeDetails {
 }
 
 /// Data collection options for DbSystem.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataCollectionOptionsDbSystem {
     /// Optional. Indicates whether to enable data collection for diagnostics.
     #[serde(default, rename = "isDiagnosticsEventsEnabled")]
@@ -2014,7 +2015,7 @@ pub struct DataCollectionOptionsDbSystem {
 }
 
 /// Details of the Database Home resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DbHome {
     /// Required. The Database resource.
     #[serde(default)]
@@ -2031,7 +2032,7 @@ pub struct DbHome {
 }
 
 /// Details of the DbSystem Options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DbSystemOptions {
     /// Optional. The storage option used in DB system. // TODO: enum values: ["STORAGE_MANAGEMENT_UNSPECIFIED", "ASM", "LVM"]
     #[serde(default, rename = "storageManagement")]
@@ -2039,7 +2040,7 @@ pub struct DbSystemOptions {
 }
 
 /// Data collection options for diagnostics. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/datatypes/DataCollectionOptions
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataCollectionOptionsCommon {
     /// Optional. Indicates whether to enable data collection for diagnostics.
     #[serde(default, rename = "isDiagnosticsEventsEnabled")]
@@ -2053,7 +2054,7 @@ pub struct DataCollectionOptionsCommon {
 }
 
 /// The storage allocation for the exadbvmcluster, in gigabytes (GB).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExadbVmClusterStorageDetails {
     /// Required. The storage allocation for the exadbvmcluster per node, in gigabytes (GB). This field is used to calculate the total storage allocation for the exadbvmcluster.
     #[serde(default, rename = "sizeInGbsPerNode")]
@@ -2061,7 +2062,7 @@ pub struct ExadbVmClusterStorageDetails {
 }
 
 /// The storage details of the ExascaleDbStorageVault.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExascaleDbStorageDetails {
     /// Output only. The available storage capacity for the ExascaleDbStorageVault, in gigabytes (GB).
     #[serde(default, rename = "availableSizeGbs")]
@@ -2072,7 +2073,7 @@ pub struct ExascaleDbStorageDetails {
 }
 
 /// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeZone {
     /// IANA Time Zone Database time zone. For example "America/New_York".
     #[serde(default)]
@@ -2083,7 +2084,7 @@ pub struct TimeZone {
 }
 
 /// The Pluggable Database Node Level Details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PluggableDatabaseNodeLevelDetails {
     /// Required. The Node name of the Database home.
     #[serde(default, rename = "nodeName")]
@@ -2097,7 +2098,7 @@ pub struct PluggableDatabaseNodeLevelDetails {
 }
 
 /// The encryption key used to encrypt the Autonomous Database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptionKey {
     /// Optional. The KMS key used to encrypt the Autonomous Database. This field is required if the provider is GOOGLE_MANAGED. The name of the KMS key resource in the following format: projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}.
     #[serde(default, rename = "kmsKey")]
@@ -2108,7 +2109,7 @@ pub struct EncryptionKey {
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]
@@ -2125,7 +2126,7 @@ pub struct TimeOfDay {
 }
 
 /// Details of the Database resource. https://docs.oracle.com/en-us/iaas/api/#/en/database/20160918/Database/
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Database {
     /// Optional. The password for the default ADMIN user. Note: Only one of admin_password_secret_version or admin_password can be populated.
     #[serde(default, rename = "adminPassword")]
@@ -2184,7 +2185,7 @@ pub struct Database {
 }
 
 /// The properties of a Database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseProperties {
     /// Output only. The Database Management config.
     #[serde(default, rename = "databaseManagementConfig")]
@@ -2201,7 +2202,7 @@ pub struct DatabaseProperties {
 }
 
 /// The configuration of the Database Management service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseManagementConfig {
     /// Output only. The status of the Database Management service. // TODO: enum values: ["MANAGEMENT_STATE_UNSPECIFIED", "ENABLING", "ENABLED", "DISABLING", "DISABLED", "UPDATING", "FAILED_ENABLING", "FAILED_DISABLING", "FAILED_UPDATING"]
     #[serde(default, rename = "managementState")]
@@ -2212,7 +2213,7 @@ pub struct DatabaseManagementConfig {
 }
 
 /// Backup Options for the Database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DbBackupConfig {
     /// Optional. If set to true, enables automatic backups on the database.
     #[serde(default, rename = "autoBackupEnabled")]
@@ -2239,7 +2240,7 @@ pub struct DbBackupConfig {
 }
 
 /// The details of the database backup destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupDestinationDetails {
     /// Optional. The type of the database backup destination. // TODO: enum values: ["BACKUP_DESTINATION_TYPE_UNSPECIFIED", "NFS", "RECOVERY_APPLIANCE", "OBJECT_STORE", "LOCAL", "DBRS"]
     #[serde(default, rename = "type")]

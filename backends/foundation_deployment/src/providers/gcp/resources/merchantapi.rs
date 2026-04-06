@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Response message for the ListMerchantsReview method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMerchantReviewsResponse {
     /// The merchant review.
     #[serde(default, rename = "merchantReviews")]
@@ -26,7 +27,7 @@ pub struct ListMerchantReviewsResponse {
 }
 
 /// response message for the ListProductReviews method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListProductReviewsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -37,7 +38,7 @@ pub struct ListProductReviewsResponse {
 }
 
 /// The message that the merchant will receive to notify about product status change event
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductStatusChangeMessage {
     /// The target account that owns the entity that changed. Format : accounts/{merchant_id}
     #[serde(default)]
@@ -69,7 +70,7 @@ pub struct ProductStatusChangeMessage {
 }
 
 /// A review for a merchant. For more information, see [Introduction to Merchant Review Feeds](https://developers.google.com/merchant-review-feeds)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MerchantReview {
     /// Optional. A list of custom (merchant-provided) attributes. It can also be used for submitting any attribute of the data specification in its generic form (for example, { "name": "size type", "value": "regular" }). This is useful for submitting attributes not explicitly exposed by the API, such as experimental attributes. Maximum allowed number of characters for each custom attribute is 10240 (represents sum of characters for name and value). Maximum 2500 custom attributes can be set per product, with total size of 102.4kB. Underscores in custom attribute names are replaced by spaces upon insertion.
     #[serde(default, rename = "customAttributes")]
@@ -92,7 +93,7 @@ pub struct MerchantReview {
 }
 
 /// A review for a product. For more information, see [Introduction to Product Review Feeds](https://developers.google.com/product-review-feeds)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductReview {
     /// Optional. A list of custom (merchant-provided) attributes.
     #[serde(default, rename = "customAttributes")]
@@ -115,7 +116,7 @@ pub struct ProductReview {
 }
 
 /// The change that happened to the product including old value, new value, country code as the region code and reporting context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductChange {
     /// The new value of the changed resource or attribute. If empty, it means that the product was deleted. Will have one of these values : (approved, pending, disapproved, )
     #[serde(default, rename = "newValue")]
@@ -132,7 +133,7 @@ pub struct ProductChange {
 }
 
 /// Attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MerchantReviewAttributes {
     /// Optional. The method used to collect the review. // TODO: enum values: ["COLLECTION_METHOD_UNSPECIFIED", "MERCHANT_UNSOLICITED", "POINT_OF_SALE", "AFTER_FULFILLMENT"]
     #[serde(default, rename = "collectionMethod")]
@@ -185,7 +186,7 @@ pub struct MerchantReviewAttributes {
 }
 
 /// The status of a merchant review, data validation issues, that is, information about a merchant review computed asynchronously.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MerchantReviewStatus {
     /// Output only. Date on which the item has been created, in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format.
     #[serde(default, rename = "createTime")]
@@ -203,7 +204,7 @@ pub struct MerchantReviewStatus {
 }
 
 /// A message that represents custom attributes. Exactly one of value or group_values must not be empty.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomAttribute {
     /// Subattributes within this attribute group. If group_values is not empty, value must be empty.
     #[serde(default, rename = "groupValues")]
@@ -217,7 +218,7 @@ pub struct CustomAttribute {
 }
 
 /// Attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductReviewAttributes {
     /// Optional. The name of the aggregator of the product reviews. A publisher may use a reviews aggregator to manage reviews and provide the feeds. This element indicates the use of an aggregator and contains information about the aggregator.
     #[serde(default, rename = "aggregatorName")]
@@ -315,7 +316,7 @@ pub struct ProductReviewAttributes {
 }
 
 /// Product review status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductReviewStatus {
     /// Output only. Date on which the item has been created, in [ISO 8601](http://en.wikipedia.org/wiki/ISO_8601) format.
     #[serde(default, rename = "createTime")]
@@ -333,7 +334,7 @@ pub struct ProductReviewStatus {
 }
 
 /// The destination status of the merchant review status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MerchantReviewDestinationStatus {
     /// Output only. The name of the reporting context. // TODO: enum values: ["REPORTING_CONTEXT_ENUM_UNSPECIFIED", "SHOPPING_ADS", "DISCOVERY_ADS", "DEMAND_GEN_ADS", "DEMAND_GEN_ADS_DISCOVER_SURFACE", "VIDEO_ADS", "DISPLAY_ADS", "LOCAL_INVENTORY_ADS", "VEHICLE_INVENTORY_ADS", "FREE_LISTINGS", "FREE_LISTINGS_UCP_CHECKOUT", "FREE_LOCAL_LISTINGS", "FREE_LOCAL_VEHICLE_LISTINGS", "YOUTUBE_AFFILIATE", "YOUTUBE_SHOPPING", "CLOUD_RETAIL", "LOCAL_CLOUD_RETAIL", "PRODUCT_REVIEWS", "MERCHANT_REVIEWS", "YOUTUBE_CHECKOUT"]
     #[serde(default, rename = "reportingContext")]
@@ -341,7 +342,7 @@ pub struct MerchantReviewDestinationStatus {
 }
 
 /// The ItemLevelIssue of the merchant review status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MerchantReviewItemLevelIssue {
     /// Output only. The attribute''s name, if the issue is caused by a single attribute.
     #[serde(default)]
@@ -370,7 +371,7 @@ pub struct MerchantReviewItemLevelIssue {
 }
 
 /// The URI of the review landing page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReviewLink {
     /// Optional. The URI of the review landing page. For example: http://www.example.com/review_5.html.
     #[serde(default)]
@@ -381,7 +382,7 @@ pub struct ReviewLink {
 }
 
 /// The destination status of the product review status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductReviewDestinationStatus {
     /// Output only. The name of the reporting context. // TODO: enum values: ["REPORTING_CONTEXT_ENUM_UNSPECIFIED", "SHOPPING_ADS", "DISCOVERY_ADS", "DEMAND_GEN_ADS", "DEMAND_GEN_ADS_DISCOVER_SURFACE", "VIDEO_ADS", "DISPLAY_ADS", "LOCAL_INVENTORY_ADS", "VEHICLE_INVENTORY_ADS", "FREE_LISTINGS", "FREE_LISTINGS_UCP_CHECKOUT", "FREE_LOCAL_LISTINGS", "FREE_LOCAL_VEHICLE_LISTINGS", "YOUTUBE_AFFILIATE", "YOUTUBE_SHOPPING", "CLOUD_RETAIL", "LOCAL_CLOUD_RETAIL", "PRODUCT_REVIEWS", "MERCHANT_REVIEWS", "YOUTUBE_CHECKOUT"]
     #[serde(default, rename = "reportingContext")]
@@ -389,7 +390,7 @@ pub struct ProductReviewDestinationStatus {
 }
 
 /// The ItemLevelIssue of the product review status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductReviewItemLevelIssue {
     /// Output only. The attribute''s name, if the issue is caused by a single attribute.
     #[serde(default)]

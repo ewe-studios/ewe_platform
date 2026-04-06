@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A ListConfigurations response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AchievementConfigurationListResponse {
     /// The achievement configurations.
     #[serde(default)]
@@ -25,7 +26,7 @@ pub struct AchievementConfigurationListResponse {
 }
 
 /// A ListConfigurations response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LeaderboardConfigurationListResponse {
     /// The leaderboard configurations.
     #[serde(default)]
@@ -39,7 +40,7 @@ pub struct LeaderboardConfigurationListResponse {
 }
 
 /// A localized string resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocalizedString {
     /// Uniquely identifies the type of this resource. Value is always the fixed string gamesConfiguration#localizedString.
     #[serde(default)]
@@ -53,7 +54,7 @@ pub struct LocalizedString {
 }
 
 /// A localized string bundle resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocalizedStringBundle {
     /// Uniquely identifies the type of this resource. Value is always the fixed string gamesConfiguration#localizedStringBundle.
     #[serde(default)]
@@ -64,7 +65,7 @@ pub struct LocalizedStringBundle {
 }
 
 /// An achievement configuration resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AchievementConfiguration {
     /// The type of the achievement. // TODO: enum values: ["ACHIEVEMENT_TYPE_UNSPECIFIED", "STANDARD", "INCREMENTAL"]
     #[serde(default, rename = "achievementType")]
@@ -93,7 +94,7 @@ pub struct AchievementConfiguration {
 }
 
 /// An leaderboard configuration resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LeaderboardConfiguration {
     /// The draft data of the leaderboard.
     #[serde(default)]
@@ -122,7 +123,7 @@ pub struct LeaderboardConfiguration {
 }
 
 /// An achievement configuration detail.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AchievementConfigurationDetail {
     /// Localized strings for the achievement description.
     #[serde(default)]
@@ -145,7 +146,7 @@ pub struct AchievementConfigurationDetail {
 }
 
 /// A leaderboard configuration detail.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LeaderboardConfigurationDetail {
     /// The icon url of this leaderboard. Writes to this field are ignored.
     #[serde(default, rename = "iconUrl")]
@@ -165,7 +166,7 @@ pub struct LeaderboardConfigurationDetail {
 }
 
 /// A number format resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GamesNumberFormatConfiguration {
     /// The curreny code string. Only used for CURRENCY format type.
     #[serde(default, rename = "currencyCode")]
@@ -182,7 +183,7 @@ pub struct GamesNumberFormatConfiguration {
 }
 
 /// A number affix resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GamesNumberAffixConfiguration {
     /// When the language requires special treatment of "small" numbers (as with 2, 3, and 4 in Czech; or numbers ending 2, 3, or 4 but not 12, 13, or 14 in Polish).
     #[serde(default)]

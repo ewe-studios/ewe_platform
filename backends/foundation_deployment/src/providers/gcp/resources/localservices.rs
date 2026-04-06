@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A page of the response received from the SearchAccountReports method. A paginated response where more pages are available has next_page_token set. This token can be used in a subsequent request to retrieve the next request page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsHomeservicesLocalservicesV1SearchAccountReportsResponse {
     /// List of account reports which maps 1:1 to a particular linked GLS account.
     #[serde(default, rename = "accountReports")]
@@ -23,7 +24,7 @@ pub struct GoogleAdsHomeservicesLocalservicesV1SearchAccountReportsResponse {
 }
 
 /// A page of the response received from the SearchDetailedLeadReports method. A paginated response where more pages are available has next_page_token set. This token can be used in a subsequent request to retrieve the next request page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsHomeservicesLocalservicesV1SearchDetailedLeadReportsResponse {
     /// List of detailed lead reports uniquely identified by external lead id.
     #[serde(default, rename = "detailedLeadReports")]
@@ -36,7 +37,7 @@ pub struct GoogleAdsHomeservicesLocalservicesV1SearchDetailedLeadReportsResponse
 }
 
 /// An Account Report of a GLS account identified by their account id containing aggregate data gathered from a particular date range. Next ID: 18
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsHomeservicesLocalservicesV1AccountReport {
     /// Unique identifier of the GLS account.
     #[serde(default, rename = "accountId")]
@@ -92,7 +93,7 @@ pub struct GoogleAdsHomeservicesLocalservicesV1AccountReport {
 }
 
 /// A Detailed Lead Report of a lead identified by their lead id and contains consumer, account, monetization, and lead data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsHomeservicesLocalservicesV1DetailedLeadReport {
     /// Identifies account that received the lead.
     #[serde(default, rename = "accountId")]
@@ -148,7 +149,7 @@ pub struct GoogleAdsHomeservicesLocalservicesV1DetailedLeadReport {
 }
 
 /// Conatiner for aggregator specific information if lead is for an aggregator GLS account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsHomeservicesLocalservicesV1AggregatorInfo {
     /// Provider id (listed in aggregator system) which maps to a account id in GLS system.
     #[serde(default, rename = "aggregatorProviderId")]
@@ -156,7 +157,7 @@ pub struct GoogleAdsHomeservicesLocalservicesV1AggregatorInfo {
 }
 
 /// Container for booking lead specific information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsHomeservicesLocalservicesV1BookingLead {
     /// Timestamp of when service is provided by advertiser.
     #[serde(default, rename = "bookingAppointmentTimestamp")]
@@ -176,7 +177,7 @@ pub struct GoogleAdsHomeservicesLocalservicesV1BookingLead {
 }
 
 /// Container for message lead specific information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsHomeservicesLocalservicesV1MessageLead {
     /// Consumer phone number associated with the message lead.
     #[serde(default, rename = "consumerPhoneNumber")]
@@ -193,7 +194,7 @@ pub struct GoogleAdsHomeservicesLocalservicesV1MessageLead {
 }
 
 /// Container for phone lead specific information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsHomeservicesLocalservicesV1PhoneLead {
     /// Timestamp of the phone call which resulted in a charged phone lead.
     #[serde(default, rename = "chargedCallTimestamp")]
@@ -207,7 +208,7 @@ pub struct GoogleAdsHomeservicesLocalservicesV1PhoneLead {
 }
 
 /// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeTimeZone {
     /// IANA Time Zone Database time zone. For example "America/New_York".
     #[serde(default)]

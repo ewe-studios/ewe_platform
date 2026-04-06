@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// BulkUpdateWorkspaceResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkUpdateWorkspaceResponse {
     /// The entities that were added or updated during the bulk-update. Does not include entities that were deleted or updated by the system.
     #[serde(default)]
@@ -19,7 +20,7 @@ pub struct BulkUpdateWorkspaceResponse {
 }
 
 /// CreateBuiltInVariableResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateBuiltInVariableResponse {
     /// List of created built-in variables.
     #[serde(default, rename = "builtInVariable")]
@@ -27,7 +28,7 @@ pub struct CreateBuiltInVariableResponse {
 }
 
 /// Options for new container versions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateContainerVersionRequestVersionOptions {
     /// The name of the container version to be created.
     #[serde(default)]
@@ -38,7 +39,7 @@ pub struct CreateContainerVersionRequestVersionOptions {
 }
 
 /// Create container versions response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateContainerVersionResponse {
     /// Compiler errors or not.
     #[serde(default, rename = "compilerError")]
@@ -55,7 +56,7 @@ pub struct CreateContainerVersionResponse {
 }
 
 /// Represents a Google Tag Manager Folder''s contents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FolderEntities {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -72,7 +73,7 @@ pub struct FolderEntities {
 }
 
 /// GetContainerSnippetResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetContainerSnippetResponse {
     /// Server container config param for manually provisioning a tagging server.
     #[serde(default, rename = "containerConfig")]
@@ -83,7 +84,7 @@ pub struct GetContainerSnippetResponse {
 }
 
 /// The changes that have occurred in the workspace since the base container version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetWorkspaceStatusResponse {
     /// The merge conflict after sync.
     #[serde(default, rename = "mergeConflict")]
@@ -94,7 +95,7 @@ pub struct GetWorkspaceStatusResponse {
 }
 
 /// List Accounts Response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAccountsResponse {
     /// List of GTM Accounts that a user has access to.
     #[serde(default)]
@@ -105,7 +106,7 @@ pub struct ListAccountsResponse {
 }
 
 /// ListClientsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListClientsResponse {
     /// All GTM Clients of a GTM Container.
     #[serde(default)]
@@ -116,7 +117,7 @@ pub struct ListClientsResponse {
 }
 
 /// List container versions response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListContainerVersionsResponse {
     /// All container version headers of a GTM Container.
     #[serde(default, rename = "containerVersionHeader")]
@@ -127,7 +128,7 @@ pub struct ListContainerVersionsResponse {
 }
 
 /// List Containers Response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListContainersResponse {
     /// All Containers of a GTM Account.
     #[serde(default)]
@@ -138,7 +139,7 @@ pub struct ListContainersResponse {
 }
 
 /// ListDestinationsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDestinationsResponse {
     /// All Destinations linked to a GTM Container.
     #[serde(default)]
@@ -149,7 +150,7 @@ pub struct ListDestinationsResponse {
 }
 
 /// A list of enabled built-in variables.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListEnabledBuiltInVariablesResponse {
     /// All GTM BuiltInVariables of a GTM container.
     #[serde(default, rename = "builtInVariable")]
@@ -160,7 +161,7 @@ pub struct ListEnabledBuiltInVariablesResponse {
 }
 
 /// List Environments Response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListEnvironmentsResponse {
     /// All Environments of a GTM Container.
     #[serde(default)]
@@ -171,7 +172,7 @@ pub struct ListEnvironmentsResponse {
 }
 
 /// List Folders Response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListFoldersResponse {
     /// All GTM Folders of a GTM Container.
     #[serde(default)]
@@ -182,7 +183,7 @@ pub struct ListFoldersResponse {
 }
 
 /// ListGtagConfigResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGtagConfigResponse {
     /// All Google tag configs in a Container.
     #[serde(default, rename = "gtagConfig")]
@@ -193,7 +194,7 @@ pub struct ListGtagConfigResponse {
 }
 
 /// List Tags Response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTagsResponse {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -204,7 +205,7 @@ pub struct ListTagsResponse {
 }
 
 /// ListTemplatesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTemplatesResponse {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -215,7 +216,7 @@ pub struct ListTemplatesResponse {
 }
 
 /// ListTransformationsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTransformationsResponse {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -226,7 +227,7 @@ pub struct ListTransformationsResponse {
 }
 
 /// List triggers response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTriggersResponse {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -237,7 +238,7 @@ pub struct ListTriggersResponse {
 }
 
 /// List user permissions response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUserPermissionsResponse {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -248,7 +249,7 @@ pub struct ListUserPermissionsResponse {
 }
 
 /// List Variables Response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListVariablesResponse {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -259,7 +260,7 @@ pub struct ListVariablesResponse {
 }
 
 /// A list of workspaces in a container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListWorkspacesResponse {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -270,7 +271,7 @@ pub struct ListWorkspacesResponse {
 }
 
 /// ListZonesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListZonesResponse {
     /// Continuation token for fetching the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -281,7 +282,7 @@ pub struct ListZonesResponse {
 }
 
 /// ProposedChange resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProposedChange {
     /// The list of workspace changes to be applied.
     #[serde(default)]
@@ -289,7 +290,7 @@ pub struct ProposedChange {
 }
 
 /// Publish container version response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublishContainerVersionResponse {
     /// Compiler errors or not.
     #[serde(default, rename = "compilerError")]
@@ -300,7 +301,7 @@ pub struct PublishContainerVersionResponse {
 }
 
 /// Response to quick previewing a workspace.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuickPreviewResponse {
     /// Were there compiler errors or not.
     #[serde(default, rename = "compilerError")]
@@ -314,7 +315,7 @@ pub struct QuickPreviewResponse {
 }
 
 /// The result of reverting a built-in variable in a workspace.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevertBuiltInVariableResponse {
     /// Whether the built-in variable is enabled after reversion.
     #[serde(default)]
@@ -322,7 +323,7 @@ pub struct RevertBuiltInVariableResponse {
 }
 
 /// The result of reverting a client in a workspace.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevertClientResponse {
     /// Client as it appears in the latest container version since the last workspace synchronization operation. If no client is present, that means the client was deleted in the latest container version.
     #[serde(default)]
@@ -330,7 +331,7 @@ pub struct RevertClientResponse {
 }
 
 /// The result of reverting folder changes in a workspace.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevertFolderResponse {
     /// Folder as it appears in the latest container version since the last workspace synchronization operation. If no folder is present, that means the folder was deleted in the latest container version.
     #[serde(default)]
@@ -338,7 +339,7 @@ pub struct RevertFolderResponse {
 }
 
 /// The result of reverting a tag in a workspace.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevertTagResponse {
     /// Tag as it appears in the latest container version since the last workspace synchronization operation. If no tag is present, that means the tag was deleted in the latest container version.
     #[serde(default)]
@@ -346,7 +347,7 @@ pub struct RevertTagResponse {
 }
 
 /// The result of reverting a template in a workspace.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevertTemplateResponse {
     /// Template as it appears in the latest container version since the last workspace synchronization operation. If no template is present, that means the template was deleted in the latest container version.
     #[serde(default)]
@@ -354,7 +355,7 @@ pub struct RevertTemplateResponse {
 }
 
 /// The result of reverting a transformation in a workspace.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevertTransformationResponse {
     /// Transformation as it appears in the latest container version since the last workspace synchronization operation. If no transformation is present, that means the transformation was deleted in the latest container version.
     #[serde(default)]
@@ -362,7 +363,7 @@ pub struct RevertTransformationResponse {
 }
 
 /// The result of reverting a trigger in a workspace.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevertTriggerResponse {
     /// Trigger as it appears in the latest container version since the last workspace synchronization operation. If no trigger is present, that means the trigger was deleted in the latest container version.
     #[serde(default)]
@@ -370,7 +371,7 @@ pub struct RevertTriggerResponse {
 }
 
 /// The result of reverting a variable in a workspace.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevertVariableResponse {
     /// Variable as it appears in the latest container version since the last workspace synchronization operation. If no variable is present, that means the variable was deleted in the latest container version.
     #[serde(default)]
@@ -378,7 +379,7 @@ pub struct RevertVariableResponse {
 }
 
 /// The result of reverting a zone in a workspace.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevertZoneResponse {
     /// Zone as it appears in the latest container version since the last workspace synchronization operation. If no zone is present, that means the zone was deleted in the latest container version.
     #[serde(default)]
@@ -386,7 +387,7 @@ pub struct RevertZoneResponse {
 }
 
 /// A response after synchronizing the workspace to the latest container version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SyncWorkspaceResponse {
     /// The merge conflict after sync. If this field is not empty, the sync is still treated as successful. But a version cannot be created until all conflicts are resolved.
     #[serde(default, rename = "mergeConflict")]
@@ -397,7 +398,7 @@ pub struct SyncWorkspaceResponse {
 }
 
 /// Represents a Google Tag Manager Account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Account {
     /// The Account ID uniquely identifies the GTM Account.
     #[serde(default, rename = "accountId")]
@@ -423,7 +424,7 @@ pub struct Account {
 }
 
 /// Represents a Google Tag Manager Container Version Header.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContainerVersionHeader {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
@@ -470,7 +471,7 @@ pub struct ContainerVersionHeader {
 }
 
 /// Represents a Google Tag Destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Destination {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
@@ -499,7 +500,7 @@ pub struct Destination {
 }
 
 /// Represents a Google Tag Manager Environment. Note that a user can create, delete and update environments of type USER, but can only update the enable_debug and url fields of environments of other types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Environment {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
@@ -549,7 +550,7 @@ pub struct Environment {
 }
 
 /// Represents a user''s permissions to an account and its container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserPermission {
     /// GTM Account access permissions.
     #[serde(default, rename = "accountAccess")]
@@ -569,7 +570,7 @@ pub struct UserPermission {
 }
 
 /// Represents a Google Tag Manager Container Workspace.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Workspace {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
@@ -598,7 +599,7 @@ pub struct Workspace {
 }
 
 /// Represents a Google Tag Manager Container Version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContainerVersion {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
@@ -663,7 +664,7 @@ pub struct ContainerVersion {
 }
 
 /// Represents a merge conflict.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MergeConflict {
     /// The base version entity (since the latest sync operation) that has conflicting changes compared to the workspace. If this field is missing, it means the workspace entity is deleted from the base version.
     #[serde(default, rename = "entityInBaseVersion")]
@@ -674,7 +675,7 @@ pub struct MergeConflict {
 }
 
 /// The status of a workspace after synchronization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SyncStatus {
     /// Synchornization operation detected a merge conflict.
     #[serde(default, rename = "mergeConflict")]
@@ -685,7 +686,7 @@ pub struct SyncStatus {
 }
 
 /// AccountFeatures resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountFeatures {
     /// Whether this Account supports multiple Containers.
     #[serde(default, rename = "supportMultipleContainers")]
@@ -696,7 +697,7 @@ pub struct AccountFeatures {
 }
 
 /// Defines the Google Tag Manager Account access permissions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountAccess {
     /// Whether the user has no access, user access, or admin access to an account. // TODO: enum values: ["accountPermissionUnspecified", "noAccess", "user", "admin"]
     #[serde(default)]
@@ -704,7 +705,7 @@ pub struct AccountAccess {
 }
 
 /// Defines the Google Tag Manager Container access permissions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContainerAccess {
     /// GTM Container ID.
     #[serde(default, rename = "containerId")]
@@ -715,7 +716,7 @@ pub struct ContainerAccess {
 }
 
 /// Represents a Google Tag Manager Container, which specifies the platform tags will run on, manages workspaces, and retains container versions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Container {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
@@ -759,7 +760,7 @@ pub struct Container {
 }
 
 /// A workspace entity that may represent a tag, trigger, variable, or folder in addition to its status in the workspace.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Entity {
     /// The built in variable being represented by the entity.
     #[serde(default, rename = "builtInVariable")]
@@ -797,7 +798,7 @@ pub struct Entity {
 }
 
 /// ContainerFeatures resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContainerFeatures {
     /// Whether this Container supports built-in variables
     #[serde(default, rename = "supportBuiltInVariables")]
@@ -844,7 +845,7 @@ pub struct ContainerFeatures {
 }
 
 /// Built-in variables are a special category of variables that are pre-created and non-customizable. They provide common functionality like accessing properties of the gtm data layer, monitoring clicks, or accessing elements of a page URL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BuiltInVariable {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
@@ -867,7 +868,7 @@ pub struct BuiltInVariable {
 }
 
 /// Client resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Client {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
@@ -911,7 +912,7 @@ pub struct Client {
 }
 
 /// Represents a Google Tag Manager Custom Template''s contents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomTemplate {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
@@ -946,7 +947,7 @@ pub struct CustomTemplate {
 }
 
 /// Represents a Google Tag Manager Folder.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Folder {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
@@ -978,7 +979,7 @@ pub struct Folder {
 }
 
 /// Represents a Google tag configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GtagConfig {
     /// Google tag account ID.
     #[serde(default, rename = "accountId")]
@@ -1010,7 +1011,7 @@ pub struct GtagConfig {
 }
 
 /// Represents a Google Tag Manager Tag.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Tag {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
@@ -1090,7 +1091,7 @@ pub struct Tag {
 }
 
 /// Represents a Google Tag Manager Transformation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Transformation {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
@@ -1131,7 +1132,7 @@ pub struct Transformation {
 }
 
 /// Represents a Google Tag Manager Trigger
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Trigger {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
@@ -1232,7 +1233,7 @@ pub struct Trigger {
 }
 
 /// Represents a Google Tag Manager Variable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Variable {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
@@ -1288,7 +1289,7 @@ pub struct Variable {
 }
 
 /// Represents a Google Tag Manager Zone''s contents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Zone {
     /// GTM Account ID.
     #[serde(default, rename = "accountId")]
@@ -1329,7 +1330,7 @@ pub struct Zone {
 }
 
 /// Represents the link between a custom template and an entry on the Community Template Gallery site.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GalleryReference {
     /// ID for the gallery template that is generated once during first sync and travels with the template redirects.
     #[serde(default, rename = "galleryTemplateId")]
@@ -1358,7 +1359,7 @@ pub struct GalleryReference {
 }
 
 /// TagConsentSetting resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TagConsentSetting {
     /// The tag''s consent status. If set to NEEDED, the runtime will check that the consent types specified by the consent_type field have been granted. // TODO: enum values: ["notSet", "notNeeded", "needed"]
     #[serde(default, rename = "consentStatus")]
@@ -1369,7 +1370,7 @@ pub struct TagConsentSetting {
 }
 
 /// Represents a reference to atag that fires before another tag in order to set up dependencies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetupTag {
     /// If true, fire the main tag if and only if the setup tag fires successfully. If false, fire the main tag regardless of setup tag firing status.
     #[serde(default, rename = "stopOnSetupFailure")]
@@ -1380,7 +1381,7 @@ pub struct SetupTag {
 }
 
 /// Represents a tag that fires after another tag in order to tear down dependencies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeardownTag {
     /// If true, fire the teardown tag if and only if the main tag fires successfully. If false, fire the teardown tag regardless of main tag firing status.
     #[serde(default, rename = "stopTeardownOnFailure")]
@@ -1391,7 +1392,7 @@ pub struct TeardownTag {
 }
 
 /// VariableFormatValue resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VariableFormatValue {
     /// The option to convert a string-type variable value to either lowercase or uppercase. // TODO: enum values: ["none", "lowercase", "uppercase"]
     #[serde(default, rename = "caseConversionType")]
@@ -1417,7 +1418,7 @@ pub struct VariableFormatValue {
 }
 
 /// Represents a Zone''s boundaries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZoneBoundary {
     /// The conditions that, when conjoined, make up the boundary.
     #[serde(default)]
@@ -1428,7 +1429,7 @@ pub struct ZoneBoundary {
 }
 
 /// Represents a child container of a Zone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZoneChildContainer {
     /// The zone''s nickname for the child container.
     #[serde(default)]
@@ -1439,7 +1440,7 @@ pub struct ZoneChildContainer {
 }
 
 /// Represents a Zone''s type restrictions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZoneTypeRestriction {
     /// True if type restrictions have been enabled for this Zone.
     #[serde(default)]
@@ -1450,7 +1451,7 @@ pub struct ZoneTypeRestriction {
 }
 
 /// Represents a predicate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Condition {
     /// A list of named parameters (key/value), depending on the condition''s type. Notes: - For binary operators, include parameters named arg0 and arg1 for specifying the left and right operands, respectively. - At this time, the left operand (arg0) must be a reference to a variable. - For case-insensitive Regex matching, include a boolean parameter named ignore_case that is set to true. If not specified or set to any other value, the matching will be case sensitive. - To negate an operator, include a boolean parameter named negate boolean parameter that is set to true.
     #[serde(default)]
@@ -1461,7 +1462,7 @@ pub struct Condition {
 }
 
 /// Represents a Google Tag Manager Parameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Parameter {
     /// Whether or not a reference type parameter is strongly or weakly referenced. Only used by Transformations.
     #[serde(default, rename = "isWeakReference")]

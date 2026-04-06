@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A message that holds specific allowed and denied values. This message can define specific values and subtrees of the Resource Manager resource hierarchy (Organizations, Folders, Projects) that are allowed or denied. This is achieved by using the under: and optional is: prefixes. The under: prefix is used to denote resource subtree values. The is: prefix is used to denote specific values, and is required only if the value contains a ":". Values prefixed with "is:" are treated the same as values with no prefix. Ancestry subtrees must be in one of the following formats: - projects/ (for example, projects/tokyo-rain-123) - folders/ (for example, folders/1234) - organizations/ (for example, organizations/1234) The supports_under field of the associated Constraint defines whether ancestry prefixes can be used.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV2PolicySpecPolicyRuleStringValues {
     /// List of values allowed at this resource.
     #[serde(default, rename = "allowedValues")]
@@ -22,7 +23,7 @@ pub struct GoogleCloudOrgpolicyV2PolicySpecPolicyRuleStringValues {
 }
 
 /// Details about whether the binding includes the principal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1BindingExplanationAnnotatedMembership {
     /// Indicates whether the binding includes the principal. // TODO: enum values: ["MEMBERSHIP_UNSPECIFIED", "MEMBERSHIP_INCLUDED", "MEMBERSHIP_NOT_INCLUDED", "MEMBERSHIP_UNKNOWN_INFO_DENIED", "MEMBERSHIP_UNKNOWN_UNSUPPORTED"]
     #[serde(default)]
@@ -33,7 +34,7 @@ pub struct GoogleCloudPolicysimulatorV1BindingExplanationAnnotatedMembership {
 }
 
 /// ListOrgPolicyViolationsPreviewsResponse is the response message for OrgPolicyViolationsPreviewService.ListOrgPolicyViolationsPreviews.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1ListOrgPolicyViolationsPreviewsResponse {
     /// A token that you can use to retrieve the next page of results. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -46,7 +47,7 @@ pub struct GoogleCloudPolicysimulatorV1ListOrgPolicyViolationsPreviewsResponse {
 }
 
 /// ListOrgPolicyViolationsResponse is the response message for OrgPolicyViolationsPreviewService.ListOrgPolicyViolations
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1ListOrgPolicyViolationsResponse {
     /// A token that you can use to retrieve the next page of results. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -58,7 +59,7 @@ pub struct GoogleCloudPolicysimulatorV1ListOrgPolicyViolationsResponse {
 }
 
 /// Response message for Simulator.ListReplayResults.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1ListReplayResultsResponse {
     /// A token that you can use to retrieve the next page of ReplayResult objects. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -70,7 +71,7 @@ pub struct GoogleCloudPolicysimulatorV1ListReplayResultsResponse {
 }
 
 /// A resource describing a Replay, or simulation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1Replay {
     /// Required. The configuration used for the Replay.
     #[serde(default)]
@@ -87,7 +88,7 @@ pub struct GoogleCloudPolicysimulatorV1Replay {
 }
 
 /// Metadata about a Replay operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1ReplayOperationMetadata {
     /// Time when the request was received.
     #[serde(default, rename = "startTime")]
@@ -95,7 +96,7 @@ pub struct GoogleCloudPolicysimulatorV1ReplayOperationMetadata {
 }
 
 /// CreateOrgPolicyViolationsPreviewOperationMetadata is metadata about an OrgPolicyViolationsPreview generations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1betaCreateOrgPolicyViolationsPreviewOperationMetadata {
     /// Time when the request was received.
     #[serde(default, rename = "requestTime")]
@@ -118,7 +119,7 @@ pub struct GoogleCloudPolicysimulatorV1betaCreateOrgPolicyViolationsPreviewOpera
 }
 
 /// GenerateOrgPolicyViolationsPreviewOperationMetadata is metadata about an OrgPolicyViolationsPreview generations operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1betaGenerateOrgPolicyViolationsPreviewOperationMetadata {
     /// Time when the request was received.
     #[serde(default, rename = "requestTime")]
@@ -141,7 +142,7 @@ pub struct GoogleCloudPolicysimulatorV1betaGenerateOrgPolicyViolationsPreviewOpe
 }
 
 /// OrgPolicyViolationsPreview is a resource providing a preview of the violations that will exist if an OrgPolicy change is made. The list of violations are modeled as child resources and retrieved via a ListOrgPolicyViolations API call. There are potentially more OrgPolicyViolations than could fit in an embedded field. Thus, the use of a child resource instead of a field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1betaOrgPolicyViolationsPreview {
     /// Output only. Time when this OrgPolicyViolationsPreview was created.
     #[serde(default, rename = "createTime")]
@@ -169,7 +170,7 @@ pub struct GoogleCloudPolicysimulatorV1betaOrgPolicyViolationsPreview {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -183,7 +184,7 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// OrgPolicyViolationsPreview is a resource providing a preview of the violations that will exist if an OrgPolicy change is made. The list of violations are modeled as child resources and retrieved via a ListOrgPolicyViolations API call. There are potentially more OrgPolicyViolations than could fit in an embedded field. Thus, the use of a child resource instead of a field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1OrgPolicyViolationsPreview {
     /// Output only. Time when this OrgPolicyViolationsPreview was created.
     #[serde(default, rename = "createTime")]
@@ -211,7 +212,7 @@ pub struct GoogleCloudPolicysimulatorV1OrgPolicyViolationsPreview {
 }
 
 /// OrgPolicyViolation is a resource representing a single resource violating a single OrgPolicy constraint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1OrgPolicyViolation {
     /// The custom constraint being violated.
     #[serde(default, rename = "customConstraint")]
@@ -228,7 +229,7 @@ pub struct GoogleCloudPolicysimulatorV1OrgPolicyViolation {
 }
 
 /// The result of replaying a single access tuple against a simulated state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1ReplayResult {
     /// The access tuple that was replayed. This field includes information about the principal, resource, and permission that were involved in the access attempt.
     #[serde(default, rename = "accessTuple")]
@@ -251,7 +252,7 @@ pub struct GoogleCloudPolicysimulatorV1ReplayResult {
 }
 
 /// The configuration used for a Replay.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1ReplayConfig {
     /// The logs to use as input for the Replay. // TODO: enum values: ["LOG_SOURCE_UNSPECIFIED", "RECENT_ACCESSES"]
     #[serde(default, rename = "logSource")]
@@ -262,7 +263,7 @@ pub struct GoogleCloudPolicysimulatorV1ReplayConfig {
 }
 
 /// Summary statistics about the replayed log entries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1ReplayResultsSummary {
     /// The number of replayed log entries with a difference between baseline and simulated policies.
     #[serde(default, rename = "differenceCount")]
@@ -285,7 +286,7 @@ pub struct GoogleCloudPolicysimulatorV1ReplayResultsSummary {
 }
 
 /// The proposed changes to OrgPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1betaOrgPolicyOverlay {
     /// Optional. The OrgPolicy CustomConstraint changes to preview violations for. Any existing CustomConstraints with the same name will be overridden in the simulation. That is, violations will be determined as if all custom constraints in the overlay were instantiated. Only a single custom_constraint is supported in the overlay at a time. For evaluating multiple constraints, multiple GenerateOrgPolicyViolationsPreview requests are made, where each request evaluates a single constraint.
     #[serde(default, rename = "customConstraints")]
@@ -300,7 +301,7 @@ pub struct GoogleCloudPolicysimulatorV1betaOrgPolicyOverlay {
 }
 
 /// A summary of the state of all resources scanned for compliance with the changed OrgPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1betaOrgPolicyViolationsPreviewResourceCounts {
     /// Output only. Number of scanned resources with zero violations.
     #[serde(default)]
@@ -320,7 +321,7 @@ pub struct GoogleCloudPolicysimulatorV1betaOrgPolicyViolationsPreviewResourceCou
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -340,7 +341,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// The proposed changes to OrgPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1OrgPolicyOverlay {
     /// Optional. The OrgPolicy CustomConstraint changes to preview violations for. Any existing CustomConstraints with the same name will be overridden in the simulation. That is, violations will be determined as if all custom constraints in the overlay were instantiated. Only a single custom_constraint is supported in the overlay at a time. For evaluating multiple constraints, multiple GenerateOrgPolicyViolationsPreview requests are made, where each request evaluates a single constraint.
     #[serde(default, rename = "customConstraints")]
@@ -355,7 +356,7 @@ pub struct GoogleCloudPolicysimulatorV1OrgPolicyOverlay {
 }
 
 /// A summary of the state of all resources scanned for compliance with the changed OrgPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1OrgPolicyViolationsPreviewResourceCounts {
     /// Output only. Number of scanned resources with zero violations.
     #[serde(default)]
@@ -375,7 +376,7 @@ pub struct GoogleCloudPolicysimulatorV1OrgPolicyViolationsPreviewResourceCounts 
 }
 
 /// ResourceContext provides the context we know about a resource. It is similar in concept to google.cloud.asset.v1.Resource, but focuses on the information specifically used by Simulator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1ResourceContext {
     /// The ancestry path of the resource in Google Cloud [resource hierarchy](https://cloud.google.com/resource-manager/docs/cloud-platform-resource-hierarchy), represented as a list of relative resource names. An ancestry path starts with the closest ancestor in the hierarchy and ends at root. If the resource is a project, folder, or organization, the ancestry path starts from the resource itself. Example: ["projects/123456789", "folders/5432", "organizations/1234"]
     #[serde(default)]
@@ -389,7 +390,7 @@ pub struct GoogleCloudPolicysimulatorV1ResourceContext {
 }
 
 /// Information about the principal, resource, and permission to check.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1AccessTuple {
     /// Required. The full resource name that identifies the resource. For example, //compute.googleapis.com/projects/my-project/zones/us-central1-a/instances/my-instance. For examples of full resource names for Google Cloud services, see https://cloud.google.com/iam/help/troubleshooter/full-resource-names.
     #[serde(default, rename = "fullResourceName")]
@@ -403,7 +404,7 @@ pub struct GoogleCloudPolicysimulatorV1AccessTuple {
 }
 
 /// The difference between the results of evaluating an access tuple under the current (baseline) policies and under the proposed (simulated) policies. This difference explains how a principal''s access could change if the proposed policies were applied.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1ReplayDiff {
     /// A summary and comparison of the principal''s access under the current (baseline) policies and the proposed (simulated) policies for a single access tuple. The evaluation of the principal''s access is reported in the AccessState field.
     #[serde(default, rename = "accessDiff")]
@@ -411,7 +412,7 @@ pub struct GoogleCloudPolicysimulatorV1ReplayDiff {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeDate {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -425,7 +426,7 @@ pub struct GoogleTypeDate {
 }
 
 /// A change to an OrgPolicy custom constraint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1betaOrgPolicyOverlayCustomConstraintOverlay {
     /// Optional. The new or updated custom constraint.
     #[serde(default, rename = "customConstraint")]
@@ -436,7 +437,7 @@ pub struct GoogleCloudPolicysimulatorV1betaOrgPolicyOverlayCustomConstraintOverl
 }
 
 /// A change to an OrgPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1betaOrgPolicyOverlayPolicyOverlay {
     /// Optional. The new or updated OrgPolicy.
     #[serde(default)]
@@ -447,7 +448,7 @@ pub struct GoogleCloudPolicysimulatorV1betaOrgPolicyOverlayPolicyOverlay {
 }
 
 /// A change to an OrgPolicy custom constraint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1OrgPolicyOverlayCustomConstraintOverlay {
     /// Optional. The new or updated custom constraint.
     #[serde(default, rename = "customConstraint")]
@@ -458,7 +459,7 @@ pub struct GoogleCloudPolicysimulatorV1OrgPolicyOverlayCustomConstraintOverlay {
 }
 
 /// A change to an OrgPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1OrgPolicyOverlayPolicyOverlay {
     /// Optional. The new or updated OrgPolicy.
     #[serde(default)]
@@ -469,7 +470,7 @@ pub struct GoogleCloudPolicysimulatorV1OrgPolicyOverlayPolicyOverlay {
 }
 
 /// A summary and comparison of the principal''s access under the current (baseline) policies and the proposed (simulated) policies for a single access tuple.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1AccessStateDiff {
     /// How the principal''s access, specified in the AccessState field, changed between the current (baseline) policies and proposed (simulated) policies. // TODO: enum values: ["ACCESS_CHANGE_TYPE_UNSPECIFIED", "NO_CHANGE", "UNKNOWN_CHANGE", "ACCESS_REVOKED", "ACCESS_GAINED", "ACCESS_MAYBE_REVOKED", "ACCESS_MAYBE_GAINED"]
     #[serde(default, rename = "accessChange")]
@@ -483,7 +484,7 @@ pub struct GoogleCloudPolicysimulatorV1AccessStateDiff {
 }
 
 /// A custom constraint defined by customers which can *only* be applied to the given resource types and organization. By creating a custom constraint, customers can apply policies of this custom constraint. *Creating a custom constraint itself does NOT apply any policy enforcement*.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV2CustomConstraint {
     /// Allow or deny type. // TODO: enum values: ["ACTION_TYPE_UNSPECIFIED", "ALLOW", "DENY"]
     #[serde(default, rename = "actionType")]
@@ -512,7 +513,7 @@ pub struct GoogleCloudOrgpolicyV2CustomConstraint {
 }
 
 /// Defines an organization policy that is used to specify constraints for configurations of Google Cloud resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV2Policy {
     /// Deprecated.
     #[serde(default)]
@@ -532,7 +533,7 @@ pub struct GoogleCloudOrgpolicyV2Policy {
 }
 
 /// Details about how a set of policies, listed in ExplainedPolicy, resulted in a certain AccessState when replaying an access tuple.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1ExplainedAccess {
     /// Whether the principal in the access tuple has permission to access the resource in the access tuple under the given policies. // TODO: enum values: ["ACCESS_STATE_UNSPECIFIED", "GRANTED", "NOT_GRANTED", "UNKNOWN_CONDITIONAL", "UNKNOWN_INFO_DENIED"]
     #[serde(default, rename = "accessState")]
@@ -547,7 +548,7 @@ pub struct GoogleCloudPolicysimulatorV1ExplainedAccess {
 }
 
 /// Similar to PolicySpec but with an extra ''launch'' field for launch reference. The PolicySpec here is specific for dry-run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV2AlternatePolicySpec {
     /// Reference to the launch that will be used while audit logging and to control the launch. Should be set only in the alternate policy.
     #[serde(default)]
@@ -558,7 +559,7 @@ pub struct GoogleCloudOrgpolicyV2AlternatePolicySpec {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -572,7 +573,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// Details about how a specific IAM Policy contributed to the access check.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1ExplainedPolicy {
     /// Indicates whether _this policy_ provides the specified permission to the specified principal for the specified resource. This field does _not_ indicate whether the principal actually has the permission for the resource. There might be another policy that overrides this policy. To determine whether the principal actually has the permission, use the access field in the TroubleshootIamPolicyResponse. // TODO: enum values: ["ACCESS_STATE_UNSPECIFIED", "GRANTED", "NOT_GRANTED", "UNKNOWN_CONDITIONAL", "UNKNOWN_INFO_DENIED"]
     #[serde(default)]
@@ -593,7 +594,7 @@ pub struct GoogleCloudPolicysimulatorV1ExplainedPolicy {
 }
 
 /// Defines a Google Cloud policy specification that is used to specify constraints for configurations of Google Cloud resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV2PolicySpec {
     /// An opaque tag indicating the current version of the policySpec, used for concurrency control. This field is ignored if used in a CreatePolicy request. When the policy is returned from either a GetPolicy or a ListPolicies request, this entity tag (ETag) indicates the version of the current policySpec to use when executing a read-modify-write loop. When the policy is returned from a GetEffectivePolicy request, the ETag will be unset.
     #[serde(default)]
@@ -613,7 +614,7 @@ pub struct GoogleCloudOrgpolicyV2PolicySpec {
 }
 
 /// Details about how a binding in a policy affects a principal''s ability to use a permission.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicysimulatorV1BindingExplanation {
     /// Required. Indicates whether _this binding_ provides the specified permission to the specified principal for the specified resource. This field does _not_ indicate whether the principal actually has the permission for the resource. There might be another binding that overrides this binding. To determine whether the principal actually has the permission, use the access field in the TroubleshootIamPolicyResponse. // TODO: enum values: ["ACCESS_STATE_UNSPECIFIED", "GRANTED", "NOT_GRANTED", "UNKNOWN_CONDITIONAL", "UNKNOWN_INFO_DENIED"]
     #[serde(default)]
@@ -639,7 +640,7 @@ pub struct GoogleCloudPolicysimulatorV1BindingExplanation {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -656,7 +657,7 @@ pub struct GoogleIamV1Policy {
 }
 
 /// A rule used to express this policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV2PolicySpecPolicyRule {
     /// Setting this to true means that all values are allowed. This field can be set only in policies for list constraints.
     #[serde(default, rename = "allowAll")]
@@ -679,7 +680,7 @@ pub struct GoogleCloudOrgpolicyV2PolicySpecPolicyRule {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -690,7 +691,7 @@ pub struct GoogleIamV1AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -704,7 +705,7 @@ pub struct GoogleIamV1Binding {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -715,7 +716,7 @@ pub struct GoogleIamV1AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeExpr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]

@@ -8,34 +8,35 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Further data for the accepted state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcceptedData {}
 
 /// Further data for the active state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActiveData {}
 
 /// Further data for the creating state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreatingData {}
 
 /// Further data for the deleting state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletingData {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Request for GenerateServiceIdentity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateServiceIdentityRequest {}
 
 /// Response for GenerateServiceIdentity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateServiceIdentityResponse {
     /// ServiceIdentity that was created or retrieved.
     #[serde(default)]
@@ -43,7 +44,7 @@ pub struct GenerateServiceIdentityResponse {
 }
 
 /// Request for GetGuestAttributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetGuestAttributesRequest {
     /// The guest attributes path to be queried.
     #[serde(default, rename = "queryPath")]
@@ -54,7 +55,7 @@ pub struct GetGuestAttributesRequest {
 }
 
 /// Response for GetGuestAttributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetGuestAttributesResponse {
     /// The guest attributes for the TPU workers.
     #[serde(default, rename = "guestAttributes")]
@@ -62,7 +63,7 @@ pub struct GetGuestAttributesResponse {
 }
 
 /// Response for ListAcceleratorTypes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAcceleratorTypesResponse {
     /// The listed nodes.
     #[serde(default, rename = "acceleratorTypes")]
@@ -76,7 +77,7 @@ pub struct ListAcceleratorTypesResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -87,7 +88,7 @@ pub struct ListLocationsResponse {
 }
 
 /// Response for ListNodes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListNodesResponse {
     /// The next page token or empty if none.
     #[serde(default, rename = "nextPageToken")]
@@ -101,7 +102,7 @@ pub struct ListNodesResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -115,7 +116,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response for ListQueuedResources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListQueuedResourcesResponse {
     /// The next page token or empty if none.
     #[serde(default, rename = "nextPageToken")]
@@ -129,7 +130,7 @@ pub struct ListQueuedResourcesResponse {
 }
 
 /// Response for ListRuntimeVersions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRuntimeVersionsResponse {
     /// The next page token or empty if none.
     #[serde(default, rename = "nextPageToken")]
@@ -143,7 +144,7 @@ pub struct ListRuntimeVersionsResponse {
 }
 
 /// Metadata describing an Operation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// API version.
     #[serde(default, rename = "apiVersion")]
@@ -169,35 +170,35 @@ pub struct OperationMetadata {
 }
 
 /// Further data for the provisioning state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProvisioningData {}
 
 /// Request for ResetQueuedResource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResetQueuedResourceRequest {}
 
 /// Spot tier definition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Spot {}
 
 /// Request for StartNode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartNodeRequest {}
 
 /// Request for StopNode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StopNodeRequest {}
 
 /// Further data for the suspended state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuspendedData {}
 
 /// Further data for the suspending state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuspendingData {}
 
 /// The per-product per-project service identity for Cloud TPU service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceIdentity {
     /// The email address of the service identity.
     #[serde(default)]
@@ -205,7 +206,7 @@ pub struct ServiceIdentity {
 }
 
 /// A guest attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuestAttributes {
     /// The path to be queried. This can be the default namespace (''/'') or a nested namespace (''/\/'') or a specified key (''/\/\'')
     #[serde(default, rename = "queryPath")]
@@ -216,7 +217,7 @@ pub struct GuestAttributes {
 }
 
 /// A accelerator type that a Node can be configured with.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcceleratorType {
     /// The accelerator config.
     #[serde(default, rename = "acceleratorConfigs")]
@@ -230,7 +231,7 @@ pub struct AcceleratorType {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -250,7 +251,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -270,7 +271,7 @@ pub struct Operation {
 }
 
 /// A QueuedResource represents a request for resources that will be placed in a queue and fulfilled when the necessary resources are available.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueuedResource {
     /// Output only. The time when the QueuedResource was created.
     #[serde(default, rename = "createTime")]
@@ -299,7 +300,7 @@ pub struct QueuedResource {
 }
 
 /// A runtime version that a Node can be configured with.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RuntimeVersion {
     /// The resource name.
     #[serde(default)]
@@ -310,7 +311,7 @@ pub struct RuntimeVersion {
 }
 
 /// Array of guest attribute namespace/key/value tuples.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuestAttributesValue {
     /// The list of guest attributes entries.
     #[serde(default)]
@@ -318,7 +319,7 @@ pub struct GuestAttributesValue {
 }
 
 /// Guaranteed tier definition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Guaranteed {
     /// Optional. Defines the minimum duration of the guarantee. If specified, the requested resources will only be provisioned if they can be allocated for at least the given duration.
     #[serde(default, rename = "minDuration")]
@@ -326,7 +327,7 @@ pub struct Guaranteed {
 }
 
 /// Defines the policy of the QueuedRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueueingPolicy {
     /// Optional. A relative time after which resources may be created.
     #[serde(default, rename = "validAfterDuration")]
@@ -346,7 +347,7 @@ pub struct QueueingPolicy {
 }
 
 /// QueuedResourceState defines the details of the QueuedResource request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueuedResourceState {
     /// Output only. Further data for the accepted state.
     #[serde(default, rename = "acceptedData")]
@@ -381,7 +382,7 @@ pub struct QueuedResourceState {
 }
 
 /// Details of the TPU resource(s) being requested.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Tpu {
     /// Optional. The TPU node(s) being requested.
     #[serde(default, rename = "nodeSpec")]
@@ -389,7 +390,7 @@ pub struct Tpu {
 }
 
 /// A guest attributes namespace/key/value entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuestAttributesEntry {
     /// Key for the guest attribute entry.
     #[serde(default)]
@@ -403,7 +404,7 @@ pub struct GuestAttributesEntry {
 }
 
 /// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Interval {
     /// Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.
     #[serde(default, rename = "endTime")]
@@ -414,7 +415,7 @@ pub struct Interval {
 }
 
 /// Further data for the failed state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FailedData {
     /// Output only. The error that caused the queued resource to enter the FAILED state.
     #[serde(default)]
@@ -422,7 +423,7 @@ pub struct FailedData {
 }
 
 /// Details of the TPU node(s) being requested. Users can request either a single node or multiple nodes. NodeSpec provides the specification for node(s) to be created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeSpec {
     /// Optional. Fields to specify in case of multislice request.
     #[serde(default, rename = "multisliceParams")]
@@ -439,7 +440,7 @@ pub struct NodeSpec {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -453,7 +454,7 @@ pub struct Status {
 }
 
 /// Parameters to specify for multislice QueuedResource requests. This message must be populated in case of multislice requests instead of node_id.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MultisliceParams {
     /// Required. Number of nodes with this spec. The system will attempt to provision "node_count" nodes as part of the request. This needs to be &gt; 1.
     #[serde(default, rename = "nodeCount")]
@@ -464,7 +465,7 @@ pub struct MultisliceParams {
 }
 
 /// A TPU instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Node {
     /// The AccleratorConfig for the TPU Node.
     #[serde(default, rename = "acceleratorConfig")]
@@ -550,7 +551,7 @@ pub struct Node {
 }
 
 /// A TPU accelerator configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcceleratorConfig {
     /// Required. Topology of TPU in chips.
     #[serde(default)]
@@ -561,7 +562,7 @@ pub struct AcceleratorConfig {
 }
 
 /// Sets the boot disk configuration for the TPU node.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BootDiskConfig {
     /// Optional. Customer encryption key for boot disk.
     #[serde(default, rename = "customerEncryptionKey")]
@@ -569,7 +570,7 @@ pub struct BootDiskConfig {
 }
 
 /// A node-attached disk resource. Next ID: 8;
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttachedDisk {
     /// The mode in which to attach this disk. If not specified, the default is READ_WRITE mode. Only applicable to data_disks. // TODO: enum values: ["DISK_MODE_UNSPECIFIED", "READ_WRITE", "READ_ONLY"]
     #[serde(default)]
@@ -580,7 +581,7 @@ pub struct AttachedDisk {
 }
 
 /// Network related configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkConfig {
     /// Allows the TPU node to send and receive packets with non-matching destination or source IPs. This is required if you plan to use the TPU workers to forward routes.
     #[serde(default, rename = "canIpForward")]
@@ -600,7 +601,7 @@ pub struct NetworkConfig {
 }
 
 /// A network endpoint over which a TPU worker can be reached.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkEndpoint {
     /// The access config for the TPU worker.
     #[serde(default, rename = "accessConfig")]
@@ -614,7 +615,7 @@ pub struct NetworkEndpoint {
 }
 
 /// Sets the scheduling options for this node.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SchedulingConfig {
     /// Defines whether the node is preemptible.
     #[serde(default)]
@@ -628,7 +629,7 @@ pub struct SchedulingConfig {
 }
 
 /// A service account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceAccount {
     /// Email address of the service account. If empty, default Compute service account will be used.
     #[serde(default)]
@@ -639,7 +640,7 @@ pub struct ServiceAccount {
 }
 
 /// A set of Shielded Instance options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShieldedInstanceConfig {
     /// Defines whether the instance has Secure Boot enabled.
     #[serde(default, rename = "enableSecureBoot")]
@@ -647,7 +648,7 @@ pub struct ShieldedInstanceConfig {
 }
 
 /// A Symptom instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Symptom {
     /// Timestamp when the Symptom is created.
     #[serde(default, rename = "createTime")]
@@ -664,7 +665,7 @@ pub struct Symptom {
 }
 
 /// Upcoming Maintenance notification information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpcomingMaintenance {
     /// Indicates if the maintenance can be customer triggered.
     #[serde(default, rename = "canReschedule")]
@@ -687,7 +688,7 @@ pub struct UpcomingMaintenance {
 }
 
 /// Defines the customer encryption key for disk encryption.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerEncryptionKey {
     /// The name of the encryption key that is stored in Google Cloud KMS. For example: "kmsKeyName": "projects/KMS_PROJECT_ID/locations/REGION/keyRings/KEY_REGION/cryptoKeys/KEY The fully-qualifed key name may be returned for resource GET requests. For example: "kmsKeyName": "projects/KMS_PROJECT_ID/locations/REGION/keyRings/KEY_REGION/cryptoKeys/KEY/cryptoKeyVersions/1
     #[serde(default, rename = "kmsKeyName")]
@@ -695,7 +696,7 @@ pub struct CustomerEncryptionKey {
 }
 
 /// An access config attached to the TPU worker.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessConfig {
     /// Output only. An external IP address associated with the TPU worker.
     #[serde(default, rename = "externalIp")]

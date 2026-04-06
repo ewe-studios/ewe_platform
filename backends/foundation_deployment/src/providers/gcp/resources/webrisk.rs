@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// GoogleCloudWebriskV1ComputeThreatListDiffResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudWebriskV1ComputeThreatListDiffResponse {
     /// A set of entries to add to a local threat type''s list.
     #[serde(default)]
@@ -34,7 +35,7 @@ pub struct GoogleCloudWebriskV1ComputeThreatListDiffResponse {
 }
 
 /// GoogleCloudWebriskV1SearchHashesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudWebriskV1SearchHashesResponse {
     /// For requested entities that did not match the threat list, how long to cache the response until.
     #[serde(default, rename = "negativeExpireTime")]
@@ -46,7 +47,7 @@ pub struct GoogleCloudWebriskV1SearchHashesResponse {
 }
 
 /// GoogleCloudWebriskV1SearchUrisResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudWebriskV1SearchUrisResponse {
     /// The threat list matches. This might be empty if the URI is on no list.
     #[serde(default)]
@@ -54,7 +55,7 @@ pub struct GoogleCloudWebriskV1SearchUrisResponse {
 }
 
 /// Wraps a URI that might be displaying malicious content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudWebriskV1Submission {
     /// Required. The URI that is being reported for malicious content to be analyzed.
     #[serde(default)]
@@ -62,11 +63,11 @@ pub struct GoogleCloudWebriskV1Submission {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningCancelOperationRequest {}
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -80,11 +81,11 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// Contains the set of entries to add to a local database. May contain a combination of compressed and raw data in a single response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudWebriskV1ThreatEntryAdditions {
     /// The raw SHA256-formatted entries. Repeated to allow returning sets of hashes with different prefix sizes.
     #[serde(default, rename = "rawHashes")]
@@ -95,7 +96,7 @@ pub struct GoogleCloudWebriskV1ThreatEntryAdditions {
 }
 
 /// The expected state of a client''s local database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudWebriskV1ComputeThreatListDiffResponseChecksum {
     /// The SHA256 hash of the client state; that is, of the sorted list of all hashes present in the database.
     #[serde(default)]
@@ -103,7 +104,7 @@ pub struct GoogleCloudWebriskV1ComputeThreatListDiffResponseChecksum {
 }
 
 /// Contains the set of entries to remove from a local database.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudWebriskV1ThreatEntryRemovals {
     /// The raw removal indices for a local list.
     #[serde(default, rename = "rawIndices")]
@@ -114,7 +115,7 @@ pub struct GoogleCloudWebriskV1ThreatEntryRemovals {
 }
 
 /// Contains threat information on a matching hash.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudWebriskV1SearchHashesResponseThreatHash {
     /// The cache lifetime for the returned match. Clients must not cache this response past this timestamp to avoid false positives.
     #[serde(default, rename = "expireTime")]
@@ -128,7 +129,7 @@ pub struct GoogleCloudWebriskV1SearchHashesResponseThreatHash {
 }
 
 /// Contains threat information on a matching uri.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudWebriskV1SearchUrisResponseThreatUri {
     /// The cache lifetime for the returned match. Clients must not cache this response past this timestamp to avoid false positives.
     #[serde(default, rename = "expireTime")]
@@ -139,7 +140,7 @@ pub struct GoogleCloudWebriskV1SearchUrisResponseThreatUri {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -159,7 +160,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// The uncompressed threat entries in hash format. Hashes can be anywhere from 4 to 32 bytes in size. A large majority are 4 bytes, but some hashes are lengthened if they collide with the hash of a popular URI. Used for sending ThreatEntryAdditons to clients that do not support compression, or when sending non-4-byte hashes to clients that do support compression.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudWebriskV1RawHashes {
     /// The number of bytes for each prefix encoded below. This field can be anywhere from 4 (shortest prefix) to 32 (full SHA256 hash). In practice this is almost always 4, except in exceptional circumstances.
     #[serde(default, rename = "prefixSize")]
@@ -170,7 +171,7 @@ pub struct GoogleCloudWebriskV1RawHashes {
 }
 
 /// A set of raw indices to remove from a local list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudWebriskV1RawIndices {
     /// The indices to remove from a lexicographically-sorted local list.
     #[serde(default)]
@@ -178,7 +179,7 @@ pub struct GoogleCloudWebriskV1RawIndices {
 }
 
 /// The Rice-Golomb encoded data. Used for sending compressed 4-byte hashes or compressed removal indices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudWebriskV1RiceDeltaEncoding {
     /// The encoded deltas that are encoded using the Golomb-Rice coder.
     #[serde(default, rename = "encodedData")]
@@ -195,7 +196,7 @@ pub struct GoogleCloudWebriskV1RiceDeltaEncoding {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]

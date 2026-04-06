@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Represents the metadata of the longrunning operation for the AnalyzeIamPolicyLongrunning RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyzeIamPolicyLongrunningMetadata {
     /// Output only. The time the operation was created.
     #[serde(default, rename = "createTime")]
@@ -19,7 +20,7 @@ pub struct AnalyzeIamPolicyLongrunningMetadata {
 }
 
 /// A request message for AssetService.AnalyzeIamPolicyLongrunning.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyzeIamPolicyLongrunningRequest {
     /// Required. The request query.
     #[serde(default, rename = "analysisQuery")]
@@ -33,11 +34,11 @@ pub struct AnalyzeIamPolicyLongrunningRequest {
 }
 
 /// A response message for AssetService.AnalyzeIamPolicyLongrunning.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyzeIamPolicyLongrunningResponse {}
 
 /// A response message for AssetService.AnalyzeIamPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyzeIamPolicyResponse {
     /// Represents whether all entries in the main_analysis and service_account_impersonation_analysis have been fully explored to answer the query in the request.
     #[serde(default, rename = "fullyExplored")]
@@ -52,7 +53,7 @@ pub struct AnalyzeIamPolicyResponse {
 }
 
 /// The response message for resource move analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyzeMoveResponse {
     /// The list of analyses returned from performing the intended resource move analysis. The analysis is grouped by different Google Cloud services.
     #[serde(default, rename = "moveAnalysis")]
@@ -60,7 +61,7 @@ pub struct AnalyzeMoveResponse {
 }
 
 /// The response message for AssetService.AnalyzeOrgPolicies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyzeOrgPoliciesResponse {
     /// The definition of the constraint in the request.
     #[serde(default)]
@@ -74,7 +75,7 @@ pub struct AnalyzeOrgPoliciesResponse {
 }
 
 /// The response message for AssetService.AnalyzeOrgPolicyGovernedAssets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyzeOrgPolicyGovernedAssetsResponse {
     /// The definition of the constraint in the request.
     #[serde(default)]
@@ -90,7 +91,7 @@ pub struct AnalyzeOrgPolicyGovernedAssetsResponse {
 }
 
 /// The response message for AssetService.AnalyzeOrgPolicyGovernedContainers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyzeOrgPolicyGovernedContainersResponse {
     /// The definition of the constraint in the request.
     #[serde(default)]
@@ -105,7 +106,7 @@ pub struct AnalyzeOrgPolicyGovernedContainersResponse {
 }
 
 /// Batch get assets history response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchGetAssetsHistoryResponse {
     /// A list of assets with valid time windows.
     #[serde(default)]
@@ -113,7 +114,7 @@ pub struct BatchGetAssetsHistoryResponse {
 }
 
 /// A response message for AssetService.BatchGetEffectiveIamPolicies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchGetEffectiveIamPoliciesResponse {
     /// The effective policies for a batch of resources. Note that the results order is the same as the order of BatchGetEffectiveIamPoliciesRequest.names. When a resource does not have any effective IAM policies, its corresponding policy_result will contain empty EffectiveIamPolicy.policies.
     #[serde(default, rename = "policyResults")]
@@ -121,7 +122,7 @@ pub struct BatchGetEffectiveIamPoliciesResponse {
 }
 
 /// Create asset feed request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateFeedRequest {
     /// Required. The feed details. The field name must be empty and it will be generated in the format of: projects/project_number/feeds/feed_id folders/folder_number/feeds/feed_id organizations/organization_number/feeds/feed_id
     #[serde(default)]
@@ -132,11 +133,11 @@ pub struct CreateFeedRequest {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Export asset request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportAssetsRequest {
     /// A list of asset types to take a snapshot for. For example: "compute.googleapis.com/Disk". Regular expressions are also supported. For example: * "compute.googleapis.com.*" snapshots resources whose asset type starts with "compute.googleapis.com". * ".*Instance" snapshots resources whose asset type ends with "Instance". * ".*Instance.*" snapshots resources whose asset type contains "Instance". See [RE2](https://github.com/google/re2/wiki/Syntax) for all supported regular expression syntax. If the regular expression does not match any supported asset type, an INVALID_ARGUMENT error will be returned. If specified, only matching assets will be returned, otherwise, it will snapshot all asset types. See [Introduction to Cloud Asset Inventory](https://cloud.google.com/asset-inventory/docs/overview) for all supported asset types.
     #[serde(default, rename = "assetTypes")]
@@ -156,11 +157,11 @@ pub struct ExportAssetsRequest {
 }
 
 /// A Constraint that is either enforced or not. For example a constraint constraints/compute.disableSerialPortAccess. If it is enforced on a VM instance, serial port connections will not be opened to that instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssetV1BooleanConstraint {}
 
 /// The string values for the list constraints.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssetV1StringValues {
     /// List of values allowed at this resource.
     #[serde(default, rename = "allowedValues")]
@@ -171,7 +172,7 @@ pub struct GoogleCloudAssetV1StringValues {
 }
 
 /// An asset in Google Cloud. An asset can be any resource in the Google Cloud [resource hierarchy](https://cloud.google.com/resource-manager/docs/cloud-platform-resource-hierarchy), a resource outside the Google Cloud resource hierarchy (such as Google Kubernetes Engine clusters and objects), or a policy (e.g. IAM policy). See [Supported asset types](https://cloud.google.com/asset-inventory/docs/supported-asset-types) for more information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssetV1p7beta1Asset {
     /// Please also refer to the [access level user guide](https://cloud.google.com/access-context-manager/docs/overview#access-levels).
     #[serde(default, rename = "accessLevel")]
@@ -210,11 +211,11 @@ pub struct GoogleCloudAssetV1p7beta1Asset {
 }
 
 /// Ignores policies set above this resource and restores the constraint_default enforcement behavior of the specific Constraint at this resource. Suppose that constraint_default is set to ALLOW for the Constraint constraints/serviceuser.services. Suppose that organization foo.com sets a Policy at their Organization resource node that restricts the allowed service activations to deny all service activations. They could then set a Policy with the policy_type restore_default on several experimental projects, restoring the constraint_default enforcement of the Constraint for only those projects, allowing those projects to have all services activated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV1RestoreDefault {}
 
 /// A single piece of inventory on a VM.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Item {
     /// Software package available to be installed on the VM instance.
     #[serde(default, rename = "availablePackage")]
@@ -240,7 +241,7 @@ pub struct Item {
 }
 
 /// ListAssets response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAssetsResponse {
     /// Assets.
     #[serde(default)]
@@ -254,7 +255,7 @@ pub struct ListAssetsResponse {
 }
 
 /// ListFeedsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListFeedsResponse {
     /// A list of feeds.
     #[serde(default)]
@@ -262,7 +263,7 @@ pub struct ListFeedsResponse {
 }
 
 /// Response of listing saved queries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSavedQueriesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -273,7 +274,7 @@ pub struct ListSavedQueriesResponse {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -293,7 +294,7 @@ pub struct Operation {
 }
 
 /// IAM permissions
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Permissions {
     /// A list of permissions. A sample permission string: compute.disk.get.
     #[serde(default)]
@@ -301,7 +302,7 @@ pub struct Permissions {
 }
 
 /// QueryAssets request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryAssetsRequest {
     /// Optional. Reference to the query job, which is from the QueryAssetsResponse of previous QueryAssets call.
     #[serde(default, rename = "jobReference")]
@@ -330,7 +331,7 @@ pub struct QueryAssetsRequest {
 }
 
 /// QueryAssets response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryAssetsResponse {
     /// The query response, which can be either an error or a valid response. If done == false and the query result is being saved in an output, the output_config field will be set. If done == true, exactly one of error, query_result or output_config will be set. [done] is unset unless the [QueryAssetsResponse] contains a [QueryAssetsResponse.job_reference].
     #[serde(default)]
@@ -350,7 +351,7 @@ pub struct QueryAssetsResponse {
 }
 
 /// The related resources of the primary resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RelatedResources {
     /// The detailed related resources of the primary resource.
     #[serde(default, rename = "relatedResources")]
@@ -358,7 +359,7 @@ pub struct RelatedResources {
 }
 
 /// Search all IAM policies response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchAllIamPoliciesResponse {
     /// Set if there are more results than those appearing in this response; to get the next set of results, call this method again, using this value as the page_token.
     #[serde(default, rename = "nextPageToken")]
@@ -369,7 +370,7 @@ pub struct SearchAllIamPoliciesResponse {
 }
 
 /// Search all resources response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchAllResourcesResponse {
     /// If there are more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
@@ -380,7 +381,7 @@ pub struct SearchAllResourcesResponse {
 }
 
 /// Update asset feed request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateFeedRequest {
     /// Required. The new values of feed details. It must match an existing feed and the field name must be in the format of: projects/project_number/feeds/feed_id or folders/folder_number/feeds/feed_id or organizations/organization_number/feeds/feed_id.
     #[serde(default)]
@@ -391,7 +392,7 @@ pub struct UpdateFeedRequest {
 }
 
 /// Output configuration for export IAM policy analysis destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IamPolicyAnalysisOutputConfig {
     /// Destination on BigQuery.
     #[serde(default, rename = "bigqueryDestination")]
@@ -402,7 +403,7 @@ pub struct IamPolicyAnalysisOutputConfig {
 }
 
 /// An analysis message to group the query and results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IamPolicyAnalysis {
     /// The analysis query.
     #[serde(default, rename = "analysisQuery")]
@@ -419,7 +420,7 @@ pub struct IamPolicyAnalysis {
 }
 
 /// A message to group the analysis information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoveAnalysis {
     /// Analysis result of moving the target resource.
     #[serde(default)]
@@ -433,7 +434,7 @@ pub struct MoveAnalysis {
 }
 
 /// The organization policy result to the query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrgPolicyResult {
     /// The consolidated organization policy for the analyzed resource. The consolidated organization policy is computed by merging and evaluating policy_bundle. The evaluation will respect the organization policy [hierarchy rules](https://cloud.google.com/resource-manager/docs/organization-policy/understanding-hierarchy).
     #[serde(default, rename = "consolidatedPolicy")]
@@ -453,7 +454,7 @@ pub struct OrgPolicyResult {
 }
 
 /// Represents a Google Cloud asset(resource or IAM policy) governed by the organization policies of the AnalyzeOrgPolicyGovernedAssetsRequest.constraint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssetV1AnalyzeOrgPolicyGovernedAssetsResponseGovernedAsset {
     /// The consolidated policy for the analyzed asset. The consolidated policy is computed by merging and evaluating AnalyzeOrgPolicyGovernedAssetsResponse.GovernedAsset.policy_bundle. The evaluation will respect the organization policy [hierarchy rules](https://cloud.google.com/resource-manager/docs/organization-policy/understanding-hierarchy).
     #[serde(default, rename = "consolidatedPolicy")]
@@ -474,7 +475,7 @@ pub struct GoogleCloudAssetV1AnalyzeOrgPolicyGovernedAssetsResponseGovernedAsset
 }
 
 /// The organization policy constraint definition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyzerOrgPolicyConstraint {
     /// The definition of the custom constraint.
     #[serde(default, rename = "customConstraint")]
@@ -485,7 +486,7 @@ pub struct AnalyzerOrgPolicyConstraint {
 }
 
 /// The organization/folder/project resource governed by organization policies of AnalyzeOrgPolicyGovernedContainersRequest.constraint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssetV1GovernedContainer {
     /// The consolidated organization policy for the analyzed resource. The consolidated organization policy is computed by merging and evaluating AnalyzeOrgPolicyGovernedContainersResponse.GovernedContainer.policy_bundle. The evaluation will respect the organization policy [hierarchy rules](https://cloud.google.com/resource-manager/docs/organization-policy/understanding-hierarchy).
     #[serde(default, rename = "consolidatedPolicy")]
@@ -514,7 +515,7 @@ pub struct GoogleCloudAssetV1GovernedContainer {
 }
 
 /// An asset in Google Cloud and its temporal metadata, including the time window when it was observed and its status during that window.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TemporalAsset {
     /// An asset in Google Cloud.
     #[serde(default)]
@@ -534,7 +535,7 @@ pub struct TemporalAsset {
 }
 
 /// The effective IAM policies on one resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EffectiveIamPolicy {
     /// The [full_resource_name] (https://cloud.google.com/asset-inventory/docs/resource-name-format) for which the policies are computed. This is one of the BatchGetEffectiveIamPoliciesRequest.names the caller provides in the request.
     #[serde(default, rename = "fullResourceName")]
@@ -545,7 +546,7 @@ pub struct EffectiveIamPolicy {
 }
 
 /// Output configuration for export assets destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OutputConfig {
     /// Destination on BigQuery. The output table stores the fields in asset Protobuf as columns in BigQuery.
     #[serde(default, rename = "bigqueryDestination")]
@@ -556,7 +557,7 @@ pub struct OutputConfig {
 }
 
 /// The detailed related assets with the relationship_type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssetV1p7beta1RelatedAssets {
     /// The peer resources of the relationship.
     #[serde(default)]
@@ -568,7 +569,7 @@ pub struct GoogleCloudAssetV1p7beta1RelatedAssets {
 }
 
 /// A representation of a Google Cloud resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssetV1p7beta1Resource {
     /// The content of the resource, in which some sensitive fields are removed and may not be present.
     #[serde(default)]
@@ -594,7 +595,7 @@ pub struct GoogleCloudAssetV1p7beta1Resource {
 }
 
 /// Software package information of the operating system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SoftwarePackage {
     /// Details of an APT package. For details about the apt package manager, see https://wiki.debian.org/Apt.
     #[serde(default, rename = "aptPackage")]
@@ -626,7 +627,7 @@ pub struct SoftwarePackage {
 }
 
 /// A saved query which can be shared with others or used later.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SavedQuery {
     /// The query content.
     #[serde(default)]
@@ -655,7 +656,7 @@ pub struct SavedQuery {
 }
 
 /// Output configuration query assets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryAssetsOutputConfig {
     /// BigQuery destination where the query results will be saved.
     #[serde(default, rename = "bigqueryDestination")]
@@ -664,7 +665,7 @@ pub struct QueryAssetsOutputConfig {
 }
 
 /// Execution results of the query. The result is formatted as rows represented by BigQuery compatible [schema]. When pagination is necessary, it will contains the page token to retrieve the results of following pages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryResult {
     /// Token to retrieve the next page of the results.
     #[serde(default, rename = "nextPageToken")]
@@ -681,7 +682,7 @@ pub struct QueryResult {
 }
 
 /// The detailed related resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RelatedResource {
     /// The type of the asset. Example: compute.googleapis.com/Instance
     #[serde(default, rename = "assetType")]
@@ -692,7 +693,7 @@ pub struct RelatedResource {
 }
 
 /// A result of IAM Policy search, containing information of an IAM policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IamPolicySearchResult {
     /// The type of the resource associated with this IAM policy. Example: compute.googleapis.com/Disk. To search against the asset_type: * specify the asset_types field in your search request.
     #[serde(default, rename = "assetType")]
@@ -718,7 +719,7 @@ pub struct IamPolicySearchResult {
 }
 
 /// A result of Resource Search, containing information of a cloud resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceSearchResult {
     /// The additional searchable attributes of this resource. The attributes may vary from one resource type to another. Examples: projectId for Project, dnsName for DNS ManagedZone. This field contains a subset of the resource metadata fields that are returned by the List or Get APIs provided by the corresponding Google Cloud service (e.g., Compute Engine). see [API references and supported searchable attributes](https://cloud.google.com/asset-inventory/docs/supported-asset-types) to see which fields are included. You can search values of these fields through free text search. However, you should not consume the field programically as the field names and values may change as the Google Cloud service updates to a new incompatible API version. To search against the additional_attributes: * Use a free text query to match the attributes values. Example: to search additional_attributes = { dnsName: "foobar" }, you can issue a query foobar.
     #[serde(default, rename = "additionalAttributes")]
@@ -807,7 +808,7 @@ pub struct ResourceSearchResult {
 }
 
 /// An asset feed used to export asset updates to a destinations. An asset feed filter controls what updates are exported. The asset feed must be created within a project, organization, or folder. Supported destinations are: Pub/Sub topics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Feed {
     /// A list of the full names of the assets to receive updates. You must specify either or both of asset_names and asset_types. Only asset updates matching specified asset_names or asset_types are exported to the feed. Example: //compute.googleapis.com/projects/my_project_123/zones/zone1/instances/instance1. For a list of the full names for supported asset types, see [Resource name format](/asset-inventory/docs/resource-name-format).
     #[serde(default, rename = "assetNames")]
@@ -833,7 +834,7 @@ pub struct Feed {
 }
 
 /// A BigQuery destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssetV1BigQueryDestination {
     /// Required. The BigQuery dataset in format "projects/projectId/datasets/datasetId", to which the analysis results should be exported. If this dataset does not exist, the export call will return an INVALID_ARGUMENT error.
     #[serde(default)]
@@ -850,7 +851,7 @@ pub struct GoogleCloudAssetV1BigQueryDestination {
 }
 
 /// A Cloud Storage location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssetV1GcsDestination {
     /// Required. The URI of the Cloud Storage object. It''s the same URI that is used by gsutil. Example: "gs://bucket_name/object_name". See [Viewing and Editing Object Metadata](https://cloud.google.com/storage/docs/viewing-editing-metadata) for more information. If the specified Cloud Storage object already exists and there is no [hold](https://cloud.google.com/storage/docs/object-holds), it will be overwritten with the analysis result.
     #[serde(default)]
@@ -858,7 +859,7 @@ pub struct GoogleCloudAssetV1GcsDestination {
 }
 
 /// IAM Policy analysis result, consisting of one IAM policy binding and derived access control lists.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IamPolicyAnalysisResult {
     /// The access control lists derived from the iam_binding that match or potentially match resource and access selectors specified in the request.
     #[serde(default, rename = "accessControlLists")]
@@ -879,7 +880,7 @@ pub struct IamPolicyAnalysisResult {
 }
 
 /// An analysis result including blockers and warnings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoveAnalysisResult {
     /// Blocking information that would prevent the target resource from moving to the specified destination at runtime.
     #[serde(default)]
@@ -890,7 +891,7 @@ pub struct MoveAnalysisResult {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -904,7 +905,7 @@ pub struct Status {
 }
 
 /// The IAM policies governed by the organization policies of the AnalyzeOrgPolicyGovernedAssetsRequest.constraint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssetV1AnalyzeOrgPolicyGovernedAssetsResponseGovernedIamPolicy {
     /// The asset type of the AnalyzeOrgPolicyGovernedAssetsResponse.GovernedIamPolicy.attached_resource. Example: cloudresourcemanager.googleapis.com/Project See [Cloud Asset Inventory Supported Asset Types](https://cloud.google.com/asset-inventory/docs/supported-asset-types) for all supported asset types.
     #[serde(default, rename = "assetType")]
@@ -927,7 +928,7 @@ pub struct GoogleCloudAssetV1AnalyzeOrgPolicyGovernedAssetsResponseGovernedIamPo
 }
 
 /// The Google Cloud resources governed by the organization policies of the AnalyzeOrgPolicyGovernedAssetsRequest.constraint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssetV1AnalyzeOrgPolicyGovernedAssetsResponseGovernedResource {
     /// The asset type of the AnalyzeOrgPolicyGovernedAssetsResponse.GovernedResource.full_resource_name Example: cloudresourcemanager.googleapis.com/Project See [Cloud Asset Inventory Supported Asset Types](https://cloud.google.com/asset-inventory/docs/supported-asset-types) for all supported asset types.
     #[serde(default, rename = "assetType")]
@@ -953,7 +954,7 @@ pub struct GoogleCloudAssetV1AnalyzeOrgPolicyGovernedAssetsResponseGovernedResou
 }
 
 /// The definition of a custom constraint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssetV1CustomConstraint {
     /// Allow or deny type. // TODO: enum values: ["ACTION_TYPE_UNSPECIFIED", "ALLOW", "DENY"]
     #[serde(default, rename = "actionType")]
@@ -979,7 +980,7 @@ pub struct GoogleCloudAssetV1CustomConstraint {
 }
 
 /// The definition of a constraint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssetV1Constraint {
     /// Defines this constraint as being a BooleanConstraint.
     #[serde(default, rename = "booleanConstraint")]
@@ -1002,7 +1003,7 @@ pub struct GoogleCloudAssetV1Constraint {
 }
 
 /// This organization policy message is a modified version of the one defined in the Organization Policy system. This message contains several fields defined in the original organization policy with some new fields for analysis purpose.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyzerOrgPolicy {
     /// The [full resource name] (https://cloud.google.com/asset-inventory/docs/resource-name-format) of an organization/folder/project resource where this organization policy applies to. For any user defined org policies, this field has the same value as the [attached_resource] field. Only for default policy, this field has the different value.
     #[serde(default, rename = "appliedResource")]
@@ -1022,7 +1023,7 @@ pub struct AnalyzerOrgPolicy {
 }
 
 /// An asset in Google Cloud. An asset can be any resource in the Google Cloud [resource hierarchy](https://cloud.google.com/resource-manager/docs/cloud-platform-resource-hierarchy), a resource outside the Google Cloud resource hierarchy (such as Google Kubernetes Engine clusters and objects), or a policy (e.g. IAM policy), or a relationship (e.g. an INSTANCE_TO_INSTANCEGROUP relationship). See [Supported asset types](https://cloud.google.com/asset-inventory/docs/supported-asset-types) for more information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Asset {
     /// Also refer to the [access level user guide](https://cloud.google.com/access-context-manager/docs/overview#access-levels).
     #[serde(default, rename = "accessLevel")]
@@ -1070,7 +1071,7 @@ pub struct Asset {
 }
 
 /// A time window specified by its start_time and end_time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeWindow {
     /// End time of the time window (inclusive). If not specified, the current timestamp is used instead.
     #[serde(default, rename = "endTime")]
@@ -1081,7 +1082,7 @@ pub struct TimeWindow {
 }
 
 /// The IAM policy and its attached resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyInfo {
     /// The full resource name the policy is directly attached to.
     #[serde(default, rename = "attachedResource")]
@@ -1092,7 +1093,7 @@ pub struct PolicyInfo {
 }
 
 /// A BigQuery destination for exporting assets to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BigQueryDestination {
     /// Required. The BigQuery dataset in format "projects/projectId/datasets/datasetId", to which the snapshot result should be exported. If this dataset does not exist, the export call returns an INVALID_ARGUMENT error. Setting the contentType for exportAssets determines the [schema](/asset-inventory/docs/exporting-to-bigquery#bigquery-schema) of the BigQuery table. Setting separateTablesPerAssetType to TRUE also influences the schema.
     #[serde(default)]
@@ -1112,7 +1113,7 @@ pub struct BigQueryDestination {
 }
 
 /// A Cloud Storage location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GcsDestination {
     /// The URI of the Cloud Storage object. It''s the same URI that is used by gsutil. Example: "gs://bucket_name/object_name". See [Viewing and Editing Object Metadata](https://cloud.google.com/storage/docs/viewing-editing-metadata) for more information. If the specified Cloud Storage object already exists and there is no [hold](https://cloud.google.com/storage/docs/object-holds), it will be overwritten with the exported result.
     #[serde(default)]
@@ -1123,7 +1124,7 @@ pub struct GcsDestination {
 }
 
 /// An asset identify in Google Cloud which contains its name, type and ancestors. An asset can be any resource in the Google Cloud [resource hierarchy](https://cloud.google.com/resource-manager/docs/cloud-platform-resource-hierarchy), a resource outside the Google Cloud resource hierarchy (such as Google Kubernetes Engine clusters and objects), or a policy (e.g. IAM policy). See [Supported asset types](https://cloud.google.com/asset-inventory/docs/supported-asset-types) for more information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssetV1p7beta1RelatedAsset {
     /// The ancestors of an asset in Google Cloud [resource hierarchy](https://cloud.google.com/resource-manager/docs/cloud-platform-resource-hierarchy), represented as a list of relative resource names. An ancestry path starts with the closest ancestor in the hierarchy and ends at root. Example: ["projects/123456789", "folders/5432", "organizations/1234"]
     #[serde(default)]
@@ -1137,7 +1138,7 @@ pub struct GoogleCloudAssetV1p7beta1RelatedAsset {
 }
 
 /// The relationship attributes which include type, source_resource_type, target_resource_type and action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssetV1p7beta1RelationshipAttributes {
     /// The detail of the relationship, e.g. contains, attaches
     #[serde(default)]
@@ -1154,7 +1155,7 @@ pub struct GoogleCloudAssetV1p7beta1RelationshipAttributes {
 }
 
 /// Information related to the a standard versioned package. This includes package info for APT, Yum, Zypper, and Googet package managers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VersionedPackage {
     /// The system architecture this package is intended for.
     #[serde(default)]
@@ -1168,7 +1169,7 @@ pub struct VersionedPackage {
 }
 
 /// Information related to a Quick Fix Engineering package. Fields are taken from Windows QuickFixEngineering Interface and match the source names: https://docs.microsoft.com/en-us/windows/win32/cimwin32prov/win32-quickfixengineering
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WindowsQuickFixEngineeringPackage {
     /// A short textual description of the QFE update.
     #[serde(default)]
@@ -1185,7 +1186,7 @@ pub struct WindowsQuickFixEngineeringPackage {
 }
 
 /// Contains information about a Windows application that is retrieved from the Windows Registry. For more information about these fields, see: https://docs.microsoft.com/en-us/windows/win32/msi/uninstall-registry-key
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WindowsApplication {
     /// The name of the application or product.
     #[serde(default, rename = "displayName")]
@@ -1205,7 +1206,7 @@ pub struct WindowsApplication {
 }
 
 /// Details related to a Windows Update package. Field data and names are taken from Windows Update API IUpdate Interface: https://docs.microsoft.com/en-us/windows/win32/api/_wua/ Descriptive fields like title, and description are localized based on the locale of the VM being updated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WindowsUpdatePackage {
     /// The categories that are associated with this update package.
     #[serde(default)]
@@ -1237,7 +1238,7 @@ pub struct WindowsUpdatePackage {
 }
 
 /// Details related to a Zypper Patch.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZypperPatch {
     /// The category of the patch.
     #[serde(default)]
@@ -1254,7 +1255,7 @@ pub struct ZypperPatch {
 }
 
 /// The query content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryContent {
     /// An IAM Policy Analysis query, which could be used in the AssetService.AnalyzeIamPolicy RPC or the AssetService.AnalyzeIamPolicyLongrunning RPC.
     #[serde(default, rename = "iamPolicyAnalysisQuery")]
@@ -1262,7 +1263,7 @@ pub struct QueryContent {
 }
 
 /// BigQuery destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssetV1QueryAssetsOutputConfigBigQueryDestination {
     /// Required. The BigQuery dataset where the query results will be saved. It has the format of "projects/{projectId}/datasets/{datasetId}".
     #[serde(default)]
@@ -1276,7 +1277,7 @@ pub struct GoogleCloudAssetV1QueryAssetsOutputConfigBigQueryDestination {
 }
 
 /// BigQuery Compatible table schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableSchema {
     /// Describes the fields in a table.
     #[serde(default)]
@@ -1284,7 +1285,7 @@ pub struct TableSchema {
 }
 
 /// Explanation about the IAM policy search result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Explanation {
     /// The map from roles to their included permissions that match the permission query (i.e., a query containing policy.role.permissions:). Example: if query policy.role.permissions:compute.disk.get matches a policy binding that contains owner role, the matched_permissions will be {"roles/owner": ["compute.disk.get"]}. The roles can also be found in the returned policy bindings. Note that the map is populated only for requests with permission queries.
     #[serde(default, rename = "matchedPermissions")]
@@ -1292,7 +1293,7 @@ pub struct Explanation {
 }
 
 /// Attached resource representation, which is defined by the corresponding service provider. It represents an attached resource''s payload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttachedResource {
     /// The type of this attached resource. Example: osconfig.googleapis.com/Inventory You can find the supported attached asset types of each resource in this table: https://cloud.google.com/asset-inventory/docs/supported-asset-types
     #[serde(default, rename = "assetType")]
@@ -1303,7 +1304,7 @@ pub struct AttachedResource {
 }
 
 /// The enhanced metadata information for a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssetEnrichment {
     /// The resource owners for a resource. Note that this field only contains the members that have "roles/owner" role in the resource''s IAM Policy.
     #[serde(default, rename = "resourceOwners")]
@@ -1311,7 +1312,7 @@ pub struct AssetEnrichment {
 }
 
 /// Output configuration for asset feed destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FeedOutputConfig {
     /// Destination on Pub/Sub.
     #[serde(default, rename = "pubsubDestination")]
@@ -1319,7 +1320,7 @@ pub struct FeedOutputConfig {
 }
 
 /// An access control list, derived from the above IAM policy binding, which contains a set of resources and accesses. May include one item from each set to compose an access control entry. NOTICE that there could be multiple access control lists for one IAM policy binding. The access control lists are created based on resource and access combinations. For example, assume we have the following cases in one IAM policy binding: - Permission P1 and P2 apply to resource R1 and R2; - Permission P3 applies to resource R2 and R3; This will result in the following access control lists: - AccessControlList 1: [R1, R2], [P1, P2] - AccessControlList 2: [R2, R3], [P3]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssetV1AccessControlList {
     /// The accesses that match one of the following conditions: - The access_selector, if it is specified in request; - Otherwise, access specifiers reachable from the policy binding''s role.
     #[serde(default)]
@@ -1336,7 +1337,7 @@ pub struct GoogleCloudAssetV1AccessControlList {
 }
 
 /// The identities and group edges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssetV1IdentityList {
     /// Group identity edges of the graph starting from the binding''s group members to any node of the identities. The Edge.source_node contains a group, such as group:parent@google.com. The Edge.target_node contains a member of the group, such as group:child@google.com or user:foo@google.com. This field is present only if the output_group_edges option is enabled in request.
     #[serde(default, rename = "groupEdges")]
@@ -1347,7 +1348,7 @@ pub struct GoogleCloudAssetV1IdentityList {
 }
 
 /// A message to group impacts of moving the target resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoveImpact {
     /// User friendly impact detail in a free form message.
     #[serde(default)]
@@ -1355,7 +1356,7 @@ pub struct MoveImpact {
 }
 
 /// The effective tags and the ancestor resources from which they were inherited.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EffectiveTagDetails {
     /// The [full resource name](https://cloud.google.com/asset-inventory/docs/resource-name-format) of the ancestor from which effective_tags are inherited, according to [tag inheritance](https://cloud.google.com/resource-manager/docs/tags/tags-overview#inheritance).
     #[serde(default, rename = "attachedResource")]
@@ -1366,7 +1367,7 @@ pub struct EffectiveTagDetails {
 }
 
 /// A Constraint that allows or disallows a list of string values, which are configured by an organization''s policy administrator with a Policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssetV1ListConstraint {
     /// Indicates whether values grouped into categories can be used in Policy.allowed_values and Policy.denied_values. For example, "in:Python" would match any value in the ''Python'' group.
     #[serde(default, rename = "supportsIn")]
@@ -1377,7 +1378,7 @@ pub struct GoogleCloudAssetV1ListConstraint {
 }
 
 /// This rule message is a customized version of the one defined in the Organization Policy system. In addition to the fields defined in the original organization policy, it contains additional field(s) under specific circumstances to support analysis results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssetV1Rule {
     /// Setting this to true means that all values are allowed. This field can be set only in Policies for list constraints.
     #[serde(default, rename = "allowAll")]
@@ -1400,7 +1401,7 @@ pub struct GoogleCloudAssetV1Rule {
 }
 
 /// An AccessLevel is a label that can be applied to requests to Google Cloud services, along with a list of requirements necessary for the label to be applied.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityAccesscontextmanagerV1AccessLevel {
     /// A BasicLevel composed of Conditions.
     #[serde(default)]
@@ -1420,7 +1421,7 @@ pub struct GoogleIdentityAccesscontextmanagerV1AccessLevel {
 }
 
 /// AccessPolicy is a container for AccessLevels (which define the necessary attributes to use Google Cloud services) and ServicePerimeters (which define regions of services able to freely pass data within a perimeter). An access policy is globally visible within an organization, and the restrictions it specifies apply to all projects within an organization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityAccesscontextmanagerV1AccessPolicy {
     /// Output only. An opaque identifier for the current version of the AccessPolicy. This will always be a strongly validated etag, meaning that two Access Policies will be identical if and only if their etags are identical. Clients should not expect this to be in any specific format.
     #[serde(default)]
@@ -1440,7 +1441,7 @@ pub struct GoogleIdentityAccesscontextmanagerV1AccessPolicy {
 }
 
 /// Defines a Cloud Organization Policy which is used to specify Constraints for configurations of Cloud Platform resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV1Policy {
     /// For boolean Constraints, whether to enforce the Constraint or not.
     #[serde(default, rename = "booleanPolicy")]
@@ -1466,7 +1467,7 @@ pub struct GoogleCloudOrgpolicyV1Policy {
 }
 
 /// This API resource represents the available inventory data for a Compute Engine virtual machine (VM) instance at a given point in time. You can use this API resource to determine the inventory data of your VM. For more information, see [Information provided by OS inventory management](https://cloud.google.com/compute/docs/instances/os-inventory-management#data-collected).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Inventory {
     /// Inventory items related to the VM keyed by an opaque unique identifier for each inventory item. The identifier is unique to each distinct and addressable inventory item and will change, when there is a new package version.
     #[serde(default)]
@@ -1483,7 +1484,7 @@ pub struct Inventory {
 }
 
 /// DEPRECATED. This message only presents for the purpose of backward-compatibility. The server will never populate this message in responses. The detailed related assets with the relationship_type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RelatedAssets {
     /// The peer resources of the relationship.
     #[serde(default)]
@@ -1494,7 +1495,7 @@ pub struct RelatedAssets {
 }
 
 /// A representation of a Google Cloud resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Resource {
     /// The content of the resource, in which some sensitive fields are removed and may not be present.
     #[serde(default)]
@@ -1520,7 +1521,7 @@ pub struct Resource {
 }
 
 /// ServicePerimeter describes a set of Google Cloud resources which can freely import and export data amongst themselves, but not export outside of the ServicePerimeter. If a request with a source within this ServicePerimeter has a target outside of the ServicePerimeter, the request will be blocked. Otherwise the request is allowed. There are two types of Service Perimeter - Regular and Bridge. Regular Service Perimeters cannot overlap, a single Google Cloud project or VPC network can only belong to a single regular Service Perimeter. Service Perimeter Bridges can contain only Google Cloud projects as members, a single Google Cloud project may belong to multiple Service Perimeter Bridges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityAccesscontextmanagerV1ServicePerimeter {
     /// Description of the ServicePerimeter and its use. Does not affect behavior.
     #[serde(default)]
@@ -1549,7 +1550,7 @@ pub struct GoogleIdentityAccesscontextmanagerV1ServicePerimeter {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -1566,7 +1567,7 @@ pub struct Policy {
 }
 
 /// Specifications of BigQuery partitioned table as export destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartitionSpec {
     /// The partition key for BigQuery partitioned table. // TODO: enum values: ["PARTITION_KEY_UNSPECIFIED", "READ_TIME", "REQUEST_TIME"]
     #[serde(default, rename = "partitionKey")]
@@ -1574,7 +1575,7 @@ pub struct PartitionSpec {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -1588,7 +1589,7 @@ pub struct Date {
 }
 
 /// Categories specified by the Windows Update.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WindowsUpdateCategory {
     /// The identifier of the windows update category.
     #[serde(default)]
@@ -1599,7 +1600,7 @@ pub struct WindowsUpdateCategory {
 }
 
 /// IAM policy analysis query message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IamPolicyAnalysisQuery {
     /// Optional. Specifies roles or permissions for analysis. This is optional.
     #[serde(default, rename = "accessSelector")]
@@ -1622,7 +1623,7 @@ pub struct IamPolicyAnalysisQuery {
 }
 
 /// A field in TableSchema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableFieldSchema {
     /// The field name. The name must contain only letters (a-z, A-Z), numbers (0-9), or underscores (_), and must start with a letter or underscore. The maximum length is 128 characters.
     #[serde(default)]
@@ -1639,7 +1640,7 @@ pub struct TableFieldSchema {
 }
 
 /// Resource representation as defined by the corresponding service providing the resource for a given API version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VersionedResource {
     /// The exceptions of a resource.
     #[serde(default, rename = "assetExceptions")]
@@ -1653,7 +1654,7 @@ pub struct VersionedResource {
 }
 
 /// The resource owners information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceOwners {
     /// List of resource owners.
     #[serde(default, rename = "resourceOwners")]
@@ -1661,7 +1662,7 @@ pub struct ResourceOwners {
 }
 
 /// A Pub/Sub destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PubsubDestination {
     /// The name of the Pub/Sub topic to publish to. Example: projects/PROJECT_ID/topics/TOPIC_ID.
     #[serde(default)]
@@ -1669,7 +1670,7 @@ pub struct PubsubDestination {
 }
 
 /// An IAM role or permission under analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssetV1Access {
     /// The analysis state of this access.
     #[serde(default, rename = "analysisState")]
@@ -1683,7 +1684,7 @@ pub struct GoogleCloudAssetV1Access {
 }
 
 /// A Google Cloud resource under analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssetV1Resource {
     /// The analysis state of this resource.
     #[serde(default, rename = "analysisState")]
@@ -1694,7 +1695,7 @@ pub struct GoogleCloudAssetV1Resource {
 }
 
 /// A directional edge.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssetV1Edge {
     /// The source node of the edge. For example, it could be a full resource name for a resource node or an email of an identity.
     #[serde(default, rename = "sourceNode")]
@@ -1705,7 +1706,7 @@ pub struct GoogleCloudAssetV1Edge {
 }
 
 /// An identity under analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssetV1Identity {
     /// The analysis state of this identity.
     #[serde(default, rename = "analysisState")]
@@ -1716,7 +1717,7 @@ pub struct GoogleCloudAssetV1Identity {
 }
 
 /// The key and value for a [tag](https://cloud.google.com/resource-manager/docs/tags/tags-overview).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Tag {
     /// TagKey namespaced name, in the format of {ORG_ID}/{TAG_KEY_SHORT_NAME}.
     #[serde(default, rename = "tagKey")]
@@ -1733,7 +1734,7 @@ pub struct Tag {
 }
 
 /// The condition evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConditionEvaluation {
     /// The evaluation result. // TODO: enum values: ["EVALUATION_VALUE_UNSPECIFIED", "TRUE", "FALSE", "CONDITIONAL"]
     #[serde(default, rename = "evaluationValue")]
@@ -1741,7 +1742,7 @@ pub struct ConditionEvaluation {
 }
 
 /// BasicLevel is an AccessLevel using a set of recommended features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityAccesscontextmanagerV1BasicLevel {
     /// How the conditions list should be combined to determine if a request is granted this AccessLevel. If AND is used, each Condition in conditions must be satisfied for the AccessLevel to be applied. If OR is used, at least one Condition in conditions must be satisfied for the AccessLevel to be applied. Default behavior is AND. // TODO: enum values: ["AND", "OR"]
     #[serde(default, rename = "combiningFunction")]
@@ -1753,7 +1754,7 @@ pub struct GoogleIdentityAccesscontextmanagerV1BasicLevel {
 }
 
 /// CustomLevel is an AccessLevel using the Cloud Common Expression Language to represent the necessary conditions for the level to apply to a request. See CEL spec at: https://github.com/google/cel-spec
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityAccesscontextmanagerV1CustomLevel {
     /// Required. A Cloud CEL expression evaluating to a boolean.
     #[serde(default)]
@@ -1761,7 +1762,7 @@ pub struct GoogleIdentityAccesscontextmanagerV1CustomLevel {
 }
 
 /// Used in policy_type to specify how boolean_policy will behave at this resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV1BooleanPolicy {
     /// If true, then the Policy is enforced. If false, then any configuration is acceptable. Suppose you have a Constraint constraints/compute.disableSerialPortAccess with constraint_default set to ALLOW. A Policy for that Constraint exhibits the following behavior: - If the Policy at this resource has enforced set to false, serial port connection attempts will be allowed. - If the Policy at this resource has enforced set to true, serial port connection attempts will be refused. - If the Policy at this resource is RestoreDefault, serial port connection attempts will be allowed. - If no Policy is set at this resource or anywhere higher in the resource hierarchy, serial port connection attempts will be allowed. - If no Policy is set at this resource, but one exists higher in the resource hierarchy, the behavior is as if thePolicy were set at this resource. The following examples demonstrate the different possible layerings: Example 1 (nearest Constraint wins): organizations/foo has a Policy with: {enforced: false} projects/bar has no Policy set. The constraint at projects/bar and organizations/foo will not be enforced. Example 2 (enforcement gets replaced): organizations/foo has a Policy with: {enforced: false} projects/bar has a Policy with: {enforced: true} The constraint at organizations/foo is not enforced. The constraint at projects/bar is enforced. Example 3 (RestoreDefault): organizations/foo has a Policy with: {enforced: true} projects/bar has a Policy with: {RestoreDefault: {}} The constraint at organizations/foo is enforced. The constraint at projects/bar is not enforced, because constraint_default for the Constraint is ALLOW.
     #[serde(default)]
@@ -1769,7 +1770,7 @@ pub struct GoogleCloudOrgpolicyV1BooleanPolicy {
 }
 
 /// Used in policy_type to specify how list_policy behaves at this resource. ListPolicy can define specific values and subtrees of Cloud Resource Manager resource hierarchy (Organizations, Folders, Projects) that are allowed or denied by setting the allowed_values and denied_values fields. This is achieved by using the under: and optional is: prefixes. The under: prefix is used to denote resource subtree values. The is: prefix is used to denote specific values, and is required only if the value contains a ":". Values prefixed with "is:" are treated the same as values with no prefix. Ancestry subtrees must be in one of the following formats: - "projects/", e.g. "projects/tokyo-rain-123" - "folders/", e.g. "folders/1234" - "organizations/", e.g. "organizations/1234" The supports_under field of the associated Constraint defines whether ancestry prefixes can be used. You can set allowed_values and denied_values in the same Policy if all_values is ALL_VALUES_UNSPECIFIED. ALLOW or DENY are used to allow or deny all values. If all_values is set to either ALLOW or DENY, allowed_values and denied_values must be unset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOrgpolicyV1ListPolicy {
     /// The policy all_values state. // TODO: enum values: ["ALL_VALUES_UNSPECIFIED", "ALLOW", "DENY"]
     #[serde(default, rename = "allValues")]
@@ -1789,7 +1790,7 @@ pub struct GoogleCloudOrgpolicyV1ListPolicy {
 }
 
 /// Operating system information for the VM.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OsInfo {
     /// The system architecture of the operating system.
     #[serde(default)]
@@ -1818,7 +1819,7 @@ pub struct OsInfo {
 }
 
 /// An asset identifier in Google Cloud which contains its name, type and ancestors. An asset can be any resource in the Google Cloud [resource hierarchy](https://cloud.google.com/resource-manager/docs/cloud-platform-resource-hierarchy), a resource outside the Google Cloud resource hierarchy (such as Google Kubernetes Engine clusters and objects), or a policy (e.g. IAM policy). See [Supported asset types](https://cloud.google.com/asset-inventory/docs/supported-asset-types) for more information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RelatedAsset {
     /// The ancestors of an asset in Google Cloud [resource hierarchy](https://cloud.google.com/resource-manager/docs/cloud-platform-resource-hierarchy), represented as a list of relative resource names. An ancestry path starts with the closest ancestor in the hierarchy and ends at root. Example: ["projects/123456789", "folders/5432", "organizations/1234"]
     #[serde(default)]
@@ -1835,7 +1836,7 @@ pub struct RelatedAsset {
 }
 
 /// DEPRECATED. This message only presents for the purpose of backward-compatibility. The server will never populate this message in responses. The relationship attributes which include type, source_resource_type, target_resource_type and action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RelationshipAttributes {
     /// The detail of the relationship, e.g. contains, attaches
     #[serde(default)]
@@ -1852,7 +1853,7 @@ pub struct RelationshipAttributes {
 }
 
 /// ServicePerimeterConfig specifies a set of Google Cloud resources that describe specific Service Perimeter configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityAccesscontextmanagerV1ServicePerimeterConfig {
     /// A list of AccessLevel resource names that allow resources within the ServicePerimeter to be accessed from the internet. AccessLevels listed must be in the same policy as this ServicePerimeter. Referencing a nonexistent AccessLevel is a syntax error. If no AccessLevel names are listed, resources within the perimeter can only be accessed via Google Cloud calls with request origins within the perimeter. Example: "accessPolicies/MY_POLICY/accessLevels/MY_LEVEL". For Service Perimeter Bridge, must be empty.
     #[serde(default, rename = "accessLevels")]
@@ -1878,7 +1879,7 @@ pub struct GoogleIdentityAccesscontextmanagerV1ServicePerimeterConfig {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -1889,7 +1890,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -1903,7 +1904,7 @@ pub struct Binding {
 }
 
 /// Specifies roles and/or permissions to analyze, to determine both the identities possessing them and the resources they control. If multiple values are specified, results will include roles or permissions matching any of them. The total number of roles and permissions should be equal or less than 10.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSelector {
     /// Optional. The permissions to appear in result.
     #[serde(default)]
@@ -1914,7 +1915,7 @@ pub struct AccessSelector {
 }
 
 /// The IAM conditions context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConditionContext {
     /// The hypothetical access timestamp to evaluate IAM conditions. Note that this value must not be earlier than the current time; otherwise, an INVALID_ARGUMENT error will be returned.
     #[serde(default, rename = "accessTime")]
@@ -1922,7 +1923,7 @@ pub struct ConditionContext {
 }
 
 /// Specifies an identity for which to determine resource access, based on roles assigned either directly to them or to the groups they belong to, directly or indirectly.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IdentitySelector {
     /// Required. The identity appear in the form of principals in [IAM policy binding](https://cloud.google.com/iam/reference/rest/v1/Binding). The examples of supported forms are: "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com". Notice that wildcard characters (such as * and ?) are not supported. You must give a specific identity.
     #[serde(default)]
@@ -1930,7 +1931,7 @@ pub struct IdentitySelector {
 }
 
 /// Contains query options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Options {
     /// Optional. If true, the response will include access analysis from identities to resources via service account impersonation. This is a very expensive operation, because many derived queries will be executed. We highly recommend you use AssetService.AnalyzeIamPolicyLongrunning RPC instead. For example, if the request analyzes for which resources user A has permission P, and there''s an IAM policy states user A has iam.serviceAccounts.getAccessToken permission to a service account SA, and there''s another IAM policy states service account SA has permission P to a Google Cloud folder F, then user A potentially has access to the Google Cloud folder F. And those advanced analysis results will be included in AnalyzeIamPolicyResponse.service_account_impersonation_analysis. Another example, if the request analyzes for who has permission P to a Google Cloud folder F, and there''s an IAM policy states user A has iam.serviceAccounts.actAs permission to a service account SA, and there''s another IAM policy states service account SA has permission P to the Google Cloud folder F, then user A potentially has access to the Google Cloud folder F. And those advanced analysis results will be included in AnalyzeIamPolicyResponse.service_account_impersonation_analysis. Only the following permissions are considered in this analysis: * iam.serviceAccounts.actAs * iam.serviceAccounts.signBlob * iam.serviceAccounts.signJwt * iam.serviceAccounts.getAccessToken * iam.serviceAccounts.getOpenIdToken * iam.serviceAccounts.implicitDelegation Default is false.
     #[serde(default, rename = "analyzeServiceAccountImpersonation")]
@@ -1953,7 +1954,7 @@ pub struct Options {
 }
 
 /// Specifies the resource to analyze for access policies, which may be set directly on the resource, or on ancestors such as organizations, folders or projects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceSelector {
     /// Required. The [full resource name] (https://cloud.google.com/asset-inventory/docs/resource-name-format) of a resource of [supported resource types](https://cloud.google.com/asset-inventory/docs/supported-asset-types#analyzable_asset_types).
     #[serde(default, rename = "fullResourceName")]
@@ -1961,7 +1962,7 @@ pub struct ResourceSelector {
 }
 
 /// An exception of an asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssetException {
     /// The details of the exception.
     #[serde(default)]
@@ -1972,7 +1973,7 @@ pub struct AssetException {
 }
 
 /// Represents the detailed state of an entity under analysis, such as a resource, an identity or an access.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IamPolicyAnalysisState {
     /// The human-readable description of the cause of failure.
     #[serde(default)]
@@ -1983,7 +1984,7 @@ pub struct IamPolicyAnalysisState {
 }
 
 /// A condition necessary for an AccessLevel to be granted. The Condition is an AND over its fields. So a Condition is true if: 1) the request IP is from one of the listed subnetworks AND 2) the originating device complies with the listed device policy AND 3) all listed access levels are granted AND 4) the request was sent at a time allowed by the DateTimeRestriction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityAccesscontextmanagerV1Condition {
     /// Device specific restrictions, all restrictions must hold for the Condition to be true. If not specified, all devices are allowed.
     #[serde(default, rename = "devicePolicy")]
@@ -2011,7 +2012,7 @@ pub struct GoogleIdentityAccesscontextmanagerV1Condition {
 }
 
 /// Policy for egress from perimeter. EgressPolicies match requests based on egress_from and egress_to stanzas. For an EgressPolicy to match, both egress_from and egress_to stanzas must be matched. If an EgressPolicy matches a request, the request is allowed to span the ServicePerimeter boundary. For example, an EgressPolicy can be used to allow VMs on networks within the ServicePerimeter to access a defined set of projects outside the perimeter in certain contexts (e.g. to read data from a Cloud Storage bucket or query against a BigQuery dataset). EgressPolicies are concerned with the *resources* that a request relates as well as the API services and API actions being used. They do not related to the direction of data movement. More detailed documentation for this concept can be found in the descriptions of EgressFrom and EgressTo.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityAccesscontextmanagerV1EgressPolicy {
     /// Defines conditions on the source of a request causing this EgressPolicy to apply.
     #[serde(default, rename = "egressFrom")]
@@ -2025,7 +2026,7 @@ pub struct GoogleIdentityAccesscontextmanagerV1EgressPolicy {
 }
 
 /// Policy for ingress into ServicePerimeter. IngressPolicies match requests based on ingress_from and ingress_to stanzas. For an ingress policy to match, both the ingress_from and ingress_to stanzas must be matched. If an IngressPolicy matches a request, the request is allowed through the perimeter boundary from outside the perimeter. For example, access from the internet can be allowed either based on an AccessLevel or, for traffic hosted on Google Cloud, the project of the source network. For access from private networks, using the project of the hosting network is required. Individual ingress policies can be limited by restricting which services and/or actions they match using the ingress_to field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityAccesscontextmanagerV1IngressPolicy {
     /// Defines the conditions on the source of a request causing this IngressPolicy to apply.
     #[serde(default, rename = "ingressFrom")]
@@ -2039,7 +2040,7 @@ pub struct GoogleIdentityAccesscontextmanagerV1IngressPolicy {
 }
 
 /// Specifies how APIs are allowed to communicate within the Service Perimeter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityAccesscontextmanagerV1VpcAccessibleServices {
     /// The list of APIs usable within the Service Perimeter. Must be empty unless ''enable_restriction'' is True. You can specify a list of individual services, as well as include the ''RESTRICTED-SERVICES'' value, which automatically includes all of the services protected by the perimeter.
     #[serde(default, rename = "allowedServices")]
@@ -2050,7 +2051,7 @@ pub struct GoogleIdentityAccesscontextmanagerV1VpcAccessibleServices {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -2061,7 +2062,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -2078,7 +2079,7 @@ pub struct Expr {
 }
 
 /// DevicePolicy specifies device specific restrictions necessary to acquire a given access level. A DevicePolicy specifies requirements for requests from devices to be granted access levels, it does not do any enforcement on the device. DevicePolicy acts as an AND over all specified fields, and each repeated field is an OR over its elements. Any unset fields are ignored. For example, if the proto is { os_type : DESKTOP_WINDOWS, os_type : DESKTOP_LINUX, encryption_status: ENCRYPTED}, then the DevicePolicy will be true for requests originating from encrypted Linux desktops and encrypted Windows desktops.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityAccesscontextmanagerV1DevicePolicy {
     /// Allowed device management levels, an empty list allows all management levels.
     #[serde(default, rename = "allowedDeviceManagementLevels")]
@@ -2102,7 +2103,7 @@ pub struct GoogleIdentityAccesscontextmanagerV1DevicePolicy {
 }
 
 /// The originating network source in Google Cloud.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityAccesscontextmanagerV1VpcNetworkSource {
     /// Sub-segment ranges of a VPC network.
     #[serde(default, rename = "vpcSubnetwork")]
@@ -2110,7 +2111,7 @@ pub struct GoogleIdentityAccesscontextmanagerV1VpcNetworkSource {
 }
 
 /// Defines the conditions under which an EgressPolicy matches a request. Conditions based on information about the source of the request. Note that if the destination of the request is also protected by a ServicePerimeter, then that ServicePerimeter must have an IngressPolicy which allows access in order for this request to succeed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityAccesscontextmanagerV1EgressFrom {
     /// A list of identities that are allowed access through [EgressPolicy]. Identities can be an individual user, service account, Google group, or third-party identity. For the list of supported identity types, see https://docs.cloud.google.com/vpc-service-controls/docs/supported-identities.
     #[serde(default)]
@@ -2128,7 +2129,7 @@ pub struct GoogleIdentityAccesscontextmanagerV1EgressFrom {
 }
 
 /// Defines the conditions under which an EgressPolicy matches a request. Conditions are based on information about the ApiOperation intended to be performed on the resources specified. Note that if the destination of the request is also protected by a ServicePerimeter, then that ServicePerimeter must have an IngressPolicy which allows access in order for this request to succeed. The request must match operations AND resources fields in order to be allowed egress out of the perimeter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityAccesscontextmanagerV1EgressTo {
     /// A list of external resources that are allowed to be accessed. Only AWS and Azure resources are supported. For Amazon S3, the supported formats are s3://BUCKET_NAME, s3a://BUCKET_NAME, and s3n://BUCKET_NAME. For Azure Storage, the supported format is azure://myaccount.blob.core.windows.net/CONTAINER_NAME. A request matches if it contains an external resource in this list (Example: s3://bucket/path). Currently ''*'' is not allowed.
     #[serde(default, rename = "externalResources")]
@@ -2146,7 +2147,7 @@ pub struct GoogleIdentityAccesscontextmanagerV1EgressTo {
 }
 
 /// Defines the conditions under which an IngressPolicy matches a request. Conditions are based on information about the source of the request. The request must satisfy what is defined in sources AND identity related fields in order to match.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityAccesscontextmanagerV1IngressFrom {
     /// A list of identities that are allowed access through [IngressPolicy]. Identities can be an individual user, service account, Google group, or third-party identity. For the list of supported identity types, see https://docs.cloud.google.com/vpc-service-controls/docs/supported-identities.
     #[serde(default)]
@@ -2161,7 +2162,7 @@ pub struct GoogleIdentityAccesscontextmanagerV1IngressFrom {
 }
 
 /// Defines the conditions under which an IngressPolicy matches a request. Conditions are based on information about the ApiOperation intended to be performed on the target resource of the request. The request must satisfy what is defined in operations AND resources in order to match.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityAccesscontextmanagerV1IngressTo {
     /// A list of ApiOperations allowed to be performed by the sources specified in corresponding IngressFrom in this ServicePerimeter.
     #[serde(default)]
@@ -2176,7 +2177,7 @@ pub struct GoogleIdentityAccesscontextmanagerV1IngressTo {
 }
 
 /// A restriction on the OS type and version of devices making requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityAccesscontextmanagerV1OsConstraint {
     /// The minimum allowed OS version. If not set, any version of this OS satisfies the constraint. Format: "major.minor.patch". Examples: "10.5.301", "9.2.1".
     #[serde(default, rename = "minimumVersion")]
@@ -2190,7 +2191,7 @@ pub struct GoogleIdentityAccesscontextmanagerV1OsConstraint {
 }
 
 /// Sub-segment ranges inside of a VPC Network.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityAccesscontextmanagerV1VpcSubNetwork {
     /// Required. Network name. If the network is not part of the organization, the compute.network.get permission must be granted to the caller. Format: //compute.googleapis.com/projects/{PROJECT_ID}/global/networks/{NETWORK_NAME} Example: //compute.googleapis.com/projects/my-project/global/networks/network-1
     #[serde(default)]
@@ -2201,7 +2202,7 @@ pub struct GoogleIdentityAccesscontextmanagerV1VpcSubNetwork {
 }
 
 /// The source that EgressPolicy authorizes access from inside the ServicePerimeter to somewhere outside the ServicePerimeter boundaries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityAccesscontextmanagerV1EgressSource {
     /// An AccessLevel resource name that allows protected resources inside the ServicePerimeters to access outside the ServicePerimeter boundaries. AccessLevels listed must be in the same policy as this ServicePerimeter. Referencing a nonexistent AccessLevel will cause an error. If an AccessLevel name is not specified, only resources within the perimeter can be accessed through Google Cloud calls with request origins within the perimeter. Example: accessPolicies/MY_POLICY/accessLevels/MY_LEVEL. If a single * is specified for access_level, then all EgressSources will be allowed.
     #[serde(default, rename = "accessLevel")]
@@ -2212,7 +2213,7 @@ pub struct GoogleIdentityAccesscontextmanagerV1EgressSource {
 }
 
 /// The source that IngressPolicy authorizes access from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityAccesscontextmanagerV1IngressSource {
     /// An AccessLevel resource name that allow resources within the ServicePerimeters to be accessed from the internet. AccessLevels listed must be in the same policy as this ServicePerimeter. Referencing a nonexistent AccessLevel will cause an error. If no AccessLevel names are listed, resources within the perimeter can only be accessed via Google Cloud calls with request origins within the perimeter. Example: accessPolicies/MY_POLICY/accessLevels/MY_LEVEL. If a single * is specified for access_level, then all IngressSources will be allowed.
     #[serde(default, rename = "accessLevel")]
@@ -2223,7 +2224,7 @@ pub struct GoogleIdentityAccesscontextmanagerV1IngressSource {
 }
 
 /// Identification for an API Operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityAccesscontextmanagerV1ApiOperation {
     /// API methods or permissions to allow. Method or permission must belong to the service specified by service_name field. A single MethodSelector entry with * specified for the method field will allow all methods AND permissions for the service specified in service_name.
     #[serde(default, rename = "methodSelectors")]
@@ -2235,7 +2236,7 @@ pub struct GoogleIdentityAccesscontextmanagerV1ApiOperation {
 }
 
 /// An allowed method or permission of a service specified in ApiOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityAccesscontextmanagerV1MethodSelector {
     /// A valid method name for the corresponding service_name in ApiOperation. If * is used as the value for the method, then ALL methods and permissions are allowed.
     #[serde(default)]

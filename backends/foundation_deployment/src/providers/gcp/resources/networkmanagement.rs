@@ -8,18 +8,19 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Response for the ListConnectivityTests method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListConnectivityTestsResponse {
     /// Page token to fetch the next set of Connectivity Tests.
     #[serde(default, rename = "nextPageToken")]
@@ -33,7 +34,7 @@ pub struct ListConnectivityTestsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -44,7 +45,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -58,7 +59,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response for the ListVpcFlowLogsConfigs method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListVpcFlowLogsConfigsResponse {
     /// Page token to fetch the next set of configurations.
     #[serde(default, rename = "nextPageToken")]
@@ -72,7 +73,7 @@ pub struct ListVpcFlowLogsConfigsResponse {
 }
 
 /// Metadata describing an Operation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// API version.
     #[serde(default, rename = "apiVersion")]
@@ -98,7 +99,7 @@ pub struct OperationMetadata {
 }
 
 /// Response for the QueryVpcFlowLogsConfigs method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryOrgVpcFlowLogsConfigsResponse {
     /// Page token to fetch the next set of configurations.
     #[serde(default, rename = "nextPageToken")]
@@ -112,11 +113,11 @@ pub struct QueryOrgVpcFlowLogsConfigsResponse {
 }
 
 /// Request for the RerunConnectivityTest method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RerunConnectivityTestRequest {}
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -127,7 +128,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Response for the ShowEffectiveFlowLogsConfigs method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShowEffectiveFlowLogsConfigsResponse {
     /// List of Effective Vpc Flow Logs configurations.
     #[serde(default, rename = "effectiveFlowLogsConfigs")]
@@ -142,7 +143,7 @@ pub struct ShowEffectiveFlowLogsConfigsResponse {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -150,7 +151,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -158,7 +159,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// A Connectivity Test for a network reachability analysis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectivityTest {
     /// Whether the analysis should skip firewall checking. Default value is false.
     #[serde(default, rename = "bypassFirewallChecks")]
@@ -208,7 +209,7 @@ pub struct ConnectivityTest {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -228,7 +229,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -248,7 +249,7 @@ pub struct Operation {
 }
 
 /// A configuration to generate VPC Flow Logs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpcFlowLogsConfig {
     /// Optional. The aggregation interval for the logs. Default value is INTERVAL_5_SEC. // TODO: enum values: ["AGGREGATION_INTERVAL_UNSPECIFIED", "INTERVAL_5_SEC", "INTERVAL_30_SEC", "INTERVAL_1_MIN", "INTERVAL_5_MIN", "INTERVAL_10_MIN", "INTERVAL_15_MIN"]
     #[serde(default, rename = "aggregationInterval")]
@@ -304,7 +305,7 @@ pub struct VpcFlowLogsConfig {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -321,7 +322,7 @@ pub struct Policy {
 }
 
 /// A configuration to generate a response for GetEffectiveVpcFlowLogsConfig request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EffectiveVpcFlowLogsConfig {
     /// The aggregation interval for the logs. Default value is INTERVAL_5_SEC. // TODO: enum values: ["AGGREGATION_INTERVAL_UNSPECIFIED", "INTERVAL_5_SEC", "INTERVAL_30_SEC", "INTERVAL_1_MIN", "INTERVAL_5_MIN", "INTERVAL_10_MIN", "INTERVAL_15_MIN"]
     #[serde(default, rename = "aggregationInterval")]
@@ -365,7 +366,7 @@ pub struct EffectiveVpcFlowLogsConfig {
 }
 
 /// Source or destination of the Connectivity Test.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Endpoint {
     /// An [App Engine](https://cloud.google.com/appengine) [service version](https://cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps.services.versions). Applicable only to source endpoint.
     #[serde(default, rename = "appEngineVersion")]
@@ -427,7 +428,7 @@ pub struct Endpoint {
 }
 
 /// Results of active probing from the last run of the test.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProbingDetails {
     /// The reason probing was aborted. // TODO: enum values: ["PROBING_ABORT_CAUSE_UNSPECIFIED", "PERMISSION_DENIED", "NO_SOURCE_LOCATION"]
     #[serde(default, rename = "abortCause")]
@@ -465,7 +466,7 @@ pub struct ProbingDetails {
 }
 
 /// Results of the configuration analysis from the last run of the test.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReachabilityDetails {
     /// The details of a failure or a cancellation of reachability analysis.
     #[serde(default)]
@@ -482,7 +483,7 @@ pub struct ReachabilityDetails {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -493,7 +494,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -507,7 +508,7 @@ pub struct Binding {
 }
 
 /// Wrapper for the App Engine service version attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppEngineVersionEndpoint {
     /// An [App Engine](https://cloud.google.com/appengine) [service version](https://cloud.google.com/appengine/docs/admin-api/reference/rest/v1/apps.services.versions) name.
     #[serde(default)]
@@ -515,7 +516,7 @@ pub struct AppEngineVersionEndpoint {
 }
 
 /// Wrapper for Cloud Function attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudFunctionEndpoint {
     /// A [Cloud Function](https://cloud.google.com/functions) name.
     #[serde(default)]
@@ -523,7 +524,7 @@ pub struct CloudFunctionEndpoint {
 }
 
 /// Wrapper for Cloud Run revision attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudRunRevisionEndpoint {
     /// Output only. The URI of the Cloud Run service that the revision belongs to. The format is: projects/{project}/locations/{location}/services/{service}
     #[serde(default, rename = "serviceUri")]
@@ -534,7 +535,7 @@ pub struct CloudRunRevisionEndpoint {
 }
 
 /// Probing results for a single edge device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SingleEdgeResponse {
     /// The EdgeLocation from which a packet, destined to the internet, will egress the Google network. This will only be populated for a connectivity test which has an internet destination address. The absence of this field *must not* be used as an indication that the destination is part of the Google network.
     #[serde(default, rename = "destinationEgressLocation")]
@@ -557,7 +558,7 @@ pub struct SingleEdgeResponse {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -571,7 +572,7 @@ pub struct Status {
 }
 
 /// Trace represents one simulated packet forwarding path. * Each trace contains multiple ordered steps. * Each step is in a particular state with associated configuration. * State is categorized as final or non-final states. * Each final state has a reason associated. * Each trace must end with a final state (the last step).  |---------------------Trace----------------------| Step1(State) Step2(State) --- StepN(State(final))
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Trace {
     /// Derived from the source and destination endpoints definition specified by user request, and validated by the data plane model. If there are multiple traces starting from different source locations, then the endpoint_info may be different between traces.
     #[serde(default, rename = "endpointInfo")]
@@ -585,7 +586,7 @@ pub struct Trace {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -596,7 +597,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -613,7 +614,7 @@ pub struct Expr {
 }
 
 /// Representation of a network edge location as per https://cloud.google.com/vpc/docs/edge-locations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EdgeLocation {
     /// Name of the metropolitan area.
     #[serde(default, rename = "metropolitanArea")]
@@ -621,7 +622,7 @@ pub struct EdgeLocation {
 }
 
 /// Describes measured latency distribution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LatencyDistribution {
     /// Representative latency percentiles.
     #[serde(default, rename = "latencyPercentiles")]
@@ -629,7 +630,7 @@ pub struct LatencyDistribution {
 }
 
 /// A simulated forwarding path is composed of multiple steps. Each step has a well-defined state and an associated configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Step {
     /// Display information of the final state "abort" and reason.
     #[serde(default)]
@@ -754,7 +755,7 @@ pub struct Step {
 }
 
 /// Latency percentile rank and value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LatencyPercentile {
     /// percent-th percentile of latency observed, in microseconds. Fraction of percent/100 of samples have latency lower or equal to the value of this field.
     #[serde(default, rename = "latencyMicros")]
@@ -765,7 +766,7 @@ pub struct LatencyPercentile {
 }
 
 /// Details of the final state "abort" and associated resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AbortInfo {
     /// Causes that the analysis is aborted. // TODO: enum values: ["CAUSE_UNSPECIFIED", "UNKNOWN_NETWORK", "UNKNOWN_PROJECT", "NO_EXTERNAL_IP", "UNINTENDED_DESTINATION", "SOURCE_ENDPOINT_NOT_FOUND", "MISMATCHED_SOURCE_NETWORK", "DESTINATION_ENDPOINT_NOT_FOUND", "MISMATCHED_DESTINATION_NETWORK", "UNKNOWN_IP", "GOOGLE_MANAGED_SERVICE_UNKNOWN_IP", "SOURCE_IP_ADDRESS_NOT_IN_SOURCE_NETWORK", "PERMISSION_DENIED", "PERMISSION_DENIED_NO_CLOUD_NAT_CONFIGS", "PERMISSION_DENIED_NO_NEG_ENDPOINT_CONFIGS", "PERMISSION_DENIED_NO_CLOUD_ROUTER_CONFIGS", "NO_SOURCE_LOCATION", "NO_SOURCE_GCP_NETWORK_LOCATION", "NO_SOURCE_NON_GCP_NETWORK_LOCATION", "NO_SOURCE_INTERNET_LOCATION", "INVALID_ARGUMENT", "TRACE_TOO_LONG", "INTERNAL_ERROR", "UNSUPPORTED", "MISMATCHED_IP_VERSION", "GKE_KONNECTIVITY_PROXY_UNSUPPORTED", "RESOURCE_CONFIG_NOT_FOUND", "VM_INSTANCE_CONFIG_NOT_FOUND", "NETWORK_CONFIG_NOT_FOUND", "FIREWALL_CONFIG_NOT_FOUND", "ROUTE_CONFIG_NOT_FOUND", "GOOGLE_MANAGED_SERVICE_AMBIGUOUS_PSC_ENDPOINT", "GOOGLE_MANAGED_SERVICE_AMBIGUOUS_ENDPOINT", "SOURCE_PSC_CLOUD_SQL_UNSUPPORTED", "SOURCE_EXTERNAL_CLOUD_SQL_UNSUPPORTED", "SOURCE_REDIS_CLUSTER_UNSUPPORTED", "SOURCE_REDIS_INSTANCE_UNSUPPORTED", "SOURCE_FORWARDING_RULE_UNSUPPORTED", "NON_ROUTABLE_IP_ADDRESS", "UNKNOWN_ISSUE_IN_GOOGLE_MANAGED_PROJECT", "UNSUPPORTED_GOOGLE_MANAGED_PROJECT_CONFIG", "NO_SERVERLESS_IP_RANGES", "IP_VERSION_PROTOCOL_MISMATCH", "GKE_POD_UNKNOWN_ENDPOINT_LOCATION"]
     #[serde(default)]
@@ -782,7 +783,7 @@ pub struct AbortInfo {
 }
 
 /// For display only. Metadata associated with an App Engine version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppEngineVersionInfo {
     /// Name of an App Engine version.
     #[serde(default, rename = "displayName")]
@@ -799,7 +800,7 @@ pub struct AppEngineVersionInfo {
 }
 
 /// For display only. Metadata associated with a Cloud Function.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudFunctionInfo {
     /// Name of a Cloud Function.
     #[serde(default, rename = "displayName")]
@@ -816,7 +817,7 @@ pub struct CloudFunctionInfo {
 }
 
 /// For display only. Metadata associated with a Cloud Run revision.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudRunRevisionInfo {
     /// Name of a Cloud Run revision.
     #[serde(default, rename = "displayName")]
@@ -833,7 +834,7 @@ pub struct CloudRunRevisionInfo {
 }
 
 /// For display only. Metadata associated with a Cloud SQL instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudSQLInstanceInfo {
     /// Name of a Cloud SQL instance.
     #[serde(default, rename = "displayName")]
@@ -856,7 +857,7 @@ pub struct CloudSQLInstanceInfo {
 }
 
 /// Details of the final state "deliver" and associated resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeliverInfo {
     /// Recognized type of a Google Service the packet is delivered to (if applicable). // TODO: enum values: ["GOOGLE_SERVICE_TYPE_UNSPECIFIED", "IAP", "GFE_PROXY_OR_HEALTH_CHECK_PROBER", "CLOUD_DNS", "PRIVATE_GOOGLE_ACCESS", "SERVERLESS_VPC_ACCESS"]
     #[serde(default, rename = "googleServiceType")]
@@ -879,7 +880,7 @@ pub struct DeliverInfo {
 }
 
 /// For display only. Metadata associated with a serverless direct VPC egress connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DirectVpcEgressConnectionInfo {
     /// URI of direct access network.
     #[serde(default, rename = "networkUri")]
@@ -899,7 +900,7 @@ pub struct DirectVpcEgressConnectionInfo {
 }
 
 /// Details of the final state "drop" and associated resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DropInfo {
     /// Cause that the packet is dropped. // TODO: enum values: ["CAUSE_UNSPECIFIED", "UNKNOWN_EXTERNAL_ADDRESS", "FOREIGN_IP_DISALLOWED", "FIREWALL_RULE", "NO_ROUTE", "ROUTE_BLACKHOLE", "ROUTE_WRONG_NETWORK", "ROUTE_NEXT_HOP_IP_ADDRESS_NOT_RESOLVED", "ROUTE_NEXT_HOP_RESOURCE_NOT_FOUND", "ROUTE_NEXT_HOP_INSTANCE_WRONG_NETWORK", "ROUTE_NEXT_HOP_INSTANCE_NON_PRIMARY_IP", "ROUTE_NEXT_HOP_FORWARDING_RULE_IP_MISMATCH", "ROUTE_NEXT_HOP_VPN_TUNNEL_NOT_ESTABLISHED", "ROUTE_NEXT_HOP_FORWARDING_RULE_TYPE_INVALID", "NO_ROUTE_FROM_INTERNET_TO_PRIVATE_IPV6_ADDRESS", "NO_ROUTE_FROM_INTERNET_TO_PRIVATE_IPV4_ADDRESS", "NO_ROUTE_FROM_EXTERNAL_IPV6_SOURCE_TO_PRIVATE_IPV6_ADDRESS", "VPN_TUNNEL_LOCAL_SELECTOR_MISMATCH", "VPN_TUNNEL_REMOTE_SELECTOR_MISMATCH", "PRIVATE_TRAFFIC_TO_INTERNET", "PRIVATE_GOOGLE_ACCESS_DISALLOWED", "PRIVATE_GOOGLE_ACCESS_VIA_VPN_TUNNEL_UNSUPPORTED", "NO_EXTERNAL_ADDRESS", "UNKNOWN_INTERNAL_ADDRESS", "FORWARDING_RULE_MISMATCH", "FORWARDING_RULE_NO_INSTANCES", "FIREWALL_BLOCKING_LOAD_BALANCER_BACKEND_HEALTH_CHECK", "INGRESS_FIREWALL_TAGS_UNSUPPORTED_BY_DIRECT_VPC_EGRESS", "INSTANCE_NOT_RUNNING", "GKE_CLUSTER_NOT_RUNNING", "GKE_POD_NOT_RUNNING", "CLOUD_SQL_INSTANCE_NOT_RUNNING", "REDIS_INSTANCE_NOT_RUNNING", "REDIS_CLUSTER_NOT_RUNNING", "TRAFFIC_TYPE_BLOCKED", "GKE_MASTER_UNAUTHORIZED_ACCESS", "CLOUD_SQL_INSTANCE_UNAUTHORIZED_ACCESS", "DROPPED_INSIDE_GKE_SERVICE", "DROPPED_INSIDE_CLOUD_SQL_SERVICE", "GOOGLE_MANAGED_SERVICE_NO_PEERING", "GOOGLE_MANAGED_SERVICE_NO_PSC_ENDPOINT", "GKE_PSC_ENDPOINT_MISSING", "CLOUD_SQL_INSTANCE_NO_IP_ADDRESS", "GKE_CONTROL_PLANE_REGION_MISMATCH", "PUBLIC_GKE_CONTROL_PLANE_TO_PRIVATE_DESTINATION", "GKE_CONTROL_PLANE_NO_ROUTE", "CLOUD_SQL_INSTANCE_NOT_CONFIGURED_FOR_EXTERNAL_TRAFFIC", "PUBLIC_CLOUD_SQL_INSTANCE_TO_PRIVATE_DESTINATION", "CLOUD_SQL_INSTANCE_NO_ROUTE", "CLOUD_SQL_CONNECTOR_REQUIRED", "CLOUD_FUNCTION_NOT_ACTIVE", "VPC_CONNECTOR_NOT_SET", "VPC_CONNECTOR_NOT_RUNNING", "VPC_CONNECTOR_SERVERLESS_TRAFFIC_BLOCKED", "VPC_CONNECTOR_HEALTH_CHECK_TRAFFIC_BLOCKED", "FORWARDING_RULE_REGION_MISMATCH", "PSC_CONNECTION_NOT_ACCEPTED", "PSC_ENDPOINT_ACCESSED_FROM_PEERED_NETWORK", "PSC_NEG_PRODUCER_ENDPOINT_NO_GLOBAL_ACCESS", "PSC_NEG_PRODUCER_FORWARDING_RULE_MULTIPLE_PORTS", "CLOUD_SQL_PSC_NEG_UNSUPPORTED", "NO_NAT_SUBNETS_FOR_PSC_SERVICE_ATTACHMENT", "PSC_TRANSITIVITY_NOT_PROPAGATED", "HYBRID_NEG_NON_DYNAMIC_ROUTE_MATCHED", "HYBRID_NEG_NON_LOCAL_DYNAMIC_ROUTE_MATCHED", "CLOUD_RUN_REVISION_NOT_READY", "DROPPED_INSIDE_PSC_SERVICE_PRODUCER", "LOAD_BALANCER_HAS_NO_PROXY_SUBNET", "CLOUD_NAT_NO_ADDRESSES", "ROUTING_LOOP", "DROPPED_INSIDE_GOOGLE_MANAGED_SERVICE", "LOAD_BALANCER_BACKEND_INVALID_NETWORK", "BACKEND_SERVICE_NAMED_PORT_NOT_DEFINED", "DESTINATION_IS_PRIVATE_NAT_IP_RANGE", "DROPPED_INSIDE_REDIS_INSTANCE_SERVICE", "REDIS_INSTANCE_UNSUPPORTED_PORT", "REDIS_INSTANCE_CONNECTING_FROM_PUPI_ADDRESS", "REDIS_INSTANCE_NO_ROUTE_TO_DESTINATION_NETWORK", "REDIS_INSTANCE_NO_EXTERNAL_IP", "REDIS_INSTANCE_UNSUPPORTED_PROTOCOL", "DROPPED_INSIDE_REDIS_CLUSTER_SERVICE", "REDIS_CLUSTER_UNSUPPORTED_PORT", "REDIS_CLUSTER_NO_EXTERNAL_IP", "REDIS_CLUSTER_UNSUPPORTED_PROTOCOL", "NO_ADVERTISED_ROUTE_TO_GCP_DESTINATION", "NO_TRAFFIC_SELECTOR_TO_GCP_DESTINATION", "NO_KNOWN_ROUTE_FROM_PEERED_NETWORK_TO_DESTINATION", "PRIVATE_NAT_TO_PSC_ENDPOINT_UNSUPPORTED", "PSC_PORT_MAPPING_PORT_MISMATCH", "PSC_PORT_MAPPING_WITHOUT_PSC_CONNECTION_UNSUPPORTED", "UNSUPPORTED_ROUTE_MATCHED_FOR_NAT64_DESTINATION", "TRAFFIC_FROM_HYBRID_ENDPOINT_TO_INTERNET_DISALLOWED", "NO_MATCHING_NAT64_GATEWAY", "NO_CONFIGURED_PRIVATE_NAT64_RULE", "LOAD_BALANCER_BACKEND_IP_VERSION_MISMATCH", "NO_KNOWN_ROUTE_FROM_NCC_NETWORK_TO_DESTINATION", "CLOUD_NAT_PROTOCOL_UNSUPPORTED", "L2_INTERCONNECT_UNSUPPORTED_PROTOCOL", "L2_INTERCONNECT_UNSUPPORTED_PORT", "L2_INTERCONNECT_DESTINATION_IP_MISMATCH", "NCC_ROUTE_WITHIN_HYBRID_SUBNET_UNSUPPORTED", "HYBRID_SUBNET_REGION_MISMATCH", "HYBRID_SUBNET_NO_ROUTE", "GKE_NETWORK_POLICY", "NO_VALID_ROUTE_FROM_GOOGLE_MANAGED_NETWORK_TO_DESTINATION"]
     #[serde(default)]
@@ -925,7 +926,7 @@ pub struct DropInfo {
 }
 
 /// For display only. The specification of the endpoints for the test. EndpointInfo is derived from source and destination Endpoint and validated by the backend data plane model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EndpointInfo {
     /// Destination IP address.
     #[serde(default, rename = "destinationIp")]
@@ -954,7 +955,7 @@ pub struct EndpointInfo {
 }
 
 /// For display only. Metadata associated with a VPC firewall rule, an implied VPC firewall rule, or a firewall policy rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirewallInfo {
     /// Possible values: ALLOW, DENY, APPLY_SECURITY_PROFILE_GROUP
     #[serde(default)]
@@ -998,7 +999,7 @@ pub struct FirewallInfo {
 }
 
 /// Details of the final state "forward" and associated resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ForwardInfo {
     /// IP address of the target (if applicable).
     #[serde(default, rename = "ipAddress")]
@@ -1012,7 +1013,7 @@ pub struct ForwardInfo {
 }
 
 /// For display only. Metadata associated with a Compute Engine forwarding rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ForwardingRuleInfo {
     /// Name of the forwarding rule.
     #[serde(default, rename = "displayName")]
@@ -1050,7 +1051,7 @@ pub struct ForwardingRuleInfo {
 }
 
 /// For display only. Metadata associated with a Google Kubernetes Engine (GKE) cluster master.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GKEMasterInfo {
     /// URI of a GKE cluster network.
     #[serde(default, rename = "clusterNetworkUri")]
@@ -1070,7 +1071,7 @@ pub struct GKEMasterInfo {
 }
 
 /// For display only. Metadata associated with a GKE Network Policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GkeNetworkPolicyInfo {
     /// Possible values: ALLOW, DENY
     #[serde(default)]
@@ -1087,7 +1088,7 @@ pub struct GkeNetworkPolicyInfo {
 }
 
 /// For display only. Contains information about why GKE Network Policy evaluation was skipped.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GkeNetworkPolicySkippedInfo {
     /// Reason why Network Policy evaluation was skipped. // TODO: enum values: ["REASON_UNSPECIFIED", "NETWORK_POLICY_DISABLED", "INGRESS_SOURCE_ON_SAME_NODE", "EGRESS_FROM_NODE_NETWORK_NAMESPACE_POD", "NETWORK_POLICY_NOT_APPLIED_TO_RESPONSE_TRAFFIC", "NETWORK_POLICY_ANALYSIS_UNSUPPORTED"]
     #[serde(default)]
@@ -1095,7 +1096,7 @@ pub struct GkeNetworkPolicySkippedInfo {
 }
 
 /// For display only. Metadata associated with a Google Kubernetes Engine (GKE) Pod.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GkePodInfo {
     /// IP address of a GKE Pod. If the Pod is dual-stack, this is the IP address relevant to the trace.
     #[serde(default, rename = "ipAddress")]
@@ -1109,7 +1110,7 @@ pub struct GkePodInfo {
 }
 
 /// For display only. Details of a Google Service sending packets to a VPC network. Although the source IP might be a publicly routable address, some Google Services use special routes within Google production infrastructure to reach Compute Engine Instances. https://cloud.google.com/vpc/docs/routes#special_return_paths
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleServiceInfo {
     /// Recognized type of a Google Service. // TODO: enum values: ["GOOGLE_SERVICE_TYPE_UNSPECIFIED", "IAP", "GFE_PROXY_OR_HEALTH_CHECK_PROBER", "CLOUD_DNS", "GOOGLE_API", "GOOGLE_API_PSC", "GOOGLE_API_VPC_SC", "SERVERLESS_VPC_ACCESS"]
     #[serde(default, rename = "googleServiceType")]
@@ -1120,7 +1121,7 @@ pub struct GoogleServiceInfo {
 }
 
 /// For display only. Metadata associated with a hybrid subnet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HybridSubnetInfo {
     /// Name of a hybrid subnet.
     #[serde(default, rename = "displayName")]
@@ -1134,7 +1135,7 @@ pub struct HybridSubnetInfo {
 }
 
 /// For display only. Metadata associated with a Compute Engine instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceInfo {
     /// Name of a Compute Engine instance.
     #[serde(default, rename = "displayName")]
@@ -1172,7 +1173,7 @@ pub struct InstanceInfo {
 }
 
 /// For display only. Metadata associated with an Interconnect attachment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InterconnectAttachmentInfo {
     /// URI of the Cloud Router to be used for dynamic routing.
     #[serde(default, rename = "cloudRouterUri")]
@@ -1198,7 +1199,7 @@ pub struct InterconnectAttachmentInfo {
 }
 
 /// For display only. Contains information about why IP masquerading was skipped for the packet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IpMasqueradingSkippedInfo {
     /// The matched non-masquerade IP range. Only set if reason is DESTINATION_IP_IN_CONFIGURED_NON_MASQUERADE_RANGE or DESTINATION_IP_IN_DEFAULT_NON_MASQUERADE_RANGE.
     #[serde(default, rename = "nonMasqueradeRange")]
@@ -1209,7 +1210,7 @@ pub struct IpMasqueradingSkippedInfo {
 }
 
 /// For display only. Metadata associated with a load balancer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancerInfo {
     /// Type of load balancer''s backend configuration. // TODO: enum values: ["BACKEND_TYPE_UNSPECIFIED", "BACKEND_SERVICE", "TARGET_POOL", "TARGET_INSTANCE"]
     #[serde(default, rename = "backendType")]
@@ -1229,7 +1230,7 @@ pub struct LoadBalancerInfo {
 }
 
 /// For display only. Metadata associated with the load balancer backend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancerBackendInfo {
     /// URI of the backend bucket this backend targets (if applicable).
     #[serde(default, rename = "backendBucketUri")]
@@ -1264,7 +1265,7 @@ pub struct LoadBalancerBackendInfo {
 }
 
 /// For display only. Metadata associated with NAT.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NatInfo {
     /// Type of Cloud NAT gateway. Only valid when type is CLOUD_NAT. // TODO: enum values: ["CLOUD_NAT_GATEWAY_TYPE_UNSPECIFIED", "PUBLIC_NAT44", "PUBLIC_NAT64", "PRIVATE_NAT_NCC", "PRIVATE_NAT_HYBRID", "PRIVATE_NAT64"]
     #[serde(default, rename = "cloudNatGatewayType")]
@@ -1311,7 +1312,7 @@ pub struct NatInfo {
 }
 
 /// For display only. Metadata associated with a Compute Engine network.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkInfo {
     /// Name of a Compute Engine network.
     #[serde(default, rename = "displayName")]
@@ -1331,7 +1332,7 @@ pub struct NetworkInfo {
 }
 
 /// For display only. Metadata associated with a layer 7 packet inspection by the firewall.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NgfwPacketInspectionInfo {
     /// URI of the security profile group associated with this firewall packet inspection.
     #[serde(default, rename = "securityProfileGroupUri")]
@@ -1339,7 +1340,7 @@ pub struct NgfwPacketInspectionInfo {
 }
 
 /// For display only. Metadata associated with ProxyConnection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProxyConnectionInfo {
     /// URI of the network where connection is proxied.
     #[serde(default, rename = "networkUri")]
@@ -1377,7 +1378,7 @@ pub struct ProxyConnectionInfo {
 }
 
 /// For display only. Metadata associated with a Redis Cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RedisClusterInfo {
     /// Discovery endpoint IP address of a Redis Cluster.
     #[serde(default, rename = "discoveryEndpointIpAddress")]
@@ -1400,7 +1401,7 @@ pub struct RedisClusterInfo {
 }
 
 /// For display only. Metadata associated with a Cloud Redis Instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RedisInstanceInfo {
     /// Name of a Cloud Redis Instance.
     #[serde(default, rename = "displayName")]
@@ -1423,7 +1424,7 @@ pub struct RedisInstanceInfo {
 }
 
 /// For display only. Metadata associated with a Compute Engine route.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RouteInfo {
     /// For ADVERTISED routes, the URI of their next hop, i.e. the URI of the hybrid endpoint (VPN tunnel, Interconnect attachment, NCC router appliance) the advertised prefix is advertised through, or URI of the source peered network. Deprecated in favor of the next_hop_uri field, not used in new tests.
     #[serde(default, rename = "advertisedRouteNextHopUri")]
@@ -1500,7 +1501,7 @@ pub struct RouteInfo {
 }
 
 /// For display only. Metadata associated with a serverless public connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServerlessExternalConnectionInfo {
     /// Selected starting IP address, from the Google dynamic address pool.
     #[serde(default, rename = "selectedIpAddress")]
@@ -1508,7 +1509,7 @@ pub struct ServerlessExternalConnectionInfo {
 }
 
 /// For display only. Metadata associated with the serverless network endpoint group backend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServerlessNegInfo {
     /// URI of the serverless network endpoint group.
     #[serde(default, rename = "negUri")]
@@ -1516,7 +1517,7 @@ pub struct ServerlessNegInfo {
 }
 
 /// For display only. Metadata associated with Storage Bucket.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StorageBucketInfo {
     /// Cloud Storage Bucket name.
     #[serde(default)]
@@ -1524,7 +1525,7 @@ pub struct StorageBucketInfo {
 }
 
 /// For display only. Metadata associated with a VPC connector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpcConnectorInfo {
     /// Name of a VPC connector.
     #[serde(default, rename = "displayName")]
@@ -1538,7 +1539,7 @@ pub struct VpcConnectorInfo {
 }
 
 /// For display only. Metadata associated with a Compute Engine VPN gateway.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpnGatewayInfo {
     /// Name of a VPN gateway.
     #[serde(default, rename = "displayName")]
@@ -1561,7 +1562,7 @@ pub struct VpnGatewayInfo {
 }
 
 /// For display only. Metadata associated with a Compute Engine VPN tunnel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VpnTunnelInfo {
     /// Name of a VPN tunnel.
     #[serde(default, rename = "displayName")]
@@ -1593,7 +1594,7 @@ pub struct VpnTunnelInfo {
 }
 
 /// For display only. Metadata associated with a specific load balancer backend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancerBackend {
     /// Name of a Compute Engine instance or network endpoint.
     #[serde(default, rename = "displayName")]

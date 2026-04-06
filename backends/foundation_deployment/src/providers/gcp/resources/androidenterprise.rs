@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A token authorizing an admin to access an iframe.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdministratorWebToken {
     /// An opaque token to be passed to the Play front-end to generate an iframe.
     #[serde(default)]
@@ -19,7 +20,7 @@ pub struct AdministratorWebToken {
 }
 
 /// Specification for a token used to generate iframes. The token specifies what data the admin is allowed to modify and the URI the iframe is allowed to communiate with.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdministratorWebTokenSpec {
     /// Options for displaying the Managed Configuration page.
     #[serde(default, rename = "managedConfigurations")]
@@ -49,7 +50,7 @@ pub struct AdministratorWebTokenSpec {
 }
 
 /// An AuthenticationToken is used by the EMM''s device policy client on a device to provision the given EMM-managed user on that device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthenticationToken {
     /// The authentication token to be passed to the device policy client on the device where it can be used to provision the account for which this token was generated.
     #[serde(default)]
@@ -57,7 +58,7 @@ pub struct AuthenticationToken {
 }
 
 /// The state of a user''s device, as accessed by the getState and setState methods on device resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceState {
     /// The state of the Google account on the device. "enabled" indicates that the Google account on the device can be used to access Google services (including Google Play), while "disabled" means that it cannot. A new device is initially in the "disabled" state. // TODO: enum values: ["enabled", "disabled"]
     #[serde(default, rename = "accountState")]
@@ -65,7 +66,7 @@ pub struct DeviceState {
 }
 
 /// DevicesListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DevicesListResponse {
     /// A managed device.
     #[serde(default)]
@@ -73,7 +74,7 @@ pub struct DevicesListResponse {
 }
 
 /// A token used to enroll a device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnrollmentToken {
     /// [Optional] The length of time the enrollment token is valid, ranging from 1 minute to [Durations.MAX_VALUE](https://developers.google.com/protocol-buffers/docs/reference/java/com/google/protobuf/util/Durations.html#MAX_VALUE), approximately 10,000 years. If not specified, the default duration is 1 hour.
     #[serde(default)]
@@ -91,7 +92,7 @@ pub struct EnrollmentToken {
 }
 
 /// A service account that can be used to authenticate as the enterprise to API calls that require such authentication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseAccount {
     /// The email address of the service account.
     #[serde(default, rename = "accountEmail")]
@@ -99,7 +100,7 @@ pub struct EnterpriseAccount {
 }
 
 /// EnterprisesListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterprisesListResponse {
     /// An enterprise.
     #[serde(default)]
@@ -107,7 +108,7 @@ pub struct EnterprisesListResponse {
 }
 
 /// EnterprisesSendTestPushNotificationResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterprisesSendTestPushNotificationResponse {
     /// The message ID of the test push notification that was sent.
     #[serde(default, rename = "messageId")]
@@ -118,7 +119,7 @@ pub struct EnterprisesSendTestPushNotificationResponse {
 }
 
 /// EntitlementsListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EntitlementsListResponse {
     /// An entitlement of a user to a product (e.g. an app). For example, a free app that they have installed, or a paid app that they have been allocated a license to.
     #[serde(default)]
@@ -126,7 +127,7 @@ pub struct EntitlementsListResponse {
 }
 
 /// Response message for generating a URL to upgrade an existing managed Google Play Accounts enterprise to a managed Google domain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateEnterpriseUpgradeUrlResponse {
     /// A URL for an enterprise admin to upgrade their enterprise. The page can''t be rendered in an iframe.
     #[serde(default)]
@@ -134,7 +135,7 @@ pub struct GenerateEnterpriseUpgradeUrlResponse {
 }
 
 /// GroupLicenseUsersListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GroupLicenseUsersListResponse {
     /// A user of an enterprise.
     #[serde(default)]
@@ -142,7 +143,7 @@ pub struct GroupLicenseUsersListResponse {
 }
 
 /// GroupLicensesListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GroupLicensesListResponse {
     /// A group license for a product approved for use in the enterprise.
     #[serde(default, rename = "groupLicense")]
@@ -150,7 +151,7 @@ pub struct GroupLicensesListResponse {
 }
 
 /// InstallsListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstallsListResponse {
     /// An installation of an app for a user on a specific device. The existence of an install implies that the user must have an entitlement to the app.
     #[serde(default)]
@@ -158,7 +159,7 @@ pub struct InstallsListResponse {
 }
 
 /// ManagedConfigurationsForDeviceListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedConfigurationsForDeviceListResponse {
     /// A managed configuration for an app on a specific device.
     #[serde(default, rename = "managedConfigurationForDevice")]
@@ -167,7 +168,7 @@ pub struct ManagedConfigurationsForDeviceListResponse {
 }
 
 /// ManagedConfigurationsForUserListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedConfigurationsForUserListResponse {
     /// A managed configuration for an app for a specific user.
     #[serde(default, rename = "managedConfigurationForUser")]
@@ -176,7 +177,7 @@ pub struct ManagedConfigurationsForUserListResponse {
 }
 
 /// ManagedConfigurationsSettingsListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedConfigurationsSettingsListResponse {
     /// A managed configurations settings for an app that may be assigned to a group of users in an enterprise.
     #[serde(default, rename = "managedConfigurationsSettings")]
@@ -185,7 +186,7 @@ pub struct ManagedConfigurationsSettingsListResponse {
 }
 
 /// A resource returned by the PullNotificationSet API, which contains a collection of notifications for enterprises associated with the service account authenticated for the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NotificationSet {
     /// The notifications received, or empty if no notifications are present.
     #[serde(default)]
@@ -196,7 +197,7 @@ pub struct NotificationSet {
 }
 
 /// A Permissions resource represents some extra capability, to be granted to an Android app, which requires explicit consent. An enterprise admin must consent to these permissions on behalf of their users before an entitlement for the app can be created. The permissions collection is read-only. The information provided for each permission (localized name and description) is intended to be used in the MDM user interface when obtaining consent from the enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Permission {
     /// A longer description of the Permissions resource, giving more details of what it affects.
     #[serde(default)]
@@ -210,7 +211,7 @@ pub struct Permission {
 }
 
 /// Information about the permissions required by a specific app and whether they have been accepted by the enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductPermissions {
     /// The permissions required by the app.
     #[serde(default)]
@@ -221,7 +222,7 @@ pub struct ProductPermissions {
 }
 
 /// A set of products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductSet {
     /// The list of product IDs making up the set of products.
     #[serde(default, rename = "productId")]
@@ -235,7 +236,7 @@ pub struct ProductSet {
 }
 
 /// ProductsApproveRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductsApproveRequest {
     /// The approval URL that was shown to the user. Only the permissions shown to the user with that URL will be accepted, which may not be the product''s entire set of permissions. For example, the URL may only display new permissions from an update after the product was approved, or not include new permissions if the product was updated since the URL was generated.
     #[serde(default, rename = "approvalUrlInfo")]
@@ -246,7 +247,7 @@ pub struct ProductsApproveRequest {
 }
 
 /// ProductsGenerateApprovalUrlResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductsGenerateApprovalUrlResponse {
     /// A URL that can be rendered in an iframe to display the permissions (if any) of a product. This URL can be used to approve the product only once and only within 24 hours of being generated, using the Products.approve call. If the product is currently unapproved and has no permissions, this URL will point to an empty page. If the product is currently approved, a URL will only be generated if that product has added permissions since it was last approved, and the URL will only display those new permissions that have not yet been accepted.
     #[serde(default)]
@@ -254,7 +255,7 @@ pub struct ProductsGenerateApprovalUrlResponse {
 }
 
 /// ProductsListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductsListResponse {
     /// General pagination information.
     #[serde(default, rename = "pageInfo")]
@@ -268,7 +269,7 @@ pub struct ProductsListResponse {
 }
 
 /// A service account identity, including the name and credentials that can be used to authenticate as the service account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceAccount {
     /// Credentials that can be used to authenticate as this ServiceAccount.
     #[serde(default)]
@@ -279,7 +280,7 @@ pub struct ServiceAccount {
 }
 
 /// ServiceAccountKeysListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceAccountKeysListResponse {
     /// The service account credentials.
     #[serde(default, rename = "serviceAccountKey")]
@@ -287,7 +288,7 @@ pub struct ServiceAccountKeysListResponse {
 }
 
 /// A resource returned by the GenerateSignupUrl API, which contains the Signup URL and Completion Token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SignupInfo {
     /// An opaque token that will be required, along with the Enterprise Token, for obtaining the enterprise resource from CompleteSignup.
     #[serde(default, rename = "completionToken")]
@@ -301,7 +302,7 @@ pub struct SignupInfo {
 }
 
 /// General setting for the managed Google Play store layout, currently only specifying the page to display the first time the store is opened.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StoreLayout {
     /// The ID of the store page to be used as the homepage. The homepage is the first page shown in the managed Google Play Store. Not specifying a homepage is equivalent to setting the store layout type to "basic".
     #[serde(default, rename = "homepageId")]
@@ -312,7 +313,7 @@ pub struct StoreLayout {
 }
 
 /// StoreLayoutClustersListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StoreLayoutClustersListResponse {
     /// A store cluster of an enterprise.
     #[serde(default)]
@@ -320,7 +321,7 @@ pub struct StoreLayoutClustersListResponse {
 }
 
 /// StoreLayoutPagesListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StoreLayoutPagesListResponse {
     /// A store page of an enterprise.
     #[serde(default)]
@@ -328,7 +329,7 @@ pub struct StoreLayoutPagesListResponse {
 }
 
 /// UsersListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UsersListResponse {
     /// A user of an enterprise.
     #[serde(default)]
@@ -336,7 +337,7 @@ pub struct UsersListResponse {
 }
 
 /// WebAppsListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WebAppsListResponse {
     /// The manifest describing a web app.
     #[serde(default, rename = "webApp")]
@@ -344,7 +345,7 @@ pub struct WebAppsListResponse {
 }
 
 /// AdministratorWebTokenSpecManagedConfigurations resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdministratorWebTokenSpecManagedConfigurations {
     /// Whether the Managed Configuration page is displayed. Default is true.
     #[serde(default)]
@@ -352,7 +353,7 @@ pub struct AdministratorWebTokenSpecManagedConfigurations {
 }
 
 /// AdministratorWebTokenSpecPlaySearch resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdministratorWebTokenSpecPlaySearch {
     /// Allow access to the iframe in approve mode. Default is false.
     #[serde(default, rename = "approveApps")]
@@ -363,7 +364,7 @@ pub struct AdministratorWebTokenSpecPlaySearch {
 }
 
 /// AdministratorWebTokenSpecPrivateApps resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdministratorWebTokenSpecPrivateApps {
     /// Whether the Private Apps page is displayed. Default is true.
     #[serde(default)]
@@ -371,7 +372,7 @@ pub struct AdministratorWebTokenSpecPrivateApps {
 }
 
 /// AdministratorWebTokenSpecStoreBuilder resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdministratorWebTokenSpecStoreBuilder {
     /// Whether the Organize apps page is displayed. Default is true.
     #[serde(default)]
@@ -379,7 +380,7 @@ pub struct AdministratorWebTokenSpecStoreBuilder {
 }
 
 /// AdministratorWebTokenSpecWebApps resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdministratorWebTokenSpecWebApps {
     /// Whether the Web Apps page is displayed. Default is true.
     #[serde(default)]
@@ -387,7 +388,7 @@ pub struct AdministratorWebTokenSpecWebApps {
 }
 
 /// AdministratorWebTokenSpecZeroTouch resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdministratorWebTokenSpecZeroTouch {
     /// Whether zero-touch embedded UI is usable with this token. If enabled, the admin can link zero-touch customers to this enterprise.
     #[serde(default)]
@@ -395,7 +396,7 @@ pub struct AdministratorWebTokenSpecZeroTouch {
 }
 
 /// A Devices resource represents a mobile device managed by the EMM and belonging to a specific enterprise user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Device {
     /// The Google Play Services Android ID for the device encoded as a lowercase hex string. For example, "123456789abcdef0".
     #[serde(default, rename = "androidId")]
@@ -433,7 +434,7 @@ pub struct Device {
 }
 
 /// Options for Google authentication during the enrollment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnrollmentTokenGoogleAuthenticationOptions {
     /// [Optional] Specifies whether user should authenticate with Google during enrollment. This setting, if specified,GoogleAuthenticationSettings specified for the enterprise resource is ignored for devices enrolled with this token. // TODO: enum values: ["authenticationRequirementUnspecified", "optional", "required"]
     #[serde(default, rename = "authenticationRequirement")]
@@ -444,7 +445,7 @@ pub struct EnrollmentTokenGoogleAuthenticationOptions {
 }
 
 /// An Enterprises resource represents the binding between an EMM and a specific organization. That binding can be instantiated in one of two different ways using this API as follows: - For Google managed domain customers, the process involves using Enterprises.enroll and Enterprises.setAccount (in conjunction with artifacts obtained from the Admin console and the Google API Console) and submitted to the EMM through a more-or-less manual process. - For managed Google Play Accounts customers, the process involves using Enterprises.generateSignupUrl and Enterprises.completeSignup in conjunction with the managed Google Play sign-up UI (Google-provided mechanism) to create the binding without manual steps. As an EMM, you can support either or both approaches in your EMM console. See Create an Enterprise for details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Enterprise {
     /// Admins of the enterprise. This is only supported for enterprises created via the EMM-initiated flow.
     #[serde(default)]
@@ -470,7 +471,7 @@ pub struct Enterprise {
 }
 
 ///  *Deprecated:* New integrations cannot use this method and can refer to our new recommendations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Entitlement {
     /// The ID of the product that the entitlement is for. For example, "app:com.google.android.gm".
     #[serde(default, rename = "productId")]
@@ -481,7 +482,7 @@ pub struct Entitlement {
 }
 
 ///  *Deprecated:* New integrations cannot use this method and can refer to our new recommendations
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GroupLicense {
     /// How this group license was acquired. "bulkPurchase" means that this Grouplicenses resource was created because the enterprise purchased licenses for this product; otherwise, the value is "free" (for free products). // TODO: enum values: ["free", "bulkPurchase"]
     #[serde(default, rename = "acquisitionKind")]
@@ -504,7 +505,7 @@ pub struct GroupLicense {
 }
 
 /// The existence of an Installs resource indicates that an app is installed on a particular device (or that an install is pending). The API can be used to create an install resource using the update method. This triggers the actual install of the app on the device. If the user does not already have an entitlement for the app, then an attempt is made to create one. If this fails (for example, because the app is not free and there is no available license), then the creation of the install fails. The API can also be used to update an installed app. If the update method is used on an existing install, then the app will be updated to the latest available version. Note that it is not possible to force the installation of a specific version of an app: the version code is read-only. If a user installs an app themselves (as permitted by the enterprise), then again an install resource and possibly an entitlement resource are automatically created. The API can also be used to delete an install resource, which triggers the removal of the app from the device. Note that deleting an install does not automatically remove the corresponding entitlement, even if there are no remaining installs. The install resource will also be deleted if the user uninstalls the app themselves.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Install {
     /// Install state. The state "installPending" means that an install request has recently been made and download to the device is in progress. The state "installed" means that the app has been installed. This field is read-only. // TODO: enum values: ["installed", "installPending"]
     #[serde(default, rename = "installState")]
@@ -518,7 +519,7 @@ pub struct Install {
 }
 
 /// A managed configurations settings resource contains the set of managed properties that have been configured for an Android app to be applied to a set of users. The app''s developer would have defined configurable properties in the managed configurations schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedConfigurationsSettings {
     /// The last updated time of the managed configuration settings in milliseconds since 1970-01-01T00:00:00Z.
     #[serde(default, rename = "lastUpdatedTimestampMillis")]
@@ -532,7 +533,7 @@ pub struct ManagedConfigurationsSettings {
 }
 
 /// A notification of one event relating to an enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Notification {
     /// Notifications about new app restrictions schema changes.
     #[serde(default, rename = "appRestrictionsSchemaChangeEvent")]
@@ -574,7 +575,7 @@ pub struct Notification {
 }
 
 /// A product to be made visible to a user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductVisibility {
     /// The product ID to make visible to the user. Required for each item in the productVisibility list.
     #[serde(default, rename = "productId")]
@@ -588,7 +589,7 @@ pub struct ProductVisibility {
 }
 
 /// Information on an approval URL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApprovalUrlInfo {
     /// A URL that displays a product''s permissions and that can also be used to approve the product with the Products.approve call.
     #[serde(default, rename = "approvalUrl")]
@@ -596,7 +597,7 @@ pub struct ApprovalUrlInfo {
 }
 
 /// Information about the current page. List operations that supports paging return only one "page" of results. This protocol buffer message describes the page that has been returned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PageInfo {
     /// Maximum number of results returned in one page. ! The number of results included in the API response.
     #[serde(default, rename = "resultPerPage")]
@@ -610,7 +611,7 @@ pub struct PageInfo {
 }
 
 /// A Products resource represents an app in the Google Play store that is available to at least some users in the enterprise. (Some apps are restricted to a single enterprise, and no information about them is made available outside that enterprise.) The information provided for each product (localized name, icon, link to the full Google Play details page) is intended to allow a basic representation of the product within an EMM user interface.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Product {
     /// The app restriction schema
     #[serde(default, rename = "appRestrictionsSchema")]
@@ -693,7 +694,7 @@ pub struct Product {
 }
 
 /// Pagination information returned by a List operation when token pagination is enabled. List operations that supports paging return only one "page" of results. This protocol buffer message describes the page that has been returned. When using token pagination, clients should use the next/previous token to get another page of the result. The presence or absence of next/previous token indicates whether a next/previous page is available and provides a mean of accessing this page. ListRequest.page_token should be set to either next_page_token or previous_page_token to access another page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TokenPagination {
     /// Tokens to pass to the standard list field ''page_token''. Whenever available, tokens are preferred over manipulating start_index.
     #[serde(default, rename = "nextPageToken")]
@@ -703,7 +704,7 @@ pub struct TokenPagination {
 }
 
 ///  *Deprecated:* New integrations cannot use this method and can refer to our new recommendations
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceAccountKey {
     /// The body of the private key credentials file, in string format. This is only populated when the ServiceAccountKey is created, and is not stored by Google.
     #[serde(default)]
@@ -720,7 +721,7 @@ pub struct ServiceAccountKey {
 }
 
 /// Definition of a managed Google Play store cluster, a list of products displayed as part of a store page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StoreCluster {
     /// Unique ID of this cluster. Assigned by the server. Immutable once assigned.
     #[serde(default)]
@@ -737,7 +738,7 @@ pub struct StoreCluster {
 }
 
 /// Definition of a managed Google Play store page, made of a localized name and links to other pages. A page also contains clusters defined as a subcollection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StorePage {
     /// Unique ID of this page. Assigned by the server. Immutable once assigned.
     #[serde(default)]
@@ -751,7 +752,7 @@ pub struct StorePage {
 }
 
 /// A Users resource represents an account associated with an enterprise. The account may be specific to a device or to an individual user (who can then use the account across multiple devices). The account may provide access to managed Google Play only, or to other Google services, depending on the identity model: - The Google managed domain identity model requires synchronization to Google account sources (via primaryEmail). - The managed Google Play Accounts identity model provides a dynamic means for enterprises to create user or device accounts as needed. These accounts provide access to managed Google Play.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct User {
     /// A unique identifier you create for this user, such as "user342" or "asset#44418". Do not use personally identifiable information (PII) for this property. Must always be set for EMM-managed users. Not set for Google-managed users.
     #[serde(default, rename = "accountIdentifier")]
@@ -774,7 +775,7 @@ pub struct User {
 }
 
 /// A WebApps resource represents a web app created for an enterprise. Web apps are published to managed Google Play and can be distributed like other Android apps. On a user''s device, a web app opens its specified URL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WebApp {
     /// The display mode of the web app. Possible values include: - "minimalUi", the device''s status bar, navigation bar, the app''s URL, and a refresh button are visible when the app is open. For HTTP URLs, you can only select this option. - "standalone", the device''s status bar and navigation bar are visible when the app is open. - "fullScreen", the app opens in full screen mode, hiding the device''s status and navigation bars. All browser UI elements, page URL, system status bar and back button are not visible, and the web app takes up the entirety of the available display area.  // TODO: enum values: ["displayModeUnspecified", "minimalUi", "standalone", "fullScreen"]
     #[serde(default, rename = "displayMode")]
@@ -800,7 +801,7 @@ pub struct WebApp {
 }
 
 /// The device policy for a given managed device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Controls when automatic app updates on the device can be applied. Recommended alternative: autoUpdateMode which is set per app, provides greater flexibility around update frequency. When autoUpdateMode is set to AUTO_UPDATE_POSTPONED or AUTO_UPDATE_HIGH_PRIORITY, autoUpdatePolicy has no effect. - choiceToTheUser allows the device''s user to configure the app update policy. - always enables auto updates. - never disables auto updates. - wifiOnly enables auto updates only when the device is connected to wifi. *Important:* Changes to app update policies don''t affect updates that are in progress. Any policy changes will apply to subsequent app updates.  // TODO: enum values: ["autoUpdatePolicyUnspecified", "choiceToTheUser", "never", "wifiOnly", "always"]
     #[serde(default, rename = "autoUpdatePolicy")]
@@ -823,7 +824,7 @@ pub struct Policy {
 }
 
 /// This represents an enterprise admin who can manage the enterprise in the managed Google Play store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Administrator {
     /// The admin''s email address.
     #[serde(default)]
@@ -831,7 +832,7 @@ pub struct Administrator {
 }
 
 /// Contains settings for Google-provided user authentication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAuthenticationSettings {
     /// Whether dedicated devices are allowed. // TODO: enum values: ["dedicatedDevicesAllowedUnspecified", "disallowed", "allowed"]
     #[serde(default, rename = "dedicatedDevicesAllowed")]
@@ -842,7 +843,7 @@ pub struct GoogleAuthenticationSettings {
 }
 
 /// An event generated when a new app version is uploaded to Google Play and its app restrictions schema changed. To fetch the app restrictions schema for an app, use Products.getAppRestrictionsSchema on the EMM API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppRestrictionsSchemaChangeEvent {
     /// The id of the product (e.g. "app:com.google.android.gm") for which the app restriction schema changed. This field will always be present.
     #[serde(default, rename = "productId")]
@@ -850,7 +851,7 @@ pub struct AppRestrictionsSchemaChangeEvent {
 }
 
 /// An event generated when a new version of an app is uploaded to Google Play. Notifications are sent for new public versions only: alpha, beta, or canary versions do not generate this event. To fetch up-to-date version history for an app, use Products.Get on the EMM API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppUpdateEvent {
     /// The id of the product (e.g. "app:com.google.android.gm") that was updated. This field will always be present.
     #[serde(default, rename = "productId")]
@@ -858,7 +859,7 @@ pub struct AppUpdateEvent {
 }
 
 /// An event generated when an updated device report is available.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceReportUpdateEvent {
     /// The Android ID of the device. This field will always be present.
     #[serde(default, rename = "deviceId")]
@@ -872,7 +873,7 @@ pub struct DeviceReportUpdateEvent {
 }
 
 /// An event generated when an enterprise is upgraded.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseUpgradeEvent {
     /// The upgrade state. // TODO: enum values: ["upgradeStateUnspecified", "upgradeStateSucceeded"]
     #[serde(default, rename = "upgradeState")]
@@ -880,7 +881,7 @@ pub struct EnterpriseUpgradeEvent {
 }
 
 /// An event generated when an app installation failed on a device
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstallFailureEvent {
     /// The Android ID of the device. This field will always be present.
     #[serde(default, rename = "deviceId")]
@@ -900,7 +901,7 @@ pub struct InstallFailureEvent {
 }
 
 /// An event generated when a new device is ready to be managed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NewDeviceEvent {
     /// The Android ID of the device. This field will always be present.
     #[serde(default, rename = "deviceId")]
@@ -917,7 +918,7 @@ pub struct NewDeviceEvent {
 }
 
 /// An event generated when new permissions are added to an app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NewPermissionsEvent {
     /// The set of permissions that the enterprise admin has already approved for this application. Use Permissions.Get on the EMM API to retrieve details about these permissions.
     #[serde(default, rename = "approvedPermissions")]
@@ -931,7 +932,7 @@ pub struct NewPermissionsEvent {
 }
 
 /// An event generated when a product''s approval status is changed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductApprovalEvent {
     /// Whether the product was approved or unapproved. This field will always be present. // TODO: enum values: ["unknown", "approved", "unapproved"]
     #[serde(default)]
@@ -942,7 +943,7 @@ pub struct ProductApprovalEvent {
 }
 
 /// An event generated whenever a product''s availability changes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductAvailabilityChangeEvent {
     /// The new state of the product. This field will always be present. // TODO: enum values: ["unknown", "available", "removed", "unpublished"]
     #[serde(default, rename = "availabilityStatus")]
@@ -953,7 +954,7 @@ pub struct ProductAvailabilityChangeEvent {
 }
 
 /// Represents the list of app restrictions available to be pre-configured for the product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppRestrictionsSchema {
     /// Deprecated.
     #[serde(default)]
@@ -964,7 +965,7 @@ pub struct AppRestrictionsSchema {
 }
 
 /// Id to name association of a track.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TrackInfo {
     /// A modifiable name for a track. This is the visible name in the play developer console.
     #[serde(default, rename = "trackAlias")]
@@ -975,7 +976,7 @@ pub struct TrackInfo {
 }
 
 /// This represents a single version of the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppVersion {
     /// True if this version is a production APK.
     #[serde(default, rename = "isProduction")]
@@ -998,7 +999,7 @@ pub struct AppVersion {
 }
 
 /// A product permissions resource represents the set of permissions required by a specific app and whether or not they have been accepted by an enterprise admin. The API can be used to read the set of permissions, and also to update the set to indicate that permissions have been accepted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductPermission {
     /// An opaque string uniquely identifying the permission.
     #[serde(default, rename = "permissionId")]
@@ -1009,7 +1010,7 @@ pub struct ProductPermission {
 }
 
 /// ProductSigningCertificate resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductSigningCertificate {
     /// The base64 urlsafe encoded SHA1 hash of the certificate. (This field is deprecated in favor of SHA2-256. It should not be used and may be removed at any time.)
     #[serde(default, rename = "certificateHashSha1")]
@@ -1020,7 +1021,7 @@ pub struct ProductSigningCertificate {
 }
 
 /// A localized string with its locale.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocalizedText {
     /// The BCP47 tag for a locale. (e.g. "en-US", "de").
     #[serde(default)]
@@ -1031,7 +1032,7 @@ pub struct LocalizedText {
 }
 
 /// Icon for a web app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WebAppIcon {
     /// The actual bytes of the image in a base64url encoded string (c.f. RFC4648, section 5 "Base 64 Encoding with URL and Filename Safe Alphabet"). - The image type can be png or jpg. - The image should ideally be square. - The image should ideally have a size of 512x512.
     #[serde(default, rename = "imageData")]
@@ -1039,7 +1040,7 @@ pub struct WebAppIcon {
 }
 
 /// Maintenance window for managed Google Play Accounts. This allows Play store to update the apps on the foreground in the designated window.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaintenanceWindow {
     /// Duration of the maintenance window, in milliseconds. The duration must be between 30 minutes and 24 hours (inclusive).
     #[serde(default, rename = "durationMs")]
@@ -1050,7 +1051,7 @@ pub struct MaintenanceWindow {
 }
 
 /// The policy for a product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductPolicy {
     /// The auto-install policy for the product.
     #[serde(default, rename = "autoInstallPolicy")]
@@ -1077,7 +1078,7 @@ pub struct ProductPolicy {
 }
 
 /// Device report updated with the latest app states for managed apps on the device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceReport {
     /// List of app states set by managed apps on the device. App states are defined by the app''s developers. This field will always be present.
     #[serde(default, rename = "appState")]
@@ -1088,7 +1089,7 @@ pub struct DeviceReport {
 }
 
 /// A restriction in the App Restriction Schema represents a piece of configuration that may be pre-applied.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppRestrictionsSchemaRestriction {
     /// The default value of the restriction. bundle and bundleArray restrictions never have a default value.
     #[serde(default, rename = "defaultValue")]
@@ -1117,7 +1118,7 @@ pub struct AppRestrictionsSchemaRestriction {
 }
 
 /// AutoInstallPolicy resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoInstallPolicy {
     /// The constraints for auto-installing the app. You can specify a maximum of one constraint.
     #[serde(default, rename = "autoInstallConstraint")]
@@ -1134,7 +1135,7 @@ pub struct AutoInstallPolicy {
 }
 
 /// An authentication URL configuration for the authenticator app of an identity provider.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseAuthenticationAppLinkConfig {
     /// An authentication url.
     #[serde(default)]
@@ -1142,7 +1143,7 @@ pub struct EnterpriseAuthenticationAppLinkConfig {
 }
 
 ///  *Deprecated:* New integrations cannot use this method and can refer to our new recommendations
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedConfiguration {
     /// Contains the ID of the managed configuration profile and the set of configuration variables (if any) defined for the user.
     #[serde(default, rename = "configurationVariables")]
@@ -1159,7 +1160,7 @@ pub struct ManagedConfiguration {
 }
 
 /// List of states set by the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppState {
     /// List of keyed app states. This field will always be present.
     #[serde(default, rename = "keyedAppState")]
@@ -1170,7 +1171,7 @@ pub struct AppState {
 }
 
 /// A typed value for the restriction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppRestrictionsSchemaRestrictionRestrictionValue {
     /// The type of the value being provided. // TODO: enum values: ["bool", "string", "integer", "choice", "multiselect", "hidden", "bundle", "bundleArray"]
     #[serde(default, rename = "type")]
@@ -1190,7 +1191,7 @@ pub struct AppRestrictionsSchemaRestrictionRestrictionValue {
 }
 
 /// The auto-install constraint. Defines a set of restrictions for installation. At least one of the fields must be set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoInstallConstraint {
     /// Charging state constraint. // TODO: enum values: ["chargingStateConstraintUnspecified", "chargingNotRequired", "chargingRequired"]
     #[serde(default, rename = "chargingStateConstraint")]
@@ -1204,7 +1205,7 @@ pub struct AutoInstallConstraint {
 }
 
 /// A configuration variables resource contains the managed configuration settings ID to be applied to a single user, as well as the variable set that is attributed to the user. The variable set will be used to replace placeholders in the managed configuration settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigurationVariables {
     /// The ID of the managed configurations settings.
     #[serde(default, rename = "mcmId")]
@@ -1215,7 +1216,7 @@ pub struct ConfigurationVariables {
 }
 
 /// Represents a keyed app state containing a key, timestamp, severity level, optional description, and optional data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyedAppState {
     /// Additional field intended for machine-readable data. For example, a number or JSON object. To prevent XSS, we recommend removing any HTML from the data before displaying it.
     #[serde(default)]
@@ -1235,7 +1236,7 @@ pub struct KeyedAppState {
 }
 
 /// A variable set is a key-value pair of EMM-provided placeholders and its corresponding value, which is attributed to a user. For example, $FIRSTNAME could be a placeholder, and its value could be Alice. Placeholders should start with a ''$'' sign and should be alphanumeric only.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VariableSet {
     /// The placeholder string; defined by EMM.
     #[serde(default)]
@@ -1246,7 +1247,7 @@ pub struct VariableSet {
 }
 
 /// A managed property of a managed configuration. The property must match one of the properties in the app restrictions schema of the product. Exactly one of the value fields must be populated, and it must match the property''s type in the app restrictions schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedProperty {
     /// The unique key that identifies the property.
     #[serde(default)]
@@ -1272,7 +1273,7 @@ pub struct ManagedProperty {
 }
 
 /// A bundle of managed properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedPropertyBundle {
     /// The list of managed properties.
     #[serde(default, rename = "managedProperty")]

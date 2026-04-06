@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Next id: 10
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AggregateRequest {
     /// The specification of data to be aggregated. At least one aggregateBy spec must be provided. All data that is specified will be aggregated using the same bucketing criteria. There will be one dataset in the response for every aggregateBy spec.
     #[serde(default, rename = "aggregateBy")]
@@ -40,7 +41,7 @@ pub struct AggregateRequest {
 }
 
 /// AggregateResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AggregateResponse {
     /// A list of buckets containing the aggregated data.
     #[serde(default)]
@@ -48,7 +49,7 @@ pub struct AggregateResponse {
 }
 
 /// ListDataPointChangesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDataPointChangesResponse {
     /// The data stream ID of the data source with data point changes.
     #[serde(default, rename = "dataSourceId")]
@@ -65,7 +66,7 @@ pub struct ListDataPointChangesResponse {
 }
 
 /// ListDataSourcesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDataSourcesResponse {
     /// A previously created data source.
     #[serde(default, rename = "dataSource")]
@@ -73,7 +74,7 @@ pub struct ListDataSourcesResponse {
 }
 
 /// ListSessionsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSessionsResponse {
     /// If includeDeleted is set to true in the request, and startTime and endTime are omitted, this will include sessions which were deleted since the last sync.
     #[serde(default, rename = "deletedSession")]
@@ -90,7 +91,7 @@ pub struct ListSessionsResponse {
 }
 
 /// The specification of which data to aggregate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AggregateBy {
     /// A data source ID to aggregate. Only data from the specified data source ID will be included in the aggregation. If specified, this data source must exist; the OAuth scopes in the supplied credentials must grant read access to this data type. The dataset in the response will have the same data source ID. Note: Data can be aggregated by either the dataTypeName or the dataSourceId, not both.
     #[serde(default, rename = "dataSourceId")]
@@ -101,7 +102,7 @@ pub struct AggregateBy {
 }
 
 /// BucketByActivity resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BucketByActivity {
     /// The default activity stream will be used if a specific activityDataSourceId is not specified.
     #[serde(default, rename = "activityDataSourceId")]
@@ -112,7 +113,7 @@ pub struct BucketByActivity {
 }
 
 /// BucketBySession resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BucketBySession {
     /// Specifies that only sessions of duration longer than minDurationMillis are considered and used as a container for aggregated data.
     #[serde(default, rename = "minDurationMillis")]
@@ -120,7 +121,7 @@ pub struct BucketBySession {
 }
 
 /// BucketByTime resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BucketByTime {
     /// Specifies that result buckets aggregate data by exactly durationMillis time frames. Time frames that contain no data will be included in the response with an empty dataset.
     #[serde(default, rename = "durationMillis")]
@@ -130,7 +131,7 @@ pub struct BucketByTime {
 }
 
 /// AggregateBucket resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AggregateBucket {
     /// Available for Bucket.Type.ACTIVITY_TYPE, Bucket.Type.ACTIVITY_SEGMENT
     #[serde(default)]
@@ -153,7 +154,7 @@ pub struct AggregateBucket {
 }
 
 /// Definition of a unique source of sensor data. Data sources can expose raw data coming from hardware sensors on local or companion devices. They can also expose derived data, created by transforming or merging other data sources. Multiple data sources can exist for the same data type. Every data point inserted into or read from this service has an associated data source. The data source contains enough information to uniquely identify its data, including the hardware device and the application that collected and/or transformed the data. It also holds useful metadata, such as the hardware and application versions, and the device type. Each data source produces a unique stream of data, with a unique identifier. Not all changes to data source affect the stream identifier, so that data collected by updated versions of the same application/device can still be considered to belong to the same data stream.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataSource {
     /// Information about an application which feeds sensor data into the platform.
     #[serde(default)]
@@ -182,7 +183,7 @@ pub struct DataSource {
 }
 
 /// BucketByTimePeriod resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BucketByTimePeriod {
     /// org.joda.timezone.DateTimeZone
     #[serde(default, rename = "timeZoneId")]
@@ -195,7 +196,7 @@ pub struct BucketByTimePeriod {
 }
 
 /// A dataset represents a projection container for data points. They do not carry any info of their own. Datasets represent a set of data points from a particular data source. A data point can be found in more than one dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Dataset {
     /// The data stream ID of the data source that created the points in this dataset.
     #[serde(default, rename = "dataSourceId")]
@@ -215,7 +216,7 @@ pub struct Dataset {
 }
 
 /// Sessions contain metadata, such as a user-friendly name and time interval information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Session {
     /// Session active time. While start_time_millis and end_time_millis define the full session time, the active time can be shorter and specified by active_time_millis. If the inactive time during the session is known, it should also be inserted via a com.google.activity.segment data point with a STILL activity value
     #[serde(default, rename = "activeTimeMillis")]
@@ -247,7 +248,7 @@ pub struct Session {
 }
 
 /// DataType resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataType {
     /// A field represents one dimension of a data type.
     #[serde(default)]
@@ -258,7 +259,7 @@ pub struct DataType {
 }
 
 /// Representation of an integrated device (such as a phone or a wearable) that can hold sensors. Each sensor is exposed as a data source. The main purpose of the device information contained in this class is to identify the hardware of a particular data source. This can be useful in different ways, including: - Distinguishing two similar sensors on different devices (the step counter on two nexus 5 phones, for instance) - Display the source of data to the user (by using the device make / model) - Treat data differently depending on sensor type (accelerometers on a watch may give different patterns than those on a phone) - Build different analysis models for each device/version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Device {
     /// Manufacturer of the product/hardware.
     #[serde(default)]
@@ -278,7 +279,7 @@ pub struct Device {
 }
 
 /// Represents a single data point, generated by a particular data source. A data point holds a value for each field, an end timestamp and an optional start time. The exact semantics of each of these attributes are specified in the documentation for the particular data type. A data point can represent an instantaneous measurement, reading or input observation, as well as averages or aggregates over a time interval. Check the data type documentation to determine which is the case for a particular data type. Data points always contain one value for each field of the data type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataPoint {
     /// DO NOT USE THIS FIELD. It is ignored, and not stored.
     #[serde(default, rename = "computationTimeMillis")]
@@ -307,7 +308,7 @@ pub struct DataPoint {
 }
 
 /// Application resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Application {
     /// An optional URI that can be used to link back to the application.
     #[serde(default, rename = "detailsUrl")]
@@ -324,7 +325,7 @@ pub struct Application {
 }
 
 /// In case of multi-dimensional data (such as an accelerometer with x, y, and z axes) each field represents one dimension. Each data type field has a unique name which identifies it. The field also defines the format of the data (int, float, etc.). This message is only instantiated in code and not used for wire comms or stored in any way.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataTypeField {
     /// The different supported formats for each field in a data type. // TODO: enum values: ["integer", "floatPoint", "string", "map", "integerList", "floatList", "blob"]
     #[serde(default)]
@@ -337,7 +338,7 @@ pub struct DataTypeField {
 }
 
 /// Holder object for the value of a single field in a data point. A field value has a particular format and is only ever set to one of an integer or a floating point value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiValue {
     /// Floating point value. When this is set, other values must not be set.
     #[serde(default, rename = "fpVal")]
@@ -354,7 +355,7 @@ pub struct ApiValue {
 }
 
 /// ValueMapValEntry resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValueMapValEntry {
     #[serde(default)]
     pub key: ::core::option::Option<String>,
@@ -363,7 +364,7 @@ pub struct ValueMapValEntry {
 }
 
 /// Holder object for the value of an entry in a map field of a data point. A map value supports a subset of the formats that the regular Value supports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MapValue {
     /// Floating point value.
     #[serde(default, rename = "fpVal")]

@@ -8,18 +8,19 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Response for the ListCertificateIssuanceConfigs method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCertificateIssuanceConfigsResponse {
     /// A list of certificate configs for the parent resource.
     #[serde(default, rename = "certificateIssuanceConfigs")]
@@ -34,7 +35,7 @@ pub struct ListCertificateIssuanceConfigsResponse {
 }
 
 /// Response for the ListCertificateMapEntries method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCertificateMapEntriesResponse {
     /// A list of certificate map entries for the parent resource.
     #[serde(default, rename = "certificateMapEntries")]
@@ -48,7 +49,7 @@ pub struct ListCertificateMapEntriesResponse {
 }
 
 /// Response for the ListCertificateMaps method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCertificateMapsResponse {
     /// A list of certificate maps for the parent resource.
     #[serde(default, rename = "certificateMaps")]
@@ -62,7 +63,7 @@ pub struct ListCertificateMapsResponse {
 }
 
 /// Response for the ListCertificates method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCertificatesResponse {
     /// A list of certificates for the parent resource.
     #[serde(default)]
@@ -76,7 +77,7 @@ pub struct ListCertificatesResponse {
 }
 
 /// Response for the ListDnsAuthorizations method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDnsAuthorizationsResponse {
     /// A list of dns authorizations for the parent resource.
     #[serde(default, rename = "dnsAuthorizations")]
@@ -90,7 +91,7 @@ pub struct ListDnsAuthorizationsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -101,7 +102,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -115,7 +116,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response for the ListTrustConfigs method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTrustConfigsResponse {
     /// If there might be more results than those appearing in this response, then next_page_token is included. To get the next set of results, call this method again using the value of next_page_token as page_token.
     #[serde(default, rename = "nextPageToken")]
@@ -129,7 +130,7 @@ pub struct ListTrustConfigsResponse {
 }
 
 /// Represents the metadata of the long-running operation. Output only.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -155,7 +156,7 @@ pub struct OperationMetadata {
 }
 
 /// CertificateIssuanceConfig specifies how to issue and manage a certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateIssuanceConfig {
     /// Required. The CA that issues the workload certificate. It includes the CA address, type, authentication to CA service, etc.
     #[serde(default, rename = "certificateAuthorityConfig")]
@@ -187,7 +188,7 @@ pub struct CertificateIssuanceConfig {
 }
 
 /// Defines a certificate map entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateMapEntry {
     /// Optional. A set of Certificates defines for the given hostname. There can be defined up to four certificates in each Certificate Map Entry. Each certificate must match pattern projects/*/locations/*/certificates/*.
     #[serde(default)]
@@ -219,7 +220,7 @@ pub struct CertificateMapEntry {
 }
 
 /// Defines a collection of certificate configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateMap {
     /// Output only. The creation timestamp of a Certificate Map.
     #[serde(default, rename = "createTime")]
@@ -242,7 +243,7 @@ pub struct CertificateMap {
 }
 
 /// Defines TLS certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Certificate {
     /// Output only. The creation timestamp of a Certificate.
     #[serde(default, rename = "createTime")]
@@ -286,7 +287,7 @@ pub struct Certificate {
 }
 
 /// A DnsAuthorization resource describes a way to perform domain authorization for certificate issuance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsAuthorization {
     /// Output only. The creation timestamp of a DnsAuthorization.
     #[serde(default, rename = "createTime")]
@@ -315,7 +316,7 @@ pub struct DnsAuthorization {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -335,7 +336,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -355,7 +356,7 @@ pub struct Operation {
 }
 
 /// Defines a trust config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TrustConfig {
     /// Optional. A certificate matching an allowlisted certificate is always considered valid as long as the certificate is parseable, proof of private key possession is established, and constraints on the certificate''s SAN field are met.
     #[serde(default, rename = "allowlistedCertificates")]
@@ -387,7 +388,7 @@ pub struct TrustConfig {
 }
 
 /// The CA that issues the workload certificate. It includes CA address, type, authentication to CA service, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateAuthorityConfig {
     /// Defines a CertificateAuthorityServiceConfig.
     #[serde(default, rename = "certificateAuthorityServiceConfig")]
@@ -396,7 +397,7 @@ pub struct CertificateAuthorityConfig {
 }
 
 /// Describes a Target Proxy that uses this Certificate Map.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GclbTarget {
     /// Output only. IP configurations for this Target Proxy where the Certificate Map is serving.
     #[serde(default, rename = "ipConfigs")]
@@ -410,7 +411,7 @@ pub struct GclbTarget {
 }
 
 /// Configuration and state of a Managed Certificate. Certificate Manager provisions and renews Managed Certificates automatically, for as long as it''s authorized to do so.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedCertificate {
     /// Output only. Detailed state of the latest authorization attempt for each domain specified for managed certificate resource.
     #[serde(default, rename = "authorizationAttemptInfo")]
@@ -434,7 +435,7 @@ pub struct ManagedCertificate {
 }
 
 /// Configuration and state of a Managed Identity Certificate. Certificate Manager provisions and renews Managed Identity Certificates automatically, for as long as it''s authorized to do so.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedIdentityCertificate {
     /// Required. Immutable. SPIFFE ID of the Managed Identity used for this certificate.
     #[serde(default)]
@@ -448,7 +449,7 @@ pub struct ManagedIdentityCertificate {
 }
 
 /// Certificate data for a SelfManaged Certificate. SelfManaged Certificates are uploaded by the user. Updating such certificates before they expire remains the user''s responsibility.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SelfManagedCertificate {
     /// Optional. Input only. The PEM-encoded certificate chain. Leaf certificate comes first, followed by intermediate ones if any.
     #[serde(default, rename = "pemCertificate")]
@@ -459,7 +460,7 @@ pub struct SelfManagedCertificate {
 }
 
 /// Defines a resource that uses the certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UsedBy {
     /// Output only. Full name of the resource https://google.aip.dev/122#full-resource-names, e.g. //certificatemanager.googleapis.com/projects/*/locations/*/certificateMaps/*/certificateMapEntries/* or //compute.googleapis.com/projects/*/locations/*/targetHttpsProxies/*.
     #[serde(default)]
@@ -467,7 +468,7 @@ pub struct UsedBy {
 }
 
 /// The structure describing the DNS Resource Record that needs to be added to DNS configuration for the authorization to be usable by certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DnsResourceRecord {
     /// Output only. Data of the DNS Resource Record.
     #[serde(default)]
@@ -481,7 +482,7 @@ pub struct DnsResourceRecord {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -495,7 +496,7 @@ pub struct Status {
 }
 
 /// Defines an allowlisted certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllowlistedCertificate {
     /// Required. PEM certificate that is allowlisted. The certificate can be up to 5k bytes, and must be a parseable X.509 certificate.
     #[serde(default, rename = "pemCertificate")]
@@ -503,7 +504,7 @@ pub struct AllowlistedCertificate {
 }
 
 /// Defines a trust store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TrustStore {
     /// Optional. Set of intermediate CA certificates used for the path building phase of chain validation. The field is currently not supported if TrustConfig is used for the workload certificate feature.
     #[serde(default, rename = "intermediateCas")]
@@ -514,7 +515,7 @@ pub struct TrustStore {
 }
 
 /// Contains information required to contact CA service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CertificateAuthorityServiceConfig {
     /// Required. A CA pool resource used to issue a certificate. The CA pool string has a relative resource path following the form "projects/{project}/locations/{location}/caPools/{ca_pool}".
     #[serde(default, rename = "caPool")]
@@ -522,7 +523,7 @@ pub struct CertificateAuthorityServiceConfig {
 }
 
 /// Defines IP configuration where this Certificate Map is serving.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IpConfig {
     /// Output only. An external IP address.
     #[serde(default, rename = "ipAddress")]
@@ -533,7 +534,7 @@ pub struct IpConfig {
 }
 
 /// State of the latest attempt to authorize a domain for certificate issuance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthorizationAttemptInfo {
     /// Output only. The timestamp, when the authorization attempt was made.
     #[serde(default, rename = "attemptTime")]
@@ -556,7 +557,7 @@ pub struct AuthorizationAttemptInfo {
 }
 
 /// Information about issues with provisioning a Managed Certificate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProvisioningIssue {
     /// Output only. Human readable explanation about the issue. Provided to help address the configuration issues. Not guaranteed to be stable. For programmatic access use Reason enum.
     #[serde(default)]
@@ -567,7 +568,7 @@ pub struct ProvisioningIssue {
 }
 
 /// Defines an intermediate CA.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntermediateCA {
     /// PEM intermediate certificate used for building up paths for validation. Each certificate provided in PEM format may occupy up to 5kB.
     #[serde(default, rename = "pemCertificate")]
@@ -575,7 +576,7 @@ pub struct IntermediateCA {
 }
 
 /// Defines a trust anchor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TrustAnchor {
     /// PEM root certificate of the PKI used for validation. Each certificate provided in PEM format may occupy up to 5kB.
     #[serde(default, rename = "pemCertificate")]
@@ -583,7 +584,7 @@ pub struct TrustAnchor {
 }
 
 /// Troubleshooting information for the authorization attempt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Troubleshooting {
     /// Output only. CNAME troubleshooting information.
     #[serde(default)]
@@ -597,7 +598,7 @@ pub struct Troubleshooting {
 }
 
 /// CNAME troubleshooting information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CNAME {
     /// Output only. The expected value of the CNAME record for the domain, equals to dns_resource_record.data in the corresponding DnsAuthorization.
     #[serde(default, rename = "expectedData")]
@@ -611,7 +612,7 @@ pub struct CNAME {
 }
 
 /// IPs troubleshooting information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IPs {
     /// Output only. The list of IP addresses resolved from the domain''s A/AAAA records. Can contain both ipv4 and ipv6 addresses.
     #[serde(default)]

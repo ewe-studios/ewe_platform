@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// AgentCard conveys key information: - Overall details (version, name, description, uses) - Skills; a set of actions/solutions the agent can perform - Default modalities/content types supported by the agent. - Authentication requirements Next ID: 19
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1AgentCard {
     /// Announcement of additional supported transports. Client can use any of the supported transports.
     #[serde(default, rename = "additionalInterfaces")]
@@ -70,11 +71,11 @@ pub struct A2aV1AgentCard {
 }
 
 /// A2aV1CancelTaskRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1CancelTaskRequest {}
 
 /// A2aV1ListTaskPushNotificationConfigResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1ListTaskPushNotificationConfigResponse {
     /// The list of push notification configurations.
     #[serde(default)]
@@ -85,7 +86,7 @@ pub struct A2aV1ListTaskPushNotificationConfigResponse {
 }
 
 /// A2aV1SecurityScheme resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1SecurityScheme {
     #[serde(default, rename = "apiKeySecurityScheme")]
     pub api_key_security_scheme: ::core::option::Option<A2aV1aPIKeySecurityScheme>,
@@ -100,7 +101,7 @@ pub struct A2aV1SecurityScheme {
 }
 
 /// /////////// Request Messages ///////////
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1SendMessageRequest {
     /// Configuration for the send request.
     #[serde(default)]
@@ -114,7 +115,7 @@ pub struct A2aV1SendMessageRequest {
 }
 
 /// ////// Response Messages ///////////
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1SendMessageResponse {
     #[serde(default)]
     pub message: ::core::option::Option<A2aV1Message>,
@@ -123,7 +124,7 @@ pub struct A2aV1SendMessageResponse {
 }
 
 /// The stream response for a message. The stream should be one of the following sequences: If the response is a message, the stream should contain one, and only one, message and then close If the response is a task lifecycle, the first response should be a Task object followed by zero or more TaskStatusUpdateEvents and TaskArtifactUpdateEvents. The stream should complete when the Task if in an interrupted or terminal state. A stream that ends before these conditions are met are
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1StreamResponse {
     #[serde(default, rename = "artifactUpdate")]
     pub artifact_update: ::core::option::Option<A2aV1TaskArtifactUpdateEvent>,
@@ -136,14 +137,14 @@ pub struct A2aV1StreamResponse {
 }
 
 /// protolint:disable REPEATED_FIELD_NAMES_PLURALIZED
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1StringList {
     #[serde(default)]
     pub list: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Message that represents an arbitrary HTTP body. It should only be used for payload formats that can''t be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleApiHttpBody {
     /// The HTTP Content-Type header value specifying the content type of the body.
     #[serde(default, rename = "contentType")]
@@ -157,7 +158,7 @@ pub struct GoogleApiHttpBody {
 }
 
 /// An error log which is reported to the Error Reporting system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineLoggingErrorLog {
     /// The error payload that is populated on LRO connector sync APIs.
     #[serde(default, rename = "connectorRunPayload")]
@@ -187,7 +188,7 @@ pub struct GoogleCloudDiscoveryengineLoggingErrorLog {
 }
 
 /// Access Control Configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AclConfig {
     /// Identity provider config.
     #[serde(default, rename = "idpConfig")]
@@ -198,7 +199,7 @@ pub struct GoogleCloudDiscoveryengineV1AclConfig {
 }
 
 /// Stores a list of scopes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ActionConfigScopeList {
     /// Optional. The list of scopes.
     #[serde(default)]
@@ -206,7 +207,7 @@ pub struct GoogleCloudDiscoveryengineV1ActionConfigScopeList {
 }
 
 /// Request message for CompletionService.AdvancedCompleteQuery method. .
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryRequest {
     /// Optional. Specification to boost suggestions matching the condition.
     #[serde(default, rename = "boostSpec")]
@@ -241,7 +242,7 @@ pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryRequest {
 }
 
 /// Response message for CompletionService.AdvancedCompleteQuery method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponse {
     /// Results of the matched content suggestions. The result list is ordered and the first result is the top suggestion.
     #[serde(default, rename = "contentSuggestions")]
@@ -271,7 +272,7 @@ pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponse {
 }
 
 /// Request message for ConversationalSearchService.AnswerQuery method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequest {
     /// Answer generation specification.
     #[serde(default, rename = "answerGenerationSpec")]
@@ -320,7 +321,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequest {
 }
 
 /// Response message for ConversationalSearchService.AnswerQuery method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryResponse {
     /// Answer resource object. If AnswerQueryRequest.QueryUnderstandingSpec.QueryRephraserSpec.max_rephrase_steps is greater than 1, use Answer.name to fetch answer information using ConversationalSearchService.GetAnswer API.
     #[serde(default)]
@@ -334,7 +335,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryResponse {
 }
 
 /// The enabled tools on a connector
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistantToolList {
     /// The list of tools with corresponding tool information.
     #[serde(default, rename = "toolInfo")]
@@ -343,7 +344,7 @@ pub struct GoogleCloudDiscoveryengineV1AssistantToolList {
 }
 
 /// Metadata related to the progress of the SiteSearchEngineService.BatchCreateTargetSites operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1BatchCreateTargetSiteMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -354,7 +355,7 @@ pub struct GoogleCloudDiscoveryengineV1BatchCreateTargetSiteMetadata {
 }
 
 /// Request message for SiteSearchEngineService.BatchCreateTargetSites method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1BatchCreateTargetSitesRequest {
     /// Required. The request message specifying the resources to create. A maximum of 20 TargetSites can be created in a batch.
     #[serde(default)]
@@ -364,7 +365,7 @@ pub struct GoogleCloudDiscoveryengineV1BatchCreateTargetSitesRequest {
 }
 
 /// Response message for SiteSearchEngineService.BatchCreateTargetSites method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1BatchCreateTargetSitesResponse {
     /// TargetSites created.
     #[serde(default, rename = "targetSites")]
@@ -373,7 +374,7 @@ pub struct GoogleCloudDiscoveryengineV1BatchCreateTargetSitesResponse {
 }
 
 /// Response message for DocumentService.BatchGetDocumentsMetadata method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1BatchGetDocumentsMetadataResponse {
     /// The metadata of the Documents.
     #[serde(default, rename = "documentsMetadata")]
@@ -385,7 +386,7 @@ pub struct GoogleCloudDiscoveryengineV1BatchGetDocumentsMetadataResponse {
 }
 
 /// Metadata related to the progress of the UserLicenseService.BatchUpdateUserLicenses operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1BatchUpdateUserLicensesMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -402,7 +403,7 @@ pub struct GoogleCloudDiscoveryengineV1BatchUpdateUserLicensesMetadata {
 }
 
 /// Request message for UserLicenseService.BatchUpdateUserLicenses method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1BatchUpdateUserLicensesRequest {
     /// Optional. If true, if user licenses removed associated license config, the user license will be deleted. By default which is false, the user license will be updated to unassigned state.
     #[serde(default, rename = "deleteUnassignedUserLicenses")]
@@ -415,7 +416,7 @@ pub struct GoogleCloudDiscoveryengineV1BatchUpdateUserLicensesRequest {
 }
 
 /// Response message for UserLicenseService.BatchUpdateUserLicenses method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1BatchUpdateUserLicensesResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -427,11 +428,11 @@ pub struct GoogleCloudDiscoveryengineV1BatchUpdateUserLicensesResponse {
 }
 
 /// Request message for SiteSearchEngineService.BatchVerifyTargetSites method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1BatchVerifyTargetSitesRequest {}
 
 /// The column family of the Bigtable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1BigtableOptionsBigtableColumnFamily {
     /// The list of objects that contains column level information for each column. If a column is not present in this list it will be ignored.
     #[serde(default)]
@@ -450,7 +451,7 @@ pub struct GoogleCloudDiscoveryengineV1BigtableOptionsBigtableColumnFamily {
 }
 
 /// Request message for GroundedGenerationService.CheckGrounding method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1CheckGroundingRequest {
     /// Answer candidate to check. It can have a maximum length of 4096 tokens.
     #[serde(default, rename = "answerCandidate")]
@@ -467,7 +468,7 @@ pub struct GoogleCloudDiscoveryengineV1CheckGroundingRequest {
 }
 
 /// Response message for the GroundedGenerationService.CheckGrounding method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1CheckGroundingResponse {
     /// List of facts cited across all claims in the answer candidate. These are derived from the facts supplied in the request.
     #[serde(default, rename = "citedChunks")]
@@ -489,7 +490,7 @@ pub struct GoogleCloudDiscoveryengineV1CheckGroundingResponse {
 }
 
 /// Collection is a container for configuring resources and access to a set of DataStores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1Collection {
     /// Output only. Timestamp the Collection was created at.
     #[serde(default, rename = "createTime")]
@@ -503,7 +504,7 @@ pub struct GoogleCloudDiscoveryengineV1Collection {
 }
 
 /// Response message for CompletionService.CompleteQuery method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1CompleteQueryResponse {
     /// Results of the matched query suggestions. The result list is ordered and the first result is a top suggestion.
     #[serde(default, rename = "querySuggestions")]
@@ -516,7 +517,7 @@ pub struct GoogleCloudDiscoveryengineV1CompleteQueryResponse {
 }
 
 /// Request message for ConversationalSearchService.ConverseConversation method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ConverseConversationRequest {
     /// Boost specification to boost certain documents in search results which may affect the converse response. For more information on boosting, see [Boosting](https://cloud.google.com/retail/docs/boosting#boost)
     #[serde(default, rename = "boostSpec")]
@@ -547,7 +548,7 @@ pub struct GoogleCloudDiscoveryengineV1ConverseConversationRequest {
 }
 
 /// Response message for ConversationalSearchService.ConverseConversation method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ConverseConversationResponse {
     /// Updated conversation including the answer.
     #[serde(default)]
@@ -563,7 +564,7 @@ pub struct GoogleCloudDiscoveryengineV1ConverseConversationResponse {
 }
 
 /// Metadata related to the progress of the DataStoreService.CreateDataStore operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1CreateDataStoreMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -574,7 +575,7 @@ pub struct GoogleCloudDiscoveryengineV1CreateDataStoreMetadata {
 }
 
 /// Metadata related to the progress of the EngineService.CreateEngine operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1CreateEngineMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -585,7 +586,7 @@ pub struct GoogleCloudDiscoveryengineV1CreateEngineMetadata {
 }
 
 /// Metadata for Create Schema LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1CreateSchemaMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -596,7 +597,7 @@ pub struct GoogleCloudDiscoveryengineV1CreateSchemaMetadata {
 }
 
 /// Metadata related to the progress of the SiteSearchEngineService.CreateSitemap operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1CreateSitemapMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -607,7 +608,7 @@ pub struct GoogleCloudDiscoveryengineV1CreateSitemapMetadata {
 }
 
 /// Metadata related to the progress of the SiteSearchEngineService.CreateTargetSite operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1CreateTargetSiteMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -618,7 +619,7 @@ pub struct GoogleCloudDiscoveryengineV1CreateTargetSiteMetadata {
 }
 
 /// A custom attribute that is not explicitly modeled in a resource, e.g. UserEvent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1CustomAttribute {
     /// The numerical values of this custom attribute. For example, [2.3, 15.4] when the key is "lengths_cm". Exactly one of CustomAttribute.text or CustomAttribute.numbers should be set. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default)]
@@ -629,7 +630,7 @@ pub struct GoogleCloudDiscoveryengineV1CustomAttribute {
 }
 
 /// Metadata related to the progress of the CmekConfigService.DeleteCmekConfig operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DeleteCmekConfigMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -640,7 +641,7 @@ pub struct GoogleCloudDiscoveryengineV1DeleteCmekConfigMetadata {
 }
 
 /// Metadata related to the progress of the CollectionService.UpdateCollection operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DeleteCollectionMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -651,7 +652,7 @@ pub struct GoogleCloudDiscoveryengineV1DeleteCollectionMetadata {
 }
 
 /// Metadata related to the progress of the DataStoreService.DeleteDataStore operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DeleteDataStoreMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -662,7 +663,7 @@ pub struct GoogleCloudDiscoveryengineV1DeleteDataStoreMetadata {
 }
 
 /// Metadata related to the progress of the EngineService.DeleteEngine operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DeleteEngineMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -673,7 +674,7 @@ pub struct GoogleCloudDiscoveryengineV1DeleteEngineMetadata {
 }
 
 /// Metadata related to the progress of the IdentityMappingStoreService.DeleteIdentityMappingStore operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DeleteIdentityMappingStoreMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -684,7 +685,7 @@ pub struct GoogleCloudDiscoveryengineV1DeleteIdentityMappingStoreMetadata {
 }
 
 /// Metadata for DeleteSchema LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DeleteSchemaMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -695,7 +696,7 @@ pub struct GoogleCloudDiscoveryengineV1DeleteSchemaMetadata {
 }
 
 /// Metadata related to the progress of the SiteSearchEngineService.DeleteSitemap operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DeleteSitemapMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -706,7 +707,7 @@ pub struct GoogleCloudDiscoveryengineV1DeleteSitemapMetadata {
 }
 
 /// Metadata related to the progress of the SiteSearchEngineService.DeleteTargetSite operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DeleteTargetSiteMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -717,7 +718,7 @@ pub struct GoogleCloudDiscoveryengineV1DeleteTargetSiteMetadata {
 }
 
 /// Metadata related to the progress of the SiteSearchEngineService.DisableAdvancedSiteSearch operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DisableAdvancedSiteSearchMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -728,20 +729,20 @@ pub struct GoogleCloudDiscoveryengineV1DisableAdvancedSiteSearchMetadata {
 }
 
 /// Request message for SiteSearchEngineService.DisableAdvancedSiteSearch method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DisableAdvancedSiteSearchRequest {}
 
 /// Response message for SiteSearchEngineService.DisableAdvancedSiteSearch method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DisableAdvancedSiteSearchResponse {}
 
 /// The digital parsing configurations for documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfigDigitalParsingConfig {
 }
 
 /// Double list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DoubleList {
     /// Double values.
     #[serde(default)]
@@ -749,7 +750,7 @@ pub struct GoogleCloudDiscoveryengineV1DoubleList {
 }
 
 /// Metadata related to the progress of the SiteSearchEngineService.EnableAdvancedSiteSearch operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1EnableAdvancedSiteSearchMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -760,15 +761,15 @@ pub struct GoogleCloudDiscoveryengineV1EnableAdvancedSiteSearchMetadata {
 }
 
 /// Request message for SiteSearchEngineService.EnableAdvancedSiteSearch method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1EnableAdvancedSiteSearchRequest {}
 
 /// Response message for SiteSearchEngineService.EnableAdvancedSiteSearch method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1EnableAdvancedSiteSearchResponse {}
 
 /// Response message for SiteSearchEngineService.FetchDomainVerificationStatus method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1FetchDomainVerificationStatusResponse {
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -783,7 +784,7 @@ pub struct GoogleCloudDiscoveryengineV1FetchDomainVerificationStatusResponse {
 }
 
 /// Response message for SiteSearchEngineService.FetchSitemaps method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1FetchSitemapsResponse {
     /// List of Sitemaps fetched.
     #[serde(default, rename = "sitemapsMetadata")]
@@ -793,7 +794,7 @@ pub struct GoogleCloudDiscoveryengineV1FetchSitemapsResponse {
 }
 
 /// IdentityMappingEntry LongRunningOperation metadata for IdentityMappingStoreService.ImportIdentityMappings and IdentityMappingStoreService.PurgeIdentityMappings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1IdentityMappingEntryOperationMetadata {
     /// The number of IdentityMappingEntries that failed to be processed.
     #[serde(default, rename = "failureCount")]
@@ -807,7 +808,7 @@ pub struct GoogleCloudDiscoveryengineV1IdentityMappingEntryOperationMetadata {
 }
 
 /// Metadata related to the progress of the ImportCompletionSuggestions operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ImportCompletionSuggestionsMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -824,7 +825,7 @@ pub struct GoogleCloudDiscoveryengineV1ImportCompletionSuggestionsMetadata {
 }
 
 /// Request message for CompletionService.ImportCompletionSuggestions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ImportCompletionSuggestionsRequest {
     /// BigQuery input source.
     #[serde(default, rename = "bigquerySource")]
@@ -843,7 +844,7 @@ pub struct GoogleCloudDiscoveryengineV1ImportCompletionSuggestionsRequest {
 }
 
 /// Response of the CompletionService.ImportCompletionSuggestions method. If the long running operation is done, this message is returned by the google.longrunning.Operations.response field if the operation is successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ImportCompletionSuggestionsResponse {
     /// The desired location of errors incurred during the Import.
     #[serde(default, rename = "errorConfig")]
@@ -854,7 +855,7 @@ pub struct GoogleCloudDiscoveryengineV1ImportCompletionSuggestionsResponse {
 }
 
 /// Metadata related to the progress of the ImportDocuments operation. This is returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ImportDocumentsMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -874,7 +875,7 @@ pub struct GoogleCloudDiscoveryengineV1ImportDocumentsMetadata {
 }
 
 /// Request message for Import methods.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ImportDocumentsRequest {
     /// AlloyDB input source.
     #[serde(default, rename = "alloyDbSource")]
@@ -925,7 +926,7 @@ pub struct GoogleCloudDiscoveryengineV1ImportDocumentsRequest {
 }
 
 /// Response of the ImportDocumentsRequest. If the long running operation is done, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ImportDocumentsResponse {
     /// Echoes the destination for the complete errors in the request if set.
     #[serde(default, rename = "errorConfig")]
@@ -936,7 +937,7 @@ pub struct GoogleCloudDiscoveryengineV1ImportDocumentsResponse {
 }
 
 /// Request message for IdentityMappingStoreService.ImportIdentityMappings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ImportIdentityMappingsRequest {
     /// The inline source to import identity mapping entries from.
     #[serde(default, rename = "inlineSource")]
@@ -946,7 +947,7 @@ pub struct GoogleCloudDiscoveryengineV1ImportIdentityMappingsRequest {
 }
 
 /// Response message for IdentityMappingStoreService.ImportIdentityMappings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ImportIdentityMappingsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -954,7 +955,7 @@ pub struct GoogleCloudDiscoveryengineV1ImportIdentityMappingsResponse {
 }
 
 /// Metadata related to the progress of the ImportSuggestionDenyListEntries operation. This is returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ImportSuggestionDenyListEntriesMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -965,7 +966,7 @@ pub struct GoogleCloudDiscoveryengineV1ImportSuggestionDenyListEntriesMetadata {
 }
 
 /// Request message for CompletionService.ImportSuggestionDenyListEntries method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ImportSuggestionDenyListEntriesRequest {
     /// Cloud Storage location for the input content. Only 1 file can be specified that contains all entries to import. Supported values gcs_source.schema for autocomplete suggestion deny list entry imports: * suggestion_deny_list (default): One JSON [SuggestionDenyListEntry] per line.
     #[serde(default, rename = "gcsSource")]
@@ -978,7 +979,7 @@ pub struct GoogleCloudDiscoveryengineV1ImportSuggestionDenyListEntriesRequest {
 }
 
 /// Response message for CompletionService.ImportSuggestionDenyListEntries method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ImportSuggestionDenyListEntriesResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -992,7 +993,7 @@ pub struct GoogleCloudDiscoveryengineV1ImportSuggestionDenyListEntriesResponse {
 }
 
 /// Metadata related to the progress of the Import operation. This is returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ImportUserEventsMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -1009,7 +1010,7 @@ pub struct GoogleCloudDiscoveryengineV1ImportUserEventsMetadata {
 }
 
 /// Request message for the ImportUserEvents request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ImportUserEventsRequest {
     /// BigQuery input source.
     #[serde(default, rename = "bigquerySource")]
@@ -1027,7 +1028,7 @@ pub struct GoogleCloudDiscoveryengineV1ImportUserEventsRequest {
 }
 
 /// Response of the ImportUserEventsRequest. If the long running operation was successful, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ImportUserEventsResponse {
     /// Echoes the destination for the complete errors if this field was set in the request.
     #[serde(default, rename = "errorConfig")]
@@ -1044,7 +1045,7 @@ pub struct GoogleCloudDiscoveryengineV1ImportUserEventsResponse {
 }
 
 /// Information about users'' licenses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1LicenseConfig {
     /// Optional. Whether the license config should be auto renewed when it reaches the end date.
     #[serde(default, rename = "autoRenew")]
@@ -1085,7 +1086,7 @@ pub struct GoogleCloudDiscoveryengineV1LicenseConfig {
 }
 
 /// Response message for the AssistantService.ListAssistants method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ListAssistantsResponse {
     /// All the customer''s Assistants.
     #[serde(default)]
@@ -1096,7 +1097,7 @@ pub struct GoogleCloudDiscoveryengineV1ListAssistantsResponse {
 }
 
 /// Response message for CmekConfigService.ListCmekConfigs method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ListCmekConfigsResponse {
     /// All the customer''s CmekConfigs.
     #[serde(default, rename = "cmekConfigs")]
@@ -1105,7 +1106,7 @@ pub struct GoogleCloudDiscoveryengineV1ListCmekConfigsResponse {
 }
 
 /// Response for ListControls method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ListControlsResponse {
     /// All the Controls for a given data store.
     #[serde(default)]
@@ -1116,7 +1117,7 @@ pub struct GoogleCloudDiscoveryengineV1ListControlsResponse {
 }
 
 /// Response for ListConversations method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ListConversationsResponse {
     /// All the Conversations for a given data store.
     #[serde(default)]
@@ -1128,7 +1129,7 @@ pub struct GoogleCloudDiscoveryengineV1ListConversationsResponse {
 }
 
 /// Response message for SearchTuningService.ListCustomModels method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ListCustomModelsResponse {
     /// List of custom tuning models.
     #[serde(default)]
@@ -1137,7 +1138,7 @@ pub struct GoogleCloudDiscoveryengineV1ListCustomModelsResponse {
 }
 
 /// Response message for DataStoreService.ListDataStores method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ListDataStoresResponse {
     /// All the customer''s DataStores.
     #[serde(default, rename = "dataStores")]
@@ -1148,7 +1149,7 @@ pub struct GoogleCloudDiscoveryengineV1ListDataStoresResponse {
 }
 
 /// Response message for DocumentService.ListDocuments method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ListDocumentsResponse {
     /// The Documents.
     #[serde(default)]
@@ -1159,7 +1160,7 @@ pub struct GoogleCloudDiscoveryengineV1ListDocumentsResponse {
 }
 
 /// Response message for EngineService.ListEngines method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ListEnginesResponse {
     /// All the customer''s Engines.
     #[serde(default)]
@@ -1170,7 +1171,7 @@ pub struct GoogleCloudDiscoveryengineV1ListEnginesResponse {
 }
 
 /// Response message for IdentityMappingStoreService.ListIdentityMappingStores
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ListIdentityMappingStoresResponse {
     /// The Identity Mapping Stores.
     #[serde(default, rename = "identityMappingStores")]
@@ -1182,7 +1183,7 @@ pub struct GoogleCloudDiscoveryengineV1ListIdentityMappingStoresResponse {
 }
 
 /// Response message for IdentityMappingStoreService.ListIdentityMappings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ListIdentityMappingsResponse {
     /// The Identity Mapping Entries.
     #[serde(default, rename = "identityMappingEntries")]
@@ -1194,7 +1195,7 @@ pub struct GoogleCloudDiscoveryengineV1ListIdentityMappingsResponse {
 }
 
 /// Response message for UserLicenseService.ListLicenseConfigsUsageStats method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ListLicenseConfigsUsageStatsResponse {
     /// All the customer''s LicenseConfigUsageStats.
     #[serde(default, rename = "licenseConfigUsageStats")]
@@ -1204,7 +1205,7 @@ pub struct GoogleCloudDiscoveryengineV1ListLicenseConfigsUsageStatsResponse {
 }
 
 /// Response message for SchemaService.ListSchemas method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ListSchemasResponse {
     /// A token that can be sent as ListSchemasRequest.page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -1215,7 +1216,7 @@ pub struct GoogleCloudDiscoveryengineV1ListSchemasResponse {
 }
 
 /// Response for ListServingConfigs method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ListServingConfigsResponse {
     /// Pagination token, if not returned indicates the last page.
     #[serde(default, rename = "nextPageToken")]
@@ -1227,7 +1228,7 @@ pub struct GoogleCloudDiscoveryengineV1ListServingConfigsResponse {
 }
 
 /// Response for ListSessions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ListSessionsResponse {
     /// Pagination token, if not returned indicates the last page.
     #[serde(default, rename = "nextPageToken")]
@@ -1238,7 +1239,7 @@ pub struct GoogleCloudDiscoveryengineV1ListSessionsResponse {
 }
 
 /// Response message for SiteSearchEngineService.ListTargetSites method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ListTargetSitesResponse {
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -1253,7 +1254,7 @@ pub struct GoogleCloudDiscoveryengineV1ListTargetSitesResponse {
 }
 
 /// Response message for UserLicenseService.ListUserLicenses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ListUserLicensesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -1265,7 +1266,7 @@ pub struct GoogleCloudDiscoveryengineV1ListUserLicensesResponse {
 }
 
 /// Metadata and configurations for a Google Cloud project in the service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1Project {
     /// Output only. The current status of the project''s configurable billing.
     #[serde(default, rename = "configurableBillingStatus")]
@@ -1290,7 +1291,7 @@ pub struct GoogleCloudDiscoveryengineV1Project {
 }
 
 /// Metadata about the terms of service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ProjectServiceTerms {
     /// The last time when the project agreed to the terms of service.
     #[serde(default, rename = "acceptTime")]
@@ -1310,11 +1311,11 @@ pub struct GoogleCloudDiscoveryengineV1ProjectServiceTerms {
 }
 
 /// Metadata associated with a project provision operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ProvisionProjectMetadata {}
 
 /// Request for ProjectService.ProvisionProject method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ProvisionProjectRequest {
     /// Required. Set to true to specify that caller has read and would like to give consent to the [Terms for data use](https://cloud.google.com/retail/data-use-terms).
     #[serde(default, rename = "acceptDataUseTerms")]
@@ -1329,7 +1330,7 @@ pub struct GoogleCloudDiscoveryengineV1ProvisionProjectRequest {
 }
 
 /// Metadata related to the progress of the PurgeCompletionSuggestions operation. This is returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1PurgeCompletionSuggestionsMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -1340,11 +1341,11 @@ pub struct GoogleCloudDiscoveryengineV1PurgeCompletionSuggestionsMetadata {
 }
 
 /// Request message for CompletionService.PurgeCompletionSuggestions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1PurgeCompletionSuggestionsRequest {}
 
 /// Response message for CompletionService.PurgeCompletionSuggestions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1PurgeCompletionSuggestionsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -1355,7 +1356,7 @@ pub struct GoogleCloudDiscoveryengineV1PurgeCompletionSuggestionsResponse {
 }
 
 /// Metadata related to the progress of the PurgeDocuments operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1PurgeDocumentsMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -1375,7 +1376,7 @@ pub struct GoogleCloudDiscoveryengineV1PurgeDocumentsMetadata {
 }
 
 /// Request message for DocumentService.PurgeDocuments method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1PurgeDocumentsRequest {
     /// The desired location of errors incurred during the purge.
     #[serde(default, rename = "errorConfig")]
@@ -1396,7 +1397,7 @@ pub struct GoogleCloudDiscoveryengineV1PurgeDocumentsRequest {
 }
 
 /// Response message for DocumentService.PurgeDocuments method. If the long running operation is successfully done, then this message is returned by the google.longrunning.Operations.response field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1PurgeDocumentsResponse {
     /// The total count of documents purged as a result of the operation.
     #[serde(default, rename = "purgeCount")]
@@ -1407,7 +1408,7 @@ pub struct GoogleCloudDiscoveryengineV1PurgeDocumentsResponse {
 }
 
 /// Request message for IdentityMappingStoreService.PurgeIdentityMappings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1PurgeIdentityMappingsRequest {
     /// Filter matching identity mappings to purge. The eligible field for filtering is: * update_time: in ISO 8601 "zulu" format. * external_id Examples: * Deleting all identity mappings updated in a time range: update_time &gt; "2012-04-23T18:25:43.511Z" AND update_time &lt; "2012-04-23T18:30:43.511Z" * Deleting all identity mappings for a given external_id: external_id = "id1" * Deleting all identity mappings inside an identity mapping store: * The filtering fields are assumed to have an implicit AND. Should not be used with source. An error will be thrown, if both are provided.
     #[serde(default)]
@@ -1423,7 +1424,7 @@ pub struct GoogleCloudDiscoveryengineV1PurgeIdentityMappingsRequest {
 }
 
 /// Metadata related to the progress of the PurgeSuggestionDenyListEntries operation. This is returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1PurgeSuggestionDenyListEntriesMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -1434,11 +1435,11 @@ pub struct GoogleCloudDiscoveryengineV1PurgeSuggestionDenyListEntriesMetadata {
 }
 
 /// Request message for CompletionService.PurgeSuggestionDenyListEntries method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1PurgeSuggestionDenyListEntriesRequest {}
 
 /// Response message for CompletionService.PurgeSuggestionDenyListEntries method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1PurgeSuggestionDenyListEntriesResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -1449,7 +1450,7 @@ pub struct GoogleCloudDiscoveryengineV1PurgeSuggestionDenyListEntriesResponse {
 }
 
 /// Request message for PurgeUserEvents method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1PurgeUserEventsRequest {
     /// Required. The filter string to specify the events to be deleted with a length limit of 5,000 characters. The eligible fields for filtering are: * eventType: Double quoted UserEvent.event_type string. * eventTime: in ISO 8601 "zulu" format. * userPseudoId: Double quoted string. Specifying this will delete all events associated with a visitor. * userId: Double quoted string. Specifying this will delete all events associated with a user. Note: This API only supports purging a max range of 30 days. Examples: * Deleting all events in a time range: eventTime &gt; "2012-04-23T18:25:43.511Z" eventTime &lt; "2012-04-23T18:30:43.511Z" * Deleting specific eventType in a time range: eventTime &gt; "2012-04-23T18:25:43.511Z" eventTime &lt; "2012-04-23T18:30:43.511Z" eventType = "search" * Deleting all events for a specific visitor in a time range: eventTime &gt; "2012-04-23T18:25:43.511Z" eventTime &lt; "2012-04-23T18:30:43.511Z" userPseudoId = "visitor1024" * Deleting the past 30 days of events inside a DataStore: * The filtering fields are assumed to have an implicit AND.
     #[serde(default)]
@@ -1460,7 +1461,7 @@ pub struct GoogleCloudDiscoveryengineV1PurgeUserEventsRequest {
 }
 
 /// Request message for RankService.Rank method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1RankRequest {
     /// If true, the response will contain only record ID and score. By default, it is false, the response will contain record details.
     #[serde(default, rename = "ignoreRecordDetailsInResponse")]
@@ -1483,7 +1484,7 @@ pub struct GoogleCloudDiscoveryengineV1RankRequest {
 }
 
 /// Response message for RankService.Rank method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1RankResponse {
     /// A list of records sorted by descending score.
     #[serde(default)]
@@ -1491,7 +1492,7 @@ pub struct GoogleCloudDiscoveryengineV1RankResponse {
 }
 
 /// Request message for Recommend method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1RecommendRequest {
     /// Filter for restricting recommendation results with a length limit of 5,000 characters. Currently, only filter expressions on the filter_tags attribute is supported. Examples: * (filter_tags: ANY("Red", "Blue") OR filter_tags: ANY("Hot", "Cold")) * (filter_tags: ANY("Red", "Blue")) AND NOT (filter_tags: ANY("Green")) If attributeFilteringSyntax is set to true under the params field, then attribute-based expressions are expected instead of the above described tag-based syntax. Examples: * (language: ANY("en", "es")) AND NOT (categories: ANY("Movie")) * (available: true) AND (language: ANY("en", "es")) OR (categories: ANY("Movie")) If your filter blocks all results, the API returns generic (unfiltered) popular Documents. If you only want results strictly matching the filters, set strictFiltering to true in RecommendRequest.params to receive empty results instead. Note that the API never returns Documents with storageStatus as EXPIRED or DELETED regardless of filter choices.
     #[serde(default)]
@@ -1514,7 +1515,7 @@ pub struct GoogleCloudDiscoveryengineV1RecommendRequest {
 }
 
 /// Response message for Recommend method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1RecommendResponse {
     /// A unique attribution token. This should be included in the UserEvent logs resulting from this recommendation, which enables accurate attribution of recommendation model performance.
     #[serde(default, rename = "attributionToken")]
@@ -1533,7 +1534,7 @@ pub struct GoogleCloudDiscoveryengineV1RecommendResponse {
 }
 
 /// Request message for SiteSearchEngineService.RecrawlUris method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1RecrawlUrisRequest {
     /// Optional. Credential id to use for crawling.
     #[serde(default, rename = "siteCredential")]
@@ -1544,7 +1545,7 @@ pub struct GoogleCloudDiscoveryengineV1RecrawlUrisRequest {
 }
 
 /// Request message for SearchService.Search method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequest {
     /// Boost specification to boost certain documents. For more information on boosting, see [Boosting](https://cloud.google.com/generative-ai-app-builder/docs/boost-search-results)
     #[serde(default, rename = "boostSpec")]
@@ -1663,7 +1664,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequest {
 }
 
 /// Response message for SearchService.Search method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchResponse {
     /// A unique search token. This should be included in the UserEvent logs resulting from this search, which enables accurate attribution of search model performance. This also helps to identify a request during the customer support scenarios.
     #[serde(default, rename = "attributionToken")]
@@ -1714,7 +1715,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponse {
 }
 
 /// Constraint expression of a string field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilterStringConstraint
 {
     /// Name of the string field as defined in the schema.
@@ -1729,11 +1730,11 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderst
 }
 
 /// Metadata for DataConnectorService.SetUpDataConnector method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SetUpDataConnectorMetadata {}
 
 /// Request for DataConnectorService.SetUpDataConnector method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SetUpDataConnectorRequest {
     /// Required. The display name of the Collection. Should be human readable, used to display collections in the Console Dashboard. UTF-8 encoded string with limit of 1024 characters.
     #[serde(default, rename = "collectionDisplayName")]
@@ -1747,7 +1748,7 @@ pub struct GoogleCloudDiscoveryengineV1SetUpDataConnectorRequest {
 }
 
 /// SiteSearchEngine captures DataStore level site search persisting configurations. It is a singleton value per data store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SiteSearchEngine {
     /// The fully qualified resource name of the site search engine. Format: projects/*/locations/*/dataStores/*/siteSearchEngine
     #[serde(default)]
@@ -1755,7 +1756,7 @@ pub struct GoogleCloudDiscoveryengineV1SiteSearchEngine {
 }
 
 /// Request for the AssistantService.StreamAssist method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1StreamAssistRequest {
     /// Optional. Specification of the generation configuration for the request.
     #[serde(default, rename = "generationSpec")]
@@ -1777,19 +1778,19 @@ pub struct GoogleCloudDiscoveryengineV1StreamAssistRequest {
 }
 
 /// Specification of the image generation tool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1StreamAssistRequestToolsSpecImageGenerationSpec {}
 
 /// Specification of the video generation tool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1StreamAssistRequestToolsSpecVideoGenerationSpec {}
 
 /// Specification of the web grounding tool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1StreamAssistRequestToolsSpecWebGroundingSpec {}
 
 /// Response for the AssistantService.StreamAssist method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1StreamAssistResponse {
     /// Assist answer resource object containing parts of the assistant''s final answer for the user''s query. Not present if the current response doesn''t add anything to previously sent AssistAnswer.replies. Observe AssistAnswer.state to see if more parts are to be expected. While the state is IN_PROGRESS, the AssistAnswer.replies field in each response will contain replies (reply fragments) to be appended to the ones received in previous responses. AssistAnswer.name won''t be filled. If the state is SUCCEEDED, FAILED or SKIPPED, the response is the last response and AssistAnswer.name will have a value.
     #[serde(default)]
@@ -1807,7 +1808,7 @@ pub struct GoogleCloudDiscoveryengineV1StreamAssistResponse {
 }
 
 /// Metadata related to the progress of the TrainCustomModel operation. This is returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1TrainCustomModelMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -1818,7 +1819,7 @@ pub struct GoogleCloudDiscoveryengineV1TrainCustomModelMetadata {
 }
 
 /// Request message for SearchTuningService.TrainCustomModel method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1TrainCustomModelRequest {
     /// The desired location of errors incurred during the data ingestion and training.
     #[serde(default, rename = "errorConfig")]
@@ -1836,7 +1837,7 @@ pub struct GoogleCloudDiscoveryengineV1TrainCustomModelRequest {
 }
 
 /// Response of the TrainCustomModelRequest. This message is returned by the google.longrunning.Operations.response field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1TrainCustomModelResponse {
     /// Echoes the destination for the complete errors in the request if set.
     #[serde(default, rename = "errorConfig")]
@@ -1856,7 +1857,7 @@ pub struct GoogleCloudDiscoveryengineV1TrainCustomModelResponse {
 }
 
 /// Metadata related to the progress of the CmekConfigService.UpdateCmekConfig operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1UpdateCmekConfigMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -1867,7 +1868,7 @@ pub struct GoogleCloudDiscoveryengineV1UpdateCmekConfigMetadata {
 }
 
 /// Metadata for UpdateSchema LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1UpdateSchemaMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -1878,7 +1879,7 @@ pub struct GoogleCloudDiscoveryengineV1UpdateSchemaMetadata {
 }
 
 /// Metadata related to the progress of the SiteSearchEngineService.UpdateTargetSite operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1UpdateTargetSiteMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -1889,7 +1890,7 @@ pub struct GoogleCloudDiscoveryengineV1UpdateTargetSiteMetadata {
 }
 
 /// Configures metadata that is used for End User entities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1UserStore {
     /// Optional. The default subscription LicenseConfig for the UserStore, if UserStore.enable_license_auto_register is true, new users will automatically register under the default subscription. If default LicenseConfig doesn''t have remaining license seats left, new users will not be assigned with license and will be blocked for Vertex AI Search features. This is used if license_assignment_tier_rules is not configured.
     #[serde(default, rename = "defaultLicenseConfig")]
@@ -1909,7 +1910,7 @@ pub struct GoogleCloudDiscoveryengineV1UserStore {
 }
 
 /// WidgetConfig captures configs at the Widget level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1WidgetConfig {
     /// Will be used for all widget access settings seen in cloud console integration page. Replaces top deprecated top level properties.
     #[serde(default, rename = "accessSettings")]
@@ -2037,7 +2038,7 @@ pub struct GoogleCloudDiscoveryengineV1WidgetConfig {
 }
 
 /// Facet field that maps to a UI Component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1WidgetConfigUIComponentField {
     /// The field visibility on different types of devices.
     #[serde(default, rename = "deviceVisibility")]
@@ -2051,7 +2052,7 @@ pub struct GoogleCloudDiscoveryengineV1WidgetConfigUIComponentField {
 }
 
 /// Access Control Configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAclConfig {
     /// Identity provider config.
     #[serde(default, rename = "idpConfig")]
@@ -2062,7 +2063,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAclConfig {
 }
 
 /// Stores a list of scopes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaActionConfigScopeList {
     /// Optional. The list of scopes.
     #[serde(default)]
@@ -2070,7 +2071,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaActionConfigScopeList {
 }
 
 /// Request for DataStoreService.AddPatientFilter method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAddPatientFilterRequest {
     /// Required. Full resource name of DataStore, such as projects/{project}/locations/{location}/collections/{collection_id}/dataStores/{data_store_id}. If the caller does not have permission to access the DataStore, regardless of whether or not it exists, a PERMISSION_DENIED error is returned. If the requested DataStore does not exist, a NOT_FOUND error is returned. If the requested DataStore already has a patient filter, an ALREADY_EXISTS error will be returned.
     #[serde(default, rename = "dataStore")]
@@ -2081,7 +2082,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAddPatientFilterRequest {
 }
 
 /// Metadata related to the progress of the SiteSearchEngineService.BatchCreateTargetSites operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaBatchCreateTargetSiteMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -2092,7 +2093,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaBatchCreateTargetSiteMetadata {
 }
 
 /// Response message for SiteSearchEngineService.BatchCreateTargetSites method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaBatchCreateTargetSitesResponse {
     /// TargetSites created.
     #[serde(default, rename = "targetSites")]
@@ -2101,7 +2102,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaBatchCreateTargetSitesResponse {
 }
 
 /// Metadata related to the progress of the UserLicenseService.BatchUpdateUserLicenses operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaBatchUpdateUserLicensesMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -2118,7 +2119,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaBatchUpdateUserLicensesMetadata {
 }
 
 /// Response message for UserLicenseService.BatchUpdateUserLicenses method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaBatchUpdateUserLicensesResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -2130,7 +2131,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaBatchUpdateUserLicensesResponse {
 }
 
 /// Collection is a container for configuring resources and access to a set of DataStores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaCollection {
     /// Output only. Timestamp the Collection was created at.
     #[serde(default, rename = "createTime")]
@@ -2147,7 +2148,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaCollection {
 }
 
 /// A data sync run of DataConnector. After DataConnector is successfully initialized, data syncs are scheduled at DataConnector.refresh_interval. A ConnectorRun represents a data sync either in the past or onging that the moment. //
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaConnectorRun {
     /// Output only. The time when the connector run ended.
     #[serde(default, rename = "endTime")]
@@ -2181,7 +2182,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaConnectorRun {
 }
 
 /// Defines a conditioned behavior to employ during serving. Must be attached to a ServingConfig to be considered at serving time. Permitted actions dependent on SolutionType.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaControl {
     /// Output only. List of all ServingConfig IDs this control is attached to. May take up to 10 minutes to update after changes.
     #[serde(default, rename = "associatedServingConfigIds")]
@@ -2223,7 +2224,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaControl {
 }
 
 /// Metadata related to the progress of the DataStoreService.CreateDataStore operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaCreateDataStoreMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -2234,7 +2235,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaCreateDataStoreMetadata {
 }
 
 /// Metadata related to the progress of the EngineService.CreateEngine operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaCreateEngineMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -2245,11 +2246,11 @@ pub struct GoogleCloudDiscoveryengineV1alphaCreateEngineMetadata {
 }
 
 /// Metadata for EvaluationService.CreateEvaluation method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaCreateEvaluationMetadata {}
 
 /// Metadata for Create Schema LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaCreateSchemaMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -2260,7 +2261,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaCreateSchemaMetadata {
 }
 
 /// Metadata related to the progress of the SiteSearchEngineService.CreateSitemap operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaCreateSitemapMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -2271,7 +2272,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaCreateSitemapMetadata {
 }
 
 /// Metadata related to the progress of the SiteSearchEngineService.CreateTargetSite operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaCreateTargetSiteMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -2282,7 +2283,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaCreateTargetSiteMetadata {
 }
 
 /// DataStore captures global settings and configs at the DataStore level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDataStore {
     /// Immutable. Whether data in the DataStore has ACL information. If set to true, the source data must have ACL. ACL will be ingested when data is ingested by DocumentService.ImportDocuments methods. When ACL is enabled for the DataStore, Document can''t be accessed by calling DocumentService.GetDocument or DocumentService.ListDocuments. Currently ACL is only supported in GENERIC industry vertical with non-PUBLIC_WEBSITE content config.
     #[serde(default, rename = "aclEnabled")]
@@ -2370,7 +2371,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDataStore {
 }
 
 /// Metadata related to the progress of the AgentService.DeleteAgent operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDeleteAgentMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -2381,7 +2382,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDeleteAgentMetadata {
 }
 
 /// Metadata related to the progress of the CmekConfigService.DeleteCmekConfig operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDeleteCmekConfigMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -2392,7 +2393,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDeleteCmekConfigMetadata {
 }
 
 /// Metadata related to the progress of the CollectionService.UpdateCollection operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDeleteCollectionMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -2403,7 +2404,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDeleteCollectionMetadata {
 }
 
 /// Metadata related to the progress of the DataStoreService.DeleteDataStore operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDeleteDataStoreMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -2414,7 +2415,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDeleteDataStoreMetadata {
 }
 
 /// Metadata related to the progress of the EngineService.DeleteEngine operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDeleteEngineMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -2425,7 +2426,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDeleteEngineMetadata {
 }
 
 /// Metadata related to the progress of the IdentityMappingStoreService.DeleteIdentityMappingStore operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDeleteIdentityMappingStoreMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -2436,7 +2437,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDeleteIdentityMappingStoreMetadata {
 }
 
 /// Request for DataStoreService.DeletePatientFilters method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDeletePatientFiltersRequest {
     /// Required. Full resource name of DataStore, such as projects/{project}/locations/{location}/collections/{collection_id}/dataStores/{data_store_id}. If the caller does not have permission to access the DataStore, regardless of whether or not it exists, a PERMISSION_DENIED error is returned. If the requested DataStore does not exist, a NOT_FOUND error is returned. If the requested DataStore does not have a patient filter, a NOT_FOUND error will be returned.
     #[serde(default, rename = "dataStore")]
@@ -2444,7 +2445,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDeletePatientFiltersRequest {
 }
 
 /// Metadata for DeleteSchema LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDeleteSchemaMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -2455,7 +2456,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDeleteSchemaMetadata {
 }
 
 /// Request for DeleteSession method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDeleteSessionRequest {
     /// Required. The resource name of the Session to delete. Format: projects/{project}/locations/{location}/collections/{collection}/dataStores/{data_store_id}/sessions/{session_id}
     #[serde(default)]
@@ -2463,7 +2464,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDeleteSessionRequest {
 }
 
 /// Metadata related to the progress of the SiteSearchEngineService.DeleteSitemap operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDeleteSitemapMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -2474,7 +2475,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDeleteSitemapMetadata {
 }
 
 /// Metadata related to the progress of the SiteSearchEngineService.DeleteTargetSite operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDeleteTargetSiteMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -2485,7 +2486,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDeleteTargetSiteMetadata {
 }
 
 /// Metadata related to the progress of the UserStoreService.DeleteUserStore operation. This will be returned by the google.longrunning.Operation.metadata field. Delete UserStore will delete all the end users under the user store, return the number of end users successfully deleted or failed to delete in the metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDeleteUserStoreMetadata {
     /// The number of end users under the user store that failed to be deleted.
     #[serde(default, rename = "failureCount")]
@@ -2496,7 +2497,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDeleteUserStoreMetadata {
 }
 
 /// Metadata related to the progress of the SiteSearchEngineService.DisableAdvancedSiteSearch operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDisableAdvancedSiteSearchMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -2507,16 +2508,16 @@ pub struct GoogleCloudDiscoveryengineV1alphaDisableAdvancedSiteSearchMetadata {
 }
 
 /// Response message for SiteSearchEngineService.DisableAdvancedSiteSearch method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDisableAdvancedSiteSearchResponse {}
 
 /// The digital parsing configurations for documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDocumentProcessingConfigParsingConfigDigitalParsingConfig
 {}
 
 /// Metadata related to the progress of the SiteSearchEngineService.EnableAdvancedSiteSearch operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaEnableAdvancedSiteSearchMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -2527,11 +2528,11 @@ pub struct GoogleCloudDiscoveryengineV1alphaEnableAdvancedSiteSearchMetadata {
 }
 
 /// Response message for SiteSearchEngineService.EnableAdvancedSiteSearch method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaEnableAdvancedSiteSearchResponse {}
 
 /// Metadata that describes the training and serving parameters of an Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaEngine {
     /// Optional. The agent gateway setting for the engine.
     #[serde(default, rename = "agentGatewaySetting")]
@@ -2623,11 +2624,11 @@ pub struct GoogleCloudDiscoveryengineV1alphaEngine {
 }
 
 /// Additional config specs for a similar-items engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaEngineSimilarDocumentsEngineConfig {}
 
 /// Metadata related to the progress of the EstimateDataSize operation. This is returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaEstimateDataSizeMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -2635,7 +2636,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaEstimateDataSizeMetadata {
 }
 
 /// Response of the EstimateDataSize request. If the long running operation was successful, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaEstimateDataSizeResponse {
     /// Data size in terms of bytes.
     #[serde(default, rename = "dataSizeBytes")]
@@ -2646,7 +2647,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaEstimateDataSizeResponse {
 }
 
 /// An evaluation is a single execution (or run) of an evaluation process. It encapsulates the state of the evaluation and the resulting data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaEvaluation {
     /// Output only. Timestamp the Evaluation was created at.
     #[serde(default, rename = "createTime")]
@@ -2676,7 +2677,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaEvaluation {
 }
 
 /// Metadata related to the progress of the Export operation. This is returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaExportMetricsMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -2687,11 +2688,11 @@ pub struct GoogleCloudDiscoveryengineV1alphaExportMetricsMetadata {
 }
 
 /// Response of the ExportMetricsRequest. If the long running operation was successful, then this message is returned by the google.longrunning.Operations.response field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaExportMetricsResponse {}
 
 /// Request for GetSession method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaGetSessionRequest {
     /// Optional. If set to true, the full session including all answer details will be returned.
     #[serde(default, rename = "includeAnswerDetails")]
@@ -2702,7 +2703,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaGetSessionRequest {
 }
 
 /// Response message for SiteSearchEngineService.GetUriPatternDocumentData method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaGetUriPatternDocumentDataResponse {
     /// Document data keyed by URI pattern. For example: document_data_map = { "www.url1.com/*": { "Categories": ["category1", "category2"] }, "www.url2.com/*": { "Categories": ["category3"] } }
     #[serde(default, rename = "documentDataMap")]
@@ -2710,7 +2711,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaGetUriPatternDocumentDataResponse {
 }
 
 /// IdentityMappingEntry LongRunningOperation metadata for IdentityMappingStoreService.ImportIdentityMappings and IdentityMappingStoreService.PurgeIdentityMappings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaIdentityMappingEntryOperationMetadata {
     /// The number of IdentityMappingEntries that failed to be processed.
     #[serde(default, rename = "failureCount")]
@@ -2724,7 +2725,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaIdentityMappingEntryOperationMetadat
 }
 
 /// Metadata related to the progress of the ImportCompletionSuggestions operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaImportCompletionSuggestionsMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -2741,7 +2742,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaImportCompletionSuggestionsMetadata 
 }
 
 /// Response of the CompletionService.ImportCompletionSuggestions method. If the long running operation is done, this message is returned by the google.longrunning.Operations.response field if the operation is successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaImportCompletionSuggestionsResponse {
     /// The desired location of errors incurred during the Import.
     #[serde(default, rename = "errorConfig")]
@@ -2752,7 +2753,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaImportCompletionSuggestionsResponse 
 }
 
 /// Metadata related to the progress of the ImportDocuments operation. This is returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaImportDocumentsMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -2772,7 +2773,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaImportDocumentsMetadata {
 }
 
 /// Response of the ImportDocumentsRequest. If the long running operation is done, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaImportDocumentsResponse {
     /// Echoes the destination for the complete errors in the request if set.
     #[serde(default, rename = "errorConfig")]
@@ -2783,7 +2784,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaImportDocumentsResponse {
 }
 
 /// Response message for IdentityMappingStoreService.ImportIdentityMappings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaImportIdentityMappingsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -2791,7 +2792,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaImportIdentityMappingsResponse {
 }
 
 /// Metadata related to the progress of the ImportSampleQueries operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaImportSampleQueriesMetadata {
     /// ImportSampleQueries operation create time.
     #[serde(default, rename = "createTime")]
@@ -2811,7 +2812,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaImportSampleQueriesMetadata {
 }
 
 /// Response of the SampleQueryService.ImportSampleQueries method. If the long running operation is done, this message is returned by the google.longrunning.Operations.response field if the operation is successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaImportSampleQueriesResponse {
     /// The desired location of errors incurred during the Import.
     #[serde(default, rename = "errorConfig")]
@@ -2822,7 +2823,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaImportSampleQueriesResponse {
 }
 
 /// Metadata related to the progress of the ImportSuggestionDenyListEntries operation. This is returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaImportSuggestionDenyListEntriesMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -2833,7 +2834,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaImportSuggestionDenyListEntriesMetad
 }
 
 /// Response message for CompletionService.ImportSuggestionDenyListEntries method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaImportSuggestionDenyListEntriesResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -2847,7 +2848,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaImportSuggestionDenyListEntriesRespo
 }
 
 /// Metadata related to the progress of the Import operation. This is returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaImportUserEventsMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -2864,7 +2865,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaImportUserEventsMetadata {
 }
 
 /// Response of the ImportUserEventsRequest. If the long running operation was successful, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaImportUserEventsResponse {
     /// Echoes the destination for the complete errors if this field was set in the request.
     #[serde(default, rename = "errorConfig")]
@@ -2881,7 +2882,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaImportUserEventsResponse {
 }
 
 /// Information about users'' licenses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaLicenseConfig {
     /// Optional. The alert policy config for this license config.
     #[serde(default, rename = "alertPolicyResourceConfig")]
@@ -2926,7 +2927,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaLicenseConfig {
 }
 
 /// Request for ListSessions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaListSessionsRequest {
     /// A comma-separated list of fields to filter by, in EBNF grammar. The supported fields are: * user_pseudo_id * state * display_name * starred * is_pinned * labels * create_time * update_time * collaborative_project Examples: * user_pseudo_id = some_id * display_name = "some_name" * starred = true * is_pinned=true AND (NOT labels:hidden) * create_time &gt; "1970-01-01T12:00:00Z" * collaborative_project = "projects/123/locations/global/collections/default_collection/engines/" "default_engine/collaborative_projects/cp1"
     #[serde(default)]
@@ -2946,7 +2947,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaListSessionsRequest {
 }
 
 /// Response for ListSessions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaListSessionsResponse {
     /// Pagination token, if not returned indicates the last page.
     #[serde(default, rename = "nextPageToken")]
@@ -2957,7 +2958,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaListSessionsResponse {
 }
 
 /// Response message for CrawlRateManagementService.ObtainCrawlRate method. The response contains organcic or dedicated crawl rate time series data for monitoring, depending on whether dedicated crawl rate is set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaObtainCrawlRateResponse {
     /// The historical dedicated crawl rate timeseries data, used for monitoring.
     #[serde(default, rename = "dedicatedCrawlRateTimeSeries")]
@@ -2976,7 +2977,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaObtainCrawlRateResponse {
 }
 
 /// Metadata related to the progress of the various patient filter operations. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaPatientFilterOperationMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -2993,7 +2994,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaPatientFilterOperationMetadata {
 }
 
 /// Metadata and configurations for a Google Cloud project in the service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaProject {
     /// Output only. The current status of the project''s configurable billing.
     #[serde(default, rename = "configurableBillingStatus")]
@@ -3018,7 +3019,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaProject {
 }
 
 /// Metadata about the terms of service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaProjectServiceTerms {
     /// The last time when the project agreed to the terms of service.
     #[serde(default, rename = "acceptTime")]
@@ -3038,11 +3039,11 @@ pub struct GoogleCloudDiscoveryengineV1alphaProjectServiceTerms {
 }
 
 /// Metadata associated with a project provision operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaProvisionProjectMetadata {}
 
 /// Metadata related to the progress of the PurgeCompletionSuggestions operation. This is returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaPurgeCompletionSuggestionsMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3053,7 +3054,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaPurgeCompletionSuggestionsMetadata {
 }
 
 /// Response message for CompletionService.PurgeCompletionSuggestions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaPurgeCompletionSuggestionsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -3064,7 +3065,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaPurgeCompletionSuggestionsResponse {
 }
 
 /// Metadata related to the progress of the PurgeDocuments operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaPurgeDocumentsMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3084,7 +3085,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaPurgeDocumentsMetadata {
 }
 
 /// Response message for DocumentService.PurgeDocuments method. If the long running operation is successfully done, then this message is returned by the google.longrunning.Operations.response field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaPurgeDocumentsResponse {
     /// The total count of documents purged as a result of the operation.
     #[serde(default, rename = "purgeCount")]
@@ -3095,7 +3096,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaPurgeDocumentsResponse {
 }
 
 /// Metadata related to the progress of the PurgeSuggestionDenyListEntries operation. This is returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaPurgeSuggestionDenyListEntriesMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3106,7 +3107,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaPurgeSuggestionDenyListEntriesMetada
 }
 
 /// Response message for CompletionService.PurgeSuggestionDenyListEntries method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaPurgeSuggestionDenyListEntriesResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -3117,7 +3118,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaPurgeSuggestionDenyListEntriesRespon
 }
 
 /// Metadata related to the progress of the PurgeUserEvents operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaPurgeUserEventsMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3134,7 +3135,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaPurgeUserEventsMetadata {
 }
 
 /// Response of the PurgeUserEventsRequest. If the long running operation is successfully done, then this message is returned by the google.longrunning.Operations.response field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaPurgeUserEventsResponse {
     /// The total count of events purged as a result of the operation.
     #[serde(default, rename = "purgeCount")]
@@ -3142,7 +3143,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaPurgeUserEventsResponse {
 }
 
 /// Metadata related to the progress of the SiteSearchEngineService.RecrawlUris operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaRecrawlUrisMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3183,7 +3184,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaRecrawlUrisMetadata {
 }
 
 /// Response message for SiteSearchEngineService.RecrawlUris method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaRecrawlUrisResponse {
     /// URIs that were not crawled before the LRO terminated.
     #[serde(default, rename = "failedUris")]
@@ -3196,7 +3197,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaRecrawlUrisResponse {
 }
 
 /// Metadata related to the progress of the CrawlRateManagementService.RemoveDedicatedCrawlRate operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaRemoveDedicatedCrawlRateMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3207,7 +3208,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaRemoveDedicatedCrawlRateMetadata {
 }
 
 /// Response message for CrawlRateManagementService.RemoveDedicatedCrawlRate method. It simply returns the state of the response, and an error message if the state is FAILED.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaRemoveDedicatedCrawlRateResponse {
     /// Errors from service when handling the request.
     #[serde(default)]
@@ -3218,7 +3219,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaRemoveDedicatedCrawlRateResponse {
 }
 
 /// Request for DataStoreService.RemovePatientFilter method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaRemovePatientFilterRequest {
     /// Required. Full resource name of DataStore, such as projects/{project}/locations/{location}/collections/{collection_id}/dataStores/{data_store_id}. If the caller does not have permission to access the DataStore, regardless of whether or not it exists, a PERMISSION_DENIED error is returned. If the requested DataStore does not exist, a NOT_FOUND error is returned. If the requested DataStore does not have a patient filter, a NOT_FOUND error will be returned
     #[serde(default, rename = "dataStore")]
@@ -3229,7 +3230,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaRemovePatientFilterRequest {
 }
 
 /// Request for DataStoreService.ReplacePatientFilter method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaReplacePatientFilterRequest {
     /// Required. Full resource name of DataStore, such as projects/{project}/locations/{location}/collections/{collection_id}/dataStores/{data_store_id}. If the caller does not have permission to access the DataStore, regardless of whether or not it exists, a PERMISSION_DENIED error is returned. If the requested DataStore does not exist, a NOT_FOUND error is returned. If the requested DataStore already has a patient filter, an ALREADY_EXISTS error will be returned.
     #[serde(default, rename = "dataStore")]
@@ -3240,7 +3241,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaReplacePatientFilterRequest {
 }
 
 /// Metadata related to the progress of the CrawlRateManagementService.SetDedicatedCrawlRate operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSetDedicatedCrawlRateMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3251,7 +3252,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSetDedicatedCrawlRateMetadata {
 }
 
 /// Response message for CrawlRateManagementService.SetDedicatedCrawlRate method. It simply returns the state of the response, and an error message if the state is FAILED.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSetDedicatedCrawlRateResponse {
     /// Errors from service when handling the request.
     #[serde(default)]
@@ -3262,11 +3263,11 @@ pub struct GoogleCloudDiscoveryengineV1alphaSetDedicatedCrawlRateResponse {
 }
 
 /// Metadata for DataConnectorService.SetUpDataConnector method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSetUpDataConnectorMetadata {}
 
 /// Metadata related to the progress of the SiteSearchEngineService.SetUriPatternDocumentData operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSetUriPatternDocumentDataMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3277,11 +3278,11 @@ pub struct GoogleCloudDiscoveryengineV1alphaSetUriPatternDocumentDataMetadata {
 }
 
 /// Response message for SiteSearchEngineService.SetUriPatternDocumentData method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSetUriPatternDocumentDataResponse {}
 
 /// A sitemap for the SiteSearchEngine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSitemap {
     /// Output only. The sitemap''s creation time.
     #[serde(default, rename = "createTime")]
@@ -3295,7 +3296,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSitemap {
 }
 
 /// Metadata related to the progress of the TrainCustomModel operation. This is returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaTrainCustomModelMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3306,7 +3307,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaTrainCustomModelMetadata {
 }
 
 /// Response of the TrainCustomModelRequest. This message is returned by the google.longrunning.Operations.response field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaTrainCustomModelResponse {
     /// Echoes the destination for the complete errors in the request if set.
     #[serde(default, rename = "errorConfig")]
@@ -3326,7 +3327,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaTrainCustomModelResponse {
 }
 
 /// Metadata associated with a tune operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaTuneEngineMetadata {
     /// Required. The resource name of the engine that this tune applies to. Format: projects/{project}/locations/{location}/collections/{collection_id}/engines/{engine_id}
     #[serde(default)]
@@ -3334,11 +3335,11 @@ pub struct GoogleCloudDiscoveryengineV1alphaTuneEngineMetadata {
 }
 
 /// Response associated with a tune operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaTuneEngineResponse {}
 
 /// Metadata related to the progress of the CmekConfigService.UpdateCmekConfig operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaUpdateCmekConfigMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3349,7 +3350,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaUpdateCmekConfigMetadata {
 }
 
 /// Metadata related to the progress of the CollectionService.UpdateCollection operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaUpdateCollectionMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3360,7 +3361,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaUpdateCollectionMetadata {
 }
 
 /// Metadata for UpdateSchema LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaUpdateSchemaMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3371,7 +3372,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaUpdateSchemaMetadata {
 }
 
 /// Request for UpdateSession method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaUpdateSessionRequest {
     /// Required. The Session to update.
     #[serde(default)]
@@ -3382,7 +3383,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaUpdateSessionRequest {
 }
 
 /// Metadata related to the progress of the SiteSearchEngineService.UpdateTargetSite operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaUpdateTargetSiteMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3393,7 +3394,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaUpdateTargetSiteMetadata {
 }
 
 /// Access Control Configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaAclConfig {
     /// Identity provider config.
     #[serde(default, rename = "idpConfig")]
@@ -3404,7 +3405,7 @@ pub struct GoogleCloudDiscoveryengineV1betaAclConfig {
 }
 
 /// Metadata related to the progress of the SiteSearchEngineService.BatchCreateTargetSites operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaBatchCreateTargetSiteMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3415,7 +3416,7 @@ pub struct GoogleCloudDiscoveryengineV1betaBatchCreateTargetSiteMetadata {
 }
 
 /// Response message for SiteSearchEngineService.BatchCreateTargetSites method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaBatchCreateTargetSitesResponse {
     /// TargetSites created.
     #[serde(default, rename = "targetSites")]
@@ -3424,7 +3425,7 @@ pub struct GoogleCloudDiscoveryengineV1betaBatchCreateTargetSitesResponse {
 }
 
 /// Metadata related to the progress of the UserLicenseService.BatchUpdateUserLicenses operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaBatchUpdateUserLicensesMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3441,7 +3442,7 @@ pub struct GoogleCloudDiscoveryengineV1betaBatchUpdateUserLicensesMetadata {
 }
 
 /// Response message for UserLicenseService.BatchUpdateUserLicenses method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaBatchUpdateUserLicensesResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -3453,7 +3454,7 @@ pub struct GoogleCloudDiscoveryengineV1betaBatchUpdateUserLicensesResponse {
 }
 
 /// Defines a conditioned behavior to employ during serving. Must be attached to a ServingConfig to be considered at serving time. Permitted actions dependent on SolutionType.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaControl {
     /// Output only. List of all ServingConfig IDs this control is attached to. May take up to 10 minutes to update after changes.
     #[serde(default, rename = "associatedServingConfigIds")]
@@ -3495,7 +3496,7 @@ pub struct GoogleCloudDiscoveryengineV1betaControl {
 }
 
 /// Metadata related to the progress of the DataStoreService.CreateDataStore operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaCreateDataStoreMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3506,7 +3507,7 @@ pub struct GoogleCloudDiscoveryengineV1betaCreateDataStoreMetadata {
 }
 
 /// Metadata related to the progress of the EngineService.CreateEngine operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaCreateEngineMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3517,11 +3518,11 @@ pub struct GoogleCloudDiscoveryengineV1betaCreateEngineMetadata {
 }
 
 /// Metadata for EvaluationService.CreateEvaluation method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaCreateEvaluationMetadata {}
 
 /// Metadata for Create Schema LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaCreateSchemaMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3532,7 +3533,7 @@ pub struct GoogleCloudDiscoveryengineV1betaCreateSchemaMetadata {
 }
 
 /// Metadata related to the progress of the SiteSearchEngineService.CreateSitemap operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaCreateSitemapMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3543,7 +3544,7 @@ pub struct GoogleCloudDiscoveryengineV1betaCreateSitemapMetadata {
 }
 
 /// Metadata related to the progress of the SiteSearchEngineService.CreateTargetSite operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaCreateTargetSiteMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3554,7 +3555,7 @@ pub struct GoogleCloudDiscoveryengineV1betaCreateTargetSiteMetadata {
 }
 
 /// DataStore captures global settings and configs at the DataStore level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaDataStore {
     /// Immutable. Whether data in the DataStore has ACL information. If set to true, the source data must have ACL. ACL will be ingested when data is ingested by DocumentService.ImportDocuments methods. When ACL is enabled for the DataStore, Document can''t be accessed by calling DocumentService.GetDocument or DocumentService.ListDocuments. Currently ACL is only supported in GENERIC industry vertical with non-PUBLIC_WEBSITE content config.
     #[serde(default, rename = "aclEnabled")]
@@ -3639,7 +3640,7 @@ pub struct GoogleCloudDiscoveryengineV1betaDataStore {
 }
 
 /// Metadata related to the progress of the DataStoreService.DeleteDataStore operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaDeleteDataStoreMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3650,7 +3651,7 @@ pub struct GoogleCloudDiscoveryengineV1betaDeleteDataStoreMetadata {
 }
 
 /// Metadata related to the progress of the EngineService.DeleteEngine operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaDeleteEngineMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3661,7 +3662,7 @@ pub struct GoogleCloudDiscoveryengineV1betaDeleteEngineMetadata {
 }
 
 /// Metadata related to the progress of the IdentityMappingStoreService.DeleteIdentityMappingStore operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaDeleteIdentityMappingStoreMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3672,7 +3673,7 @@ pub struct GoogleCloudDiscoveryengineV1betaDeleteIdentityMappingStoreMetadata {
 }
 
 /// Metadata for DeleteSchema LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaDeleteSchemaMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3683,7 +3684,7 @@ pub struct GoogleCloudDiscoveryengineV1betaDeleteSchemaMetadata {
 }
 
 /// Metadata related to the progress of the SiteSearchEngineService.DeleteSitemap operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaDeleteSitemapMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3694,7 +3695,7 @@ pub struct GoogleCloudDiscoveryengineV1betaDeleteSitemapMetadata {
 }
 
 /// Metadata related to the progress of the SiteSearchEngineService.DeleteTargetSite operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaDeleteTargetSiteMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3705,7 +3706,7 @@ pub struct GoogleCloudDiscoveryengineV1betaDeleteTargetSiteMetadata {
 }
 
 /// Metadata related to the progress of the SiteSearchEngineService.DisableAdvancedSiteSearch operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaDisableAdvancedSiteSearchMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3716,16 +3717,16 @@ pub struct GoogleCloudDiscoveryengineV1betaDisableAdvancedSiteSearchMetadata {
 }
 
 /// Response message for SiteSearchEngineService.DisableAdvancedSiteSearch method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaDisableAdvancedSiteSearchResponse {}
 
 /// The digital parsing configurations for documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaDocumentProcessingConfigParsingConfigDigitalParsingConfig
 {}
 
 /// Metadata related to the progress of the SiteSearchEngineService.EnableAdvancedSiteSearch operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaEnableAdvancedSiteSearchMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3736,11 +3737,11 @@ pub struct GoogleCloudDiscoveryengineV1betaEnableAdvancedSiteSearchMetadata {
 }
 
 /// Response message for SiteSearchEngineService.EnableAdvancedSiteSearch method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaEnableAdvancedSiteSearchResponse {}
 
 /// Metadata that describes the training and serving parameters of an Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaEngine {
     /// Optional. The agent gateway setting for the engine.
     #[serde(default, rename = "agentGatewaySetting")]
@@ -3825,7 +3826,7 @@ pub struct GoogleCloudDiscoveryengineV1betaEngine {
 }
 
 /// An evaluation is a single execution (or run) of an evaluation process. It encapsulates the state of the evaluation and the resulting data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaEvaluation {
     /// Output only. Timestamp the Evaluation was created at.
     #[serde(default, rename = "createTime")]
@@ -3855,7 +3856,7 @@ pub struct GoogleCloudDiscoveryengineV1betaEvaluation {
 }
 
 /// IdentityMappingEntry LongRunningOperation metadata for IdentityMappingStoreService.ImportIdentityMappings and IdentityMappingStoreService.PurgeIdentityMappings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaIdentityMappingEntryOperationMetadata {
     /// The number of IdentityMappingEntries that failed to be processed.
     #[serde(default, rename = "failureCount")]
@@ -3869,7 +3870,7 @@ pub struct GoogleCloudDiscoveryengineV1betaIdentityMappingEntryOperationMetadata
 }
 
 /// Metadata related to the progress of the ImportCompletionSuggestions operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaImportCompletionSuggestionsMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3886,7 +3887,7 @@ pub struct GoogleCloudDiscoveryengineV1betaImportCompletionSuggestionsMetadata {
 }
 
 /// Response of the CompletionService.ImportCompletionSuggestions method. If the long running operation is done, this message is returned by the google.longrunning.Operations.response field if the operation is successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaImportCompletionSuggestionsResponse {
     /// The desired location of errors incurred during the Import.
     #[serde(default, rename = "errorConfig")]
@@ -3897,7 +3898,7 @@ pub struct GoogleCloudDiscoveryengineV1betaImportCompletionSuggestionsResponse {
 }
 
 /// Metadata related to the progress of the ImportDocuments operation. This is returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaImportDocumentsMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3917,7 +3918,7 @@ pub struct GoogleCloudDiscoveryengineV1betaImportDocumentsMetadata {
 }
 
 /// Response of the ImportDocumentsRequest. If the long running operation is done, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaImportDocumentsResponse {
     /// Echoes the destination for the complete errors in the request if set.
     #[serde(default, rename = "errorConfig")]
@@ -3928,7 +3929,7 @@ pub struct GoogleCloudDiscoveryengineV1betaImportDocumentsResponse {
 }
 
 /// Response message for IdentityMappingStoreService.ImportIdentityMappings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaImportIdentityMappingsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -3936,7 +3937,7 @@ pub struct GoogleCloudDiscoveryengineV1betaImportIdentityMappingsResponse {
 }
 
 /// Metadata related to the progress of the ImportSampleQueries operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaImportSampleQueriesMetadata {
     /// ImportSampleQueries operation create time.
     #[serde(default, rename = "createTime")]
@@ -3956,7 +3957,7 @@ pub struct GoogleCloudDiscoveryengineV1betaImportSampleQueriesMetadata {
 }
 
 /// Response of the SampleQueryService.ImportSampleQueries method. If the long running operation is done, this message is returned by the google.longrunning.Operations.response field if the operation is successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaImportSampleQueriesResponse {
     /// The desired location of errors incurred during the Import.
     #[serde(default, rename = "errorConfig")]
@@ -3967,7 +3968,7 @@ pub struct GoogleCloudDiscoveryengineV1betaImportSampleQueriesResponse {
 }
 
 /// Metadata related to the progress of the ImportSuggestionDenyListEntries operation. This is returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaImportSuggestionDenyListEntriesMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -3978,7 +3979,7 @@ pub struct GoogleCloudDiscoveryengineV1betaImportSuggestionDenyListEntriesMetada
 }
 
 /// Response message for CompletionService.ImportSuggestionDenyListEntries method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaImportSuggestionDenyListEntriesResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -3992,7 +3993,7 @@ pub struct GoogleCloudDiscoveryengineV1betaImportSuggestionDenyListEntriesRespon
 }
 
 /// Metadata related to the progress of the Import operation. This is returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaImportUserEventsMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -4009,7 +4010,7 @@ pub struct GoogleCloudDiscoveryengineV1betaImportUserEventsMetadata {
 }
 
 /// Response of the ImportUserEventsRequest. If the long running operation was successful, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaImportUserEventsResponse {
     /// Echoes the destination for the complete errors if this field was set in the request.
     #[serde(default, rename = "errorConfig")]
@@ -4026,7 +4027,7 @@ pub struct GoogleCloudDiscoveryengineV1betaImportUserEventsResponse {
 }
 
 /// Information about users'' licenses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaLicenseConfig {
     /// Optional. Whether the license config should be auto renewed when it reaches the end date.
     #[serde(default, rename = "autoRenew")]
@@ -4067,7 +4068,7 @@ pub struct GoogleCloudDiscoveryengineV1betaLicenseConfig {
 }
 
 /// Response message for CrawlRateManagementService.ObtainCrawlRate method. The response contains organcic or dedicated crawl rate time series data for monitoring, depending on whether dedicated crawl rate is set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaObtainCrawlRateResponse {
     /// The historical dedicated crawl rate timeseries data, used for monitoring.
     #[serde(default, rename = "dedicatedCrawlRateTimeSeries")]
@@ -4086,7 +4087,7 @@ pub struct GoogleCloudDiscoveryengineV1betaObtainCrawlRateResponse {
 }
 
 /// Metadata and configurations for a Google Cloud project in the service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaProject {
     /// Output only. The current status of the project''s configurable billing.
     #[serde(default, rename = "configurableBillingStatus")]
@@ -4111,7 +4112,7 @@ pub struct GoogleCloudDiscoveryengineV1betaProject {
 }
 
 /// Metadata about the terms of service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaProjectServiceTerms {
     /// The last time when the project agreed to the terms of service.
     #[serde(default, rename = "acceptTime")]
@@ -4131,11 +4132,11 @@ pub struct GoogleCloudDiscoveryengineV1betaProjectServiceTerms {
 }
 
 /// Metadata associated with a project provision operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaProvisionProjectMetadata {}
 
 /// Metadata related to the progress of the PurgeDocuments operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaPurgeDocumentsMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -4155,7 +4156,7 @@ pub struct GoogleCloudDiscoveryengineV1betaPurgeDocumentsMetadata {
 }
 
 /// Response message for DocumentService.PurgeDocuments method. If the long running operation is successfully done, then this message is returned by the google.longrunning.Operations.response field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaPurgeDocumentsResponse {
     /// The total count of documents purged as a result of the operation.
     #[serde(default, rename = "purgeCount")]
@@ -4166,7 +4167,7 @@ pub struct GoogleCloudDiscoveryengineV1betaPurgeDocumentsResponse {
 }
 
 /// Metadata related to the progress of the PurgeSuggestionDenyListEntries operation. This is returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaPurgeSuggestionDenyListEntriesMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -4177,7 +4178,7 @@ pub struct GoogleCloudDiscoveryengineV1betaPurgeSuggestionDenyListEntriesMetadat
 }
 
 /// Response message for CompletionService.PurgeSuggestionDenyListEntries method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaPurgeSuggestionDenyListEntriesResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -4188,7 +4189,7 @@ pub struct GoogleCloudDiscoveryengineV1betaPurgeSuggestionDenyListEntriesRespons
 }
 
 /// Metadata related to the progress of the CrawlRateManagementService.RemoveDedicatedCrawlRate operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaRemoveDedicatedCrawlRateMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -4199,7 +4200,7 @@ pub struct GoogleCloudDiscoveryengineV1betaRemoveDedicatedCrawlRateMetadata {
 }
 
 /// Response message for CrawlRateManagementService.RemoveDedicatedCrawlRate method. It simply returns the state of the response, and an error message if the state is FAILED.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaRemoveDedicatedCrawlRateResponse {
     /// Errors from service when handling the request.
     #[serde(default)]
@@ -4210,7 +4211,7 @@ pub struct GoogleCloudDiscoveryengineV1betaRemoveDedicatedCrawlRateResponse {
 }
 
 /// Metadata related to the progress of the CrawlRateManagementService.SetDedicatedCrawlRate operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSetDedicatedCrawlRateMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -4221,7 +4222,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSetDedicatedCrawlRateMetadata {
 }
 
 /// Response message for CrawlRateManagementService.SetDedicatedCrawlRate method. It simply returns the state of the response, and an error message if the state is FAILED.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSetDedicatedCrawlRateResponse {
     /// Errors from service when handling the request.
     #[serde(default)]
@@ -4232,7 +4233,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSetDedicatedCrawlRateResponse {
 }
 
 /// A sitemap for the SiteSearchEngine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSitemap {
     /// Output only. The sitemap''s creation time.
     #[serde(default, rename = "createTime")]
@@ -4246,7 +4247,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSitemap {
 }
 
 /// Metadata related to the progress of the TrainCustomModel operation. This is returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaTrainCustomModelMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -4257,7 +4258,7 @@ pub struct GoogleCloudDiscoveryengineV1betaTrainCustomModelMetadata {
 }
 
 /// Response of the TrainCustomModelRequest. This message is returned by the google.longrunning.Operations.response field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaTrainCustomModelResponse {
     /// Echoes the destination for the complete errors in the request if set.
     #[serde(default, rename = "errorConfig")]
@@ -4277,7 +4278,7 @@ pub struct GoogleCloudDiscoveryengineV1betaTrainCustomModelResponse {
 }
 
 /// Metadata associated with a tune operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaTuneEngineMetadata {
     /// Required. The resource name of the engine that this tune applies to. Format: projects/{project}/locations/{location}/collections/{collection_id}/engines/{engine_id}
     #[serde(default)]
@@ -4285,11 +4286,11 @@ pub struct GoogleCloudDiscoveryengineV1betaTuneEngineMetadata {
 }
 
 /// Response associated with a tune operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaTuneEngineResponse {}
 
 /// Metadata for UpdateSchema LRO.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaUpdateSchemaMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -4300,7 +4301,7 @@ pub struct GoogleCloudDiscoveryengineV1betaUpdateSchemaMetadata {
 }
 
 /// Metadata related to the progress of the SiteSearchEngineService.UpdateTargetSite operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaUpdateTargetSiteMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -4311,7 +4312,7 @@ pub struct GoogleCloudDiscoveryengineV1betaUpdateTargetSiteMetadata {
 }
 
 /// Configures metadata that is used for End User entities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaUserStore {
     /// Optional. The default subscription LicenseConfig for the UserStore, if UserStore.enable_license_auto_register is true, new users will automatically register under the default subscription. If default LicenseConfig doesn''t have remaining license seats left, new users will not be assigned with license and will be blocked for Vertex AI Search features. This is used if license_assignment_tier_rules is not configured.
     #[serde(default, rename = "defaultLicenseConfig")]
@@ -4331,7 +4332,7 @@ pub struct GoogleCloudDiscoveryengineV1betaUserStore {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -4339,11 +4340,11 @@ pub struct GoogleIamV1SetIamPolicyRequest {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningCancelOperationRequest {}
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -4357,11 +4358,11 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// Defines additional transport information for the agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1AgentInterface {
     /// Tenant to be set in the request when calling the agent. Experimental, might still change for 1.0 release.
     #[serde(default)]
@@ -4375,7 +4376,7 @@ pub struct A2aV1AgentInterface {
 }
 
 /// Defines the A2A feature set supported by the agent
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1AgentCapabilities {
     /// Extensions supported by this agent.
     #[serde(default)]
@@ -4389,7 +4390,7 @@ pub struct A2aV1AgentCapabilities {
 }
 
 /// Represents information about the service provider of an agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1AgentProvider {
     /// The providers organization name Example: "Google"
     #[serde(default)]
@@ -4400,7 +4401,7 @@ pub struct A2aV1AgentProvider {
 }
 
 /// AgentCardSignature represents a JWS signature of an AgentCard. This follows the JSON format of an RFC 7515 JSON Web Signature (JWS).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1AgentCardSignature {
     /// The unprotected JWS header values.
     #[serde(default)]
@@ -4414,7 +4415,7 @@ pub struct A2aV1AgentCardSignature {
 }
 
 /// AgentSkill represents a unit of action/solution that the agent can perform. One can think of this as a type of highly reliable solution that an agent can be tasked to provide. Agents have the autonomy to choose how and when to use specific skills, but clients should have confidence that if the skill is defined that unit of action can be reliably performed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1AgentSkill {
     /// A human (or llm) readable description of the skill details and behaviors.
     #[serde(default)]
@@ -4443,7 +4444,7 @@ pub struct A2aV1AgentSkill {
 }
 
 /// A2aV1TaskPushNotificationConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1TaskPushNotificationConfig {
     /// The resource name of the config. Format: tasks/{task_id}/pushNotificationConfigs/{config_id}
     #[serde(default)]
@@ -4454,7 +4455,7 @@ pub struct A2aV1TaskPushNotificationConfig {
 }
 
 /// A2aV1aPIKeySecurityScheme resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1aPIKeySecurityScheme {
     /// Description of this security scheme.
     #[serde(default)]
@@ -4468,7 +4469,7 @@ pub struct A2aV1aPIKeySecurityScheme {
 }
 
 /// A2aV1hTTPAuthSecurityScheme resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1hTTPAuthSecurityScheme {
     /// A hint to the client to identify how the bearer token is formatted. Bearer tokens are usually generated by an authorization server, so this information is primarily for documentation purposes.
     #[serde(default, rename = "bearerFormat")]
@@ -4482,7 +4483,7 @@ pub struct A2aV1hTTPAuthSecurityScheme {
 }
 
 /// A2aV1MutualTlsSecurityScheme resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1MutualTlsSecurityScheme {
     /// Description of this security scheme.
     #[serde(default)]
@@ -4490,7 +4491,7 @@ pub struct A2aV1MutualTlsSecurityScheme {
 }
 
 /// A2aV1oAuth2SecurityScheme resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1oAuth2SecurityScheme {
     /// Description of this security scheme.
     #[serde(default)]
@@ -4504,7 +4505,7 @@ pub struct A2aV1oAuth2SecurityScheme {
 }
 
 /// A2aV1OpenIdConnectSecurityScheme resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1OpenIdConnectSecurityScheme {
     /// Description of this security scheme.
     #[serde(default)]
@@ -4515,7 +4516,7 @@ pub struct A2aV1OpenIdConnectSecurityScheme {
 }
 
 /// Configuration of a send message request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1SendMessageConfiguration {
     /// The output modes that the agent is expected to respond with.
     #[serde(default, rename = "acceptedOutputModes")]
@@ -4532,7 +4533,7 @@ pub struct A2aV1SendMessageConfiguration {
 }
 
 /// TaskArtifactUpdateEvent represents a task delta where an artifact has been generated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1TaskArtifactUpdateEvent {
     /// Whether this should be appended to a prior one produced
     #[serde(default)]
@@ -4555,7 +4556,7 @@ pub struct A2aV1TaskArtifactUpdateEvent {
 }
 
 /// TaskStatusUpdateEvent is a delta even on a task indicating that a task has changed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1TaskStatusUpdateEvent {
     /// The id of the context that the task belongs to
     #[serde(default, rename = "contextId")]
@@ -4575,7 +4576,7 @@ pub struct A2aV1TaskStatusUpdateEvent {
 }
 
 /// Task is the core unit of action for A2A. It has a current status and when results are created for the task they are stored in the artifact. If there are multiple turns for a task, these are stored in history.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1Task {
     /// A set of output artifacts for a Task.
     #[serde(default)]
@@ -4598,7 +4599,7 @@ pub struct A2aV1Task {
 }
 
 /// The error payload that is populated on LRO sync APIs, including the following: * google.cloud.discoveryengine.v1main.DataConnectorService.SetUpDataConnector * google.cloud.discoveryengine.v1main.DataConnectorService.StartConnectorRun
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineLoggingConnectorRunErrorContext {
     /// The full resource name of the Connector Run. Format: projects/*/locations/*/collections/*/dataConnector/connectorRuns/*. The connector_run_id is system-generated.
     #[serde(default, rename = "connectorRun")]
@@ -4624,7 +4625,7 @@ pub struct GoogleCloudDiscoveryengineLoggingConnectorRunErrorContext {
 }
 
 /// A description of the context in which an error occurred.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineLoggingErrorContext {
     /// The HTTP request which was processed when the error was triggered.
     #[serde(default, rename = "httpRequest")]
@@ -4635,7 +4636,7 @@ pub struct GoogleCloudDiscoveryengineLoggingErrorContext {
 }
 
 /// The error payload that is populated on LRO import APIs, including the following: * google.cloud.discoveryengine.v1alpha.DocumentService.ImportDocuments * google.cloud.discoveryengine.v1alpha.UserEventService.ImportUserEvents
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineLoggingImportErrorContext {
     /// The detailed content which caused the error on importing a document.
     #[serde(default)]
@@ -4655,7 +4656,7 @@ pub struct GoogleCloudDiscoveryengineLoggingImportErrorContext {
 }
 
 /// Describes a running service that sends errors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineLoggingServiceContext {
     /// An identifier of the service—for example, discoveryengine.googleapis.com.
     #[serde(default)]
@@ -4663,7 +4664,7 @@ pub struct GoogleCloudDiscoveryengineLoggingServiceContext {
 }
 
 /// Identity Provider Config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1IdpConfig {
     /// External Identity provider config.
     #[serde(default, rename = "externalIdpConfig")]
@@ -4675,7 +4676,7 @@ pub struct GoogleCloudDiscoveryengineV1IdpConfig {
 }
 
 /// Specification to boost suggestions based on the condition of the suggestion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryRequestBoostSpec {
     /// Condition boost specifications. If a suggestion matches multiple conditions in the specifications, boost values from these specifications are all applied and combined in a non-linear way. Maximum number of specifications is 20. Note: Currently only support language condition boost.
     #[serde(default, rename = "conditionBoostSpecs")]
@@ -4687,7 +4688,7 @@ pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryRequestBoostSpec {
 }
 
 /// Specification of each suggestion type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryRequestSuggestionTypeSpec {
     /// Optional. Maximum number of suggestions to return for each suggestion type.
     #[serde(default, rename = "maxSuggestions")]
@@ -4698,7 +4699,7 @@ pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryRequestSuggestionTyp
 }
 
 /// Suggestions as content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponseContentSuggestion {
     /// The type of the content suggestion. // TODO: enum values: ["CONTENT_TYPE_UNSPECIFIED", "GOOGLE_WORKSPACE", "THIRD_PARTY"]
     #[serde(default, rename = "contentType")]
@@ -4724,7 +4725,7 @@ pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponseContentSugge
 }
 
 /// Suggestions as people.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponsePersonSuggestion {
     /// The name of the dataStore that this suggestion belongs to.
     #[serde(default, rename = "dataStore")]
@@ -4750,7 +4751,7 @@ pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponsePersonSugges
 }
 
 /// Suggestions as search queries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponseQuerySuggestion {
     /// The unique document field paths that serve as the source of this suggestion if it was generated from completable fields. This field is only populated for the document-completable model.
     #[serde(default, rename = "completableFieldPaths")]
@@ -4767,7 +4768,7 @@ pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponseQuerySuggest
 }
 
 /// Suggestions from recent search history.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponseRecentSearchSuggestion {
     /// The time when this recent rearch happened.
     #[serde(default, rename = "recentSearchTime")]
@@ -4781,7 +4782,7 @@ pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryResponseRecentSearch
 }
 
 /// Answer generation specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestAnswerGenerationSpec {
     /// Language code for Answer. Use language tags defined by [BCP47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt). Note: This is an experimental feature.
     #[serde(default, rename = "answerLanguageCode")]
@@ -4814,7 +4815,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestAnswerGenerationSpec {
 }
 
 /// End user specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestEndUserSpec {
     /// Optional. End user metadata.
     #[serde(default, rename = "endUserMetadata")]
@@ -4824,7 +4825,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestEndUserSpec {
 }
 
 /// Grounding specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestGroundingSpec {
     /// Optional. Specifies whether to enable the filtering based on grounding score and at what level. // TODO: enum values: ["FILTERING_LEVEL_UNSPECIFIED", "FILTERING_LEVEL_LOW", "FILTERING_LEVEL_HIGH"]
     #[serde(default, rename = "filteringLevel")]
@@ -4835,7 +4836,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestGroundingSpec {
 }
 
 /// Query understanding specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestQueryUnderstandingSpec {
     /// Optional. Whether to disable spell correction. The default value is false.
     #[serde(default, rename = "disableSpellCorrection")]
@@ -4853,7 +4854,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestQueryUnderstandingSpec 
 }
 
 /// Related questions specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestRelatedQuestionsSpec {
     /// Enable related questions feature if true.
     #[serde(default)]
@@ -4861,7 +4862,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestRelatedQuestionsSpec {
 }
 
 /// Safety specification. There are two use cases: 1. when only safety_spec.enable is set, the BLOCK_LOW_AND_ABOVE threshold will be applied for all categories. 2. when safety_spec.enable is set and some safety_settings are set, only specified safety_settings are applied.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestSafetySpec {
     /// Enable the safety filtering on the answer response. It is false by default.
     #[serde(default)]
@@ -4874,7 +4875,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestSafetySpec {
 }
 
 /// Search specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestSearchSpec {
     /// Search parameters.
     #[serde(default, rename = "searchParams")]
@@ -4889,7 +4890,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestSearchSpec {
 }
 
 /// Information to identify a tool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistantToolInfo {
     /// The display name of the tool.
     #[serde(default, rename = "toolDisplayName")]
@@ -4900,7 +4901,7 @@ pub struct GoogleCloudDiscoveryengineV1AssistantToolInfo {
 }
 
 /// Request message for SiteSearchEngineService.CreateTargetSite method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1CreateTargetSiteRequest {
     /// Required. Parent resource name of TargetSite, such as projects/{project}/locations/{location}/collections/{collection}/dataStores/{data_store}/siteSearchEngine.
     #[serde(default)]
@@ -4911,7 +4912,7 @@ pub struct GoogleCloudDiscoveryengineV1CreateTargetSiteRequest {
 }
 
 /// The metadata of a Document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1BatchGetDocumentsMetadataResponseDocumentMetadata {
     /// The data ingestion source of the Document. Allowed values are: * batch: Data ingested via Batch API, e.g., ImportDocuments. * streaming Data ingested via Streaming API, e.g., FHIR streaming.
     #[serde(default, rename = "dataIngestionSource")]
@@ -4930,7 +4931,7 @@ pub struct GoogleCloudDiscoveryengineV1BatchGetDocumentsMetadataResponseDocument
 }
 
 /// The inline source for the input config for BatchUpdateUserLicenses method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1BatchUpdateUserLicensesRequestInlineSource {
     /// Optional. The list of fields to update.
     #[serde(default, rename = "updateMask")]
@@ -4942,7 +4943,7 @@ pub struct GoogleCloudDiscoveryengineV1BatchUpdateUserLicensesRequestInlineSourc
 }
 
 /// The column of the Bigtable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1BigtableOptionsBigtableColumn {
     /// The encoding mode of the values when the type is not STRING. Acceptable encoding values are: * TEXT: indicates values are alphanumeric text strings. * BINARY: indicates values are encoded using HBase Bytes.toBytes family of functions. This can be overridden for a specific column by listing that column in columns and specifying an encoding for it. // TODO: enum values: ["ENCODING_UNSPECIFIED", "TEXT", "BINARY"]
     #[serde(default)]
@@ -4959,7 +4960,7 @@ pub struct GoogleCloudDiscoveryengineV1BigtableOptionsBigtableColumn {
 }
 
 /// Grounding Fact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1GroundingFact {
     /// Attributes associated with the fact. Common attributes include source (indicating where the fact was sourced from), author (indicating the author of the fact), and so on.
     #[serde(default)]
@@ -4970,7 +4971,7 @@ pub struct GoogleCloudDiscoveryengineV1GroundingFact {
 }
 
 /// Specification for the grounding check.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1CheckGroundingSpec {
     /// The threshold (in [0,1]) used for determining whether a fact must be cited for a claim in the answer candidate. Choosing a higher threshold will lead to fewer but very strong citations, while choosing a lower threshold may lead to more but somewhat weaker citations. If unset, the threshold will default to 0.6.
     #[serde(default, rename = "citationThreshold")]
@@ -4981,7 +4982,7 @@ pub struct GoogleCloudDiscoveryengineV1CheckGroundingSpec {
 }
 
 /// Fact Chunk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1FactChunk {
     /// Text content of the fact chunk. Can be at most 10K characters long.
     #[serde(default, rename = "chunkText")]
@@ -5007,7 +5008,7 @@ pub struct GoogleCloudDiscoveryengineV1FactChunk {
 }
 
 /// Fact chunk for grounding check.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1CheckGroundingResponseCheckGroundingFactChunk {
     /// Text content of the fact chunk. Can be at most 10K characters long.
     #[serde(default, rename = "chunkText")]
@@ -5015,7 +5016,7 @@ pub struct GoogleCloudDiscoveryengineV1CheckGroundingResponseCheckGroundingFactC
 }
 
 /// Text and citation info for a claim in the answer candidate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1CheckGroundingResponseClaim {
     /// A list of indices (into ''cited_chunks'') specifying the citations associated with the claim. For instance [1,3,4] means that cited_chunks[1], cited_chunks[3], cited_chunks[4] are the facts cited supporting for the claim. A citation to a fact indicates that the claim is supported by the fact.
     #[serde(default, rename = "citationIndices")]
@@ -5038,7 +5039,7 @@ pub struct GoogleCloudDiscoveryengineV1CheckGroundingResponseClaim {
 }
 
 /// Suggestions as search queries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1CompleteQueryResponseQuerySuggestion {
     /// The unique document field paths that serve as the source of this suggestion if it was generated from completable fields. This field is only populated for the document-completable model.
     #[serde(default, rename = "completableFieldPaths")]
@@ -5049,7 +5050,7 @@ pub struct GoogleCloudDiscoveryengineV1CompleteQueryResponseQuerySuggestion {
 }
 
 /// Contains a Sitemap and its metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1FetchSitemapsResponseSitemapMetadata {
     /// The Sitemap.
     #[serde(default)]
@@ -5057,7 +5058,7 @@ pub struct GoogleCloudDiscoveryengineV1FetchSitemapsResponseSitemapMetadata {
 }
 
 /// The inline source for CompletionSuggestions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ImportCompletionSuggestionsRequestInlineSource {
     /// Required. A list of all denylist entries to import. Max of 1000 items.
     #[serde(default)]
@@ -5066,7 +5067,7 @@ pub struct GoogleCloudDiscoveryengineV1ImportCompletionSuggestionsRequestInlineS
 }
 
 /// AlloyDB source import data from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AlloyDbSource {
     /// Required. The AlloyDB cluster to copy the data from with a length limit of 256 characters.
     #[serde(default, rename = "clusterId")]
@@ -5089,7 +5090,7 @@ pub struct GoogleCloudDiscoveryengineV1AlloyDbSource {
 }
 
 /// The Cloud Bigtable source for importing data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1BigtableSource {
     /// Required. Bigtable options that contains information needed when parsing data into typed structures. For example, column type annotations.
     #[serde(default, rename = "bigtableOptions")]
@@ -5106,7 +5107,7 @@ pub struct GoogleCloudDiscoveryengineV1BigtableSource {
 }
 
 /// Cloud SQL source import data from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1CloudSqlSource {
     /// Required. The Cloud SQL database to copy the data from with a length limit of 256 characters.
     #[serde(default, rename = "databaseId")]
@@ -5129,7 +5130,7 @@ pub struct GoogleCloudDiscoveryengineV1CloudSqlSource {
 }
 
 /// Cloud FhirStore source import data from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1FhirStoreSource {
     /// Required. The full resource name of the FHIR store to import data from, in the format of projects/{project}/locations/{location}/datasets/{dataset}/fhirStores/{fhir_store}.
     #[serde(default, rename = "fhirStore")]
@@ -5146,7 +5147,7 @@ pub struct GoogleCloudDiscoveryengineV1FhirStoreSource {
 }
 
 /// Firestore source import data from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1FirestoreSource {
     /// Required. The Firestore collection (or entity) to copy the data from with a length limit of 1,500 characters.
     #[serde(default, rename = "collectionId")]
@@ -5163,7 +5164,7 @@ pub struct GoogleCloudDiscoveryengineV1FirestoreSource {
 }
 
 /// The inline source for the input config for ImportDocuments method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ImportDocumentsRequestInlineSource {
     /// Required. A list of documents to update/create. Each document must have a valid Document.id. Recommended max of 100 items.
     #[serde(default)]
@@ -5171,7 +5172,7 @@ pub struct GoogleCloudDiscoveryengineV1ImportDocumentsRequestInlineSource {
 }
 
 /// The Spanner source for importing data
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SpannerSource {
     /// Required. The database ID of the source Spanner table.
     #[serde(default, rename = "databaseId")]
@@ -5191,7 +5192,7 @@ pub struct GoogleCloudDiscoveryengineV1SpannerSource {
 }
 
 /// The inline source to import identity mapping entries from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ImportIdentityMappingsRequestInlineSource {
     /// A maximum of 10000 entries can be imported at one time
     #[serde(default, rename = "identityMappingEntries")]
@@ -5200,7 +5201,7 @@ pub struct GoogleCloudDiscoveryengineV1ImportIdentityMappingsRequestInlineSource
 }
 
 /// The inline source for SuggestionDenyListEntry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ImportSuggestionDenyListEntriesRequestInlineSource {
     /// Required. A list of all denylist entries to import. Max of 1000 items.
     #[serde(default)]
@@ -5210,7 +5211,7 @@ pub struct GoogleCloudDiscoveryengineV1ImportSuggestionDenyListEntriesRequestInl
 }
 
 /// BigQuery source import data from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1BigQuerySource {
     /// The schema to use when parsing the data from the source. Supported values for user event imports: * user_event (default): One UserEvent per row. Supported values for document imports: * document (default): One Document format per row. Each document must have a valid Document.id and one of Document.json_data or Document.struct_data. * custom: One custom data per row in arbitrary format that conforms to the defined Schema of the data store. This can only be used by the GENERIC Data Store vertical.
     #[serde(default, rename = "dataSchema")]
@@ -5233,7 +5234,7 @@ pub struct GoogleCloudDiscoveryengineV1BigQuerySource {
 }
 
 /// The inline source for the input config for ImportUserEvents method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ImportUserEventsRequestInlineSource {
     /// Required. A list of user events to import. Recommended max of 10k items.
     #[serde(default, rename = "userEvents")]
@@ -5241,7 +5242,7 @@ pub struct GoogleCloudDiscoveryengineV1ImportUserEventsRequestInlineSource {
 }
 
 /// Discovery Engine Assistant resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1Assistant {
     /// Optional. Customer policy for the assistant.
     #[serde(default, rename = "customerPolicy")]
@@ -5272,7 +5273,7 @@ pub struct GoogleCloudDiscoveryengineV1Assistant {
 }
 
 /// Defines a conditioned behavior to employ during serving. Must be attached to a ServingConfig to be considered at serving time. Permitted actions dependent on SolutionType.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1Control {
     /// Output only. List of all ServingConfig IDs this control is attached to. May take up to 10 minutes to update after changes.
     #[serde(default, rename = "associatedServingConfigIds")]
@@ -5310,7 +5311,7 @@ pub struct GoogleCloudDiscoveryengineV1Control {
 }
 
 /// External conversation proto definition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1Conversation {
     /// Output only. The time the conversation finished.
     #[serde(default, rename = "endTime")]
@@ -5334,7 +5335,7 @@ pub struct GoogleCloudDiscoveryengineV1Conversation {
 }
 
 /// Metadata that describes a custom tuned model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1CustomTuningModel {
     /// Deprecated: Timestamp the Model was created at.
     #[serde(default, rename = "createTime")]
@@ -5363,7 +5364,7 @@ pub struct GoogleCloudDiscoveryengineV1CustomTuningModel {
 }
 
 /// DataStore captures global settings and configs at the DataStore level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DataStore {
     /// Immutable. Whether data in the DataStore has ACL information. If set to true, the source data must have ACL. ACL will be ingested when data is ingested by DocumentService.ImportDocuments methods. When ACL is enabled for the DataStore, Document can''t be accessed by calling DocumentService.GetDocument or DocumentService.ListDocuments. Currently ACL is only supported in GENERIC industry vertical with non-PUBLIC_WEBSITE content config.
     #[serde(default, rename = "aclEnabled")]
@@ -5444,7 +5445,7 @@ pub struct GoogleCloudDiscoveryengineV1DataStore {
 }
 
 /// Metadata that describes the training and serving parameters of an Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1Engine {
     /// Optional. The agent gateway setting for the engine.
     #[serde(default, rename = "agentGatewaySetting")]
@@ -5528,7 +5529,7 @@ pub struct GoogleCloudDiscoveryengineV1Engine {
 }
 
 /// Identity Mapping Store which contains Identity Mapping Entries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1IdentityMappingStore {
     /// Output only. CMEK-related information for the Identity Mapping Store.
     #[serde(default, rename = "cmekConfig")]
@@ -5542,7 +5543,7 @@ pub struct GoogleCloudDiscoveryengineV1IdentityMappingStore {
 }
 
 /// Stats about users'' licenses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1LicenseConfigUsageStats {
     /// Required. The LicenseConfig name.
     #[serde(default, rename = "licenseConfig")]
@@ -5553,7 +5554,7 @@ pub struct GoogleCloudDiscoveryengineV1LicenseConfigUsageStats {
 }
 
 /// Configures metadata that is used to generate serving time results (e.g. search results or recommendation predictions). The ServingConfig is passed in the search and predict request and generates results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ServingConfig {
     /// Optional. The specification for answer generation.
     #[serde(default, rename = "answerGenerationSpec")]
@@ -5620,7 +5621,7 @@ pub struct GoogleCloudDiscoveryengineV1ServingConfig {
 }
 
 /// External session proto definition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1Session {
     /// Optional. The display name of the session. This field is used to identify the session in the UI. By default, the display name is the first turn query text in the session.
     #[serde(default, rename = "displayName")]
@@ -5652,7 +5653,7 @@ pub struct GoogleCloudDiscoveryengineV1Session {
 }
 
 /// Represents the currently effective configurable billing parameters. These values are derived from the customer''s subscription history stored internally and reflect the thresholds actively being used for billing purposes at the time of the GetProject call. This includes the start_time of the subscription and may differ from the values in customer_provided_config due to billing rules (e.g., scale-downs taking effect only at the start of a new month).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ProjectConfigurableBillingStatus {
     /// Optional. The currently effective Indexing Core threshold. This is the threshold against which Indexing Core usage is compared for overage calculations.
     #[serde(default, rename = "effectiveIndexingCoreThreshold")]
@@ -5675,7 +5676,7 @@ pub struct GoogleCloudDiscoveryengineV1ProjectConfigurableBillingStatus {
 }
 
 /// Customer provided configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ProjectCustomerProvidedConfig {
     /// Optional. Configuration for NotebookLM settings.
     #[serde(default, rename = "notebooklmConfig")]
@@ -5685,7 +5686,7 @@ pub struct GoogleCloudDiscoveryengineV1ProjectCustomerProvidedConfig {
 }
 
 /// Parameters for Agentspace.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ProvisionProjectRequestSaasParams {
     /// Optional. Set to true to specify that caller has read and would like to give consent to the [Terms for Agent Space quality of service].
     #[serde(default, rename = "acceptBizQos")]
@@ -5696,7 +5697,7 @@ pub struct GoogleCloudDiscoveryengineV1ProvisionProjectRequestSaasParams {
 }
 
 /// Configuration of destination for Purge related errors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1PurgeErrorConfig {
     /// Cloud Storage prefix for purge errors. This must be an empty, existing Cloud Storage directory. Purge errors are written to sharded files in this directory, one per line, as a JSON-encoded google.rpc.Status message.
     #[serde(default, rename = "gcsPrefix")]
@@ -5704,7 +5705,7 @@ pub struct GoogleCloudDiscoveryengineV1PurgeErrorConfig {
 }
 
 /// Cloud Storage location for input content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1GcsSource {
     /// The schema to use when parsing the data from the source. Supported values for document imports: * document (default): One JSON Document per line. Each document must have a valid Document.id. * content: Unstructured data (e.g. PDF, HTML). Each file matched by input_uris becomes a document, with the ID set to the first 128 bits of SHA256(URI) encoded as a hex string. * custom: One custom data JSON per row in arbitrary format that conforms to the defined Schema of the data store. This can only be used by the GENERIC Data Store vertical. * csv: A CSV file with header conforming to the defined Schema of the data store. Each entry after the header is imported as a Document. This can only be used by the GENERIC Data Store vertical. Supported values for user event imports: * user_event (default): One JSON UserEvent per line.
     #[serde(default, rename = "dataSchema")]
@@ -5715,7 +5716,7 @@ pub struct GoogleCloudDiscoveryengineV1GcsSource {
 }
 
 /// The inline source for the input config for DocumentService.PurgeDocuments method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1PurgeDocumentsRequestInlineSource {
     /// Required. A list of full resource name of documents to purge. In the format projects/*/locations/*/collections/*/dataStores/*/branches/*/documents/*. Recommended max of 100 items.
     #[serde(default)]
@@ -5723,7 +5724,7 @@ pub struct GoogleCloudDiscoveryengineV1PurgeDocumentsRequestInlineSource {
 }
 
 /// The inline source to purge identity mapping entries from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1PurgeIdentityMappingsRequestInlineSource {
     /// A maximum of 10000 entries can be purged at one time
     #[serde(default, rename = "identityMappingEntries")]
@@ -5732,7 +5733,7 @@ pub struct GoogleCloudDiscoveryengineV1PurgeIdentityMappingsRequestInlineSource 
 }
 
 /// Record message for RankService.Rank method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1RankingRecord {
     /// The content of the record. Empty by default. At least one of title or content should be set otherwise an INVALID_ARGUMENT error is thrown.
     #[serde(default)]
@@ -5749,7 +5750,7 @@ pub struct GoogleCloudDiscoveryengineV1RankingRecord {
 }
 
 /// RecommendationResult represents a generic recommendation result with associated metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1RecommendResponseRecommendationResult {
     /// Set if returnDocument is set to true in RecommendRequest.params.
     #[serde(default)]
@@ -5763,7 +5764,7 @@ pub struct GoogleCloudDiscoveryengineV1RecommendResponseRecommendationResult {
 }
 
 /// Specification for crowding. Crowding improves the diversity of search results by limiting the number of results that share the same field value. For example, crowding on the color field with a max_count of 3 and mode DROP_CROWDED_RESULTS will return at most 3 results with the same color across all pages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequestCrowdingSpec {
     /// The field to use for crowding. Documents can be crowded by a field in the Document object. Crowding field is case sensitive.
     #[serde(default)]
@@ -5777,7 +5778,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequestCrowdingSpec {
 }
 
 /// Specifies features for display, like match highlighting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequestDisplaySpec {
     /// The condition under which match highlighting should occur. // TODO: enum values: ["MATCH_HIGHLIGHTING_CONDITION_UNSPECIFIED", "MATCH_HIGHLIGHTING_DISABLED", "MATCH_HIGHLIGHTING_ENABLED"]
     #[serde(default, rename = "matchHighlightingCondition")]
@@ -5785,7 +5786,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequestDisplaySpec {
 }
 
 /// A facet specification to perform faceted search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequestFacetSpec {
     /// Enables dynamic position for this facet. If set to true, the position of this facet among all facets in the response is determined automatically. If dynamic facets are enabled, it is ordered together. If set to false, the position of this facet in the response is the same as in the request, and it is ranked before the facets with dynamic position enable and all dynamic facets. For example, you may always want to have rating facet returned in the response, but it''s not necessarily to always display the rating facet at the top. In that case, you can set enable_dynamic_position to true so that the position of rating facet in response is determined automatically. Another example, assuming you have the following facets in the request: * "rating", enable_dynamic_position = true * "price", enable_dynamic_position = false * "brands", enable_dynamic_position = false And also you have a dynamic facets enabled, which generates a facet gender. Then the final order of the facets in the response can be ("price", "brands", "rating", "gender") or ("price", "brands", "gender", "rating") depends on how API orders "gender" and "rating" facets. However, notice that "price" and "brands" are always ranked at first and second position because their enable_dynamic_position is false.
     #[serde(default, rename = "enableDynamicPosition")]
@@ -5803,7 +5804,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequestFacetSpec {
 }
 
 /// Specifies the image query input.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequestImageQuery {
     /// Base64 encoded image bytes. Supported image formats: JPEG, PNG, and BMP.
     #[serde(default, rename = "imageBytes")]
@@ -5811,7 +5812,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequestImageQuery {
 }
 
 /// Specification to enable natural language understanding capabilities for search requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequestNaturalLanguageQueryUnderstandingSpec {
     /// Optional. Allowlist of fields that can be used for natural language filter extraction. By default, if this is unspecified, all indexable fields are eligible for natural language filter extraction (but are not guaranteed to be used). If any fields are specified in allowed_field_names, only the fields that are both marked as indexable in the schema and specified in the allowlist will be eligible for natural language filter extraction. Note: for multi-datastore search, this is not yet supported, and will be ignored.
     #[serde(default, rename = "allowedFieldNames")]
@@ -5828,7 +5829,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequestNaturalLanguageQueryUndersta
 }
 
 /// Specification to determine under which conditions query expansion should occur.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequestQueryExpansionSpec {
     /// The condition under which query expansion should occur. Default to Condition.DISABLED. // TODO: enum values: ["CONDITION_UNSPECIFIED", "DISABLED", "AUTO"]
     #[serde(default)]
@@ -5839,7 +5840,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequestQueryExpansionSpec {
 }
 
 /// The specification for returning the document relevance score.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequestRelevanceScoreSpec {
     /// Optional. Whether to return the relevance score for search results. The higher the score, the more relevant the document is to the query.
     #[serde(default, rename = "returnRelevanceScore")]
@@ -5847,7 +5848,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequestRelevanceScoreSpec {
 }
 
 /// Specification for search as you type in search requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequestSearchAsYouTypeSpec {
     /// The condition under which search as you type should occur. Default to Condition.DISABLED. // TODO: enum values: ["CONDITION_UNSPECIFIED", "DISABLED", "ENABLED", "AUTO"]
     #[serde(default)]
@@ -5855,7 +5856,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequestSearchAsYouTypeSpec {
 }
 
 /// Session specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequestSessionSpec {
     /// If set, the search result gets stored to the "turn" specified by this query ID. Example: Let''s say the session looks like this: session { name: ".../sessions/xxx" turns { query { text: "What is foo?" query_id: ".../questions/yyy" } answer: "Foo is ..." } turns { query { text: "How about bar then?" query_id: ".../questions/zzz" } } } The user can call /search API with a request like this: session: ".../sessions/xxx" session_spec { query_id: ".../questions/zzz" } Then, the API stores the search result, associated with the last turn. The stored search result can be used by a subsequent /answer API call (with the session ID and the query ID specified). Also, it is possible to call /search and /answer in parallel with the same session ID & query ID.
     #[serde(default, rename = "queryId")]
@@ -5866,7 +5867,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequestSessionSpec {
 }
 
 /// The specification for query spell correction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequestSpellCorrectionSpec {
     /// The mode under which spell correction replaces the original search query. Defaults to Mode.AUTO. // TODO: enum values: ["MODE_UNSPECIFIED", "SUGGESTION_ONLY", "AUTO"]
     #[serde(default)]
@@ -5874,7 +5875,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequestSpellCorrectionSpec {
 }
 
 /// A facet result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchResponseFacet {
     /// Whether the facet is dynamically generated.
     #[serde(default, rename = "dynamicFacet")]
@@ -5890,7 +5891,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseFacet {
 }
 
 /// Information describing what natural language understanding was done on the input query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfo {
     /// The classified intents from the input query.
     #[serde(default, rename = "classifiedIntents")]
@@ -5907,7 +5908,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderst
 }
 
 /// Information describing query expansion including whether expansion has occurred.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchResponseQueryExpansionInfo {
     /// Bool describing whether query expansion has occurred.
     #[serde(default, rename = "expandedQuery")]
@@ -5918,7 +5919,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseQueryExpansionInfo {
 }
 
 /// Represents the search results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchResponseSearchResult {
     /// The chunk data in the search response if the SearchRequest.ContentSearchSpec.search_result_mode is set to CHUNKS.
     #[serde(default)]
@@ -5939,7 +5940,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseSearchResult {
 }
 
 /// Information about the session.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchResponseSessionInfo {
     /// Name of the session. If the auto-session mode is used (when SearchRequest.session ends with "-"), this field holds the newly generated session name.
     #[serde(default)]
@@ -5950,7 +5951,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseSessionInfo {
 }
 
 /// Manages the connection to external data sources for all data stores grouped under a Collection. It''s a singleton resource of Collection. The initialization is only supported through DataConnectorService.SetUpDataConnector method, which will create a new Collection and initialize its DataConnector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DataConnector {
     /// Optional. Whether the connector will be created with an ACL config. Currently this field only affects Cloud Storage and BigQuery connectors.
     #[serde(default, rename = "aclEnabled")]
@@ -6090,7 +6091,7 @@ pub struct GoogleCloudDiscoveryengineV1DataConnector {
 }
 
 /// Assistant generation specification for the request. This allows to override the default generation configuration at the engine level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1StreamAssistRequestGenerationSpec {
     /// Optional. The Vertex AI model_id used for the generative model. If not set, the default Assistant model will be used.
     #[serde(default, rename = "modelId")]
@@ -6098,7 +6099,7 @@ pub struct GoogleCloudDiscoveryengineV1StreamAssistRequestGenerationSpec {
 }
 
 /// Specification of tools that are used to serve the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1StreamAssistRequestToolsSpec {
     /// Optional. Specification of the image generation tool.
     #[serde(default, rename = "imageGenerationSpec")]
@@ -6117,7 +6118,7 @@ pub struct GoogleCloudDiscoveryengineV1StreamAssistRequestToolsSpec {
 }
 
 /// User metadata of the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistUserMetadata {
     /// Optional. Preferred language to be used for answering if language detection fails. Also used as the language of error messages created by actions, regardless of language detection results.
     #[serde(default, rename = "preferredLanguageCode")]
@@ -6128,7 +6129,7 @@ pub struct GoogleCloudDiscoveryengineV1AssistUserMetadata {
 }
 
 /// Information about the session.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1StreamAssistResponseSessionInfo {
     /// Name of the newly generated or continued session. Format: projects/{project}/locations/{location}/collections/{collection}/engines/{engine}/sessions/{session}.
     #[serde(default)]
@@ -6136,7 +6137,7 @@ pub struct GoogleCloudDiscoveryengineV1StreamAssistResponseSessionInfo {
 }
 
 /// Cloud Storage training data input.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1TrainCustomModelRequestGcsTrainingInput {
     /// The Cloud Storage corpus data which could be associated in train data. The data path format is gs:///. A newline delimited jsonl/ndjson file. For search-tuning model, each line should have the _id, title and text. Example: {"_id": "doc1", title: "relevant doc", "text": "relevant text"}
     #[serde(default, rename = "corpusDataPath")]
@@ -6153,7 +6154,7 @@ pub struct GoogleCloudDiscoveryengineV1TrainCustomModelRequestGcsTrainingInput {
 }
 
 /// Configuration of destination for Import related errors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ImportErrorConfig {
     /// Cloud Storage prefix for import errors. This must be an empty, existing Cloud Storage directory. Import errors are written to sharded files in this directory, one per line, as a JSON-encoded google.rpc.Status message.
     #[serde(default, rename = "gcsPrefix")]
@@ -6161,7 +6162,7 @@ pub struct GoogleCloudDiscoveryengineV1ImportErrorConfig {
 }
 
 /// Describes widget access settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1WidgetConfigAccessSettings {
     /// Whether public unauthenticated access is allowed.
     #[serde(default, rename = "allowPublicAccess")]
@@ -6181,7 +6182,7 @@ pub struct GoogleCloudDiscoveryengineV1WidgetConfigAccessSettings {
 }
 
 /// Describes the assistant settings of the widget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1WidgetConfigAssistantSettings {
     /// Output only. This field controls the default web grounding toggle for end users if web_grounding_type is set to WEB_GROUNDING_TYPE_GOOGLE_SEARCH or WEB_GROUNDING_TYPE_ENTERPRISE_WEB_SEARCH. By default, this field is set to false. If web_grounding_type is WEB_GROUNDING_TYPE_GOOGLE_SEARCH or WEB_GROUNDING_TYPE_ENTERPRISE_WEB_SEARCH, end users will have web grounding enabled by default on UI. If true, grounding toggle will be disabled by default on UI. End users can still enable web grounding in the UI if web grounding is enabled.
     #[serde(default, rename = "defaultWebGroundingToggleOff")]
@@ -6198,7 +6199,7 @@ pub struct GoogleCloudDiscoveryengineV1WidgetConfigAssistantSettings {
 }
 
 /// Read-only collection component that contains data store collections fields that may be used for filtering
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1WidgetConfigCollectionComponent {
     /// Output only. The icon link of the connector source.
     #[serde(default, rename = "connectorIconLink")]
@@ -6226,7 +6227,7 @@ pub struct GoogleCloudDiscoveryengineV1WidgetConfigCollectionComponent {
 }
 
 /// Customer provided configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1WidgetConfigCustomerProvidedConfig {
     /// Customer type. // TODO: enum values: ["DEFAULT_CUSTOMER", "GOVERNMENT_CUSTOMER"]
     #[serde(default, rename = "customerType")]
@@ -6234,7 +6235,7 @@ pub struct GoogleCloudDiscoveryengineV1WidgetConfigCustomerProvidedConfig {
 }
 
 /// Describes the homepage setting of the widget. It includes all homepage related settings and configurations, such as shortcuts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1WidgetConfigHomepageSetting {
     /// Optional. The shortcuts to display on the homepage.
     #[serde(default)]
@@ -6244,7 +6245,7 @@ pub struct GoogleCloudDiscoveryengineV1WidgetConfigHomepageSetting {
 }
 
 /// Represents a single reusable computational or logical unit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1WidgetConfigNode {
     /// Output only. A detailed description of what the node does.
     #[serde(default)]
@@ -6267,7 +6268,7 @@ pub struct GoogleCloudDiscoveryengineV1WidgetConfigNode {
 }
 
 /// Describes widget UI branding settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1WidgetConfigUiBrandingSettings {
     /// Logo image.
     #[serde(default)]
@@ -6275,7 +6276,7 @@ pub struct GoogleCloudDiscoveryengineV1WidgetConfigUiBrandingSettings {
 }
 
 /// Describes general widget (or web app) UI settings as seen in the cloud console UI configuration page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1WidgetConfigUiSettings {
     /// Per data store configuration.
     #[serde(default, rename = "dataStoreUiConfigs")]
@@ -6329,7 +6330,7 @@ pub struct GoogleCloudDiscoveryengineV1WidgetConfigUiSettings {
 }
 
 /// A target site for the SiteSearchEngine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaTargetSite {
     /// Immutable. If set to false, a uri_pattern is generated to include all pages whose address contains the provided_uri_pattern. If set to true, an uri_pattern is generated to try to be an exact match of the provided_uri_pattern or just the specific page if the provided_uri_pattern is a specific one. provided_uri_pattern is always normalized to generate the URI pattern to be used by the search engine.
     #[serde(default, rename = "exactMatch")]
@@ -6366,7 +6367,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaTargetSite {
 }
 
 /// User License information assigned by the admin.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaUserLicense {
     /// Output only. User created timestamp.
     #[serde(default, rename = "createTime")]
@@ -6392,7 +6393,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaUserLicense {
 }
 
 /// Manages the connection to external data sources for all data stores grouped under a Collection. It''s a singleton resource of Collection. The initialization is only supported through DataConnectorService.SetUpDataConnector method, which will create a new Collection and initialize its DataConnector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDataConnector {
     /// Optional. Whether the connector will be created with an ACL config. Currently this field only affects Cloud Storage and BigQuery connectors.
     #[serde(default, rename = "aclEnabled")]
@@ -6536,7 +6537,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDataConnector {
 }
 
 /// Represents an entity that was synced in this ConnectorRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaConnectorRunEntityRun {
     /// Optional. The number of documents deleted.
     #[serde(default, rename = "deletedRecordCount")]
@@ -6581,7 +6582,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaConnectorRunEntityRun {
 }
 
 /// Adjusts order of products in returned list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaControlBoostAction {
     /// Strength of the boost, which should be in [-1, 1]. Negative boost means demotion. Default is 0.0 (No-op).
     #[serde(default)]
@@ -6603,7 +6604,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaControlBoostAction {
 }
 
 /// Defines circumstances to be checked before allowing a behavior
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaCondition {
     /// Range of time(s) specifying when condition is active. Maximum of 10 time ranges.
     #[serde(default, rename = "activeTimeRange")]
@@ -6621,7 +6622,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaCondition {
 }
 
 /// Specified which products may be included in results. Uses same filter as boost.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaControlFilterAction {
     /// Required. Specifies which data store''s documents can be filtered by this control. Full data store name e.g. projects/123/locations/global/collections/default_collection/dataStores/default_data_store
     #[serde(default, rename = "dataStore")]
@@ -6632,7 +6633,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaControlFilterAction {
 }
 
 /// Promote certain links based on some trigger queries. Example: Promote shoe store link when searching for shoe keyword. The link can be outside of associated data store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaControlPromoteAction {
     /// Required. Data store with which this promotion is attached to.
     #[serde(default, rename = "dataStore")]
@@ -6644,7 +6645,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaControlPromoteAction {
 }
 
 /// Redirects a shopper to the provided URI.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaControlRedirectAction {
     /// Required. The URI to which the shopper will be redirected. Required. URI must have length equal or less than 2000 characters. Otherwise an INVALID ARGUMENT error is thrown.
     #[serde(default, rename = "redirectUri")]
@@ -6652,7 +6653,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaControlRedirectAction {
 }
 
 /// Creates a set of terms that will act as synonyms of one another. Example: "happy" will also be considered as "glad", "glad" will also be considered as "happy".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaControlSynonymsAction {
     /// Defines a set of synonyms. Can specify up to 100 synonyms. Must specify at least 2 synonyms. Otherwise an INVALID ARGUMENT error is thrown.
     #[serde(default)]
@@ -6660,7 +6661,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaControlSynonymsAction {
 }
 
 /// Configuration data for advance site search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAdvancedSiteSearchConfig {
     /// If set true, automatic refresh is disabled for the DataStore.
     #[serde(default, rename = "disableAutomaticRefresh")]
@@ -6671,7 +6672,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAdvancedSiteSearchConfig {
 }
 
 /// Estimation of data size per data store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDataStoreBillingEstimation {
     /// Data size for structured data in terms of bytes.
     #[serde(default, rename = "structuredDataSize")]
@@ -6694,7 +6695,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDataStoreBillingEstimation {
 }
 
 /// A singleton resource of DataStore. If it''s empty when DataStore is created and DataStore is set to DataStore.ContentConfig.CONTENT_REQUIRED, the default parser will default to digital parser.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDocumentProcessingConfig {
     /// Whether chunking mode is enabled.
     #[serde(default, rename = "chunkingConfig")]
@@ -6715,7 +6716,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDocumentProcessingConfig {
 }
 
 /// Stores information for federated search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDataStoreFederatedSearchConfig {
     /// AlloyDB config. If set, this DataStore is connected to AlloyDB.
     #[serde(default, rename = "alloyDbConfig")]
@@ -6735,7 +6736,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDataStoreFederatedSearchConfig {
 }
 
 /// Identity Provider Config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaIdpConfig {
     /// External Identity provider config.
     #[serde(default, rename = "externalIdpConfig")]
@@ -6747,7 +6748,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaIdpConfig {
 }
 
 /// Language info for DataStore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaLanguageInfo {
     /// Output only. Language part of normalized_language_code. E.g.: en-US -&gt; en, zh-Hans-HK -&gt; zh, en -&gt; en.
     #[serde(default)]
@@ -6764,7 +6765,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaLanguageInfo {
 }
 
 /// Configuration for Natural Language Query Understanding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaNaturalLanguageQueryUnderstandingConfig {
     /// Mode of Natural Language Query Understanding. If this field is unset, the behavior defaults to NaturalLanguageQueryUnderstandingConfig.Mode.DISABLED. // TODO: enum values: ["MODE_UNSPECIFIED", "DISABLED", "ENABLED"]
     #[serde(default)]
@@ -6772,7 +6773,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaNaturalLanguageQueryUnderstandingCon
 }
 
 /// Stores information regarding the serving configurations at DataStore level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDataStoreServingConfigDataStore {
     /// Optional. If set true, the DataStore will not be available for serving search requests.
     #[serde(default, rename = "disabledForServing")]
@@ -6780,7 +6781,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDataStoreServingConfigDataStore {
 }
 
 /// Config to store data store type configuration for workspace data
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaWorkspaceConfig {
     /// Obfuscated Dasher customer ID.
     #[serde(default, rename = "dasherCustomerId")]
@@ -6797,7 +6798,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaWorkspaceConfig {
 }
 
 /// Agent Gateway setting, which may be attached to Gemini Enterprise resources for egress control of Gemini Enterprise agents to agents and tools outside of Gemini Enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAgentGatewaySetting {
     /// Optional. The default egress agent gateway to use, when this setting is applied to a Gemini Enterprise resource. The deployment mode must be GOOGLE_MANAGED, and the governed access path must be AGENT_TO_ANYWHERE.
     #[serde(default, rename = "defaultEgressAgentGateway")]
@@ -6807,7 +6808,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAgentGatewaySetting {
 }
 
 /// Configurations for a Chat Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaEngineChatEngineConfig {
     /// The configurationt generate the Dialogflow agent that is associated to this Engine. Note that these configurations are one-time consumed by and passed to Dialogflow service. It means they cannot be retrieved using EngineService.GetEngine or EngineService.ListEngines API after engine creation.
     #[serde(default, rename = "agentCreationConfig")]
@@ -6823,7 +6824,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaEngineChatEngineConfig {
 }
 
 /// Additional information of a Chat Engine. Fields in this message are output only.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaEngineChatEngineMetadata {
     /// The resource name of a Dialogflow agent, that this Chat Engine refers to. Format: projects//locations//agents/.
     #[serde(default, rename = "dialogflowAgent")]
@@ -6831,7 +6832,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaEngineChatEngineMetadata {
 }
 
 /// Configurations used to enable CMEK data encryption with Cloud KMS keys.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaCmekConfig {
     /// Output only. The default CmekConfig for the Customer.
     #[serde(default, rename = "isDefault")]
@@ -6861,7 +6862,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaCmekConfig {
 }
 
 /// Common configurations for an Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaEngineCommonConfig {
     /// The name of the company, business or entity that is associated with the engine. Setting this may help improve LLM related features.
     #[serde(default, rename = "companyName")]
@@ -6869,7 +6870,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaEngineCommonConfig {
 }
 
 /// Configuration message for the Knowledge Graph.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaEngineKnowledgeGraphConfig {
     /// Specify entity types to support.
     #[serde(default, rename = "cloudKnowledgeGraphTypes")]
@@ -6891,7 +6892,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaEngineKnowledgeGraphConfig {
 }
 
 /// Additional config specs for a Media Recommendation engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaEngineMediaRecommendationEngineConfig {
     /// Optional. Additional engine features config.
     #[serde(default, rename = "engineFeaturesConfig")]
@@ -6911,7 +6912,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaEngineMediaRecommendationEngineConfi
 }
 
 /// Additional information of a recommendation engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaEngineRecommendationMetadata {
     /// Output only. The state of data requirements for this engine: DATA_OK and DATA_ERROR. Engine cannot be trained if the data is in DATA_ERROR state. Engine can have DATA_ERROR state even if serving state is ACTIVE: engines were trained successfully before, but cannot be refreshed because the underlying engine no longer has sufficient data for training. // TODO: enum values: ["DATA_STATE_UNSPECIFIED", "DATA_OK", "DATA_ERROR"]
     #[serde(default, rename = "dataState")]
@@ -6931,7 +6932,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaEngineRecommendationMetadata {
 }
 
 /// Configurations for a Search Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaEngineSearchEngineConfig {
     /// Optional. The required subscription tier of this engine. They cannot be modified after engine creation. If the required subscription tier is search, user with higher license tier like assist can still access the standalone app associated with this engine. // TODO: enum values: ["SUBSCRIPTION_TIER_UNSPECIFIED", "SUBSCRIPTION_TIER_SEARCH", "SUBSCRIPTION_TIER_SEARCH_AND_ASSISTANT", "SUBSCRIPTION_TIER_NOTEBOOK_LM", "SUBSCRIPTION_TIER_FRONTLINE_WORKER", "SUBSCRIPTION_TIER_AGENTSPACE_STARTER", "SUBSCRIPTION_TIER_AGENTSPACE_BUSINESS", "SUBSCRIPTION_TIER_ENTERPRISE", "SUBSCRIPTION_TIER_ENTERPRISE_EMERGING", "SUBSCRIPTION_TIER_EDU", "SUBSCRIPTION_TIER_EDU_PRO", "SUBSCRIPTION_TIER_EDU_EMERGING", "SUBSCRIPTION_TIER_EDU_PRO_EMERGING", "SUBSCRIPTION_TIER_FRONTLINE_STARTER"]
     #[serde(default, rename = "requiredSubscriptionTier")]
@@ -6945,7 +6946,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaEngineSearchEngineConfig {
 }
 
 /// Describes the specification of the evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaEvaluationEvaluationSpec {
     /// Optional. The specification of the query set.
     #[serde(default, rename = "querySetSpec")]
@@ -6958,7 +6959,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaEvaluationEvaluationSpec {
 }
 
 /// Describes the metrics produced by the evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaQualityMetrics {
     /// Normalized discounted cumulative gain (NDCG) per document, at various top-k cutoff levels. NDCG measures the ranking quality, giving higher relevance to top results. Example (top-3): Suppose SampleQuery with three retrieved documents (D1, D2, D3) and binary relevance judgements (1 for relevant, 0 for not relevant): Retrieved: [D3 (0), D1 (1), D2 (1)] Ideal: [D1 (1), D2 (1), D3 (0)] Calculate NDCG@3 for each SampleQuery: * DCG@3: 0/log2(1+1) + 1/log2(2+1) + 1/log2(3+1) = 1.13 * Ideal DCG@3: 1/log2(1+1) + 1/log2(2+1) + 0/log2(3+1) = 1.63 * NDCG@3: 1.13/1.63 = 0.693
     #[serde(default, rename = "docNdcg")]
@@ -6983,7 +6984,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaQualityMetrics {
 }
 
 /// The resource level alert config. Used in: * UserLicense * EngineUserData The AlertPolicyConfig in data connector is of same usage. No easy way to migrate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAlertPolicyResourceConfig {
     /// Optional. The enrollment state of each alert.
     #[serde(default, rename = "alertEnrollments")]
@@ -7006,7 +7007,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAlertPolicyResourceConfig {
 }
 
 /// The historical dedicated crawl rate timeseries data, used for monitoring. Dedicated crawl is used by Vertex AI to crawl the user''s website when dedicate crawl is set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDedicatedCrawlRateTimeSeries {
     /// Vertex AI''s error rate time series of auto-refresh dedicated crawl.
     #[serde(default, rename = "autoRefreshCrawlErrorRate")]
@@ -7027,7 +7028,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDedicatedCrawlRateTimeSeries {
 }
 
 /// The historical organic crawl rate timeseries data, used for monitoring. Organic crawl is auto-determined by Google to crawl the user''s website when dedicate crawl is not set. Crawl rate is the QPS of crawl request Google sends to the user''s website.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaOrganicCrawlRateTimeSeries {
     /// Google''s organic crawl rate time series, which is the sum of all googlebots'' crawl rate. Please refer to https://developers.google.com/search/docs/crawling-indexing/overview-google-crawlers for more details about googlebots.
     #[serde(default, rename = "googleOrganicCrawlRate")]
@@ -7040,7 +7041,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaOrganicCrawlRateTimeSeries {
 }
 
 /// Represents the currently effective configurable billing parameters. These values are derived from the customer''s subscription history stored internally and reflect the thresholds actively being used for billing purposes at the time of the GetProject call. This includes the start_time of the subscription and may differ from the values in customer_provided_config due to billing rules (e.g., scale-downs taking effect only at the start of a new month).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaProjectConfigurableBillingStatus {
     /// Optional. The currently effective Indexing Core threshold. This is the threshold against which Indexing Core usage is compared for overage calculations.
     #[serde(default, rename = "effectiveIndexingCoreThreshold")]
@@ -7063,7 +7064,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaProjectConfigurableBillingStatus {
 }
 
 /// Customer provided configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaProjectCustomerProvidedConfig {
     /// Optional. Configuration for NotebookLM settings.
     #[serde(default, rename = "notebooklmConfig")]
@@ -7073,7 +7074,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaProjectCustomerProvidedConfig {
 }
 
 /// Details about why a particular URI failed to be crawled. Each FailureInfo contains one FailureReason per CorpusType.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaRecrawlUrisResponseFailureInfo {
     /// List of failure reasons by corpus type (e.g. desktop, mobile).
     #[serde(default, rename = "failureReasons")]
@@ -7088,7 +7089,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaRecrawlUrisResponseFailureInfo {
 }
 
 /// Configuration of destination for Import related errors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaImportErrorConfig {
     /// Cloud Storage prefix for import errors. This must be an empty, existing Cloud Storage directory. Import errors are written to sharded files in this directory, one per line, as a JSON-encoded google.rpc.Status message.
     #[serde(default, rename = "gcsPrefix")]
@@ -7096,7 +7097,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaImportErrorConfig {
 }
 
 /// External session proto definition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSession {
     /// Optional. The display name of the session. This field is used to identify the session in the UI. By default, the display name is the first turn query text in the session.
     #[serde(default, rename = "displayName")]
@@ -7129,7 +7130,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSession {
 }
 
 /// Identity Provider Config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaIdpConfig {
     /// External Identity provider config.
     #[serde(default, rename = "externalIdpConfig")]
@@ -7141,7 +7142,7 @@ pub struct GoogleCloudDiscoveryengineV1betaIdpConfig {
 }
 
 /// A target site for the SiteSearchEngine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaTargetSite {
     /// Immutable. If set to false, a uri_pattern is generated to include all pages whose address contains the provided_uri_pattern. If set to true, an uri_pattern is generated to try to be an exact match of the provided_uri_pattern or just the specific page if the provided_uri_pattern is a specific one. provided_uri_pattern is always normalized to generate the URI pattern to be used by the search engine.
     #[serde(default, rename = "exactMatch")]
@@ -7178,7 +7179,7 @@ pub struct GoogleCloudDiscoveryengineV1betaTargetSite {
 }
 
 /// User License information assigned by the admin.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaUserLicense {
     /// Output only. User created timestamp.
     #[serde(default, rename = "createTime")]
@@ -7204,7 +7205,7 @@ pub struct GoogleCloudDiscoveryengineV1betaUserLicense {
 }
 
 /// Adjusts order of products in returned list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaControlBoostAction {
     /// Strength of the boost, which should be in [-1, 1]. Negative boost means demotion. Default is 0.0 (No-op).
     #[serde(default)]
@@ -7226,7 +7227,7 @@ pub struct GoogleCloudDiscoveryengineV1betaControlBoostAction {
 }
 
 /// Defines circumstances to be checked before allowing a behavior
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaCondition {
     /// Range of time(s) specifying when condition is active. Maximum of 10 time ranges.
     #[serde(default, rename = "activeTimeRange")]
@@ -7242,7 +7243,7 @@ pub struct GoogleCloudDiscoveryengineV1betaCondition {
 }
 
 /// Specified which products may be included in results. Uses same filter as boost.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaControlFilterAction {
     /// Required. Specifies which data store''s documents can be filtered by this control. Full data store name e.g. projects/123/locations/global/collections/default_collection/dataStores/default_data_store
     #[serde(default, rename = "dataStore")]
@@ -7253,7 +7254,7 @@ pub struct GoogleCloudDiscoveryengineV1betaControlFilterAction {
 }
 
 /// Promote certain links based on some trigger queries. Example: Promote shoe store link when searching for shoe keyword. The link can be outside of associated data store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaControlPromoteAction {
     /// Required. Data store with which this promotion is attached to.
     #[serde(default, rename = "dataStore")]
@@ -7265,7 +7266,7 @@ pub struct GoogleCloudDiscoveryengineV1betaControlPromoteAction {
 }
 
 /// Redirects a shopper to the provided URI.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaControlRedirectAction {
     /// Required. The URI to which the shopper will be redirected. Required. URI must have length equal or less than 2000 characters. Otherwise an INVALID ARGUMENT error is thrown.
     #[serde(default, rename = "redirectUri")]
@@ -7273,7 +7274,7 @@ pub struct GoogleCloudDiscoveryengineV1betaControlRedirectAction {
 }
 
 /// Creates a set of terms that will act as synonyms of one another. Example: "happy" will also be considered as "glad", "glad" will also be considered as "happy".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaControlSynonymsAction {
     /// Defines a set of synonyms. Can specify up to 100 synonyms. Must specify at least 2 synonyms. Otherwise an INVALID ARGUMENT error is thrown.
     #[serde(default)]
@@ -7281,7 +7282,7 @@ pub struct GoogleCloudDiscoveryengineV1betaControlSynonymsAction {
 }
 
 /// Configuration data for advance site search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaAdvancedSiteSearchConfig {
     /// If set true, automatic refresh is disabled for the DataStore.
     #[serde(default, rename = "disableAutomaticRefresh")]
@@ -7292,7 +7293,7 @@ pub struct GoogleCloudDiscoveryengineV1betaAdvancedSiteSearchConfig {
 }
 
 /// Estimation of data size per data store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaDataStoreBillingEstimation {
     /// Data size for structured data in terms of bytes.
     #[serde(default, rename = "structuredDataSize")]
@@ -7315,7 +7316,7 @@ pub struct GoogleCloudDiscoveryengineV1betaDataStoreBillingEstimation {
 }
 
 /// A singleton resource of DataStore. If it''s empty when DataStore is created and DataStore is set to DataStore.ContentConfig.CONTENT_REQUIRED, the default parser will default to digital parser.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaDocumentProcessingConfig {
     /// Whether chunking mode is enabled.
     #[serde(default, rename = "chunkingConfig")]
@@ -7336,7 +7337,7 @@ pub struct GoogleCloudDiscoveryengineV1betaDocumentProcessingConfig {
 }
 
 /// Stores information for federated search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaDataStoreFederatedSearchConfig {
     /// AlloyDB config. If set, this DataStore is connected to AlloyDB.
     #[serde(default, rename = "alloyDbConfig")]
@@ -7356,7 +7357,7 @@ pub struct GoogleCloudDiscoveryengineV1betaDataStoreFederatedSearchConfig {
 }
 
 /// Config to data store for HEALTHCARE_FHIR vertical.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaHealthcareFhirConfig {
     /// Whether to enable configurable schema for HEALTHCARE_FHIR vertical. If set to true, the predefined healthcare fhir schema can be extended for more customized searching and filtering.
     #[serde(default, rename = "enableConfigurableSchema")]
@@ -7370,7 +7371,7 @@ pub struct GoogleCloudDiscoveryengineV1betaHealthcareFhirConfig {
 }
 
 /// Language info for DataStore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaLanguageInfo {
     /// Output only. Language part of normalized_language_code. E.g.: en-US -&gt; en, zh-Hans-HK -&gt; zh, en -&gt; en.
     #[serde(default)]
@@ -7387,7 +7388,7 @@ pub struct GoogleCloudDiscoveryengineV1betaLanguageInfo {
 }
 
 /// Configuration for Natural Language Query Understanding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaNaturalLanguageQueryUnderstandingConfig {
     /// Mode of Natural Language Query Understanding. If this field is unset, the behavior defaults to NaturalLanguageQueryUnderstandingConfig.Mode.DISABLED. // TODO: enum values: ["MODE_UNSPECIFIED", "DISABLED", "ENABLED"]
     #[serde(default)]
@@ -7395,7 +7396,7 @@ pub struct GoogleCloudDiscoveryengineV1betaNaturalLanguageQueryUnderstandingConf
 }
 
 /// Stores information regarding the serving configurations at DataStore level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaDataStoreServingConfigDataStore {
     /// Optional. If set true, the DataStore will not be available for serving search requests.
     #[serde(default, rename = "disabledForServing")]
@@ -7403,7 +7404,7 @@ pub struct GoogleCloudDiscoveryengineV1betaDataStoreServingConfigDataStore {
 }
 
 /// Defines the structure and layout of a type of document data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSchema {
     /// The JSON representation of the schema.
     #[serde(default, rename = "jsonSchema")]
@@ -7417,7 +7418,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSchema {
 }
 
 /// Config to store data store type configuration for workspace data
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaWorkspaceConfig {
     /// Obfuscated Dasher customer ID.
     #[serde(default, rename = "dasherCustomerId")]
@@ -7434,7 +7435,7 @@ pub struct GoogleCloudDiscoveryengineV1betaWorkspaceConfig {
 }
 
 /// Agent Gateway setting, which may be attached to Gemini Enterprise resources for egress control of Gemini Enterprise agents to agents and tools outside of Gemini Enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaAgentGatewaySetting {
     /// Optional. The default egress agent gateway to use, when this setting is applied to a Gemini Enterprise resource. The deployment mode must be GOOGLE_MANAGED, and the governed access path must be AGENT_TO_ANYWHERE.
     #[serde(default, rename = "defaultEgressAgentGateway")]
@@ -7444,7 +7445,7 @@ pub struct GoogleCloudDiscoveryengineV1betaAgentGatewaySetting {
 }
 
 /// Configurations for a Chat Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaEngineChatEngineConfig {
     /// The configurationt generate the Dialogflow agent that is associated to this Engine. Note that these configurations are one-time consumed by and passed to Dialogflow service. It means they cannot be retrieved using EngineService.GetEngine or EngineService.ListEngines API after engine creation.
     #[serde(default, rename = "agentCreationConfig")]
@@ -7460,7 +7461,7 @@ pub struct GoogleCloudDiscoveryengineV1betaEngineChatEngineConfig {
 }
 
 /// Additional information of a Chat Engine. Fields in this message are output only.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaEngineChatEngineMetadata {
     /// The resource name of a Dialogflow agent, that this Chat Engine refers to. Format: projects//locations//agents/.
     #[serde(default, rename = "dialogflowAgent")]
@@ -7468,7 +7469,7 @@ pub struct GoogleCloudDiscoveryengineV1betaEngineChatEngineMetadata {
 }
 
 /// Configurations used to enable CMEK data encryption with Cloud KMS keys.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaCmekConfig {
     /// Output only. The default CmekConfig for the Customer.
     #[serde(default, rename = "isDefault")]
@@ -7498,7 +7499,7 @@ pub struct GoogleCloudDiscoveryengineV1betaCmekConfig {
 }
 
 /// Common configurations for an Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaEngineCommonConfig {
     /// The name of the company, business or entity that is associated with the engine. Setting this may help improve LLM related features.
     #[serde(default, rename = "companyName")]
@@ -7506,7 +7507,7 @@ pub struct GoogleCloudDiscoveryengineV1betaEngineCommonConfig {
 }
 
 /// Configuration message for the Knowledge Graph.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaEngineKnowledgeGraphConfig {
     /// Specify entity types to support.
     #[serde(default, rename = "cloudKnowledgeGraphTypes")]
@@ -7528,7 +7529,7 @@ pub struct GoogleCloudDiscoveryengineV1betaEngineKnowledgeGraphConfig {
 }
 
 /// Additional config specs for a Media Recommendation engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaEngineMediaRecommendationEngineConfig {
     /// Optional. Additional engine features config.
     #[serde(default, rename = "engineFeaturesConfig")]
@@ -7548,7 +7549,7 @@ pub struct GoogleCloudDiscoveryengineV1betaEngineMediaRecommendationEngineConfig
 }
 
 /// Configurations for a Search Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaEngineSearchEngineConfig {
     /// Optional. The required subscription tier of this engine. They cannot be modified after engine creation. If the required subscription tier is search, user with higher license tier like assist can still access the standalone app associated with this engine. // TODO: enum values: ["SUBSCRIPTION_TIER_UNSPECIFIED", "SUBSCRIPTION_TIER_SEARCH", "SUBSCRIPTION_TIER_SEARCH_AND_ASSISTANT", "SUBSCRIPTION_TIER_NOTEBOOK_LM", "SUBSCRIPTION_TIER_FRONTLINE_WORKER", "SUBSCRIPTION_TIER_AGENTSPACE_STARTER", "SUBSCRIPTION_TIER_AGENTSPACE_BUSINESS", "SUBSCRIPTION_TIER_ENTERPRISE", "SUBSCRIPTION_TIER_ENTERPRISE_EMERGING", "SUBSCRIPTION_TIER_EDU", "SUBSCRIPTION_TIER_EDU_PRO", "SUBSCRIPTION_TIER_EDU_EMERGING", "SUBSCRIPTION_TIER_EDU_PRO_EMERGING", "SUBSCRIPTION_TIER_FRONTLINE_STARTER"]
     #[serde(default, rename = "requiredSubscriptionTier")]
@@ -7562,7 +7563,7 @@ pub struct GoogleCloudDiscoveryengineV1betaEngineSearchEngineConfig {
 }
 
 /// Describes the specification of the evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaEvaluationEvaluationSpec {
     /// Optional. The specification of the query set.
     #[serde(default, rename = "querySetSpec")]
@@ -7575,7 +7576,7 @@ pub struct GoogleCloudDiscoveryengineV1betaEvaluationEvaluationSpec {
 }
 
 /// Describes the metrics produced by the evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaQualityMetrics {
     /// Normalized discounted cumulative gain (NDCG) per document, at various top-k cutoff levels. NDCG measures the ranking quality, giving higher relevance to top results. Example (top-3): Suppose SampleQuery with three retrieved documents (D1, D2, D3) and binary relevance judgements (1 for relevant, 0 for not relevant): Retrieved: [D3 (0), D1 (1), D2 (1)] Ideal: [D1 (1), D2 (1), D3 (0)] Calculate NDCG@3 for each SampleQuery: * DCG@3: 0/log2(1+1) + 1/log2(2+1) + 1/log2(3+1) = 1.13 * Ideal DCG@3: 1/log2(1+1) + 1/log2(2+1) + 0/log2(3+1) = 1.63 * NDCG@3: 1.13/1.63 = 0.693
     #[serde(default, rename = "docNdcg")]
@@ -7599,7 +7600,7 @@ pub struct GoogleCloudDiscoveryengineV1betaQualityMetrics {
 }
 
 /// The historical dedicated crawl rate timeseries data, used for monitoring. Dedicated crawl is used by Vertex AI to crawl the user''s website when dedicate crawl is set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaDedicatedCrawlRateTimeSeries {
     /// Vertex AI''s error rate time series of auto-refresh dedicated crawl.
     #[serde(default, rename = "autoRefreshCrawlErrorRate")]
@@ -7620,7 +7621,7 @@ pub struct GoogleCloudDiscoveryengineV1betaDedicatedCrawlRateTimeSeries {
 }
 
 /// The historical organic crawl rate timeseries data, used for monitoring. Organic crawl is auto-determined by Google to crawl the user''s website when dedicate crawl is not set. Crawl rate is the QPS of crawl request Google sends to the user''s website.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaOrganicCrawlRateTimeSeries {
     /// Google''s organic crawl rate time series, which is the sum of all googlebots'' crawl rate. Please refer to https://developers.google.com/search/docs/crawling-indexing/overview-google-crawlers for more details about googlebots.
     #[serde(default, rename = "googleOrganicCrawlRate")]
@@ -7633,7 +7634,7 @@ pub struct GoogleCloudDiscoveryengineV1betaOrganicCrawlRateTimeSeries {
 }
 
 /// Represents the currently effective configurable billing parameters. These values are derived from the customer''s subscription history stored internally and reflect the thresholds actively being used for billing purposes at the time of the GetProject call. This includes the start_time of the subscription and may differ from the values in customer_provided_config due to billing rules (e.g., scale-downs taking effect only at the start of a new month).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaProjectConfigurableBillingStatus {
     /// Optional. The currently effective Indexing Core threshold. This is the threshold against which Indexing Core usage is compared for overage calculations.
     #[serde(default, rename = "effectiveIndexingCoreThreshold")]
@@ -7656,7 +7657,7 @@ pub struct GoogleCloudDiscoveryengineV1betaProjectConfigurableBillingStatus {
 }
 
 /// Customer provided configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaProjectCustomerProvidedConfig {
     /// Optional. Configuration for NotebookLM settings.
     #[serde(default, rename = "notebooklmConfig")]
@@ -7666,7 +7667,7 @@ pub struct GoogleCloudDiscoveryengineV1betaProjectCustomerProvidedConfig {
 }
 
 /// Configuration of destination for Import related errors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaImportErrorConfig {
     /// Cloud Storage prefix for import errors. This must be an empty, existing Cloud Storage directory. Import errors are written to sharded files in this directory, one per line, as a JSON-encoded google.rpc.Status message.
     #[serde(default, rename = "gcsPrefix")]
@@ -7674,7 +7675,7 @@ pub struct GoogleCloudDiscoveryengineV1betaImportErrorConfig {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Policy {
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
@@ -7688,7 +7689,7 @@ pub struct GoogleIamV1Policy {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -7708,7 +7709,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// A declaration of an extension supported by an Agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1AgentExtension {
     /// A description of how this agent uses this extension. Example: "Google OAuth 2.0 authentication"
     #[serde(default)]
@@ -7725,14 +7726,14 @@ pub struct A2aV1AgentExtension {
 }
 
 /// A2aV1Security resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1Security {
     #[serde(default)]
     pub schemes: ::core::option::Option<serde_json::Value>,
 }
 
 /// A2aV1oAuthFlows resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1oAuthFlows {
     #[serde(default, rename = "authorizationCode")]
     pub authorization_code: ::core::option::Option<A2aV1AuthorizationCodeOAuthFlow>,
@@ -7745,7 +7746,7 @@ pub struct A2aV1oAuthFlows {
 }
 
 /// Configuration for setting up push notifications for task updates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1PushNotificationConfig {
     /// Information about the authentication to sent with the notification
     #[serde(default)]
@@ -7762,7 +7763,7 @@ pub struct A2aV1PushNotificationConfig {
 }
 
 /// Artifacts are the container for task completed results. These are similar to Messages but are intended to be the product of a task, as opposed to point-to-point communication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1Artifact {
     /// Unique identifier (e.g. UUID) for the artifact. It must be at least unique within a task.
     #[serde(default, rename = "artifactId")]
@@ -7785,7 +7786,7 @@ pub struct A2aV1Artifact {
 }
 
 /// A container for the status of a task
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1TaskStatus {
     /// A message associated with the status.
     #[serde(default)]
@@ -7799,7 +7800,7 @@ pub struct A2aV1TaskStatus {
 }
 
 /// HTTP request data that is related to a reported error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineLoggingHttpRequestContext {
     /// The HTTP response status code for the request.
     #[serde(default, rename = "responseStatusCode")]
@@ -7807,7 +7808,7 @@ pub struct GoogleCloudDiscoveryengineLoggingHttpRequestContext {
 }
 
 /// Indicates a location in the source code of the service for which errors are reported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineLoggingSourceLocation {
     /// Human-readable name of a function or method—for example, google.cloud.discoveryengine.v1alpha.RecommendationService.Recommend.
     #[serde(default, rename = "functionName")]
@@ -7815,7 +7816,7 @@ pub struct GoogleCloudDiscoveryengineLoggingSourceLocation {
 }
 
 /// Third party IDP Config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1IdpConfigExternalIdpConfig {
     /// Workforce pool name. Example: "locations/global/workforcePools/pool_id"
     #[serde(default, rename = "workforcePoolName")]
@@ -7823,7 +7824,7 @@ pub struct GoogleCloudDiscoveryengineV1IdpConfigExternalIdpConfig {
 }
 
 /// Boost applies to suggestions which match a condition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryRequestBoostSpecConditionBoostSpec {
     /// Strength of the boost, which should be in [-1, 1]. Negative boost means demotion. Default is 0.0. Setting to 1.0 gives the suggestions a big promotion. However, it does not necessarily mean that the top result will be a boosted suggestion. Setting to -1.0 gives the suggestions a big demotion. However, other suggestions that are relevant might still be shown. Setting to 0.0 means no boost applied. The boosting condition is ignored.
     #[serde(default)]
@@ -7834,7 +7835,7 @@ pub struct GoogleCloudDiscoveryengineV1AdvancedCompleteQueryRequestBoostSpecCond
 }
 
 /// Answer Generation Model specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestAnswerGenerationSpecModelSpec {
     /// Model version. If not set, it will use the default stable model. Allowed values are: stable, preview.
     #[serde(default, rename = "modelVersion")]
@@ -7842,7 +7843,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestAnswerGenerationSpecMod
 }
 
 /// Answer generation prompt specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestAnswerGenerationSpecPromptSpec {
     /// Customized preamble.
     #[serde(default)]
@@ -7850,7 +7851,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestAnswerGenerationSpecPro
 }
 
 /// End user metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestEndUserSpecEndUserMetaData {
     /// Chunk information.
     #[serde(default, rename = "chunkInfo")]
@@ -7860,7 +7861,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestEndUserSpecEndUserMetaD
 }
 
 /// Query classification specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestQueryUnderstandingSpecQueryClassificationSpec
 {
     /// Enabled query classification types.
@@ -7869,7 +7870,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestQueryUnderstandingSpecQ
 }
 
 /// Query rephraser specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestQueryUnderstandingSpecQueryRephraserSpec {
     /// Disable query rephraser.
     #[serde(default)]
@@ -7883,7 +7884,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestQueryUnderstandingSpecQ
 }
 
 /// Safety settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestSafetySpecSafetySetting {
     /// Required. Harm category. // TODO: enum values: ["HARM_CATEGORY_UNSPECIFIED", "HARM_CATEGORY_HATE_SPEECH", "HARM_CATEGORY_DANGEROUS_CONTENT", "HARM_CATEGORY_HARASSMENT", "HARM_CATEGORY_SEXUALLY_EXPLICIT", "HARM_CATEGORY_CIVIC_INTEGRITY"]
     #[serde(default)]
@@ -7894,7 +7895,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestSafetySpecSafetySetting
 }
 
 /// Search parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestSearchSpecSearchParams {
     /// Boost specification to boost certain documents in search results which may affect the answer query response. For more information on boosting, see [Boosting](https://cloud.google.com/retail/docs/boosting#boost)
     #[serde(default, rename = "boostSpec")]
@@ -7919,7 +7920,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestSearchSpecSearchParams 
 }
 
 /// Search result list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestSearchSpecSearchResultList {
     /// Search results.
     #[serde(default, rename = "searchResults")]
@@ -7931,7 +7932,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestSearchSpecSearchResultL
 }
 
 /// A target site for the SiteSearchEngine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1TargetSite {
     /// Immutable. If set to false, a uri_pattern is generated to include all pages whose address contains the provided_uri_pattern. If set to true, an uri_pattern is generated to try to be an exact match of the provided_uri_pattern or just the specific page if the provided_uri_pattern is a specific one. provided_uri_pattern is always normalized to generate the URI pattern to be used by the search engine.
     #[serde(default, rename = "exactMatch")]
@@ -7967,7 +7968,7 @@ pub struct GoogleCloudDiscoveryengineV1TargetSite {
 }
 
 /// The value of the matcher that was used to match the Document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1BatchGetDocumentsMetadataResponseDocumentMetadataMatcherValue
 {
     /// Format: projects/{project}/locations/{location}/datasets/{dataset}/fhirStores/{fhir_store}/fhir/{resource_type}/{fhir_resource_id}
@@ -7979,7 +7980,7 @@ pub struct GoogleCloudDiscoveryengineV1BatchGetDocumentsMetadataResponseDocument
 }
 
 /// User License information assigned by the admin.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1UserLicense {
     /// Output only. User created timestamp.
     #[serde(default, rename = "createTime")]
@@ -8005,7 +8006,7 @@ pub struct GoogleCloudDiscoveryengineV1UserLicense {
 }
 
 /// A sitemap for the SiteSearchEngine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1Sitemap {
     /// Output only. The sitemap''s creation time.
     #[serde(default, rename = "createTime")]
@@ -8019,7 +8020,7 @@ pub struct GoogleCloudDiscoveryengineV1Sitemap {
 }
 
 /// Autocomplete suggestions that are imported from Customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1CompletionSuggestion {
     /// Alternative matching phrases for this suggestion.
     #[serde(default, rename = "alternativePhrases")]
@@ -8045,7 +8046,7 @@ pub struct GoogleCloudDiscoveryengineV1CompletionSuggestion {
 }
 
 /// The Bigtable Options object that contains information to support the import.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1BigtableOptions {
     /// The mapping from family names to an object that contains column families level information for the given column family. If a family is not present in this map it will be ignored.
     #[serde(default)]
@@ -8056,7 +8057,7 @@ pub struct GoogleCloudDiscoveryengineV1BigtableOptions {
 }
 
 /// Suggestion deny list entry identifying the phrase to block from suggestions and the applied operation for the phrase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SuggestionDenyListEntry {
     /// Required. Phrase to block from suggestions served. Can be maximum 125 characters.
     #[serde(default, rename = "blockPhrase")]
@@ -8067,7 +8068,7 @@ pub struct GoogleCloudDiscoveryengineV1SuggestionDenyListEntry {
 }
 
 /// UserEvent captures all metadata information Discovery Engine API needs to know about how end users interact with your website.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1UserEvent {
     /// Extra user event features to include in the recommendation model. These attributes must NOT contain data that needs to be parsed or processed further, e.g. JSON or other encodings. If you provide custom attributes for ingested user events, also include them in the user events that you associate with prediction requests. Custom attribute formatting must be consistent between imported events and events provided with prediction requests. This lets the Discovery Engine API use those custom attributes when training models and serving predictions, which helps improve recommendation quality. This field needs to pass all below criteria, otherwise an INVALID_ARGUMENT error is returned: * The key must be a UTF-8 encoded string with a length limit of 5,000 characters. * For text attributes, at most 400 values are allowed. Empty values are not allowed. Each value must be a UTF-8 encoded string with a length limit of 256 characters. * For number attributes, at most 400 values are allowed. For product recommendations, an example of extra user information is traffic_channel, which is how a user arrives at the site. Users can arrive at the site by coming to the site directly, coming through Google search, or in other ways.
     #[serde(default)]
@@ -8142,7 +8143,7 @@ pub struct GoogleCloudDiscoveryengineV1UserEvent {
 }
 
 /// Customer-defined policy for the assistant.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistantCustomerPolicy {
     /// Optional. List of banned phrases.
     #[serde(default, rename = "bannedPhrases")]
@@ -8156,7 +8157,7 @@ pub struct GoogleCloudDiscoveryengineV1AssistantCustomerPolicy {
 }
 
 /// Configuration for the generation of the assistant response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistantGenerationConfig {
     /// Optional. The list of models that are allowed to be used for assistant.
     #[serde(default, rename = "allowedModelIds")]
@@ -8175,7 +8176,7 @@ pub struct GoogleCloudDiscoveryengineV1AssistantGenerationConfig {
 }
 
 /// Adjusts order of products in returned list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ControlBoostAction {
     /// Strength of the boost, which should be in [-1, 1]. Negative boost means demotion. Default is 0.0 (No-op).
     #[serde(default)]
@@ -8197,7 +8198,7 @@ pub struct GoogleCloudDiscoveryengineV1ControlBoostAction {
 }
 
 /// Defines circumstances to be checked before allowing a behavior
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1Condition {
     /// Range of time(s) specifying when condition is active. Maximum of 10 time ranges.
     #[serde(default, rename = "activeTimeRange")]
@@ -8213,7 +8214,7 @@ pub struct GoogleCloudDiscoveryengineV1Condition {
 }
 
 /// Specified which products may be included in results. Uses same filter as boost.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ControlFilterAction {
     /// Required. Specifies which data store''s documents can be filtered by this control. Full data store name e.g. projects/123/locations/global/collections/default_collection/dataStores/default_data_store
     #[serde(default, rename = "dataStore")]
@@ -8224,7 +8225,7 @@ pub struct GoogleCloudDiscoveryengineV1ControlFilterAction {
 }
 
 /// Promote certain links based on some trigger queries. Example: Promote shoe store link when searching for shoe keyword. The link can be outside of associated data store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ControlPromoteAction {
     /// Required. Data store with which this promotion is attached to.
     #[serde(default, rename = "dataStore")]
@@ -8236,7 +8237,7 @@ pub struct GoogleCloudDiscoveryengineV1ControlPromoteAction {
 }
 
 /// Redirects a shopper to the provided URI.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ControlRedirectAction {
     /// Required. The URI to which the shopper will be redirected. Required. URI must have length equal or less than 2000 characters. Otherwise an INVALID ARGUMENT error is thrown.
     #[serde(default, rename = "redirectUri")]
@@ -8244,7 +8245,7 @@ pub struct GoogleCloudDiscoveryengineV1ControlRedirectAction {
 }
 
 /// Creates a set of terms that will act as synonyms of one another. Example: "happy" will also be considered as "glad", "glad" will also be considered as "happy".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ControlSynonymsAction {
     /// Defines a set of synonyms. Can specify up to 100 synonyms. Must specify at least 2 synonyms. Otherwise an INVALID ARGUMENT error is thrown.
     #[serde(default)]
@@ -8252,7 +8253,7 @@ pub struct GoogleCloudDiscoveryengineV1ControlSynonymsAction {
 }
 
 /// Defines a conversation message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ConversationMessage {
     /// Output only. Message creation timestamp.
     #[serde(default, rename = "createTime")]
@@ -8266,7 +8267,7 @@ pub struct GoogleCloudDiscoveryengineV1ConversationMessage {
 }
 
 /// Configuration data for advance site search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AdvancedSiteSearchConfig {
     /// If set true, automatic refresh is disabled for the DataStore.
     #[serde(default, rename = "disableAutomaticRefresh")]
@@ -8277,7 +8278,7 @@ pub struct GoogleCloudDiscoveryengineV1AdvancedSiteSearchConfig {
 }
 
 /// Estimation of data size per data store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DataStoreBillingEstimation {
     /// Data size for structured data in terms of bytes.
     #[serde(default, rename = "structuredDataSize")]
@@ -8300,7 +8301,7 @@ pub struct GoogleCloudDiscoveryengineV1DataStoreBillingEstimation {
 }
 
 /// A singleton resource of DataStore. If it''s empty when DataStore is created and DataStore is set to DataStore.ContentConfig.CONTENT_REQUIRED, the default parser will default to digital parser.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfig {
     /// Whether chunking mode is enabled.
     #[serde(default, rename = "chunkingConfig")]
@@ -8319,7 +8320,7 @@ pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfig {
 }
 
 /// Stores information for federated search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfig {
     /// AlloyDB config. If set, this DataStore is connected to AlloyDB.
     #[serde(default, rename = "alloyDbConfig")]
@@ -8339,7 +8340,7 @@ pub struct GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfig {
 }
 
 /// Configuration for Natural Language Query Understanding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1NaturalLanguageQueryUnderstandingConfig {
     /// Mode of Natural Language Query Understanding. If this field is unset, the behavior defaults to NaturalLanguageQueryUnderstandingConfig.Mode.DISABLED. // TODO: enum values: ["MODE_UNSPECIFIED", "DISABLED", "ENABLED"]
     #[serde(default)]
@@ -8347,7 +8348,7 @@ pub struct GoogleCloudDiscoveryengineV1NaturalLanguageQueryUnderstandingConfig {
 }
 
 /// Stores information regarding the serving configurations at DataStore level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DataStoreServingConfigDataStore {
     /// Optional. If set true, the DataStore will not be available for serving search requests.
     #[serde(default, rename = "disabledForServing")]
@@ -8355,7 +8356,7 @@ pub struct GoogleCloudDiscoveryengineV1DataStoreServingConfigDataStore {
 }
 
 /// Config to store data store type configuration for workspace data
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1WorkspaceConfig {
     /// Obfuscated Dasher customer ID.
     #[serde(default, rename = "dasherCustomerId")]
@@ -8372,7 +8373,7 @@ pub struct GoogleCloudDiscoveryengineV1WorkspaceConfig {
 }
 
 /// Agent Gateway setting, which may be attached to Gemini Enterprise resources for egress control of Gemini Enterprise agents to agents and tools outside of Gemini Enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AgentGatewaySetting {
     /// Optional. The default egress agent gateway to use, when this setting is applied to a Gemini Enterprise resource. The deployment mode must be GOOGLE_MANAGED, and the governed access path must be AGENT_TO_ANYWHERE.
     #[serde(default, rename = "defaultEgressAgentGateway")]
@@ -8382,7 +8383,7 @@ pub struct GoogleCloudDiscoveryengineV1AgentGatewaySetting {
 }
 
 /// Configurations for a Chat Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1EngineChatEngineConfig {
     /// The configurationt generate the Dialogflow agent that is associated to this Engine. Note that these configurations are one-time consumed by and passed to Dialogflow service. It means they cannot be retrieved using EngineService.GetEngine or EngineService.ListEngines API after engine creation.
     #[serde(default, rename = "agentCreationConfig")]
@@ -8398,7 +8399,7 @@ pub struct GoogleCloudDiscoveryengineV1EngineChatEngineConfig {
 }
 
 /// Additional information of a Chat Engine. Fields in this message are output only.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1EngineChatEngineMetadata {
     /// The resource name of a Dialogflow agent, that this Chat Engine refers to. Format: projects//locations//agents/.
     #[serde(default, rename = "dialogflowAgent")]
@@ -8406,7 +8407,7 @@ pub struct GoogleCloudDiscoveryengineV1EngineChatEngineMetadata {
 }
 
 /// Common configurations for an Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1EngineCommonConfig {
     /// The name of the company, business or entity that is associated with the engine. Setting this may help improve LLM related features.
     #[serde(default, rename = "companyName")]
@@ -8414,7 +8415,7 @@ pub struct GoogleCloudDiscoveryengineV1EngineCommonConfig {
 }
 
 /// Configuration message for the Knowledge Graph.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1EngineKnowledgeGraphConfig {
     /// Specify entity types to support.
     #[serde(default, rename = "cloudKnowledgeGraphTypes")]
@@ -8435,7 +8436,7 @@ pub struct GoogleCloudDiscoveryengineV1EngineKnowledgeGraphConfig {
 }
 
 /// Additional config specs for a Media Recommendation engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfig {
     /// Optional. Additional engine features config.
     #[serde(default, rename = "engineFeaturesConfig")]
@@ -8455,7 +8456,7 @@ pub struct GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfig {
 }
 
 /// Configurations for a Search Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1EngineSearchEngineConfig {
     /// Optional. The required subscription tier of this engine. They cannot be modified after engine creation. If the required subscription tier is search, user with higher license tier like assist can still access the standalone app associated with this engine. // TODO: enum values: ["SUBSCRIPTION_TIER_UNSPECIFIED", "SUBSCRIPTION_TIER_SEARCH", "SUBSCRIPTION_TIER_SEARCH_AND_ASSISTANT", "SUBSCRIPTION_TIER_NOTEBOOK_LM", "SUBSCRIPTION_TIER_FRONTLINE_WORKER", "SUBSCRIPTION_TIER_AGENTSPACE_STARTER", "SUBSCRIPTION_TIER_AGENTSPACE_BUSINESS", "SUBSCRIPTION_TIER_ENTERPRISE", "SUBSCRIPTION_TIER_ENTERPRISE_EMERGING", "SUBSCRIPTION_TIER_EDU", "SUBSCRIPTION_TIER_EDU_PRO", "SUBSCRIPTION_TIER_EDU_EMERGING", "SUBSCRIPTION_TIER_EDU_PRO_EMERGING", "SUBSCRIPTION_TIER_FRONTLINE_STARTER"]
     #[serde(default, rename = "requiredSubscriptionTier")]
@@ -8469,7 +8470,7 @@ pub struct GoogleCloudDiscoveryengineV1EngineSearchEngineConfig {
 }
 
 /// Configurations used to enable CMEK data encryption with Cloud KMS keys.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1CmekConfig {
     /// Output only. The default CmekConfig for the Customer.
     #[serde(default, rename = "isDefault")]
@@ -8499,7 +8500,7 @@ pub struct GoogleCloudDiscoveryengineV1CmekConfig {
 }
 
 /// The specification for answer generation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerGenerationSpec {
     /// Optional. The specification for user specified classifier spec.
     #[serde(default, rename = "userDefinedClassifierSpec")]
@@ -8509,7 +8510,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerGenerationSpec {
 }
 
 /// Specifies the configurations needed for Generic Discovery.Currently we support: * content_search_spec: configuration for generic content search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ServingConfigGenericConfig {
     /// Specifies the expected behavior of content search. Only valid for content-search enabled data store.
     #[serde(default, rename = "contentSearchSpec")]
@@ -8518,7 +8519,7 @@ pub struct GoogleCloudDiscoveryengineV1ServingConfigGenericConfig {
 }
 
 /// Specifies the configurations needed for Media Discovery. Currently we support: * demote_content_watched: Threshold for watched content demotion. Customers can specify if using watched content demotion or use viewed detail page. Using the content watched demotion, customers need to specify the watched minutes or percentage exceeds the threshold, the content will be demoted in the recommendation result. * promote_fresh_content: cutoff days for fresh content promotion. Customers can specify if using content freshness promotion. If the content was published within the cutoff days, the content will be promoted in the recommendation result. Can only be set if SolutionType is SOLUTION_TYPE_RECOMMENDATION.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ServingConfigMediaConfig {
     /// Specifies the content freshness used for recommendation result. Contents will be demoted if contents were published for more than content freshness cutoff days.
     #[serde(default, rename = "contentFreshnessCutoffDays")]
@@ -8538,7 +8539,7 @@ pub struct GoogleCloudDiscoveryengineV1ServingConfigMediaConfig {
 }
 
 /// Represents a turn, including a query from the user and a answer from service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SessionTurn {
     /// Optional. The resource name of the answer to the user query. Only set if the answer generation (/answer API call) happened in this turn.
     #[serde(default)]
@@ -8558,7 +8559,7 @@ pub struct GoogleCloudDiscoveryengineV1SessionTurn {
 }
 
 /// Configuration for NotebookLM.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ProjectCustomerProvidedConfigNotebooklmConfig {
     /// Optional. Specifies the data protection policy for NotebookLM.
     #[serde(default, rename = "dataProtectionPolicy")]
@@ -8575,7 +8576,7 @@ pub struct GoogleCloudDiscoveryengineV1ProjectCustomerProvidedConfigNotebooklmCo
 }
 
 /// Identity Mapping Entry that maps an external identity to an internal identity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1IdentityMappingEntry {
     /// Required. Identity outside the customer identity provider. The length limit of external identity will be of 100 characters.
     #[serde(default, rename = "externalIdentity")]
@@ -8592,7 +8593,7 @@ pub struct GoogleCloudDiscoveryengineV1IdentityMappingEntry {
 }
 
 /// Specifies how a facet is computed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequestFacetSpecFacetKey {
     /// True to make facet keys case insensitive when getting faceting values with prefixes or contains; false otherwise.
     #[serde(default, rename = "caseInsensitive")]
@@ -8618,7 +8619,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequestFacetSpecFacetKey {
 }
 
 /// A facet value which contains value names and their count.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchResponseFacetFacetValue {
     /// Number of items that have this facet value.
     #[serde(default)]
@@ -8632,7 +8633,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseFacetFacetValue {
 }
 
 /// The filters that were extracted from the input query represented in a structured form.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilter {
     /// The expression denoting the filter that was extracted from the input query in a structured form. It can be a simple expression denoting a single string, numerical or geolocation constraint or a compound expression which is a combination of multiple expressions connected using logical (OR and AND) operators.
     #[serde(default)]
@@ -8640,7 +8641,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderst
 }
 
 /// Document captures all raw metadata information of items to be recommended or searched.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1Document {
     /// Access control information for the document.
     #[serde(default, rename = "aclInfo")]
@@ -8678,7 +8679,7 @@ pub struct GoogleCloudDiscoveryengineV1Document {
 }
 
 /// A set of ranking signals.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchResponseSearchResultRankSignals {
     /// Optional. Combined custom boosts for a doc.
     #[serde(default, rename = "boostingFactor")]
@@ -8714,7 +8715,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseSearchResultRankSignals {
 }
 
 /// Informations to support actions on the connector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ActionConfig {
     /// Optional. Action parameters in structured json format.
     #[serde(default, rename = "actionParams")]
@@ -8737,7 +8738,7 @@ pub struct GoogleCloudDiscoveryengineV1ActionConfig {
 }
 
 /// The connector level alert config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AlertPolicyConfig {
     /// Optional. The enrollment states of each alert.
     #[serde(default, rename = "alertEnrollments")]
@@ -8750,7 +8751,7 @@ pub struct GoogleCloudDiscoveryengineV1AlertPolicyConfig {
 }
 
 /// The configuration for the BAP connector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1bAPConfig {
     /// Optional. The actions enabled on the associated BAP connection.
     #[serde(default, rename = "enabledActions")]
@@ -8761,7 +8762,7 @@ pub struct GoogleCloudDiscoveryengineV1bAPConfig {
 }
 
 /// Defines target endpoints used to connect to third-party sources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DestinationConfig {
     /// Optional. The destinations for the corresponding key.
     #[serde(default)]
@@ -8780,7 +8781,7 @@ pub struct GoogleCloudDiscoveryengineV1DestinationConfig {
 }
 
 /// Configuration for dynamic tools.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DynamicTool {
     /// Optional. The description of the tool.
     #[serde(default)]
@@ -8797,7 +8798,7 @@ pub struct GoogleCloudDiscoveryengineV1DynamicTool {
 }
 
 /// Any params and credentials used specifically for EUA connectors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DataConnectorEndUserConfig {
     /// Optional. Any additional parameters needed for EUA.
     #[serde(default, rename = "additionalParams")]
@@ -8814,7 +8815,7 @@ pub struct GoogleCloudDiscoveryengineV1DataConnectorEndUserConfig {
 }
 
 /// Represents an entity in the data source. For example, the Account object in Salesforce.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DataConnectorSourceEntity {
     /// Output only. The full resource name of the associated data store for the source entity. Format: projects/*/locations/*/collections/*/dataStores/*. When the connector is initialized by the DataConnectorService.SetUpDataConnector method, a DataStore is automatically created for each source entity.
     #[serde(default, rename = "dataStore")]
@@ -8841,7 +8842,7 @@ pub struct GoogleCloudDiscoveryengineV1DataConnectorSourceEntity {
 }
 
 /// Any params and credentials used specifically for hybrid connectors supporting FEDERATED mode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DataConnectorFederatedConfig {
     /// Optional. Any additional parameters needed for FEDERATED.
     #[serde(default, rename = "additionalParams")]
@@ -8855,7 +8856,7 @@ pub struct GoogleCloudDiscoveryengineV1DataConnectorFederatedConfig {
 }
 
 /// The configuration for the identity data synchronization runs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1IdentityScheduleConfig {
     /// Optional. The UTC time when the next data sync is expected to start for the Data Connector. Customers are only able to specify the hour and minute to schedule the data sync. This is utilized when the data connector has a refresh interval greater than 1 day.
     #[serde(default, rename = "nextSyncTime")]
@@ -8866,7 +8867,7 @@ pub struct GoogleCloudDiscoveryengineV1IdentityScheduleConfig {
 }
 
 /// The configuration for realtime sync to store additional params for realtime sync.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DataConnectorRealtimeSyncConfig {
     /// Optional. The ID of the Secret Manager secret used for webhook secret.
     #[serde(default, rename = "realtimeSyncSecret")]
@@ -8882,7 +8883,7 @@ pub struct GoogleCloudDiscoveryengineV1DataConnectorRealtimeSyncConfig {
 }
 
 /// Specification of the Vertex AI Search tool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1StreamAssistRequestToolsSpecVertexAiSearchSpec {
     /// Optional. Specs defining DataStores to filter on in a search call and configurations for those data stores. This is only considered for Engines with multiple data stores.
     #[serde(default, rename = "dataStoreSpecs")]
@@ -8895,7 +8896,7 @@ pub struct GoogleCloudDiscoveryengineV1StreamAssistRequestToolsSpecVertexAiSearc
 }
 
 /// Read-only data store component that contains data stores fields that may be used for filtering, it''s the child of CollectionComponent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1WidgetConfigDataStoreComponent {
     /// Output only. The type of the data store config. // TODO: enum values: ["DATA_STORE_CONFIG_TYPE_UNSPECIFIED", "ALLOW_DB_CONFIG", "THIRD_PARTY_OAUTH_CONFIG", "NOTEBOOKLM_CONFIG"]
     #[serde(default, rename = "dataStoreConfigType")]
@@ -8915,7 +8916,7 @@ pub struct GoogleCloudDiscoveryengineV1WidgetConfigDataStoreComponent {
 }
 
 /// Describes an entity of shortcut (aka pinned content) on the homepage. The home page will render these shortcuts in the same order as what the API returns. If a customer wants to reorder or remove a shortcut, the UI should always provide the new full list of shortcuts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1WidgetConfigHomepageSettingShortcut {
     /// Optional. Destination URL of shortcut.
     #[serde(default, rename = "destinationUri")]
@@ -8929,7 +8930,7 @@ pub struct GoogleCloudDiscoveryengineV1WidgetConfigHomepageSettingShortcut {
 }
 
 /// UI component configuration for data store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1WidgetConfigDataStoreUiConfig {
     /// Facet fields that store the mapping of fields to end user widget appearance.
     #[serde(default, rename = "facetField")]
@@ -8947,7 +8948,7 @@ pub struct GoogleCloudDiscoveryengineV1WidgetConfigDataStoreUiConfig {
 }
 
 /// Describes configuration for generative answer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1WidgetConfigUiSettingsGenerativeAnswerConfig {
     /// Whether generated answer contains suggested related questions.
     #[serde(default, rename = "disableRelatedQuestions")]
@@ -8982,7 +8983,7 @@ pub struct GoogleCloudDiscoveryengineV1WidgetConfigUiSettingsGenerativeAnswerCon
 }
 
 /// Site search indexing failure reasons.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaTargetSiteFailureReason {
     /// Failed due to insufficient quota.
     #[serde(default, rename = "quotaFailure")]
@@ -8992,7 +8993,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaTargetSiteFailureReason {
 }
 
 /// Verification information for target sites in advanced site search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSiteVerificationInfo {
     /// Site verification state indicating the ownership and validity. // TODO: enum values: ["SITE_VERIFICATION_STATE_UNSPECIFIED", "VERIFIED", "UNVERIFIED", "EXEMPTED"]
     #[serde(default, rename = "siteVerificationState")]
@@ -9003,7 +9004,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSiteVerificationInfo {
 }
 
 /// Informations to support actions on the connector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaActionConfig {
     /// Optional. Action parameters in structured json format.
     #[serde(default, rename = "actionParams")]
@@ -9026,7 +9027,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaActionConfig {
 }
 
 /// The connector level alert config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAlertPolicyConfig {
     /// Optional. The enrollment states of each alert.
     #[serde(default, rename = "alertEnrollments")]
@@ -9039,7 +9040,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAlertPolicyConfig {
 }
 
 /// The configuration for the BAP connector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaBAPConfig {
     /// Optional. The actions enabled on the associated BAP connection.
     #[serde(default, rename = "enabledActions")]
@@ -9050,7 +9051,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaBAPConfig {
 }
 
 /// Contains the data protection policy config for a DataStore or a connector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDataProtectionPolicy {
     /// Optional. Specifies the sensitive data protection policy for the connector source.
     #[serde(default, rename = "sensitiveDataProtectionPolicy")]
@@ -9060,7 +9061,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDataProtectionPolicy {
 }
 
 /// Defines target endpoints used to connect to third-party sources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDestinationConfig {
     /// Optional. The destinations for the corresponding key.
     #[serde(default)]
@@ -9079,7 +9080,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDestinationConfig {
 }
 
 /// Configuration for dynamic tools.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDynamicTool {
     /// Optional. The description of the tool.
     #[serde(default)]
@@ -9096,7 +9097,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDynamicTool {
 }
 
 /// Any params and credentials used specifically for EUA connectors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDataConnectorEndUserConfig {
     /// Optional. Any additional parameters needed for EUA.
     #[serde(default, rename = "additionalParams")]
@@ -9113,7 +9114,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDataConnectorEndUserConfig {
 }
 
 /// Represents an entity in the data source. For example, the Account object in Salesforce.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDataConnectorSourceEntity {
     /// Output only. The full resource name of the associated data store for the source entity. Format: projects/*/locations/*/collections/*/dataStores/*. When the connector is initialized by the DataConnectorService.SetUpDataConnector method, a DataStore is automatically created for each source entity.
     #[serde(default, rename = "dataStore")]
@@ -9140,7 +9141,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDataConnectorSourceEntity {
 }
 
 /// Any params and credentials used specifically for hybrid connectors supporting FEDERATED mode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDataConnectorFederatedConfig {
     /// Optional. Any additional parameters needed for FEDERATED.
     #[serde(default, rename = "additionalParams")]
@@ -9154,7 +9155,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDataConnectorFederatedConfig {
 }
 
 /// The configuration for the identity data synchronization runs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaIdentityScheduleConfig {
     /// Optional. The UTC time when the next data sync is expected to start for the Data Connector. Customers are only able to specify the hour and minute to schedule the data sync. This is utilized when the data connector has a refresh interval greater than 1 day.
     #[serde(default, rename = "nextSyncTime")]
@@ -9165,7 +9166,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaIdentityScheduleConfig {
 }
 
 /// The configuration for realtime sync to store additional params for realtime sync.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDataConnectorRealtimeSyncConfig {
     /// Optional. The ID of the Secret Manager secret used for webhook secret.
     #[serde(default, rename = "realtimeSyncSecret")]
@@ -9181,7 +9182,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDataConnectorRealtimeSyncConfig {
 }
 
 /// Represents the progress of a sync run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaConnectorRunEntityRunProgress {
     /// The current progress.
     #[serde(default, rename = "currentCount")]
@@ -9195,7 +9196,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaConnectorRunEntityRunProgress {
 }
 
 /// Specification for custom ranking based on customer specified attribute value. It provides more controls for customized ranking than the simple (condition, boost) combination above.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaControlBoostActionInterpolationBoostSpec {
     /// Optional. The attribute type to be used to determine the boost amount. The attribute value can be derived from the field value of the specified field_name. In the case of numerical it is straightforward i.e. attribute_value = numerical_field_value. In the case of freshness however, attribute_value = (time.now() - datetime_field_value). // TODO: enum values: ["ATTRIBUTE_TYPE_UNSPECIFIED", "NUMERICAL", "FRESHNESS"]
     #[serde(default, rename = "attributeType")]
@@ -9216,7 +9217,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaControlBoostActionInterpolationBoost
 }
 
 /// Used for time-dependent conditions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaConditionTimeRange {
     /// End of time range. Range is inclusive. Must be in the future.
     #[serde(default, rename = "endTime")]
@@ -9227,7 +9228,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaConditionTimeRange {
 }
 
 /// Matcher for search request query
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaConditionQueryTerm {
     /// Whether the search query needs to exactly match the query term.
     #[serde(default, rename = "fullMatch")]
@@ -9238,7 +9239,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaConditionQueryTerm {
 }
 
 /// Promotion proto includes uri and other helping information to display the promotion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchLinkPromotion {
     /// Optional. The Promotion description. Maximum length: 200 characters.
     #[serde(default)]
@@ -9261,7 +9262,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchLinkPromotion {
 }
 
 /// Configuration for chunking config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDocumentProcessingConfigChunkingConfig {
     /// Configuration for the layout based chunking.
     #[serde(default, rename = "layoutBasedChunkingConfig")]
@@ -9269,7 +9270,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDocumentProcessingConfigChunkingConf
 }
 
 /// Related configurations applied to a specific type of document parser.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDocumentProcessingConfigParsingConfig {
     /// Configurations applied to digital parser.
     #[serde(default, rename = "digitalParsingConfig")]
@@ -9287,7 +9288,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDocumentProcessingConfigParsingConfi
 }
 
 /// Stores information for connecting to AlloyDB.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDataStoreFederatedSearchConfigAlloyDbConfig {
     /// Optional. Configuration for Magic.
     #[serde(default, rename = "alloydbAiNlConfig")]
@@ -9301,7 +9302,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDataStoreFederatedSearchConfigAlloyD
 }
 
 /// Config for connecting to NotebookLM Enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDataStoreFederatedSearchConfigNotebooklmConfig {
     /// Required. Search config name. Format: projects/*/locations/global/notebookLmSearchConfigs/*
     #[serde(default, rename = "searchConfig")]
@@ -9309,7 +9310,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDataStoreFederatedSearchConfigNotebo
 }
 
 /// Stores information for third party applicationOAuth.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDataStoreFederatedSearchConfigThirdPartyOauthConfig {
     /// Optional. The type of the application. E.g., "jira", "box", etc.
     #[serde(default, rename = "appName")]
@@ -9320,7 +9321,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDataStoreFederatedSearchConfigThirdP
 }
 
 /// Third party IDP Config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaIdpConfigExternalIdpConfig {
     /// Workforce pool name. Example: "locations/global/workforcePools/pool_id"
     #[serde(default, rename = "workforcePoolName")]
@@ -9328,7 +9329,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaIdpConfigExternalIdpConfig {
 }
 
 /// Reference to an Agent Gateway resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAgentGatewaySettingAgentGatewayReference {
     /// Required. Immutable. The resource name of the agent gateway. Expected format: projects/{project_number}/locations/{location}/agentGateways/{agent_gateway}.
     #[serde(default)]
@@ -9336,7 +9337,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAgentGatewaySettingAgentGatewayRefer
 }
 
 /// Configurations for generating a Dialogflow agent. Note that these configurations are one-time consumed by and passed to Dialogflow service. It means they cannot be retrieved using EngineService.GetEngine or EngineService.ListEngines API after engine creation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaEngineChatEngineConfigAgentCreationConfig {
     /// Name of the company, organization or other entity that the agent represents. Used for knowledge connector LLM prompt and for knowledge search.
     #[serde(default)]
@@ -9353,7 +9354,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaEngineChatEngineConfigAgentCreationC
 }
 
 /// Metadata for single-regional CMEKs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSingleRegionKey {
     /// Required. Single-regional kms key resource name which will be used to encrypt resources projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{keyId}.
     #[serde(default, rename = "kmsKey")]
@@ -9361,7 +9362,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSingleRegionKey {
 }
 
 /// Feature config for the Knowledge Graph.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaEngineKnowledgeGraphConfigFeatureConfig {
     /// Whether to disable the private KG auto complete for the engine. Defaults to false if not specified.
     #[serde(default, rename = "disablePrivateKgAutoComplete")]
@@ -9378,7 +9379,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaEngineKnowledgeGraphConfigFeatureCon
 }
 
 /// More feature configs of the selected engine type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaEngineMediaRecommendationEngineConfigEngineFeaturesConfig {
     /// Most popular engine feature config.
     #[serde(default, rename = "mostPopularConfig")]
@@ -9389,7 +9390,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaEngineMediaRecommendationEngineConfi
 }
 
 /// Custom threshold for cvr optimization_objective.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaEngineMediaRecommendationEngineConfigOptimizationObjectiveConfig
 {
     /// Required. The name of the field to target. Currently supported values: watch-percentage, watch-time.
@@ -9401,7 +9402,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaEngineMediaRecommendationEngineConfi
 }
 
 /// Describes the specification of the query set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaEvaluationEvaluationSpecQuerySetSpec {
     /// Optional. The full resource name of the SampleQuerySet used for the evaluation, in the format of projects/{project}/locations/{location}/sampleQuerySets/{sampleQuerySet}.
     #[serde(default, rename = "sampleQuerySet")]
@@ -9409,7 +9410,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaEvaluationEvaluationSpecQuerySetSpec
 }
 
 /// Request message for SearchService.Search method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequest {
     /// Boost specification to boost certain documents. For more information on boosting, see [Boosting](https://cloud.google.com/generative-ai-app-builder/docs/boost-search-results)
     #[serde(default, rename = "boostSpec")]
@@ -9561,7 +9562,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequest {
 }
 
 /// Stores the metric values at specific top-k levels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaQualityMetricsTopkMetrics {
     /// The top-1 value.
     #[serde(default)]
@@ -9578,7 +9579,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaQualityMetricsTopkMetrics {
 }
 
 /// The alert enrollment status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAlertPolicyResourceConfigAlertEnrollment {
     /// Immutable. The id of an alert.
     #[serde(default, rename = "alertId")]
@@ -9592,7 +9593,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAlertPolicyResourceConfigAlertEnroll
 }
 
 /// The contact info stored in resource level. If both project level and resource level is populated, the resource level contact info will override the project level contact info.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaContactDetails {
     /// Optional. The email address of the contact.
     #[serde(default, rename = "emailAddress")]
@@ -9600,7 +9601,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaContactDetails {
 }
 
 /// The historical crawl rate timeseries data, used for monitoring.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaCrawlRateTimeSeries {
     /// The QPS of the crawl rate.
     #[serde(default, rename = "qpsTimeSeries")]
@@ -9608,7 +9609,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaCrawlRateTimeSeries {
 }
 
 /// Configuration for NotebookLM.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaProjectCustomerProvidedConfigNotebooklmConfig {
     /// Optional. Specifies the data protection policy for NotebookLM.
     #[serde(default, rename = "dataProtectionPolicy")]
@@ -9625,7 +9626,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaProjectCustomerProvidedConfigNoteboo
 }
 
 /// Details about why crawling failed for a particular CorpusType, e.g., DESKTOP and MOBILE crawling may fail for different reasons.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaRecrawlUrisResponseFailureInfoFailureReason {
     /// DESKTOP, MOBILE, or CORPUS_TYPE_UNSPECIFIED. // TODO: enum values: ["CORPUS_TYPE_UNSPECIFIED", "DESKTOP", "MOBILE"]
     #[serde(default, rename = "corpusType")]
@@ -9636,7 +9637,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaRecrawlUrisResponseFailureInfoFailur
 }
 
 /// Represents a turn, including a query from the user and a answer from service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSessionTurn {
     /// Optional. The resource name of the answer to the user query. Only set if the answer generation (/answer API call) happened in this turn.
     #[serde(default)]
@@ -9657,7 +9658,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSessionTurn {
 }
 
 /// Third party IDP Config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaIdpConfigExternalIdpConfig {
     /// Workforce pool name. Example: "locations/global/workforcePools/pool_id"
     #[serde(default, rename = "workforcePoolName")]
@@ -9665,7 +9666,7 @@ pub struct GoogleCloudDiscoveryengineV1betaIdpConfigExternalIdpConfig {
 }
 
 /// Site search indexing failure reasons.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaTargetSiteFailureReason {
     /// Failed due to insufficient quota.
     #[serde(default, rename = "quotaFailure")]
@@ -9674,7 +9675,7 @@ pub struct GoogleCloudDiscoveryengineV1betaTargetSiteFailureReason {
 }
 
 /// Verification information for target sites in advanced site search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSiteVerificationInfo {
     /// Site verification state indicating the ownership and validity. // TODO: enum values: ["SITE_VERIFICATION_STATE_UNSPECIFIED", "VERIFIED", "UNVERIFIED", "EXEMPTED"]
     #[serde(default, rename = "siteVerificationState")]
@@ -9685,7 +9686,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSiteVerificationInfo {
 }
 
 /// Specification for custom ranking based on customer specified attribute value. It provides more controls for customized ranking than the simple (condition, boost) combination above.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaControlBoostActionInterpolationBoostSpec {
     /// Optional. The attribute type to be used to determine the boost amount. The attribute value can be derived from the field value of the specified field_name. In the case of numerical it is straightforward i.e. attribute_value = numerical_field_value. In the case of freshness however, attribute_value = (time.now() - datetime_field_value). // TODO: enum values: ["ATTRIBUTE_TYPE_UNSPECIFIED", "NUMERICAL", "FRESHNESS"]
     #[serde(default, rename = "attributeType")]
@@ -9706,7 +9707,7 @@ pub struct GoogleCloudDiscoveryengineV1betaControlBoostActionInterpolationBoostS
 }
 
 /// Used for time-dependent conditions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaConditionTimeRange {
     /// End of time range. Range is inclusive. Must be in the future.
     #[serde(default, rename = "endTime")]
@@ -9717,7 +9718,7 @@ pub struct GoogleCloudDiscoveryengineV1betaConditionTimeRange {
 }
 
 /// Matcher for search request query
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaConditionQueryTerm {
     /// Whether the search query needs to exactly match the query term.
     #[serde(default, rename = "fullMatch")]
@@ -9728,7 +9729,7 @@ pub struct GoogleCloudDiscoveryengineV1betaConditionQueryTerm {
 }
 
 /// Promotion proto includes uri and other helping information to display the promotion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchLinkPromotion {
     /// Optional. The Promotion description. Maximum length: 200 characters.
     #[serde(default)]
@@ -9751,7 +9752,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchLinkPromotion {
 }
 
 /// Configuration for chunking config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaDocumentProcessingConfigChunkingConfig {
     /// Configuration for the layout based chunking.
     #[serde(default, rename = "layoutBasedChunkingConfig")]
@@ -9759,7 +9760,7 @@ pub struct GoogleCloudDiscoveryengineV1betaDocumentProcessingConfigChunkingConfi
 }
 
 /// Related configurations applied to a specific type of document parser.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaDocumentProcessingConfigParsingConfig {
     /// Configurations applied to digital parser.
     #[serde(default, rename = "digitalParsingConfig")]
@@ -9777,7 +9778,7 @@ pub struct GoogleCloudDiscoveryengineV1betaDocumentProcessingConfigParsingConfig
 }
 
 /// Stores information for connecting to AlloyDB.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaDataStoreFederatedSearchConfigAlloyDbConfig {
     /// Optional. Configuration for Magic.
     #[serde(default, rename = "alloydbAiNlConfig")]
@@ -9791,7 +9792,7 @@ pub struct GoogleCloudDiscoveryengineV1betaDataStoreFederatedSearchConfigAlloyDb
 }
 
 /// Config for connecting to NotebookLM Enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaDataStoreFederatedSearchConfigNotebooklmConfig {
     /// Required. Search config name. Format: projects/*/locations/global/notebookLmSearchConfigs/*
     #[serde(default, rename = "searchConfig")]
@@ -9799,7 +9800,7 @@ pub struct GoogleCloudDiscoveryengineV1betaDataStoreFederatedSearchConfigNoteboo
 }
 
 /// Stores information for third party applicationOAuth.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaDataStoreFederatedSearchConfigThirdPartyOauthConfig {
     /// Optional. The type of the application. E.g., "jira", "box", etc.
     #[serde(default, rename = "appName")]
@@ -9810,7 +9811,7 @@ pub struct GoogleCloudDiscoveryengineV1betaDataStoreFederatedSearchConfigThirdPa
 }
 
 /// Reference to an Agent Gateway resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaAgentGatewaySettingAgentGatewayReference {
     /// Required. Immutable. The resource name of the agent gateway. Expected format: projects/{project_number}/locations/{location}/agentGateways/{agent_gateway}.
     #[serde(default)]
@@ -9818,7 +9819,7 @@ pub struct GoogleCloudDiscoveryengineV1betaAgentGatewaySettingAgentGatewayRefere
 }
 
 /// Configurations for generating a Dialogflow agent. Note that these configurations are one-time consumed by and passed to Dialogflow service. It means they cannot be retrieved using EngineService.GetEngine or EngineService.ListEngines API after engine creation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaEngineChatEngineConfigAgentCreationConfig {
     /// Name of the company, organization or other entity that the agent represents. Used for knowledge connector LLM prompt and for knowledge search.
     #[serde(default)]
@@ -9835,7 +9836,7 @@ pub struct GoogleCloudDiscoveryengineV1betaEngineChatEngineConfigAgentCreationCo
 }
 
 /// Metadata for single-regional CMEKs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSingleRegionKey {
     /// Required. Single-regional kms key resource name which will be used to encrypt resources projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{keyId}.
     #[serde(default, rename = "kmsKey")]
@@ -9843,7 +9844,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSingleRegionKey {
 }
 
 /// Feature config for the Knowledge Graph.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaEngineKnowledgeGraphConfigFeatureConfig {
     /// Whether to disable the private KG auto complete for the engine. Defaults to false if not specified.
     #[serde(default, rename = "disablePrivateKgAutoComplete")]
@@ -9860,7 +9861,7 @@ pub struct GoogleCloudDiscoveryengineV1betaEngineKnowledgeGraphConfigFeatureConf
 }
 
 /// More feature configs of the selected engine type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaEngineMediaRecommendationEngineConfigEngineFeaturesConfig {
     /// Most popular engine feature config.
     #[serde(default, rename = "mostPopularConfig")]
@@ -9871,7 +9872,7 @@ pub struct GoogleCloudDiscoveryengineV1betaEngineMediaRecommendationEngineConfig
 }
 
 /// Custom threshold for cvr optimization_objective.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaEngineMediaRecommendationEngineConfigOptimizationObjectiveConfig
 {
     /// Required. The name of the field to target. Currently supported values: watch-percentage, watch-time.
@@ -9883,7 +9884,7 @@ pub struct GoogleCloudDiscoveryengineV1betaEngineMediaRecommendationEngineConfig
 }
 
 /// Describes the specification of the query set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaEvaluationEvaluationSpecQuerySetSpec {
     /// Optional. The full resource name of the SampleQuerySet used for the evaluation, in the format of projects/{project}/locations/{location}/sampleQuerySets/{sampleQuerySet}.
     #[serde(default, rename = "sampleQuerySet")]
@@ -9891,7 +9892,7 @@ pub struct GoogleCloudDiscoveryengineV1betaEvaluationEvaluationSpecQuerySetSpec 
 }
 
 /// Request message for SearchService.Search method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequest {
     /// Boost specification to boost certain documents. For more information on boosting, see [Boosting](https://cloud.google.com/generative-ai-app-builder/docs/boost-search-results)
     #[serde(default, rename = "boostSpec")]
@@ -10036,7 +10037,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequest {
 }
 
 /// Stores the metric values at specific top-k levels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaQualityMetricsTopkMetrics {
     /// The top-1 value.
     #[serde(default)]
@@ -10053,7 +10054,7 @@ pub struct GoogleCloudDiscoveryengineV1betaQualityMetricsTopkMetrics {
 }
 
 /// The historical crawl rate timeseries data, used for monitoring.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaCrawlRateTimeSeries {
     /// The QPS of the crawl rate.
     #[serde(default, rename = "qpsTimeSeries")]
@@ -10061,7 +10062,7 @@ pub struct GoogleCloudDiscoveryengineV1betaCrawlRateTimeSeries {
 }
 
 /// Configuration for NotebookLM.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaProjectCustomerProvidedConfigNotebooklmConfig {
     /// Optional. Specifies the data protection policy for NotebookLM.
     #[serde(default, rename = "dataProtectionPolicy")]
@@ -10078,7 +10079,7 @@ pub struct GoogleCloudDiscoveryengineV1betaProjectCustomerProvidedConfigNotebook
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -10092,7 +10093,7 @@ pub struct GoogleIamV1Binding {
 }
 
 /// A2aV1AuthorizationCodeOAuthFlow resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1AuthorizationCodeOAuthFlow {
     /// The authorization URL to be used for this flow. This MUST be in the form of a URL. The OAuth2 standard requires the use of TLS
     #[serde(default, rename = "authorizationUrl")]
@@ -10109,7 +10110,7 @@ pub struct A2aV1AuthorizationCodeOAuthFlow {
 }
 
 /// A2aV1ClientCredentialsOAuthFlow resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1ClientCredentialsOAuthFlow {
     /// The URL to be used for obtaining refresh tokens. This MUST be in the form of a URL. The OAuth2 standard requires the use of TLS.
     #[serde(default, rename = "refreshUrl")]
@@ -10123,7 +10124,7 @@ pub struct A2aV1ClientCredentialsOAuthFlow {
 }
 
 /// A2aV1ImplicitOAuthFlow resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1ImplicitOAuthFlow {
     /// The authorization URL to be used for this flow. This MUST be in the form of a URL. The OAuth2 standard requires the use of TLS
     #[serde(default, rename = "authorizationUrl")]
@@ -10137,7 +10138,7 @@ pub struct A2aV1ImplicitOAuthFlow {
 }
 
 /// A2aV1PasswordOAuthFlow resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1PasswordOAuthFlow {
     /// The URL to be used for obtaining refresh tokens. This MUST be in the form of a URL. The OAuth2 standard requires the use of TLS.
     #[serde(default, rename = "refreshUrl")]
@@ -10151,7 +10152,7 @@ pub struct A2aV1PasswordOAuthFlow {
 }
 
 /// Defines authentication details, used for push notifications.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1AuthenticationInfo {
     /// Optional credentials
     #[serde(default)]
@@ -10162,7 +10163,7 @@ pub struct A2aV1AuthenticationInfo {
 }
 
 /// Message is one unit of communication between client and server. It is associated with a context and optionally a task. Since the server is responsible for the context definition, it must always provide a context_id in its messages. The client can optionally provide the context_id if it knows the context to associate the message to. Similarly for task_id, except the server decides if a task is created and whether to include the task_id.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1Message {
     /// protolint:disable REPEATED_FIELD_NAMES_PLURALIZED Content is the container of the message content.
     #[serde(default)]
@@ -10188,7 +10189,7 @@ pub struct A2aV1Message {
 }
 
 /// Chunk information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestEndUserSpecEndUserMetaDataChunkInfo {
     /// Chunk textual content. It is limited to 8000 characters.
     #[serde(default)]
@@ -10199,7 +10200,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestEndUserSpecEndUserMetaD
 }
 
 /// Query Rephraser Model specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestQueryUnderstandingSpecQueryRephraserSpecModelSpec
 {
     /// Optional. Enabled query rephraser model type. If not set, it will use LARGE by default. // TODO: enum values: ["MODEL_TYPE_UNSPECIFIED", "SMALL", "LARGE"]
@@ -10208,7 +10209,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestQueryUnderstandingSpecQ
 }
 
 /// Search result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestSearchSpecSearchResultListSearchResult {
     /// Chunk information.
     #[serde(default, rename = "chunkInfo")]
@@ -10219,7 +10220,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestSearchSpecSearchResultL
 }
 
 /// Site search indexing failure reasons.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1TargetSiteFailureReason {
     /// Failed due to insufficient quota.
     #[serde(default, rename = "quotaFailure")]
@@ -10228,7 +10229,7 @@ pub struct GoogleCloudDiscoveryengineV1TargetSiteFailureReason {
 }
 
 /// Verification information for target sites in advanced site search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SiteVerificationInfo {
     /// Site verification state indicating the ownership and validity. // TODO: enum values: ["SITE_VERIFICATION_STATE_UNSPECIFIED", "VERIFIED", "UNVERIFIED", "EXEMPTED"]
     #[serde(default, rename = "siteVerificationState")]
@@ -10239,7 +10240,7 @@ pub struct GoogleCloudDiscoveryengineV1SiteVerificationInfo {
 }
 
 /// Detailed completion information including completion attribution token and clicked completion info.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1CompletionInfo {
     /// End user selected CompleteQueryResponse.QuerySuggestion.suggestion position, starting from 0.
     #[serde(default, rename = "selectedPosition")]
@@ -10250,7 +10251,7 @@ pub struct GoogleCloudDiscoveryengineV1CompletionInfo {
 }
 
 /// Media-specific user event information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1MediaInfo {
     /// The media progress time in seconds, if applicable. For example, if the end user has finished 90 seconds of a playback video, then MediaInfo.media_progress_duration.seconds should be set to 90.
     #[serde(default, rename = "mediaProgressDuration")]
@@ -10261,7 +10262,7 @@ pub struct GoogleCloudDiscoveryengineV1MediaInfo {
 }
 
 /// Detailed page information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1PageInfo {
     /// The most specific category associated with a category page. To represent full path of category, use ''&gt;'' sign to separate different hierarchies. If ''&gt;'' is part of the category name, replace it with other character(s). Category pages include special pages such as sales or promotions. For instance, a special sale page may have the category hierarchy: "pageCategory" : "Sales &gt; 2017 Black Friday Deals". Required for view-category-page events. Other event types should not set this field. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "pageCategory")]
@@ -10278,7 +10279,7 @@ pub struct GoogleCloudDiscoveryengineV1PageInfo {
 }
 
 /// Detailed panel information associated with a user event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1PanelInfo {
     /// The display name of the panel.
     #[serde(default, rename = "displayName")]
@@ -10299,7 +10300,7 @@ pub struct GoogleCloudDiscoveryengineV1PanelInfo {
 }
 
 /// Detailed search information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchInfo {
     /// An integer that specifies the current offset for pagination (the 0-indexed starting location, amongst the products deemed by the API as relevant). See SearchRequest.offset for definition. If this field is negative, an INVALID_ARGUMENT is returned. This can only be set for search events. Other event types should not set this field. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default)]
@@ -10313,7 +10314,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchInfo {
 }
 
 /// A transaction represents the entire purchase transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1TransactionInfo {
     /// All the costs associated with the products. These can be manufacturing costs, shipping expenses not borne by the end user, or any other costs, such that: * Profit = value - tax - cost
     #[serde(default)]
@@ -10336,7 +10337,7 @@ pub struct GoogleCloudDiscoveryengineV1TransactionInfo {
 }
 
 /// Information of an end user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1UserInfo {
     /// Optional. IANA time zone, e.g. Europe/Budapest.
     #[serde(default, rename = "timeZone")]
@@ -10350,7 +10351,7 @@ pub struct GoogleCloudDiscoveryengineV1UserInfo {
 }
 
 /// Definition of a customer-defined banned phrase. A banned phrase is not allowed to appear in the user query or the LLM response, or else the answer will be refused.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistantCustomerPolicyBannedPhrase {
     /// Optional. If true, diacritical marks (e.g., accents, umlauts) are ignored when matching banned phrases. For example, "cafe" would match "café".
     #[serde(default, rename = "ignoreDiacritics")]
@@ -10364,7 +10365,7 @@ pub struct GoogleCloudDiscoveryengineV1AssistantCustomerPolicyBannedPhrase {
 }
 
 /// Configuration for customer defined Model Armor templates to be used for sanitizing user prompts and assistant responses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistantCustomerPolicyModelArmorConfig {
     /// Optional. Defines the failure mode for Model Armor sanitization. // TODO: enum values: ["FAILURE_MODE_UNSPECIFIED", "FAIL_OPEN", "FAIL_CLOSED"]
     #[serde(default, rename = "failureMode")]
@@ -10378,7 +10379,7 @@ pub struct GoogleCloudDiscoveryengineV1AssistantCustomerPolicyModelArmorConfig {
 }
 
 /// System instruction, also known as the prompt preamble for LLM calls.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistantGenerationConfigSystemInstruction {
     /// Optional. Additional system instruction that will be added to the default system instruction.
     #[serde(default, rename = "additionalSystemInstruction")]
@@ -10386,7 +10387,7 @@ pub struct GoogleCloudDiscoveryengineV1AssistantGenerationConfigSystemInstructio
 }
 
 /// Specification for custom ranking based on customer specified attribute value. It provides more controls for customized ranking than the simple (condition, boost) combination above.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ControlBoostActionInterpolationBoostSpec {
     /// Optional. The attribute type to be used to determine the boost amount. The attribute value can be derived from the field value of the specified field_name. In the case of numerical it is straightforward i.e. attribute_value = numerical_field_value. In the case of freshness however, attribute_value = (time.now() - datetime_field_value). // TODO: enum values: ["ATTRIBUTE_TYPE_UNSPECIFIED", "NUMERICAL", "FRESHNESS"]
     #[serde(default, rename = "attributeType")]
@@ -10407,7 +10408,7 @@ pub struct GoogleCloudDiscoveryengineV1ControlBoostActionInterpolationBoostSpec 
 }
 
 /// Used for time-dependent conditions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ConditionTimeRange {
     /// End of time range. Range is inclusive. Must be in the future.
     #[serde(default, rename = "endTime")]
@@ -10418,7 +10419,7 @@ pub struct GoogleCloudDiscoveryengineV1ConditionTimeRange {
 }
 
 /// Matcher for search request query
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ConditionQueryTerm {
     /// Whether the search query needs to exactly match the query term.
     #[serde(default, rename = "fullMatch")]
@@ -10429,7 +10430,7 @@ pub struct GoogleCloudDiscoveryengineV1ConditionQueryTerm {
 }
 
 /// Promotion proto includes uri and other helping information to display the promotion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchLinkPromotion {
     /// Optional. The Promotion description. Maximum length: 200 characters.
     #[serde(default)]
@@ -10452,7 +10453,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchLinkPromotion {
 }
 
 /// Defines a reply message to user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1Reply {
     /// Summary based on search results.
     #[serde(default)]
@@ -10460,7 +10461,7 @@ pub struct GoogleCloudDiscoveryengineV1Reply {
 }
 
 /// Defines text input.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1TextInput {
     /// Conversation context of the input.
     #[serde(default)]
@@ -10471,7 +10472,7 @@ pub struct GoogleCloudDiscoveryengineV1TextInput {
 }
 
 /// Configuration for chunking config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigChunkingConfig {
     /// Configuration for the layout based chunking.
     #[serde(default, rename = "layoutBasedChunkingConfig")]
@@ -10481,7 +10482,7 @@ pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigChunkingConfig {
 }
 
 /// Related configurations applied to a specific type of document parser.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfig {
     /// Configurations applied to digital parser.
     #[serde(default, rename = "digitalParsingConfig")]
@@ -10499,7 +10500,7 @@ pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfig {
 }
 
 /// Stores information for connecting to AlloyDB.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigAlloyDbConfig {
     /// Optional. Configuration for Magic.
     #[serde(default, rename = "alloydbAiNlConfig")]
@@ -10513,7 +10514,7 @@ pub struct GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigAlloyDbConf
 }
 
 /// Config for connecting to NotebookLM Enterprise.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigNotebooklmConfig {
     /// Required. Search config name. Format: projects/*/locations/global/notebookLmSearchConfigs/*
     #[serde(default, rename = "searchConfig")]
@@ -10521,7 +10522,7 @@ pub struct GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigNotebooklmC
 }
 
 /// Stores information for third party applicationOAuth.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigThirdPartyOauthConfig {
     /// Optional. The type of the application. E.g., "jira", "box", etc.
     #[serde(default, rename = "appName")]
@@ -10532,7 +10533,7 @@ pub struct GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigThirdPartyO
 }
 
 /// Reference to an Agent Gateway resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AgentGatewaySettingAgentGatewayReference {
     /// Required. Immutable. The resource name of the agent gateway. Expected format: projects/{project_number}/locations/{location}/agentGateways/{agent_gateway}.
     #[serde(default)]
@@ -10540,7 +10541,7 @@ pub struct GoogleCloudDiscoveryengineV1AgentGatewaySettingAgentGatewayReference 
 }
 
 /// Configurations for generating a Dialogflow agent. Note that these configurations are one-time consumed by and passed to Dialogflow service. It means they cannot be retrieved using EngineService.GetEngine or EngineService.ListEngines API after engine creation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1EngineChatEngineConfigAgentCreationConfig {
     /// Name of the company, organization or other entity that the agent represents. Used for knowledge connector LLM prompt and for knowledge search.
     #[serde(default)]
@@ -10557,7 +10558,7 @@ pub struct GoogleCloudDiscoveryengineV1EngineChatEngineConfigAgentCreationConfig
 }
 
 /// Feature config for the Knowledge Graph.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1EngineKnowledgeGraphConfigFeatureConfig {
     /// Whether to disable the private KG auto complete for the engine. Defaults to false if not specified.
     #[serde(default, rename = "disablePrivateKgAutoComplete")]
@@ -10574,7 +10575,7 @@ pub struct GoogleCloudDiscoveryengineV1EngineKnowledgeGraphConfigFeatureConfig {
 }
 
 /// More feature configs of the selected engine type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigEngineFeaturesConfig {
     /// Most popular engine feature config.
     #[serde(default, rename = "mostPopularConfig")]
@@ -10585,7 +10586,7 @@ pub struct GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigEngi
 }
 
 /// Custom threshold for cvr optimization_objective.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigOptimizationObjectiveConfig
 {
     /// Required. The name of the field to target. Currently supported values: watch-percentage, watch-time.
@@ -10597,7 +10598,7 @@ pub struct GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigOpti
 }
 
 /// Metadata for single-regional CMEKs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SingleRegionKey {
     /// Required. Single-regional kms key resource name which will be used to encrypt resources projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{keyId}.
     #[serde(default, rename = "kmsKey")]
@@ -10605,7 +10606,7 @@ pub struct GoogleCloudDiscoveryengineV1SingleRegionKey {
 }
 
 /// The specification for user defined classifier.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerGenerationSpecUserDefinedClassifierSpec {
     /// Optional. Whether or not to enable and include user defined classifier.
     #[serde(default, rename = "enableUserDefinedClassifier")]
@@ -10634,7 +10635,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerGenerationSpecUserDefinedClassifier
 }
 
 /// A specification for configuring the behavior of content search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpec {
     /// Specifies the chunk spec to be returned from the search response. Only available if the SearchRequest.ContentSearchSpec.search_result_mode is set to CHUNKS
     #[serde(default, rename = "chunkSpec")]
@@ -10661,7 +10662,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpec {
 }
 
 /// Defines an answer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1Answer {
     /// Additional answer-skipped reasons. This provides the reason for ignored cases. If nothing is skipped, this field is not set.
     #[serde(default, rename = "answerSkippedReasons")]
@@ -10713,7 +10714,7 @@ pub struct GoogleCloudDiscoveryengineV1Answer {
 }
 
 /// AssistAnswer resource, main part of AssistResponse.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistAnswer {
     /// Reasons for not answering the assist call.
     #[serde(default, rename = "assistSkippedReasons")]
@@ -10736,7 +10737,7 @@ pub struct GoogleCloudDiscoveryengineV1AssistAnswer {
 }
 
 /// Defines a user inputed query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1Query {
     /// Output only. Unique Id for the query.
     #[serde(default, rename = "queryId")]
@@ -10747,7 +10748,7 @@ pub struct GoogleCloudDiscoveryengineV1Query {
 }
 
 /// Data protection policy config for NotebookLM.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ProjectCustomerProvidedConfigNotebooklmConfigDataProtectionPolicy {
     /// Optional. The sensitive data protection policy.
     #[serde(default, rename = "sensitiveDataProtectionPolicy")]
@@ -10755,7 +10756,7 @@ pub struct GoogleCloudDiscoveryengineV1ProjectCustomerProvidedConfigNotebooklmCo
 }
 
 /// Configuration for customer defined Model Armor templates to be used for sanitizing user prompts and LLM responses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ProjectCustomerProvidedConfigNotebooklmConfigModelArmorConfig
 {
     /// Optional. The resource name of the Model Armor Template for sanitizing LLM responses. Format: projects/{project}/locations/{location}/templates/{template_id} If not specified, no sanitization will be applied to the LLM response.
@@ -10767,7 +10768,7 @@ pub struct GoogleCloudDiscoveryengineV1ProjectCustomerProvidedConfigNotebooklmCo
 }
 
 /// Observability config for a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ObservabilityConfig {
     /// Optional. Enables observability. If false, all other flags are ignored.
     #[serde(default, rename = "observabilityEnabled")]
@@ -10778,7 +10779,7 @@ pub struct GoogleCloudDiscoveryengineV1ObservabilityConfig {
 }
 
 /// A floating point interval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1Interval {
     /// Exclusive upper bound.
     #[serde(default, rename = "exclusiveMaximum")]
@@ -10795,7 +10796,7 @@ pub struct GoogleCloudDiscoveryengineV1Interval {
 }
 
 /// ACL Information of the Document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DocumentAclInfo {
     /// Readers of the document.
     #[serde(default)]
@@ -10805,7 +10806,7 @@ pub struct GoogleCloudDiscoveryengineV1DocumentAclInfo {
 }
 
 /// Unstructured data linked to this document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DocumentContent {
     /// The MIME type of the content. Supported types: * application/pdf (PDF, only native PDFs are supported for now) * text/html (HTML) * text/plain (TXT) * application/xml or text/xml (XML) * application/json (JSON) * application/vnd.openxmlformats-officedocument.wordprocessingml.document (DOCX) * application/vnd.openxmlformats-officedocument.presentationml.presentation (PPTX) * application/vnd.openxmlformats-officedocument.spreadsheetml.sheet (XLSX) * application/vnd.ms-excel.sheet.macroenabled.12 (XLSM) The following types are supported only if layout parser is enabled in the data store: * image/bmp (BMP) * image/gif (GIF) * image/jpeg (JPEG) * image/png (PNG) * image/tiff (TIFF) See https://www.iana.org/assignments/media-types/media-types.xhtml.
     #[serde(default, rename = "mimeType")]
@@ -10819,7 +10820,7 @@ pub struct GoogleCloudDiscoveryengineV1DocumentContent {
 }
 
 /// Index status of the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DocumentIndexStatus {
     /// A sample of errors encountered while indexing the document. If this field is populated, the document is not indexed due to errors.
     #[serde(default, rename = "errorSamples")]
@@ -10833,7 +10834,7 @@ pub struct GoogleCloudDiscoveryengineV1DocumentIndexStatus {
 }
 
 /// Custom clearbox signal represented by name and value pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchResponseSearchResultRankSignalsCustomSignal {
     /// Optional. Name of the signal.
     #[serde(default)]
@@ -10844,7 +10845,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseSearchResultRankSignalsCust
 }
 
 /// The alert enrollment status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AlertPolicyConfigAlertEnrollment {
     /// Immutable. The id of an alert.
     #[serde(default, rename = "alertId")]
@@ -10855,7 +10856,7 @@ pub struct GoogleCloudDiscoveryengineV1AlertPolicyConfigAlertEnrollment {
 }
 
 /// Defines a target endpoint
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DestinationConfigDestination {
     /// Publicly routable host.
     #[serde(default)]
@@ -10866,7 +10867,7 @@ pub struct GoogleCloudDiscoveryengineV1DestinationConfigDestination {
 }
 
 /// Tenant information for a connector source. This includes some of the same information stored in the Credential message, but is limited to only what is needed to provide a list of accessible tenants to the user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1Tenant {
     /// Optional display name for the tenant, e.g. "My Slack Team".
     #[serde(default, rename = "displayName")]
@@ -10880,7 +10881,7 @@ pub struct GoogleCloudDiscoveryengineV1Tenant {
 }
 
 /// Config to data store for HEALTHCARE_FHIR vertical.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1HealthcareFhirConfig {
     /// Whether to enable configurable schema for HEALTHCARE_FHIR vertical. If set to true, the predefined healthcare fhir schema can be extended for more customized searching and filtering.
     #[serde(default, rename = "enableConfigurableSchema")]
@@ -10894,7 +10895,7 @@ pub struct GoogleCloudDiscoveryengineV1HealthcareFhirConfig {
 }
 
 /// Defines the structure and layout of a type of document data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1Schema {
     /// The JSON representation of the schema.
     #[serde(default, rename = "jsonSchema")]
@@ -10908,7 +10909,7 @@ pub struct GoogleCloudDiscoveryengineV1Schema {
 }
 
 /// Streaming error details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DataConnectorRealtimeSyncConfigStreamingError {
     /// Optional. Error details.
     #[serde(default)]
@@ -10919,7 +10920,7 @@ pub struct GoogleCloudDiscoveryengineV1DataConnectorRealtimeSyncConfigStreamingE
 }
 
 /// A struct to define data stores to filter on in a search call and configurations for those data stores. Otherwise, an INVALID_ARGUMENT error is returned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequestDataStoreSpec {
     /// Optional. Boost specification to boost certain documents. For more information on boosting, see [Boosting](https://cloud.google.com/generative-ai-app-builder/docs/boost-search-results)
     #[serde(default, rename = "boostSpec")]
@@ -10939,7 +10940,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequestDataStoreSpec {
 }
 
 /// Options to store an image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1WidgetConfigImage {
     /// Image URL.
     #[serde(default)]
@@ -10947,7 +10948,7 @@ pub struct GoogleCloudDiscoveryengineV1WidgetConfigImage {
 }
 
 /// Facet fields that store the mapping of fields to end user widget appearance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1WidgetConfigFacetField {
     /// Optional. The field name that end users will see.
     #[serde(default, rename = "displayName")]
@@ -10958,7 +10959,7 @@ pub struct GoogleCloudDiscoveryengineV1WidgetConfigFacetField {
 }
 
 /// Failed due to insufficient quota.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaTargetSiteFailureReasonQuotaFailure {
     /// This number is an estimation on how much total quota this project needs to successfully complete indexing.
     #[serde(default, rename = "totalRequiredQuota")]
@@ -10966,7 +10967,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaTargetSiteFailureReasonQuotaFailure 
 }
 
 /// The alert enrollment status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAlertPolicyConfigAlertEnrollment {
     /// Immutable. The id of an alert.
     #[serde(default, rename = "alertId")]
@@ -10977,7 +10978,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAlertPolicyConfigAlertEnrollment {
 }
 
 /// Specifies a Sensitive Data Protection (https://cloud.google.com/sensitive-data-protection/docs/sensitive-data-protection-overview) policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDataProtectionPolicySensitiveDataProtectionPolicy {
     /// Optional. Specifies the resource name of the Sensitive Data Protection content policy.
     #[serde(default)]
@@ -10985,7 +10986,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDataProtectionPolicySensitiveDataPro
 }
 
 /// Defines a target endpoint
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDestinationConfigDestination {
     /// Publicly routable host.
     #[serde(default)]
@@ -10996,7 +10997,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDestinationConfigDestination {
 }
 
 /// Tenant information for a connector source. This includes some of the same information stored in the Credential message, but is limited to only what is needed to provide a list of accessible tenants to the user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaTenant {
     /// Optional display name for the tenant, e.g. "My Slack Team".
     #[serde(default, rename = "displayName")]
@@ -11010,7 +11011,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaTenant {
 }
 
 /// Config to data store for HEALTHCARE_FHIR vertical.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaHealthcareFhirConfig {
     /// Whether to enable configurable schema for HEALTHCARE_FHIR vertical. If set to true, the predefined healthcare fhir schema can be extended for more customized searching and filtering.
     #[serde(default, rename = "enableConfigurableSchema")]
@@ -11024,7 +11025,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaHealthcareFhirConfig {
 }
 
 /// Defines the structure and layout of a type of document data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSchema {
     /// Output only. Configurations for fields of the schema.
     #[serde(default, rename = "fieldConfigs")]
@@ -11042,7 +11043,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSchema {
 }
 
 /// Represents civil time (or occasionally physical time). This type can represent a civil time in one of a few possible ways: * When utc_offset is set and time_zone is unset: a civil time on a calendar day with a particular offset from UTC. * When time_zone is set and utc_offset is unset: a civil time on a calendar day in a particular time zone. * When neither time_zone nor utc_offset is set: a civil time on a calendar day in local time. The date is relative to the Proleptic Gregorian Calendar. If year, month, or day are 0, the DateTime is considered not to have a specific year, month, or day respectively. This type may also be used to represent a physical time if all the date and time fields are set and either case of the time_offset oneof is set. Consider using Timestamp message for physical time instead. If your use case also would like to store the user''s timezone, that can be done in another field. This type is more flexible than some applications may want. Make sure to document and validate your application''s limitations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeDateTime {
     /// Optional. Day of month. Must be from 1 to 31 and valid for the year and month, or 0 if specifying a datetime without a day.
     #[serde(default)]
@@ -11074,7 +11075,7 @@ pub struct GoogleTypeDateTime {
 }
 
 /// Streaming error details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDataConnectorRealtimeSyncConfigStreamingError {
     /// Optional. Error details.
     #[serde(default)]
@@ -11085,7 +11086,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDataConnectorRealtimeSyncConfigStrea
 }
 
 /// The control points used to define the curve. The curve defined through these control points can only be monotonically increasing or decreasing(constant values are acceptable).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaControlBoostActionInterpolationBoostSpecControlPoint {
     /// Optional. Can be one of: 1. The numerical field value. 2. The duration spec for freshness: The value must be formatted as an XSD dayTimeDuration value (a restricted subset of an ISO 8601 duration value). The pattern for this is: nDnM].
     #[serde(default, rename = "attributeValue")]
@@ -11096,7 +11097,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaControlBoostActionInterpolationBoost
 }
 
 /// Configuration for the layout based chunking.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDocumentProcessingConfigChunkingConfigLayoutBasedChunkingConfig
 {
     /// The token size limit for each chunk. Supported values: 100-500 (inclusive). Default value: 500.
@@ -11108,7 +11109,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDocumentProcessingConfigChunkingConf
 }
 
 /// The layout parsing configurations for documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDocumentProcessingConfigParsingConfigLayoutParsingConfig
 {
     /// Optional. If true, the processed document will be made available for the GetProcessedDocument API.
@@ -11138,7 +11139,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDocumentProcessingConfigParsingConfi
 }
 
 /// The OCR parsing configurations for documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDocumentProcessingConfigParsingConfigOcrParsingConfig {
     /// [DEPRECATED] This field is deprecated. To use the additional enhanced document elements processing, please switch to layout_parsing_config.
     #[serde(default, rename = "enhancedDocumentElements")]
@@ -11149,7 +11150,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDocumentProcessingConfigParsingConfi
 }
 
 /// Configuration for AlloyDB AI Natural Language.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDataStoreFederatedSearchConfigAlloyDbConfigAlloyDbAiNaturalLanguageConfig
 {
     /// Optional. AlloyDb AI NL config id, i.e. the value that was used for calling SELECT alloydb_ai_nl.g_create_configuration(...). Can be empty.
@@ -11158,7 +11159,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDataStoreFederatedSearchConfigAlloyD
 }
 
 /// Configuration for connecting to AlloyDB.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaDataStoreFederatedSearchConfigAlloyDbConfigAlloyDbConnectionConfig
 {
     /// Optional. Auth mode. // TODO: enum values: ["AUTH_MODE_UNSPECIFIED", "AUTH_MODE_SERVICE_ACCOUNT", "AUTH_MODE_END_USER_ACCOUNT"]
@@ -11182,7 +11183,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaDataStoreFederatedSearchConfigAlloyD
 }
 
 /// Feature configurations that are required for creating a Most Popular engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaEngineMediaRecommendationEngineConfigMostPopularFeatureConfig
 {
     /// The time window of which the engine is queried at training and prediction time. Positive integers only. The value translates to the last X days of events. Currently required for the most-popular-items engine.
@@ -11191,7 +11192,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaEngineMediaRecommendationEngineConfi
 }
 
 /// Additional feature configurations for creating a recommended-for-you engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaEngineMediaRecommendationEngineConfigRecommendedForYouFeatureConfig
 {
     /// The type of event with which the engine is queried at prediction time. If set to generic, only view-item, media-play,and media-complete will be used as context-event in engine training. If set to view-home-page, view-home-page will also be used as context-events in addition to view-item, media-play, and media-complete. Currently supported for the recommended-for-you engine. Currently supported values: view-home-page, generic.
@@ -11200,7 +11201,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaEngineMediaRecommendationEngineConfi
 }
 
 /// A specification for configuring the behavior of content search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestContentSearchSpec {
     /// Specifies the chunk spec to be returned from the search response. Only available if the SearchRequest.ContentSearchSpec.search_result_mode is set to CHUNKS
     #[serde(default, rename = "chunkSpec")]
@@ -11228,7 +11229,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestContentSearchSpec {
 }
 
 /// Specification for crowding. Crowding improves the diversity of search results by limiting the number of results that share the same field value. For example, crowding on the color field with a max_count of 3 and mode DROP_CROWDED_RESULTS will return at most 3 results with the same color across all pages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestCrowdingSpec {
     /// The field to use for crowding. Documents can be crowded by a field in the Document object. Crowding field is case sensitive.
     #[serde(default)]
@@ -11242,7 +11243,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestCrowdingSpec {
 }
 
 /// Defines custom fine tuning spec.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaCustomFineTuningSpec {
     /// Whether or not to enable and include custom fine tuned search adaptor model.
     #[serde(default, rename = "enableSearchAdaptor")]
@@ -11250,7 +11251,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaCustomFineTuningSpec {
 }
 
 /// A struct to define data stores to filter on in a search call and configurations for those data stores. Otherwise, an INVALID_ARGUMENT error is returned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestDataStoreSpec {
     /// Optional. Boost specification to boost certain documents. For more information on boosting, see [Boosting](https://cloud.google.com/generative-ai-app-builder/docs/boost-search-results)
     #[serde(default, rename = "boostSpec")]
@@ -11270,7 +11271,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestDataStoreSpec {
 }
 
 /// Specifies features for display, like match highlighting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestDisplaySpec {
     /// The condition under which match highlighting should occur. // TODO: enum values: ["MATCH_HIGHLIGHTING_CONDITION_UNSPECIFIED", "MATCH_HIGHLIGHTING_DISABLED", "MATCH_HIGHLIGHTING_ENABLED"]
     #[serde(default, rename = "matchHighlightingCondition")]
@@ -11278,7 +11279,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestDisplaySpec {
 }
 
 /// The specification that uses customized query embedding vector to do semantic document retrieval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestEmbeddingSpec {
     /// The embedding vector used for retrieval. Limit to 1.
     #[serde(default, rename = "embeddingVectors")]
@@ -11288,7 +11289,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestEmbeddingSpec {
 }
 
 /// A facet specification to perform faceted search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestFacetSpec {
     /// Enables dynamic position for this facet. If set to true, the position of this facet among all facets in the response is determined automatically. If dynamic facets are enabled, it is ordered together. If set to false, the position of this facet in the response is the same as in the request, and it is ranked before the facets with dynamic position enable and all dynamic facets. For example, you may always want to have rating facet returned in the response, but it''s not necessarily to always display the rating facet at the top. In that case, you can set enable_dynamic_position to true so that the position of rating facet in response is determined automatically. Another example, assuming you have the following facets in the request: * "rating", enable_dynamic_position = true * "price", enable_dynamic_position = false * "brands", enable_dynamic_position = false And also you have a dynamic facets enabled, which generates a facet gender. Then the final order of the facets in the response can be ("price", "brands", "rating", "gender") or ("price", "brands", "gender", "rating") depends on how API orders "gender" and "rating" facets. However, notice that "price" and "brands" are always ranked at first and second position because their enable_dynamic_position is false.
     #[serde(default, rename = "enableDynamicPosition")]
@@ -11306,7 +11307,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestFacetSpec {
 }
 
 /// Specifies the image query input.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestImageQuery {
     /// Base64 encoded image bytes. Supported image formats: JPEG, PNG, and BMP.
     #[serde(default, rename = "imageBytes")]
@@ -11314,7 +11315,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestImageQuery {
 }
 
 /// Specification to enable natural language understanding capabilities for search requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestNaturalLanguageQueryUnderstandingSpec {
     /// Optional. Allowlist of fields that can be used for natural language filter extraction. By default, if this is unspecified, all indexable fields are eligible for natural language filter extraction (but are not guaranteed to be used). If any fields are specified in allowed_field_names, only the fields that are both marked as indexable in the schema and specified in the allowlist will be eligible for natural language filter extraction. Note: for multi-datastore search, this is not yet supported, and will be ignored.
     #[serde(default, rename = "allowedFieldNames")]
@@ -11331,7 +11332,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestNaturalLanguageQueryUnd
 }
 
 /// The specification for personalization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestPersonalizationSpec {
     /// The personalization mode of the search request. Defaults to Mode.AUTO. // TODO: enum values: ["MODE_UNSPECIFIED", "AUTO", "DISABLED"]
     #[serde(default)]
@@ -11339,7 +11340,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestPersonalizationSpec {
 }
 
 /// Specification to determine under which conditions query expansion should occur.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestQueryExpansionSpec {
     /// The condition under which query expansion should occur. Default to Condition.DISABLED. // TODO: enum values: ["CONDITION_UNSPECIFIED", "DISABLED", "AUTO"]
     #[serde(default)]
@@ -11350,7 +11351,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestQueryExpansionSpec {
 }
 
 /// Relevance filtering specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestRelevanceFilterSpec {
     /// Optional. Relevance filtering threshold specification for keyword search.
     #[serde(default, rename = "keywordSearchThreshold")]
@@ -11365,7 +11366,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestRelevanceFilterSpec {
 }
 
 /// The specification for returning the document relevance score.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestRelevanceScoreSpec {
     /// Optional. Whether to return the relevance score for search results. The higher the score, the more relevant the document is to the query.
     #[serde(default, rename = "returnRelevanceScore")]
@@ -11373,7 +11374,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestRelevanceScoreSpec {
 }
 
 /// SearchAddonSpec is used to disable add-ons for search as per new repricing model. By default if the SearchAddonSpec is not specified, we consider that the customer wants to enable them wherever applicable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestSearchAddonSpec {
     /// Optional. If true, generative answer add-on is disabled. Generative answer add-on includes natural language to filters and simple answers.
     #[serde(default, rename = "disableGenerativeAnswerAddOn")]
@@ -11387,7 +11388,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestSearchAddonSpec {
 }
 
 /// Specification for search as you type in search requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestSearchAsYouTypeSpec {
     /// The condition under which search as you type should occur. Default to Condition.DISABLED. // TODO: enum values: ["CONDITION_UNSPECIFIED", "DISABLED", "ENABLED", "AUTO"]
     #[serde(default)]
@@ -11395,7 +11396,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestSearchAsYouTypeSpec {
 }
 
 /// Session specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestSessionSpec {
     /// If set, the search result gets stored to the "turn" specified by this query ID. Example: Let''s say the session looks like this: session { name: ".../sessions/xxx" turns { query { text: "What is foo?" query_id: ".../questions/yyy" } answer: "Foo is ..." } turns { query { text: "How about bar then?" query_id: ".../questions/zzz" } } } The user can call /search API with a request like this: session: ".../sessions/xxx" session_spec { query_id: ".../questions/zzz" } Then, the API stores the search result, associated with the last turn. The stored search result can be used by a subsequent /answer API call (with the session ID and the query ID specified). Also, it is possible to call /search and /answer in parallel with the same session ID & query ID.
     #[serde(default, rename = "queryId")]
@@ -11406,7 +11407,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestSessionSpec {
 }
 
 /// The specification for query spell correction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestSpellCorrectionSpec {
     /// The mode under which spell correction replaces the original search query. Defaults to Mode.AUTO. // TODO: enum values: ["MODE_UNSPECIFIED", "SUGGESTION_ONLY", "AUTO"]
     #[serde(default)]
@@ -11414,7 +11415,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestSpellCorrectionSpec {
 }
 
 /// Information of an end user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaUserInfo {
     /// Optional. IANA time zone, e.g. Europe/Budapest.
     #[serde(default, rename = "timeZone")]
@@ -11428,7 +11429,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaUserInfo {
 }
 
 /// Data protection policy config for NotebookLM.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaProjectCustomerProvidedConfigNotebooklmConfigDataProtectionPolicy {
     /// Optional. The sensitive data protection policy.
     #[serde(default, rename = "sensitiveDataProtectionPolicy")]
@@ -11436,7 +11437,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaProjectCustomerProvidedConfigNoteboo
 }
 
 /// Configuration for customer defined Model Armor templates to be used for sanitizing user prompts and LLM responses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaProjectCustomerProvidedConfigNotebooklmConfigModelArmorConfig
 {
     /// Optional. The resource name of the Model Armor Template for sanitizing LLM responses. Format: projects/{project}/locations/{location}/templates/{template_id} If not specified, no sanitization will be applied to the LLM response.
@@ -11448,7 +11449,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaProjectCustomerProvidedConfigNoteboo
 }
 
 /// Observability config for a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaObservabilityConfig {
     /// Optional. Enables observability. If false, all other flags are ignored.
     #[serde(default, rename = "observabilityEnabled")]
@@ -11459,7 +11460,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaObservabilityConfig {
 }
 
 /// Defines an answer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAnswer {
     /// Additional answer-skipped reasons. This provides the reason for ignored cases. If nothing is skipped, this field is not set.
     #[serde(default, rename = "answerSkippedReasons")]
@@ -11517,7 +11518,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAnswer {
 }
 
 /// AssistAnswer resource, main part of AssistResponse.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAssistAnswer {
     /// Reasons for not answering the assist call.
     #[serde(default, rename = "assistSkippedReasons")]
@@ -11540,7 +11541,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAssistAnswer {
 }
 
 /// Defines a user inputed query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaQuery {
     /// Query content parts.
     #[serde(default)]
@@ -11554,7 +11555,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaQuery {
 }
 
 /// Failed due to insufficient quota.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaTargetSiteFailureReasonQuotaFailure {
     /// This number is an estimation on how much total quota this project needs to successfully complete indexing.
     #[serde(default, rename = "totalRequiredQuota")]
@@ -11562,7 +11563,7 @@ pub struct GoogleCloudDiscoveryengineV1betaTargetSiteFailureReasonQuotaFailure {
 }
 
 /// The control points used to define the curve. The curve defined through these control points can only be monotonically increasing or decreasing(constant values are acceptable).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaControlBoostActionInterpolationBoostSpecControlPoint {
     /// Optional. Can be one of: 1. The numerical field value. 2. The duration spec for freshness: The value must be formatted as an XSD dayTimeDuration value (a restricted subset of an ISO 8601 duration value). The pattern for this is: nDnM].
     #[serde(default, rename = "attributeValue")]
@@ -11573,7 +11574,7 @@ pub struct GoogleCloudDiscoveryengineV1betaControlBoostActionInterpolationBoostS
 }
 
 /// Configuration for the layout based chunking.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaDocumentProcessingConfigChunkingConfigLayoutBasedChunkingConfig
 {
     /// The token size limit for each chunk. Supported values: 100-500 (inclusive). Default value: 500.
@@ -11585,7 +11586,7 @@ pub struct GoogleCloudDiscoveryengineV1betaDocumentProcessingConfigChunkingConfi
 }
 
 /// The layout parsing configurations for documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaDocumentProcessingConfigParsingConfigLayoutParsingConfig
 {
     /// Optional. If true, the processed document will be made available for the GetProcessedDocument API.
@@ -11615,7 +11616,7 @@ pub struct GoogleCloudDiscoveryengineV1betaDocumentProcessingConfigParsingConfig
 }
 
 /// The OCR parsing configurations for documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaDocumentProcessingConfigParsingConfigOcrParsingConfig {
     /// [DEPRECATED] This field is deprecated. To use the additional enhanced document elements processing, please switch to layout_parsing_config.
     #[serde(default, rename = "enhancedDocumentElements")]
@@ -11626,7 +11627,7 @@ pub struct GoogleCloudDiscoveryengineV1betaDocumentProcessingConfigParsingConfig
 }
 
 /// Configuration for AlloyDB AI Natural Language.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaDataStoreFederatedSearchConfigAlloyDbConfigAlloyDbAiNaturalLanguageConfig
 {
     /// Optional. AlloyDb AI NL config id, i.e. the value that was used for calling SELECT alloydb_ai_nl.g_create_configuration(...). Can be empty.
@@ -11635,7 +11636,7 @@ pub struct GoogleCloudDiscoveryengineV1betaDataStoreFederatedSearchConfigAlloyDb
 }
 
 /// Configuration for connecting to AlloyDB.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaDataStoreFederatedSearchConfigAlloyDbConfigAlloyDbConnectionConfig
 {
     /// Optional. Auth mode. // TODO: enum values: ["AUTH_MODE_UNSPECIFIED", "AUTH_MODE_SERVICE_ACCOUNT", "AUTH_MODE_END_USER_ACCOUNT"]
@@ -11659,7 +11660,7 @@ pub struct GoogleCloudDiscoveryengineV1betaDataStoreFederatedSearchConfigAlloyDb
 }
 
 /// Feature configurations that are required for creating a Most Popular engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaEngineMediaRecommendationEngineConfigMostPopularFeatureConfig
 {
     /// The time window of which the engine is queried at training and prediction time. Positive integers only. The value translates to the last X days of events. Currently required for the most-popular-items engine.
@@ -11668,7 +11669,7 @@ pub struct GoogleCloudDiscoveryengineV1betaEngineMediaRecommendationEngineConfig
 }
 
 /// Additional feature configurations for creating a recommended-for-you engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaEngineMediaRecommendationEngineConfigRecommendedForYouFeatureConfig
 {
     /// The type of event with which the engine is queried at prediction time. If set to generic, only view-item, media-play,and media-complete will be used as context-event in engine training. If set to view-home-page, view-home-page will also be used as context-events in addition to view-item, media-play, and media-complete. Currently supported for the recommended-for-you engine. Currently supported values: view-home-page, generic.
@@ -11677,7 +11678,7 @@ pub struct GoogleCloudDiscoveryengineV1betaEngineMediaRecommendationEngineConfig
 }
 
 /// A specification for configuring the behavior of content search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpec {
     /// Specifies the chunk spec to be returned from the search response. Only available if the SearchRequest.ContentSearchSpec.search_result_mode is set to CHUNKS
     #[serde(default, rename = "chunkSpec")]
@@ -11705,7 +11706,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpec {
 }
 
 /// Specification for crowding. Crowding improves the diversity of search results by limiting the number of results that share the same field value. For example, crowding on the color field with a max_count of 3 and mode DROP_CROWDED_RESULTS will return at most 3 results with the same color across all pages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestCrowdingSpec {
     /// The field to use for crowding. Documents can be crowded by a field in the Document object. Crowding field is case sensitive.
     #[serde(default)]
@@ -11719,7 +11720,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestCrowdingSpec {
 }
 
 /// A struct to define data stores to filter on in a search call and configurations for those data stores. Otherwise, an INVALID_ARGUMENT error is returned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestDataStoreSpec {
     /// Optional. Boost specification to boost certain documents. For more information on boosting, see [Boosting](https://cloud.google.com/generative-ai-app-builder/docs/boost-search-results)
     #[serde(default, rename = "boostSpec")]
@@ -11739,7 +11740,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestDataStoreSpec {
 }
 
 /// Specifies features for display, like match highlighting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestDisplaySpec {
     /// The condition under which match highlighting should occur. // TODO: enum values: ["MATCH_HIGHLIGHTING_CONDITION_UNSPECIFIED", "MATCH_HIGHLIGHTING_DISABLED", "MATCH_HIGHLIGHTING_ENABLED"]
     #[serde(default, rename = "matchHighlightingCondition")]
@@ -11747,7 +11748,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestDisplaySpec {
 }
 
 /// The specification that uses customized query embedding vector to do semantic document retrieval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestEmbeddingSpec {
     /// The embedding vector used for retrieval. Limit to 1.
     #[serde(default, rename = "embeddingVectors")]
@@ -11757,7 +11758,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestEmbeddingSpec {
 }
 
 /// A facet specification to perform faceted search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestFacetSpec {
     /// Enables dynamic position for this facet. If set to true, the position of this facet among all facets in the response is determined automatically. If dynamic facets are enabled, it is ordered together. If set to false, the position of this facet in the response is the same as in the request, and it is ranked before the facets with dynamic position enable and all dynamic facets. For example, you may always want to have rating facet returned in the response, but it''s not necessarily to always display the rating facet at the top. In that case, you can set enable_dynamic_position to true so that the position of rating facet in response is determined automatically. Another example, assuming you have the following facets in the request: * "rating", enable_dynamic_position = true * "price", enable_dynamic_position = false * "brands", enable_dynamic_position = false And also you have a dynamic facets enabled, which generates a facet gender. Then the final order of the facets in the response can be ("price", "brands", "rating", "gender") or ("price", "brands", "gender", "rating") depends on how API orders "gender" and "rating" facets. However, notice that "price" and "brands" are always ranked at first and second position because their enable_dynamic_position is false.
     #[serde(default, rename = "enableDynamicPosition")]
@@ -11775,7 +11776,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestFacetSpec {
 }
 
 /// Specifies the image query input.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestImageQuery {
     /// Base64 encoded image bytes. Supported image formats: JPEG, PNG, and BMP.
     #[serde(default, rename = "imageBytes")]
@@ -11783,7 +11784,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestImageQuery {
 }
 
 /// Specification to enable natural language understanding capabilities for search requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestNaturalLanguageQueryUnderstandingSpec {
     /// Optional. Allowlist of fields that can be used for natural language filter extraction. By default, if this is unspecified, all indexable fields are eligible for natural language filter extraction (but are not guaranteed to be used). If any fields are specified in allowed_field_names, only the fields that are both marked as indexable in the schema and specified in the allowlist will be eligible for natural language filter extraction. Note: for multi-datastore search, this is not yet supported, and will be ignored.
     #[serde(default, rename = "allowedFieldNames")]
@@ -11800,7 +11801,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestNaturalLanguageQueryUnde
 }
 
 /// The specification for personalization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestPersonalizationSpec {
     /// The personalization mode of the search request. Defaults to Mode.AUTO. // TODO: enum values: ["MODE_UNSPECIFIED", "AUTO", "DISABLED"]
     #[serde(default)]
@@ -11808,7 +11809,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestPersonalizationSpec {
 }
 
 /// Specification to determine under which conditions query expansion should occur.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestQueryExpansionSpec {
     /// The condition under which query expansion should occur. Default to Condition.DISABLED. // TODO: enum values: ["CONDITION_UNSPECIFIED", "DISABLED", "AUTO"]
     #[serde(default)]
@@ -11819,7 +11820,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestQueryExpansionSpec {
 }
 
 /// Relevance filtering specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestRelevanceFilterSpec {
     /// Optional. Relevance filtering threshold specification for keyword search.
     #[serde(default, rename = "keywordSearchThreshold")]
@@ -11834,7 +11835,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestRelevanceFilterSpec {
 }
 
 /// The specification for returning the document relevance score.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestRelevanceScoreSpec {
     /// Optional. Whether to return the relevance score for search results. The higher the score, the more relevant the document is to the query.
     #[serde(default, rename = "returnRelevanceScore")]
@@ -11842,7 +11843,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestRelevanceScoreSpec {
 }
 
 /// SearchAddonSpec is used to disable add-ons for search as per new repricing model. By default if the SearchAddonSpec is not specified, we consider that the customer wants to enable them wherever applicable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestSearchAddonSpec {
     /// Optional. If true, generative answer add-on is disabled. Generative answer add-on includes natural language to filters and simple answers.
     #[serde(default, rename = "disableGenerativeAnswerAddOn")]
@@ -11856,7 +11857,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestSearchAddonSpec {
 }
 
 /// Specification for search as you type in search requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestSearchAsYouTypeSpec {
     /// The condition under which search as you type should occur. Default to Condition.DISABLED. // TODO: enum values: ["CONDITION_UNSPECIFIED", "DISABLED", "ENABLED", "AUTO"]
     #[serde(default)]
@@ -11864,7 +11865,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestSearchAsYouTypeSpec {
 }
 
 /// Session specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestSessionSpec {
     /// If set, the search result gets stored to the "turn" specified by this query ID. Example: Let''s say the session looks like this: session { name: ".../sessions/xxx" turns { query { text: "What is foo?" query_id: ".../questions/yyy" } answer: "Foo is ..." } turns { query { text: "How about bar then?" query_id: ".../questions/zzz" } } } The user can call /search API with a request like this: session: ".../sessions/xxx" session_spec { query_id: ".../questions/zzz" } Then, the API stores the search result, associated with the last turn. The stored search result can be used by a subsequent /answer API call (with the session ID and the query ID specified). Also, it is possible to call /search and /answer in parallel with the same session ID & query ID.
     #[serde(default, rename = "queryId")]
@@ -11875,7 +11876,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestSessionSpec {
 }
 
 /// The specification for query spell correction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestSpellCorrectionSpec {
     /// The mode under which spell correction replaces the original search query. Defaults to Mode.AUTO. // TODO: enum values: ["MODE_UNSPECIFIED", "SUGGESTION_ONLY", "AUTO"]
     #[serde(default)]
@@ -11883,7 +11884,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestSpellCorrectionSpec {
 }
 
 /// Information of an end user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaUserInfo {
     /// Optional. IANA time zone, e.g. Europe/Budapest.
     #[serde(default, rename = "timeZone")]
@@ -11897,7 +11898,7 @@ pub struct GoogleCloudDiscoveryengineV1betaUserInfo {
 }
 
 /// A collection of data points that describes the time-varying values of a metric. A time series is identified by a combination of a fully-specified monitored resource and a fully-specified metric. This type is used for both listing and creating time series.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMonitoringV3TimeSeries {
     /// Input only. A detailed description of the time series that will be associated with the google.api.MetricDescriptor for the metric. Once set, this field cannot be changed through CreateTimeSeries.
     #[serde(default)]
@@ -11926,7 +11927,7 @@ pub struct GoogleMonitoringV3TimeSeries {
 }
 
 /// Data protection policy config for NotebookLM.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaProjectCustomerProvidedConfigNotebooklmConfigDataProtectionPolicy {
     /// Optional. The sensitive data protection policy.
     #[serde(default, rename = "sensitiveDataProtectionPolicy")]
@@ -11934,7 +11935,7 @@ pub struct GoogleCloudDiscoveryengineV1betaProjectCustomerProvidedConfigNotebook
 }
 
 /// Configuration for customer defined Model Armor templates to be used for sanitizing user prompts and LLM responses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaProjectCustomerProvidedConfigNotebooklmConfigModelArmorConfig
 {
     /// Optional. The resource name of the Model Armor Template for sanitizing LLM responses. Format: projects/{project}/locations/{location}/templates/{template_id} If not specified, no sanitization will be applied to the LLM response.
@@ -11946,7 +11947,7 @@ pub struct GoogleCloudDiscoveryengineV1betaProjectCustomerProvidedConfigNotebook
 }
 
 /// Observability config for a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaObservabilityConfig {
     /// Optional. Enables observability. If false, all other flags are ignored.
     #[serde(default, rename = "observabilityEnabled")]
@@ -11957,7 +11958,7 @@ pub struct GoogleCloudDiscoveryengineV1betaObservabilityConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeExpr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -11974,7 +11975,7 @@ pub struct GoogleTypeExpr {
 }
 
 /// Part represents a container for a section of communication content. Parts can be purely textual, some sort of file (image, video, etc) or a structured data blob (i.e. JSON).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1Part {
     #[serde(default)]
     pub data: ::core::option::Option<A2aV1DataPart>,
@@ -11988,7 +11989,7 @@ pub struct A2aV1Part {
 }
 
 /// Document metadata contains the information of the document of the current chunk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestEndUserSpecEndUserMetaDataChunkInfoDocumentMetadata
 {
     /// Title of the document.
@@ -11997,7 +11998,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestEndUserSpecEndUserMetaD
 }
 
 /// Chunk information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestSearchSpecSearchResultListSearchResultChunkInfo {
     /// Chunk resource name.
     #[serde(default)]
@@ -12011,7 +12012,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestSearchSpecSearchResultL
 }
 
 /// Unstructured document information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestSearchSpecSearchResultListSearchResultUnstructuredDocumentInfo {
     /// Document resource name.
     #[serde(default)]
@@ -12034,7 +12035,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestSearchSpecSearchResultL
 }
 
 /// Failed due to insufficient quota.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1TargetSiteFailureReasonQuotaFailure {
     /// This number is an estimation on how much total quota this project needs to successfully complete indexing.
     #[serde(default, rename = "totalRequiredQuota")]
@@ -12042,7 +12043,7 @@ pub struct GoogleCloudDiscoveryengineV1TargetSiteFailureReasonQuotaFailure {
 }
 
 /// Detailed document information associated with a user event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DocumentInfo {
     /// Optional. The conversion value associated with this Document. Must be set if UserEvent.event_type is "conversion". For example, a value of 1000 signifies that 1000 seconds were spent viewing a Document for the watch conversion type.
     #[serde(default, rename = "conversionValue")]
@@ -12068,7 +12069,7 @@ pub struct GoogleCloudDiscoveryengineV1DocumentInfo {
 }
 
 /// The control points used to define the curve. The curve defined through these control points can only be monotonically increasing or decreasing(constant values are acceptable).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ControlBoostActionInterpolationBoostSpecControlPoint {
     /// Optional. Can be one of: 1. The numerical field value. 2. The duration spec for freshness: The value must be formatted as an XSD dayTimeDuration value (a restricted subset of an ISO 8601 duration value). The pattern for this is: nDnM].
     #[serde(default, rename = "attributeValue")]
@@ -12079,7 +12080,7 @@ pub struct GoogleCloudDiscoveryengineV1ControlBoostActionInterpolationBoostSpecC
 }
 
 /// Summary of the top N search results specified by the summary spec.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchResponseSummary {
     /// A collection of Safety Attribute categories and their associated confidence scores.
     #[serde(default, rename = "safetyAttributes")]
@@ -12099,7 +12100,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseSummary {
 }
 
 /// Defines context of the conversation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ConversationContext {
     /// The current active document the user opened. It contains the document resource reference.
     #[serde(default, rename = "activeDocument")]
@@ -12110,7 +12111,7 @@ pub struct GoogleCloudDiscoveryengineV1ConversationContext {
 }
 
 /// Configuration for the layout based chunking.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigChunkingConfigLayoutBasedChunkingConfig
 {
     /// The token size limit for each chunk. Supported values: 100-500 (inclusive). Default value: 500.
@@ -12122,7 +12123,7 @@ pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigChunkingConfigLay
 }
 
 /// The layout parsing configurations for documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfigLayoutParsingConfig {
     /// Optional. If true, the processed document will be made available for the GetProcessedDocument API.
     #[serde(default, rename = "enableGetProcessedDocument")]
@@ -12151,7 +12152,7 @@ pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfigLayo
 }
 
 /// The OCR parsing configurations for documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfigOcrParsingConfig {
     /// [DEPRECATED] This field is deprecated. To use the additional enhanced document elements processing, please switch to layout_parsing_config.
     #[serde(default, rename = "enhancedDocumentElements")]
@@ -12162,7 +12163,7 @@ pub struct GoogleCloudDiscoveryengineV1DocumentProcessingConfigParsingConfigOcrP
 }
 
 /// Configuration for AlloyDB AI Natural Language.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigAlloyDbConfigAlloyDbAiNaturalLanguageConfig
 {
     /// Optional. AlloyDb AI NL config id, i.e. the value that was used for calling SELECT alloydb_ai_nl.g_create_configuration(...). Can be empty.
@@ -12171,7 +12172,7 @@ pub struct GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigAlloyDbConf
 }
 
 /// Configuration for connecting to AlloyDB.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigAlloyDbConfigAlloyDbConnectionConfig
 {
     /// Optional. Auth mode. // TODO: enum values: ["AUTH_MODE_UNSPECIFIED", "AUTH_MODE_SERVICE_ACCOUNT", "AUTH_MODE_END_USER_ACCOUNT"]
@@ -12195,7 +12196,7 @@ pub struct GoogleCloudDiscoveryengineV1DataStoreFederatedSearchConfigAlloyDbConf
 }
 
 /// Feature configurations that are required for creating a Most Popular engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigMostPopularFeatureConfig
 {
     /// The time window of which the engine is queried at training and prediction time. Positive integers only. The value translates to the last X days of events. Currently required for the most-popular-items engine.
@@ -12204,7 +12205,7 @@ pub struct GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigMost
 }
 
 /// Additional feature configurations for creating a recommended-for-you engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigRecommendedForYouFeatureConfig
 {
     /// The type of event with which the engine is queried at prediction time. If set to generic, only view-item, media-play,and media-complete will be used as context-event in engine training. If set to view-home-page, view-home-page will also be used as context-events in addition to view-item, media-play, and media-complete. Currently supported for the recommended-for-you engine. Currently supported values: view-home-page, generic.
@@ -12213,7 +12214,7 @@ pub struct GoogleCloudDiscoveryengineV1EngineMediaRecommendationEngineConfigReco
 }
 
 /// Specifies the chunk spec to be returned from the search response. Only available if the SearchRequest.ContentSearchSpec.search_result_mode is set to CHUNKS
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecChunkSpec {
     /// The number of next chunks to be returned of the current chunk. The maximum allowed value is 3. If not specified, no next chunks will be returned.
     #[serde(default, rename = "numNextChunks")]
@@ -12224,7 +12225,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecChunkSpec {
 }
 
 /// A specification for configuring the extractive content in a search response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecExtractiveContentSpec {
     /// The maximum number of extractive answers returned in each search result. An extractive answer is a verbatim answer extracted from the original document, which provides a precise and contextually relevant answer to the search query. If the number of matching answers is less than the max_extractive_answer_count, return all of the answers. Otherwise, return the max_extractive_answer_count. At most five answers are returned for each SearchResult.
     #[serde(default, rename = "maxExtractiveAnswerCount")]
@@ -12244,7 +12245,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecExtractiveC
 }
 
 /// A specification for configuring snippets in a search response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSnippetSpec {
     /// [DEPRECATED] This field is deprecated. To control snippet return, use return_snippet field. For backwards compatibility, we will return snippet if max_snippet_count &gt; 0.
     #[serde(default, rename = "maxSnippetCount")]
@@ -12258,7 +12259,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSnippetSpec
 }
 
 /// A specification for configuring a summary returned in a search response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSummarySpec {
     /// Specifies whether to filter out adversarial queries. The default value is false. Google employs search-query classification to detect adversarial queries. No summary is returned if the search query is classified as an adversarial query. For example, a user might ask a question regarding negative comments about the company or submit a query designed to generate unsafe, policy-violating output. If this field is set to true, we skip generating summaries for adversarial queries and return fallback messages instead.
     #[serde(default, rename = "ignoreAdversarialQuery")]
@@ -12297,7 +12298,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSummarySpec
 }
 
 /// Citation info for a segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerCitation {
     /// End of the attributed segment, exclusive. Measured in bytes (UTF-8 unicode). If there are multi-byte characters,such as non-ASCII characters, the index measurement is longer than the string length.
     #[serde(default, rename = "endIndex")]
@@ -12312,7 +12313,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerCitation {
 }
 
 /// Grounding support for a claim in answer_text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerGroundingSupport {
     /// Required. End of the claim, exclusive.
     #[serde(default, rename = "endIndex")]
@@ -12333,7 +12334,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerGroundingSupport {
 }
 
 /// Query understanding information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryUnderstandingInfo {
     /// Query classification information.
     #[serde(default, rename = "queryClassificationInfo")]
@@ -12345,7 +12346,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryUnderstandingInfo {
 }
 
 /// Reference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerReference {
     /// Chunk information.
     #[serde(default, rename = "chunkInfo")]
@@ -12361,7 +12362,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerReference {
 }
 
 /// Safety rating corresponding to the generated content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SafetyRating {
     /// Output only. Indicates whether the content was filtered out because of this rating.
     #[serde(default)]
@@ -12384,7 +12385,7 @@ pub struct GoogleCloudDiscoveryengineV1SafetyRating {
 }
 
 /// Step information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerStep {
     /// Actions.
     #[serde(default)]
@@ -12402,7 +12403,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerStep {
 }
 
 /// Customer policy enforcement results. Contains the results of the various policy checks, like the banned phrases or the Model Armor checks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResult {
     /// Customer policy enforcement results. Populated only if the assist call was skipped due to a policy violation. It contains results from those filters that blocked the processing of the query.
     #[serde(default, rename = "policyResults")]
@@ -12413,7 +12414,7 @@ pub struct GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResu
 }
 
 /// One part of the multi-part response of the assist call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistAnswerReply {
     /// Possibly grounded response text or media from the assistant.
     #[serde(default, rename = "groundedContent")]
@@ -12422,7 +12423,7 @@ pub struct GoogleCloudDiscoveryengineV1AssistAnswerReply {
 }
 
 /// Specifies a Sensitive Data Protection (https://cloud.google.com/sensitive-data-protection/docs/sensitive-data-protection-overview) policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ProjectCustomerProvidedConfigNotebooklmConfigDataProtectionPolicySensitiveDataProtectionPolicy
 {
     /// Optional. The Sensitive Data Protection policy resource name.
@@ -12431,7 +12432,7 @@ pub struct GoogleCloudDiscoveryengineV1ProjectCustomerProvidedConfigNotebooklmCo
 }
 
 /// AclRestriction to model complex inheritance restrictions. Example: Modeling a "Both Permit" inheritance, where to access a child document, user needs to have access to parent document. Document Hierarchy - Space_S --&gt; Page_P. Readers: Space_S: group_1, user_1 Page_P: group_2, group_3, user_2 Space_S ACL Restriction - { "acl_info": { "readers": [ { "principals": [ { "group_id": "group_1" }, { "user_id": "user_1" } ] } ] } } Page_P ACL Restriction. { "acl_info": { "readers": [ { "principals": [ { "group_id": "group_2" }, { "group_id": "group_3" }, { "user_id": "user_2" } ], }, { "principals": [ { "group_id": "group_1" }, { "user_id": "user_1" } ], } ] } }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1DocumentAclInfoAccessRestriction {
     /// All users within the Identity Provider.
     #[serde(default, rename = "idpWide")]
@@ -12442,7 +12443,7 @@ pub struct GoogleCloudDiscoveryengineV1DocumentAclInfoAccessRestriction {
 }
 
 /// Boost specification to boost certain documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequestBoostSpec {
     /// Condition boost specifications. If a document matches multiple conditions in the specifications, boost scores from these specifications are all applied and combined in a non-linear way. Maximum number of specifications is 20.
     #[serde(default, rename = "conditionBoostSpecs")]
@@ -12452,7 +12453,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequestBoostSpec {
 }
 
 /// Configurations for fields of a schema. For example, configuring a field is indexable, or searchable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaFieldConfig {
     /// If this field is set, only the corresponding source will be indexed for this field. Otherwise, the values from different sources are merged. Assuming a page with  in meta tag, and  in page map: if this enum is set to METATAGS, we will only index ; if this enum is not set, we will merge them and index .
     #[serde(default, rename = "advancedSiteSearchDataSources")]
@@ -12496,7 +12497,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaFieldConfig {
 }
 
 /// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeTimeZone {
     /// IANA Time Zone Database time zone. For example "America/New_York".
     #[serde(default)]
@@ -12507,7 +12508,7 @@ pub struct GoogleTypeTimeZone {
 }
 
 /// Specifies the chunk spec to be returned from the search response. Only available if the SearchRequest.ContentSearchSpec.search_result_mode is set to CHUNKS
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestContentSearchSpecChunkSpec {
     /// The number of next chunks to be returned of the current chunk. The maximum allowed value is 3. If not specified, no next chunks will be returned.
     #[serde(default, rename = "numNextChunks")]
@@ -12518,7 +12519,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestContentSearchSpecChunkS
 }
 
 /// A specification for configuring the extractive content in a search response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestContentSearchSpecExtractiveContentSpec {
     /// The maximum number of extractive answers returned in each search result. An extractive answer is a verbatim answer extracted from the original document, which provides a precise and contextually relevant answer to the search query. If the number of matching answers is less than the max_extractive_answer_count, return all of the answers. Otherwise, return the max_extractive_answer_count. At most five answers are returned for each SearchResult.
     #[serde(default, rename = "maxExtractiveAnswerCount")]
@@ -12538,7 +12539,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestContentSearchSpecExtrac
 }
 
 /// A specification for configuring snippets in a search response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestContentSearchSpecSnippetSpec {
     /// [DEPRECATED] This field is deprecated. To control snippet return, use return_snippet field. For backwards compatibility, we will return snippet if max_snippet_count &gt; 0.
     #[serde(default, rename = "maxSnippetCount")]
@@ -12552,7 +12553,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestContentSearchSpecSnippe
 }
 
 /// A specification for configuring a summary returned in a search response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestContentSearchSpecSummarySpec {
     /// Specifies whether to filter out adversarial queries. The default value is false. Google employs search-query classification to detect adversarial queries. No summary is returned if the search query is classified as an adversarial query. For example, a user might ask a question regarding negative comments about the company or submit a query designed to generate unsafe, policy-violating output. If this field is set to true, we skip generating summaries for adversarial queries and return fallback messages instead.
     #[serde(default, rename = "ignoreAdversarialQuery")]
@@ -12596,7 +12597,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestContentSearchSpecSummar
 }
 
 /// Boost specification to boost certain documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestBoostSpec {
     /// Condition boost specifications. If a document matches multiple conditions in the specifications, boost scores from these specifications are all applied and combined in a non-linear way. Maximum number of specifications is 20.
     #[serde(default, rename = "conditionBoostSpecs")]
@@ -12606,7 +12607,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestBoostSpec {
 }
 
 /// Embedding vector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestEmbeddingSpecEmbeddingVector {
     /// Embedding field path in schema.
     #[serde(default, rename = "fieldPath")]
@@ -12617,7 +12618,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestEmbeddingSpecEmbeddingV
 }
 
 /// Specifies how a facet is computed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestFacetSpecFacetKey {
     /// True to make facet keys case insensitive when getting faceting values with prefixes or contains; false otherwise.
     #[serde(default, rename = "caseInsensitive")]
@@ -12644,7 +12645,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestFacetSpecFacetKey {
 }
 
 /// Specification for relevance filtering on a specific sub-search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestRelevanceFilterSpecRelevanceThresholdSpec {
     /// Pre-defined relevance threshold for the sub-search. // TODO: enum values: ["RELEVANCE_THRESHOLD_UNSPECIFIED", "LOWEST", "LOW", "MEDIUM", "HIGH"]
     #[serde(default, rename = "relevanceThreshold")]
@@ -12655,7 +12656,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestRelevanceFilterSpecRele
 }
 
 /// Specifies a Sensitive Data Protection (https://cloud.google.com/sensitive-data-protection/docs/sensitive-data-protection-overview) policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaProjectCustomerProvidedConfigNotebooklmConfigDataProtectionPolicySensitiveDataProtectionPolicy
 {
     /// Optional. The Sensitive Data Protection policy resource name.
@@ -12664,7 +12665,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaProjectCustomerProvidedConfigNoteboo
 }
 
 /// Stores binarydata attached to text answer, e.g. image, video, audio, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAnswerBlobAttachment {
     /// Output only. The attribution type of the blob. // TODO: enum values: ["ATTRIBUTION_TYPE_UNSPECIFIED", "CORPUS", "GENERATED"]
     #[serde(default, rename = "attributionType")]
@@ -12675,7 +12676,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAnswerBlobAttachment {
 }
 
 /// Citation info for a segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAnswerCitation {
     /// End of the attributed segment, exclusive. Measured in bytes (UTF-8 unicode). If there are multi-byte characters,such as non-ASCII characters, the index measurement is longer than the string length.
     #[serde(default, rename = "endIndex")]
@@ -12691,7 +12692,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAnswerCitation {
 }
 
 /// Grounding support for a claim in answer_text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAnswerGroundingSupport {
     /// Required. End of the claim, exclusive.
     #[serde(default, rename = "endIndex")]
@@ -12713,7 +12714,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAnswerGroundingSupport {
 }
 
 /// Query understanding information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAnswerQueryUnderstandingInfo {
     /// Query classification information.
     #[serde(default, rename = "queryClassificationInfo")]
@@ -12725,7 +12726,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAnswerQueryUnderstandingInfo {
 }
 
 /// Reference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAnswerReference {
     /// Chunk information.
     #[serde(default, rename = "chunkInfo")]
@@ -12744,7 +12745,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAnswerReference {
 }
 
 /// Safety rating corresponding to the generated content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSafetyRating {
     /// Output only. Indicates whether the content was filtered out because of this rating.
     #[serde(default)]
@@ -12767,7 +12768,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSafetyRating {
 }
 
 /// Step information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAnswerStep {
     /// Actions.
     #[serde(default)]
@@ -12785,7 +12786,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAnswerStep {
 }
 
 /// Customer policy enforcement results. Contains the results of the various policy checks, like the banned phrases or the Model Armor checks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAssistAnswerCustomerPolicyEnforcementResult {
     /// Customer policy enforcement results. Populated only if the assist call was skipped due to a policy violation. It contains results from those filters that blocked the processing of the query.
     #[serde(default, rename = "policyResults")]
@@ -12796,7 +12797,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAssistAnswerCustomerPolicyEnforcemen
 }
 
 /// One part of the multi-part response of the assist call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAssistAnswerReply {
     /// Possibly grounded response text or media from the assistant.
     #[serde(default, rename = "groundedContent")]
@@ -12808,7 +12809,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAssistAnswerReply {
 }
 
 /// Represents a part or the whole of a content, used to represent a query. A query can be made up of multiple parts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaQueryPart {
     /// Other VAIS Document references.
     #[serde(default, rename = "documentReference")]
@@ -12834,7 +12835,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaQueryPart {
 }
 
 /// Specifies the chunk spec to be returned from the search response. Only available if the SearchRequest.ContentSearchSpec.search_result_mode is set to CHUNKS
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecChunkSpec {
     /// The number of next chunks to be returned of the current chunk. The maximum allowed value is 3. If not specified, no next chunks will be returned.
     #[serde(default, rename = "numNextChunks")]
@@ -12845,7 +12846,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecChunkSp
 }
 
 /// A specification for configuring the extractive content in a search response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecExtractiveContentSpec {
     /// The maximum number of extractive answers returned in each search result. An extractive answer is a verbatim answer extracted from the original document, which provides a precise and contextually relevant answer to the search query. If the number of matching answers is less than the max_extractive_answer_count, return all of the answers. Otherwise, return the max_extractive_answer_count. At most five answers are returned for each SearchResult.
     #[serde(default, rename = "maxExtractiveAnswerCount")]
@@ -12865,7 +12866,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecExtract
 }
 
 /// A specification for configuring snippets in a search response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSnippetSpec {
     /// [DEPRECATED] This field is deprecated. To control snippet return, use return_snippet field. For backwards compatibility, we will return snippet if max_snippet_count &gt; 0.
     #[serde(default, rename = "maxSnippetCount")]
@@ -12879,7 +12880,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSnippet
 }
 
 /// A specification for configuring a summary returned in a search response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummarySpec {
     /// Specifies whether to filter out adversarial queries. The default value is false. Google employs search-query classification to detect adversarial queries. No summary is returned if the search query is classified as an adversarial query. For example, a user might ask a question regarding negative comments about the company or submit a query designed to generate unsafe, policy-violating output. If this field is set to true, we skip generating summaries for adversarial queries and return fallback messages instead.
     #[serde(default, rename = "ignoreAdversarialQuery")]
@@ -12923,7 +12924,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummary
 }
 
 /// Boost specification to boost certain documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestBoostSpec {
     /// Condition boost specifications. If a document matches multiple conditions in the specifications, boost scores from these specifications are all applied and combined in a non-linear way. Maximum number of specifications is 20.
     #[serde(default, rename = "conditionBoostSpecs")]
@@ -12933,7 +12934,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestBoostSpec {
 }
 
 /// Embedding vector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestEmbeddingSpecEmbeddingVector {
     /// Embedding field path in schema.
     #[serde(default, rename = "fieldPath")]
@@ -12944,7 +12945,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestEmbeddingSpecEmbeddingVe
 }
 
 /// Specifies how a facet is computed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestFacetSpecFacetKey {
     /// True to make facet keys case insensitive when getting faceting values with prefixes or contains; false otherwise.
     #[serde(default, rename = "caseInsensitive")]
@@ -12971,7 +12972,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestFacetSpecFacetKey {
 }
 
 /// Specification for relevance filtering on a specific sub-search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestRelevanceFilterSpecRelevanceThresholdSpec {
     /// Pre-defined relevance threshold for the sub-search. // TODO: enum values: ["RELEVANCE_THRESHOLD_UNSPECIFIED", "LOWEST", "LOW", "MEDIUM", "HIGH"]
     #[serde(default, rename = "relevanceThreshold")]
@@ -12982,7 +12983,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestRelevanceFilterSpecRelev
 }
 
 /// Auxiliary metadata for a MonitoredResource object. MonitoredResource objects contain the minimum set of information to uniquely identify a monitored resource instance. There is some other useful auxiliary metadata. Monitoring and Logging use an ingestion pipeline to extract metadata for cloud resources of all types, and store the metadata in this message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleApiMonitoredResourceMetadata {
     /// Output only. Values for predefined system metadata labels. System labels are a kind of metadata extracted by Google, including "machine_image", "vpc", "subnet_id", "security_group", "name", etc. System label values can be only strings, Boolean values, or a list of strings. For example: { "name": "my-test-instance", "security_group": ["a", "b", "c"], "spot_instance": false }
     #[serde(default, rename = "systemLabels")]
@@ -12993,7 +12994,7 @@ pub struct GoogleApiMonitoredResourceMetadata {
 }
 
 /// A specific metric, identified by specifying values for all of the labels of a MetricDescriptor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleApiMetric {
     /// The set of label values that uniquely identify this metric. All labels listed in the MetricDescriptor must be assigned values.
     #[serde(default)]
@@ -13004,7 +13005,7 @@ pub struct GoogleApiMetric {
 }
 
 /// A single data point in a time series.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMonitoringV3Point {
     /// The time interval to which the data point applies. For GAUGE metrics, the start time is optional, but if it is supplied, it must equal the end time. For DELTA metrics, the start and end time should specify a non-zero interval, with subsequent points specifying contiguous and non-overlapping intervals. For CUMULATIVE metrics, the start and end time should specify a non-zero interval, with subsequent points specifying the same start time and increasing end times, until an event resets the cumulative value to zero and sets a new start time for the following points.
     #[serde(default)]
@@ -13015,7 +13016,7 @@ pub struct GoogleMonitoringV3Point {
 }
 
 /// An object representing a resource that can be used for monitoring, logging, billing, or other purposes. Examples include virtual machine instances, databases, and storage devices such as disks. The type field identifies a MonitoredResourceDescriptor object that describes the resource''s schema. Information in the labels field identifies the actual resource and its attributes according to the schema. For example, a particular Compute Engine VM instance could be represented by the following object, because the MonitoredResourceDescriptor for "gce_instance" has labels "project_id", "instance_id" and "zone": { "type": "gce_instance", "labels": { "project_id": "my-project", "instance_id": "12345678901234", "zone": "us-central1-a" }}
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleApiMonitoredResource {
     /// Required. Values for all of the labels listed in the associated monitored resource descriptor. For example, Compute Engine VM instances use the labels "project_id", "instance_id", and "zone".
     #[serde(default)]
@@ -13026,7 +13027,7 @@ pub struct GoogleApiMonitoredResource {
 }
 
 /// Specifies a Sensitive Data Protection (https://cloud.google.com/sensitive-data-protection/docs/sensitive-data-protection-overview) policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaProjectCustomerProvidedConfigNotebooklmConfigDataProtectionPolicySensitiveDataProtectionPolicy
 {
     /// Optional. The Sensitive Data Protection policy resource name.
@@ -13035,14 +13036,14 @@ pub struct GoogleCloudDiscoveryengineV1betaProjectCustomerProvidedConfigNotebook
 }
 
 /// DataPart represents a structured blob. This is most commonly a JSON payload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1DataPart {
     #[serde(default)]
     pub data: ::core::option::Option<serde_json::Value>,
 }
 
 /// FilePart represents the different ways files can be provided. If files are small, directly feeding the bytes is supported via file_with_bytes. If the file is large, the agent should read the content as appropriate directly from the file_with_uri source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct A2aV1FilePart {
     #[serde(default, rename = "fileWithBytes")]
     pub file_with_bytes: ::core::option::Option<String>,
@@ -13055,7 +13056,7 @@ pub struct A2aV1FilePart {
 }
 
 /// Document metadata contains the information of the document of the current chunk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestSearchSpecSearchResultListSearchResultChunkInfoDocumentMetadata
 {
     /// Title of the document.
@@ -13067,7 +13068,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestSearchSpecSearchResultL
 }
 
 /// Document context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestSearchSpecSearchResultListSearchResultUnstructuredDocumentInfoDocumentContext
 {
     /// Document content to be used for answer generation.
@@ -13079,7 +13080,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestSearchSpecSearchResultL
 }
 
 /// Extractive answer. [Guide](https://cloud.google.com/generative-ai-app-builder/docs/snippets#get-answers)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestSearchSpecSearchResultListSearchResultUnstructuredDocumentInfoExtractiveAnswer
 {
     /// Extractive answer content.
@@ -13091,7 +13092,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestSearchSpecSearchResultL
 }
 
 /// Extractive segment. [Guide](https://cloud.google.com/generative-ai-app-builder/docs/snippets#extractive-segments) Answer generation will only use it if document_contexts is empty. This is supposed to be shorter snippets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestSearchSpecSearchResultListSearchResultUnstructuredDocumentInfoExtractiveSegment
 {
     /// Extractive segment content.
@@ -13103,7 +13104,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryRequestSearchSpecSearchResultL
 }
 
 /// Safety Attribute categories and their associated confidence scores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchResponseSummarySafetyAttributes {
     /// The display names of Safety Attribute categories associated with the generated content. Order matches the Scores.
     #[serde(default)]
@@ -13114,7 +13115,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseSummarySafetyAttributes {
 }
 
 /// Summary with metadata information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchResponseSummarySummaryWithMetadata {
     /// Citation metadata for given summary.
     #[serde(default, rename = "citationMetadata")]
@@ -13131,7 +13132,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseSummarySummaryWithMetadata 
 }
 
 /// Specification of the prompt to use with the model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSummarySpecModelPromptSpec {
     /// Text at the beginning of the prompt that instructs the assistant. Examples are available in the user guide.
     #[serde(default)]
@@ -13139,7 +13140,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSummarySpec
 }
 
 /// Specification of the model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSummarySpecModelSpec {
     /// The model version used to generate the summary. Supported values are: * stable: string. Default value when no value is specified. Uses a generally available, fine-tuned model. For more information, see [Answer generation model versions and lifecycle](https://cloud.google.com/generative-ai-app-builder/docs/answer-generation-models). * preview: string. (Public preview) Uses a preview model. For more information, see [Answer generation model versions and lifecycle](https://cloud.google.com/generative-ai-app-builder/docs/answer-generation-models).
     #[serde(default)]
@@ -13147,7 +13148,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequestContentSearchSpecSummarySpec
 }
 
 /// Citation source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerCitationSource {
     /// ID of the citation source.
     #[serde(default, rename = "referenceId")]
@@ -13155,7 +13156,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerCitationSource {
 }
 
 /// Query classification information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerQueryUnderstandingInfoQueryClassificationInfo {
     /// Classification output.
     #[serde(default)]
@@ -13166,7 +13167,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerQueryUnderstandingInfoQueryClassifi
 }
 
 /// Chunk information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerReferenceChunkInfo {
     /// Chunk resource name.
     #[serde(default)]
@@ -13185,7 +13186,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerReferenceChunkInfo {
 }
 
 /// Structured search information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerReferenceStructuredDocumentInfo {
     /// Document resource name.
     #[serde(default)]
@@ -13202,7 +13203,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerReferenceStructuredDocumentInfo {
 }
 
 /// Unstructured document information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerReferenceUnstructuredDocumentInfo {
     /// List of cited chunk contents derived from document content.
     #[serde(default, rename = "chunkContents")]
@@ -13226,7 +13227,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerReferenceUnstructuredDocumentInfo {
 }
 
 /// Action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerStepAction {
     /// Observation.
     #[serde(default)]
@@ -13239,7 +13240,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerStepAction {
 }
 
 /// Customer policy enforcement result for a single policy type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResultPolicyEnforcementResult {
     /// The policy enforcement result for the banned phrase policy.
     #[serde(default, rename = "bannedPhraseEnforcementResult")]
@@ -13250,7 +13251,7 @@ pub struct GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResu
 }
 
 /// A piece of content and possibly its grounding information. Not all content needs grounding. Phrases like "Of course, I will gladly search it for you." do not need grounding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistantGroundedContent {
     /// Source attribution of the generated content. See also https://cloud.google.com/vertex-ai/generative-ai/docs/learn/overview#citation_check
     #[serde(default, rename = "citationMetadata")]
@@ -13266,7 +13267,7 @@ pub struct GoogleCloudDiscoveryengineV1AssistantGroundedContent {
 }
 
 /// Principal identifier of a user or a group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1Principal {
     /// For 3P application identities which are not present in the customer identity provider.
     #[serde(default, rename = "externalEntityId")]
@@ -13280,7 +13281,7 @@ pub struct GoogleCloudDiscoveryengineV1Principal {
 }
 
 /// Boost applies to documents which match a condition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequestBoostSpecConditionBoostSpec {
     /// Strength of the condition boost, which should be in [-1, 1]. Negative boost means demotion. Default is 0.0. Setting to 1.0 gives the document a big promotion. However, it does not necessarily mean that the boosted document will be the top result at all times, nor that other documents will be excluded. Results could still be shown even when none of them matches the condition. And results that are significantly more relevant to the search query can still trump your heavily favored but irrelevant documents. Setting to -1.0 gives the document a big demotion. However, results that are deeply relevant might still be shown. The document will have an upstream battle to get a fairly high ranking, but it is not blocked out completely. Setting to 0.0 means no boost applied. The boosting condition is ignored. Only one of the (condition, boost) combination or the boost_control_spec below are set. If both are set then the global boost is ignored and the more fine-grained boost_control_spec is applied.
     #[serde(default)]
@@ -13296,7 +13297,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequestBoostSpecConditionBoostSpec 
 }
 
 /// Specification of the prompt to use with the model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestContentSearchSpecSummarySpecModelPromptSpec
 {
     /// Text at the beginning of the prompt that instructs the assistant. Examples are available in the user guide.
@@ -13305,7 +13306,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestContentSearchSpecSummar
 }
 
 /// Specification of the model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestContentSearchSpecSummarySpecModelSpec {
     /// The model version used to generate the summary. Supported values are: * stable: string. Default value when no value is specified. Uses a generally available, fine-tuned model. For more information, see [Answer generation model versions and lifecycle](https://cloud.google.com/generative-ai-app-builder/docs/answer-generation-models). * preview: string. (Public preview) Uses a preview model. For more information, see [Answer generation model versions and lifecycle](https://cloud.google.com/generative-ai-app-builder/docs/answer-generation-models).
     #[serde(default)]
@@ -13313,7 +13314,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestContentSearchSpecSummar
 }
 
 /// Multimodal specification: Will return an image from specified source. If multiple sources are specified, the pick is a quality based decision.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestContentSearchSpecSummarySpecMultiModalSpec
 {
     /// Optional. Source of image returned in the answer. // TODO: enum values: ["IMAGE_SOURCE_UNSPECIFIED", "ALL_AVAILABLE_SOURCES", "CORPUS_IMAGE_ONLY", "FIGURE_GENERATION_ONLY"]
@@ -13322,7 +13323,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestContentSearchSpecSummar
 }
 
 /// Boost applies to documents which match a condition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestBoostSpecConditionBoostSpec {
     /// Strength of the condition boost, which should be in [-1, 1]. Negative boost means demotion. Default is 0.0. Setting to 1.0 gives the document a big promotion. However, it does not necessarily mean that the boosted document will be the top result at all times, nor that other documents will be excluded. Results could still be shown even when none of them matches the condition. And results that are significantly more relevant to the search query can still trump your heavily favored but irrelevant documents. Setting to -1.0 gives the document a big demotion. However, results that are deeply relevant might still be shown. The document will have an upstream battle to get a fairly high ranking, but it is not blocked out completely. Setting to 0.0 means no boost applied. The boosting condition is ignored. Only one of the (condition, boost) combination or the boost_control_spec below are set. If both are set then the global boost is ignored and the more fine-grained boost_control_spec is applied.
     #[serde(default)]
@@ -13338,7 +13339,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestBoostSpecConditionBoost
 }
 
 /// A floating point interval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaInterval {
     /// Exclusive upper bound.
     #[serde(default, rename = "exclusiveMaximum")]
@@ -13355,7 +13356,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaInterval {
 }
 
 /// The media type and data of the blob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAnswerBlobAttachmentBlob {
     /// Output only. Raw bytes.
     #[serde(default)]
@@ -13366,7 +13367,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAnswerBlobAttachmentBlob {
 }
 
 /// Citation source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAnswerCitationSource {
     /// ID of the citation source.
     #[serde(default, rename = "referenceId")]
@@ -13374,7 +13375,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAnswerCitationSource {
 }
 
 /// Query classification information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAnswerQueryUnderstandingInfoQueryClassificationInfo {
     /// Classification output.
     #[serde(default)]
@@ -13385,7 +13386,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAnswerQueryUnderstandingInfoQueryCla
 }
 
 /// Chunk information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAnswerReferenceChunkInfo {
     /// Output only. Stores indexes of blobattachments linked to this chunk.
     #[serde(default, rename = "blobAttachmentIndexes")]
@@ -13407,7 +13408,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAnswerReferenceChunkInfo {
 }
 
 /// Structured search information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAnswerReferenceStructuredDocumentInfo {
     /// Document resource name.
     #[serde(default)]
@@ -13424,7 +13425,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAnswerReferenceStructuredDocumentInf
 }
 
 /// Unstructured document information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAnswerReferenceUnstructuredDocumentInfo {
     /// List of cited chunk contents derived from document content.
     #[serde(default, rename = "chunkContents")]
@@ -13448,7 +13449,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAnswerReferenceUnstructuredDocumentI
 }
 
 /// Action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAnswerStepAction {
     /// Observation.
     #[serde(default)]
@@ -13461,7 +13462,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAnswerStepAction {
 }
 
 /// Customer policy enforcement result for a single policy type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAssistAnswerCustomerPolicyEnforcementResultPolicyEnforcementResult {
     /// The policy enforcement result for the banned phrase policy.
     #[serde(default, rename = "bannedPhraseEnforcementResult")]
@@ -13472,7 +13473,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAssistAnswerCustomerPolicyEnforcemen
 }
 
 /// A piece of content and possibly its grounding information. Not all content needs grounding. Phrases like "Of course, I will gladly search it for you." do not need grounding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAssistantGroundedContent {
     /// Source attribution of the generated content. See also https://cloud.google.com/vertex-ai/generative-ai/docs/learn/overview#citation_check
     #[serde(default, rename = "citationMetadata")]
@@ -13489,7 +13490,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAssistantGroundedContent {
 }
 
 /// Represents a document reference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaQueryPartDocumentReference {
     /// The destination uri of the reference.
     #[serde(default, rename = "destinationUri")]
@@ -13512,7 +13513,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaQueryPartDocumentReference {
 }
 
 /// Represents a Google Drive document reference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaQueryPartDriveDocumentReference {
     /// The destination uri of the reference.
     #[serde(default, rename = "destinationUri")]
@@ -13535,7 +13536,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaQueryPartDriveDocumentReference {
 }
 
 /// Represents a person reference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaQueryPartPersonReference {
     /// The destination uri of the person.
     #[serde(default, rename = "destinationUri")]
@@ -13561,7 +13562,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaQueryPartPersonReference {
 }
 
 /// Specification of the prompt to use with the model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummarySpecModelPromptSpec
 {
     /// Text at the beginning of the prompt that instructs the assistant. Examples are available in the user guide.
@@ -13570,7 +13571,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummary
 }
 
 /// Specification of the model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummarySpecModelSpec {
     /// The model version used to generate the summary. Supported values are: * stable: string. Default value when no value is specified. Uses a generally available, fine-tuned model. For more information, see [Answer generation model versions and lifecycle](https://cloud.google.com/generative-ai-app-builder/docs/answer-generation-models). * preview: string. (Public preview) Uses a preview model. For more information, see [Answer generation model versions and lifecycle](https://cloud.google.com/generative-ai-app-builder/docs/answer-generation-models).
     #[serde(default)]
@@ -13578,7 +13579,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummary
 }
 
 /// Multimodal specification: Will return an image from specified source. If multiple sources are specified, the pick is a quality based decision.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummarySpecMultiModalSpec {
     /// Optional. Source of image returned in the answer. // TODO: enum values: ["IMAGE_SOURCE_UNSPECIFIED", "ALL_AVAILABLE_SOURCES", "CORPUS_IMAGE_ONLY", "FIGURE_GENERATION_ONLY"]
     #[serde(default, rename = "imageSource")]
@@ -13586,7 +13587,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestContentSearchSpecSummary
 }
 
 /// Boost applies to documents which match a condition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestBoostSpecConditionBoostSpec {
     /// Strength of the condition boost, which should be in [-1, 1]. Negative boost means demotion. Default is 0.0. Setting to 1.0 gives the document a big promotion. However, it does not necessarily mean that the boosted document will be the top result at all times, nor that other documents will be excluded. Results could still be shown even when none of them matches the condition. And results that are significantly more relevant to the search query can still trump your heavily favored but irrelevant documents. Setting to -1.0 gives the document a big demotion. However, results that are deeply relevant might still be shown. The document will have an upstream battle to get a fairly high ranking, but it is not blocked out completely. Setting to 0.0 means no boost applied. The boosting condition is ignored. Only one of the (condition, boost) combination or the boost_control_spec below are set. If both are set then the global boost is ignored and the more fine-grained boost_control_spec is applied.
     #[serde(default)]
@@ -13602,7 +13603,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestBoostSpecConditionBoostS
 }
 
 /// A floating point interval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaInterval {
     /// Exclusive upper bound.
     #[serde(default, rename = "exclusiveMaximum")]
@@ -13619,7 +13620,7 @@ pub struct GoogleCloudDiscoveryengineV1betaInterval {
 }
 
 /// A time interval extending just after a start time through an end time. If the start time is the same as the end time, then the interval represents a single point in time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMonitoringV3TimeInterval {
     /// Required. The end of the time interval.
     #[serde(default, rename = "endTime")]
@@ -13630,7 +13631,7 @@ pub struct GoogleMonitoringV3TimeInterval {
 }
 
 /// A single strongly-typed value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMonitoringV3TypedValue {
     /// A Boolean value: true or false.
     #[serde(default, rename = "boolValue")]
@@ -13650,7 +13651,7 @@ pub struct GoogleMonitoringV3TypedValue {
 }
 
 /// Citation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchResponseSummaryCitationMetadata {
     /// Citations for segments.
     #[serde(default)]
@@ -13660,7 +13661,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseSummaryCitationMetadata {
 }
 
 /// Document reference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchResponseSummaryReference {
     /// List of cited chunk contents derived from document content.
     #[serde(default, rename = "chunkContents")]
@@ -13679,7 +13680,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseSummaryReference {
 }
 
 /// Document metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerReferenceChunkInfoDocumentMetadata {
     /// Document resource name.
     #[serde(default)]
@@ -13699,7 +13700,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerReferenceChunkInfoDocumentMetadata 
 }
 
 /// Chunk content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerReferenceUnstructuredDocumentInfoChunkContent {
     /// Chunk textual content.
     #[serde(default)]
@@ -13713,7 +13714,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerReferenceUnstructuredDocumentInfoCh
 }
 
 /// Observation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerStepActionObservation {
     /// Search results observed by the search action, it can be snippets info or chunk info, depending on the citation type set by the user.
     #[serde(default, rename = "searchResults")]
@@ -13723,7 +13724,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerStepActionObservation {
 }
 
 /// Search action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerStepActionSearchAction {
     /// The query to search.
     #[serde(default)]
@@ -13731,7 +13732,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerStepActionSearchAction {
 }
 
 /// Customer policy enforcement result for the banned phrase policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResultBannedPhraseEnforcementResult
 {
     /// The banned phrases that were found in the query or the answer.
@@ -13740,7 +13741,7 @@ pub struct GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResu
 }
 
 /// Customer policy enforcement result for the Model Armor policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResultModelArmorEnforcementResult
 {
     /// The error returned by Model Armor if the policy enforcement failed for some reason.
@@ -13752,7 +13753,7 @@ pub struct GoogleCloudDiscoveryengineV1AssistAnswerCustomerPolicyEnforcementResu
 }
 
 /// A collection of source attributions for a piece of content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1CitationMetadata {
     /// Output only. List of citations.
     #[serde(default)]
@@ -13760,7 +13761,7 @@ pub struct GoogleCloudDiscoveryengineV1CitationMetadata {
 }
 
 /// Multi-modal content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistantContent {
     /// Result of executing an ExecutableCode.
     #[serde(default, rename = "codeExecutionResult")]
@@ -13788,7 +13789,7 @@ pub struct GoogleCloudDiscoveryengineV1AssistantContent {
 }
 
 /// Grounding details for text sources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadata {
     /// References for the grounded text.
     #[serde(default)]
@@ -13807,7 +13808,7 @@ pub struct GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMeta
 }
 
 /// Specification for custom ranking based on customer specified attribute value. It provides more controls for customized ranking than the simple (condition, boost) combination above.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequestBoostSpecConditionBoostSpecBoostControlSpec {
     /// The attribute type to be used to determine the boost amount. The attribute value can be derived from the field value of the specified field_name. In the case of numerical it is straightforward i.e. attribute_value = numerical_field_value. In the case of freshness however, attribute_value = (time.now() - datetime_field_value). // TODO: enum values: ["ATTRIBUTE_TYPE_UNSPECIFIED", "NUMERICAL", "FRESHNESS"]
     #[serde(default, rename = "attributeType")]
@@ -13824,7 +13825,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequestBoostSpecConditionBoostSpecB
 }
 
 /// Specification for custom ranking based on customer specified attribute value. It provides more controls for customized ranking than the simple (condition, boost) combination above.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestBoostSpecConditionBoostSpecBoostControlSpec {
     /// The attribute type to be used to determine the boost amount. The attribute value can be derived from the field value of the specified field_name. In the case of numerical it is straightforward i.e. attribute_value = numerical_field_value. In the case of freshness however, attribute_value = (time.now() - datetime_field_value). // TODO: enum values: ["ATTRIBUTE_TYPE_UNSPECIFIED", "NUMERICAL", "FRESHNESS"]
     #[serde(default, rename = "attributeType")]
@@ -13841,7 +13842,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestBoostSpecConditionBoost
 }
 
 /// Document metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAnswerReferenceChunkInfoDocumentMetadata {
     /// Document resource name.
     #[serde(default)]
@@ -13861,7 +13862,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAnswerReferenceChunkInfoDocumentMeta
 }
 
 /// Chunk content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAnswerReferenceUnstructuredDocumentInfoChunkContent {
     /// Output only. Stores indexes of blobattachments linked to this chunk.
     #[serde(default, rename = "blobAttachmentIndexes")]
@@ -13878,7 +13879,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAnswerReferenceUnstructuredDocumentI
 }
 
 /// Observation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAnswerStepActionObservation {
     /// Search results observed by the search action, it can be snippets info or chunk info, depending on the citation type set by the user.
     #[serde(default, rename = "searchResults")]
@@ -13888,7 +13889,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAnswerStepActionObservation {
 }
 
 /// Search action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAnswerStepActionSearchAction {
     /// The query to search.
     #[serde(default)]
@@ -13896,7 +13897,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAnswerStepActionSearchAction {
 }
 
 /// Customer policy enforcement result for the banned phrase policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAssistAnswerCustomerPolicyEnforcementResultBannedPhraseEnforcementResult
 {
     /// The banned phrases that were found in the query or the answer.
@@ -13905,7 +13906,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAssistAnswerCustomerPolicyEnforcemen
 }
 
 /// Customer policy enforcement result for the Model Armor policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAssistAnswerCustomerPolicyEnforcementResultModelArmorEnforcementResult
 {
     /// The error returned by Model Armor if the policy enforcement failed for some reason.
@@ -13917,7 +13918,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAssistAnswerCustomerPolicyEnforcemen
 }
 
 /// A collection of source attributions for a piece of content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaCitationMetadata {
     /// Output only. List of citations.
     #[serde(default)]
@@ -13926,7 +13927,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaCitationMetadata {
 }
 
 /// Multi-modal content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAssistantContent {
     /// Result of executing an ExecutableCode.
     #[serde(default, rename = "codeExecutionResult")]
@@ -13955,7 +13956,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAssistantContent {
 }
 
 /// Grounding details for text sources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAssistantGroundedContentTextGroundingMetadata {
     /// References for the grounded text.
     #[serde(default)]
@@ -13974,7 +13975,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAssistantGroundedContentTextGroundin
 }
 
 /// Specification for custom ranking based on customer specified attribute value. It provides more controls for customized ranking than the simple (condition, boost) combination above.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestBoostSpecConditionBoostSpecBoostControlSpec {
     /// The attribute type to be used to determine the boost amount. The attribute value can be derived from the field value of the specified field_name. In the case of numerical it is straightforward i.e. attribute_value = numerical_field_value. In the case of freshness however, attribute_value = (time.now() - datetime_field_value). // TODO: enum values: ["ATTRIBUTE_TYPE_UNSPECIFIED", "NUMERICAL", "FRESHNESS"]
     #[serde(default, rename = "attributeType")]
@@ -13991,7 +13992,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestBoostSpecConditionBoostS
 }
 
 /// Distribution contains summary statistics for a population of values. It optionally contains a histogram representing the distribution of those values across a set of buckets. The summary statistics are the count, mean, sum of the squared deviation from the mean, the minimum, and the maximum of the set of population of values. The histogram is based on a sequence of buckets and gives a count of values that fall into each bucket. The boundaries of the buckets are given either explicitly or by formulas for buckets of fixed or exponentially increasing widths. Although it is not forbidden, it is generally a bad idea to include non-finite values (infinities or NaNs) in the population of values, as this will render the mean and sum_of_squared_deviation fields meaningless.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleApiDistribution {
     /// The number of values in each bucket of the histogram, as described in bucket_options. If the distribution does not have a histogram, then omit this field. If there is a histogram, then the sum of the values in bucket_counts must equal the value in the count field of the distribution. If present, bucket_counts should contain N values, where N is the number of buckets specified in bucket_options. If you supply fewer than N values, the remaining values are assumed to be 0. The order of the values in bucket_counts follows the bucket numbering schemes described for the three bucket types. The first value must be the count for the underflow bucket (number 0). The next N-2 values are the counts for the finite buckets (number 1 through N-2). The N''th value in bucket_counts is the count for the overflow bucket (number N-1).
     #[serde(default, rename = "bucketCounts")]
@@ -14017,7 +14018,7 @@ pub struct GoogleApiDistribution {
 }
 
 /// Citation info for a segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchResponseSummaryCitation {
     /// End of the attributed segment, exclusive.
     #[serde(default, rename = "endIndex")]
@@ -14033,7 +14034,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseSummaryCitation {
 }
 
 /// Chunk content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchResponseSummaryReferenceChunkContent {
     /// Chunk textual content.
     #[serde(default)]
@@ -14044,7 +14045,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseSummaryReferenceChunkConten
 }
 
 /// GoogleCloudDiscoveryengineV1AnswerStepActionObservationSearchResult resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerStepActionObservationSearchResult {
     /// If citation_type is CHUNK_LEVEL_CITATION and chunk mode is on, populate chunk info.
     #[serde(default, rename = "chunkInfo")]
@@ -14075,7 +14076,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerStepActionObservationSearchResult {
 }
 
 /// Source attributions for content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1Citation {
     /// Output only. End index into the content.
     #[serde(default, rename = "endIndex")]
@@ -14098,7 +14099,7 @@ pub struct GoogleCloudDiscoveryengineV1Citation {
 }
 
 /// Result of executing ExecutableCode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistantContentCodeExecutionResult {
     /// Required. Outcome of the code execution. // TODO: enum values: ["OUTCOME_UNSPECIFIED", "OUTCOME_OK", "OUTCOME_FAILED", "OUTCOME_DEADLINE_EXCEEDED"]
     #[serde(default)]
@@ -14109,7 +14110,7 @@ pub struct GoogleCloudDiscoveryengineV1AssistantContentCodeExecutionResult {
 }
 
 /// Code generated by the model that is meant to be executed by the model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistantContentExecutableCode {
     /// Required. The code content. Currently only supports Python.
     #[serde(default)]
@@ -14117,7 +14118,7 @@ pub struct GoogleCloudDiscoveryengineV1AssistantContentExecutableCode {
 }
 
 /// A file, e.g., an audio summary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistantContentFile {
     /// Required. The file ID.
     #[serde(default, rename = "fileId")]
@@ -14128,7 +14129,7 @@ pub struct GoogleCloudDiscoveryengineV1AssistantContentFile {
 }
 
 /// Inline blob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistantContentBlob {
     /// Required. Raw bytes.
     #[serde(default)]
@@ -14139,7 +14140,7 @@ pub struct GoogleCloudDiscoveryengineV1AssistantContentBlob {
 }
 
 /// Referenced content and related document metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadataReference {
     /// Referenced text content.
     #[serde(default)]
@@ -14150,7 +14151,7 @@ pub struct GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMeta
 }
 
 /// Grounding information for a segment of the text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadataSegment {
     /// End of the segment, exclusive.
     #[serde(default, rename = "endIndex")]
@@ -14170,7 +14171,7 @@ pub struct GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMeta
 }
 
 /// The control points used to define the curve. The curve defined through these control points can only be monotonically increasing or decreasing(constant values are acceptable).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchRequestBoostSpecConditionBoostSpecBoostControlSpecControlPoint
 {
     /// Can be one of: 1. The numerical field value. 2. The duration spec for freshness: The value must be formatted as an XSD dayTimeDuration value (a restricted subset of an ISO 8601 duration value). The pattern for this is: nDnM].
@@ -14182,7 +14183,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchRequestBoostSpecConditionBoostSpecB
 }
 
 /// The control points used to define the curve. The curve defined through these control points can only be monotonically increasing or decreasing(constant values are acceptable).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestBoostSpecConditionBoostSpecBoostControlSpecControlPoint
 {
     /// Can be one of: 1. The numerical field value. 2. The duration spec for freshness: The value must be formatted as an XSD dayTimeDuration value (a restricted subset of an ISO 8601 duration value). The pattern for this is: nDnM].
@@ -14194,7 +14195,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaSearchRequestBoostSpecConditionBoost
 }
 
 /// GoogleCloudDiscoveryengineV1alphaAnswerStepActionObservationSearchResult resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAnswerStepActionObservationSearchResult {
     /// If citation_type is CHUNK_LEVEL_CITATION and chunk mode is on, populate chunk info.
     #[serde(default, rename = "chunkInfo")]
@@ -14225,7 +14226,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAnswerStepActionObservationSearchRes
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -14239,7 +14240,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// Source attributions for content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaCitation {
     /// Output only. End index into the content.
     #[serde(default, rename = "endIndex")]
@@ -14262,7 +14263,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaCitation {
 }
 
 /// Result of executing ExecutableCode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAssistantContentCodeExecutionResult {
     /// Required. Outcome of the code execution. // TODO: enum values: ["OUTCOME_UNSPECIFIED", "OUTCOME_OK", "OUTCOME_FAILED", "OUTCOME_DEADLINE_EXCEEDED"]
     #[serde(default)]
@@ -14273,7 +14274,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAssistantContentCodeExecutionResult 
 }
 
 /// Code generated by the model that is meant to be executed by the model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAssistantContentExecutableCode {
     /// Required. The code content. Currently only supports Python.
     #[serde(default)]
@@ -14281,7 +14282,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAssistantContentExecutableCode {
 }
 
 /// A file, e.g., an audio summary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAssistantContentFile {
     /// Required. The file ID.
     #[serde(default, rename = "fileId")]
@@ -14292,7 +14293,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAssistantContentFile {
 }
 
 /// Inline blob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAssistantContentBlob {
     /// Required. Raw bytes.
     #[serde(default)]
@@ -14303,7 +14304,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAssistantContentBlob {
 }
 
 /// Referenced content and related document metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAssistantGroundedContentTextGroundingMetadataReference {
     /// Referenced text content.
     #[serde(default)]
@@ -14314,7 +14315,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAssistantGroundedContentTextGroundin
 }
 
 /// Grounding information for a segment of the text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAssistantGroundedContentTextGroundingMetadataSegment {
     /// End of the segment, exclusive.
     #[serde(default, rename = "endIndex")]
@@ -14334,7 +14335,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAssistantGroundedContentTextGroundin
 }
 
 /// The control points used to define the curve. The curve defined through these control points can only be monotonically increasing or decreasing(constant values are acceptable).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1betaSearchRequestBoostSpecConditionBoostSpecBoostControlSpecControlPoint
 {
     /// Can be one of: 1. The numerical field value. 2. The duration spec for freshness: The value must be formatted as an XSD dayTimeDuration value (a restricted subset of an ISO 8601 duration value). The pattern for this is: nDnM].
@@ -14346,7 +14347,7 @@ pub struct GoogleCloudDiscoveryengineV1betaSearchRequestBoostSpecConditionBoostS
 }
 
 /// BucketOptions describes the bucket boundaries used to create a histogram for the distribution. The buckets can be in a linear sequence, an exponential sequence, or each bucket can be specified explicitly. BucketOptions does not include the number of values in each bucket. A bucket has an inclusive lower bound and exclusive upper bound for the values that are counted for that bucket. The upper bound of a bucket must be strictly greater than the lower bound. The sequence of N buckets for a distribution consists of an underflow bucket (number 0), zero or more finite buckets (number 1 through N - 2) and an overflow bucket (number N - 1). The buckets are contiguous: the lower bound of bucket i (i &gt; 0) is the same as the upper bound of bucket i - 1. The buckets span the whole range of finite values: lower bound of the underflow bucket is -infinity and the upper bound of the overflow bucket is +infinity. The finite buckets are so-called because both bounds are finite.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleApiDistributionBucketOptions {
     /// The explicit buckets.
     #[serde(default, rename = "explicitBuckets")]
@@ -14360,7 +14361,7 @@ pub struct GoogleApiDistributionBucketOptions {
 }
 
 /// Exemplars are example points that may be used to annotate aggregated distribution values. They are metadata that gives information about a particular value added to a Distribution bucket, such as a trace ID that was active when a value was added. They may contain further information, such as a example values and timestamps, origin, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleApiDistributionExemplar {
     /// Contextual information about the example value. Examples are: Trace: type.googleapis.com/google.monitoring.v3.SpanContext Literal string: type.googleapis.com/google.protobuf.StringValue Labels dropped during aggregation: type.googleapis.com/google.monitoring.v3.DroppedLabels There may be only a single attachment of any given message type in a single exemplar, and this is enforced by the system.
     #[serde(default)]
@@ -14374,7 +14375,7 @@ pub struct GoogleApiDistributionExemplar {
 }
 
 /// The range of the population values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleApiDistributionRange {
     /// The maximum of the population values.
     #[serde(default)]
@@ -14385,7 +14386,7 @@ pub struct GoogleApiDistributionRange {
 }
 
 /// Citation source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchResponseSummaryCitationSource {
     /// Document reference index from SummaryWithMetadata.references. It is 0-indexed and the value will be zero if the reference_index is not set explicitly.
     #[serde(default, rename = "referenceIndex")]
@@ -14393,7 +14394,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseSummaryCitationSource {
 }
 
 /// Chunk information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerStepActionObservationSearchResultChunkInfo {
     /// Chunk resource name.
     #[serde(default)]
@@ -14407,7 +14408,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerStepActionObservationSearchResultCh
 }
 
 /// Snippet information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AnswerStepActionObservationSearchResultSnippetInfo {
     /// Snippet content.
     #[serde(default)]
@@ -14418,7 +14419,7 @@ pub struct GoogleCloudDiscoveryengineV1AnswerStepActionObservationSearchResultSn
 }
 
 /// Document metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMetadataReferenceDocumentMetadata
 {
     /// Document resource name.
@@ -14442,7 +14443,7 @@ pub struct GoogleCloudDiscoveryengineV1AssistantGroundedContentTextGroundingMeta
 }
 
 /// Chunk information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAnswerStepActionObservationSearchResultChunkInfo {
     /// Chunk resource name.
     #[serde(default)]
@@ -14456,7 +14457,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAnswerStepActionObservationSearchRes
 }
 
 /// Snippet information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAnswerStepActionObservationSearchResultSnippetInfo {
     /// Snippet content.
     #[serde(default)]
@@ -14467,7 +14468,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAnswerStepActionObservationSearchRes
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeDate {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -14481,7 +14482,7 @@ pub struct GoogleTypeDate {
 }
 
 /// Document metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1alphaAssistantGroundedContentTextGroundingMetadataReferenceDocumentMetadata
 {
     /// Document resource name.
@@ -14505,7 +14506,7 @@ pub struct GoogleCloudDiscoveryengineV1alphaAssistantGroundedContentTextGroundin
 }
 
 /// Specifies a set of buckets with arbitrary widths. There are size(bounds) + 1 (= N) buckets. Bucket i has the following boundaries: Upper bound (0 &lt;= i &lt; N-1): bounds[i] Lower bound (1 &lt;= i &lt; N); bounds[i - 1] The bounds field must contain at least one element. If bounds has only one element, then there are no finite buckets, and that single element is the common boundary of the overflow and underflow buckets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleApiDistributionBucketOptionsExplicit {
     /// The values must be monotonically increasing.
     #[serde(default)]
@@ -14513,7 +14514,7 @@ pub struct GoogleApiDistributionBucketOptionsExplicit {
 }
 
 /// Specifies an exponential sequence of buckets that have a width that is proportional to the value of the lower bound. Each bucket represents a constant relative uncertainty on a specific value in the bucket. There are num_finite_buckets + 2 (= N) buckets. Bucket i has the following boundaries: Upper bound (0 &lt;= i &lt; N-1): scale * (growth_factor ^ i). Lower bound (1 &lt;= i &lt; N): scale * (growth_factor ^ (i - 1)).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleApiDistributionBucketOptionsExponential {
     /// Must be greater than 1.
     #[serde(default, rename = "growthFactor")]
@@ -14527,7 +14528,7 @@ pub struct GoogleApiDistributionBucketOptionsExponential {
 }
 
 /// Specifies a linear sequence of buckets that all have the same width (except overflow and underflow). Each bucket represents a constant absolute uncertainty on the specific value in the bucket. There are num_finite_buckets + 2 (= N) buckets. Bucket i has the following boundaries: Upper bound (0 &lt;= i &lt; N-1): offset + (width * i). Lower bound (1 &lt;= i &lt; N): offset + (width * (i - 1)).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleApiDistributionBucketOptionsLinear {
     /// Must be greater than 0.
     #[serde(default, rename = "numFiniteBuckets")]
@@ -14541,7 +14542,7 @@ pub struct GoogleApiDistributionBucketOptionsLinear {
 }
 
 /// Chunk captures all raw metadata information of items to be recommended or searched in the chunk mode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1Chunk {
     /// Output only. Annotation contents if the current chunk contains annotations.
     #[serde(default, rename = "annotationContents")]
@@ -14584,7 +14585,7 @@ pub struct GoogleCloudDiscoveryengineV1Chunk {
 }
 
 /// The annotation metadata includes structured content in the current chunk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ChunkAnnotationMetadata {
     /// Output only. Image id is provided if the structured content is based on an image.
     #[serde(default, rename = "imageId")]
@@ -14597,7 +14598,7 @@ pub struct GoogleCloudDiscoveryengineV1ChunkAnnotationMetadata {
 }
 
 /// Metadata of the current chunk. This field is only populated on SearchService.Search API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ChunkChunkMetadata {
     /// The next chunks of the current chunk. The number is controlled by SearchRequest.ContentSearchSpec.ChunkSpec.num_next_chunks. This field is only populated on SearchService.Search API.
     #[serde(default, rename = "nextChunks")]
@@ -14608,7 +14609,7 @@ pub struct GoogleCloudDiscoveryengineV1ChunkChunkMetadata {
 }
 
 /// Document metadata contains the information of the document of the current chunk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ChunkDocumentMetadata {
     /// The mime type of the document. https://www.iana.org/assignments/media-types/media-types.xhtml.
     #[serde(default, rename = "mimeType")]
@@ -14625,7 +14626,7 @@ pub struct GoogleCloudDiscoveryengineV1ChunkDocumentMetadata {
 }
 
 /// Page span of the chunk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ChunkPageSpan {
     /// The end page of the chunk.
     #[serde(default, rename = "pageEnd")]
@@ -14636,7 +14637,7 @@ pub struct GoogleCloudDiscoveryengineV1ChunkPageSpan {
 }
 
 /// The structured content information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1ChunkStructuredContent {
     /// Output only. The content of the structured content.
     #[serde(default)]
@@ -14647,7 +14648,7 @@ pub struct GoogleCloudDiscoveryengineV1ChunkStructuredContent {
 }
 
 /// Logical And operator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilterAndExpression {
     /// The expressions that were ANDed together.
     #[serde(default)]
@@ -14655,7 +14656,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderst
 }
 
 /// The expression denoting the filter that was extracted from the input query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilterExpression {
     /// Logical "And" compound operator connecting multiple expressions.
     #[serde(default, rename = "andExpr")]
@@ -14675,7 +14676,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderst
 }
 
 /// Constraint of a geolocation field. Name of the geolocation field as defined in the schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilterGeolocationConstraint
 {
     /// The reference address that was inferred from the input query. The proximity of the reference address to the geolocation field will be used to filter the results.
@@ -14696,7 +14697,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderst
 }
 
 /// Constraint expression of a number field. Example: price &lt; 100.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilterNumberConstraint
 {
     /// The comparison operation performed between the field value and the value specified in the constraint. // TODO: enum values: ["COMPARISON_UNSPECIFIED", "EQUALS", "LESS_THAN_EQUALS", "LESS_THAN", "GREATER_THAN_EQUALS", "GREATER_THAN"]
@@ -14714,7 +14715,7 @@ pub struct GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderst
 }
 
 /// Logical Or operator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDiscoveryengineV1SearchResponseNaturalLanguageQueryUnderstandingInfoStructuredExtractedFilterOrExpression {
     /// The expressions that were ORed together.
     #[serde(default)]

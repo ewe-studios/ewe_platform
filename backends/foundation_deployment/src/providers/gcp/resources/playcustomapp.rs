@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// This resource represents a custom app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomApp {
     /// Default listing language in BCP 47 format.
     #[serde(default, rename = "languageCode")]
@@ -28,7 +29,7 @@ pub struct CustomApp {
 }
 
 /// Represents an organization that can access a custom app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Organization {
     /// Required. ID of the organization.
     #[serde(default, rename = "organizationId")]

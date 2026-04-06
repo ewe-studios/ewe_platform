@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request message for BatchUpdateDocument.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateDocumentRequest {
     /// A list of updates to apply to the document.
     #[serde(default)]
@@ -22,7 +23,7 @@ pub struct BatchUpdateDocumentRequest {
 }
 
 /// Response message from a BatchUpdateDocument request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateDocumentResponse {
     /// The ID of the document to which the updates were applied to.
     #[serde(default, rename = "documentId")]
@@ -36,7 +37,7 @@ pub struct BatchUpdateDocumentResponse {
 }
 
 /// A Google Docs document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Document {
     /// Output only. The main body of the document. Legacy field: Instead, use Document.tabs.documentTab.body, which exposes the actual document content from all tabs when the includeTabsContent parameter is set to true. If false or unset, this field contains information about the first tab in the document.
     #[serde(default)]
@@ -92,15 +93,15 @@ pub struct Document {
 }
 
 /// The properties of an embedded drawing and used to differentiate the object type. An embedded drawing is one that''s created and edited within a document. Note that extensive details are not supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmbeddedDrawingProperties {}
 
 /// A mask that indicates which of the fields on the base EmbeddedDrawingProperties have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmbeddedDrawingPropertiesSuggestionState {}
 
 /// A document footer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Footer {
     /// The contents of the footer. The indexes for a footer''s content begin at zero.
     #[serde(default)]
@@ -111,7 +112,7 @@ pub struct Footer {
 }
 
 /// A document footnote.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Footnote {
     /// The contents of the footnote. The indexes for a footnote''s content begin at zero.
     #[serde(default)]
@@ -122,7 +123,7 @@ pub struct Footnote {
 }
 
 /// A document header.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Header {
     /// The contents of the header. The indexes for a header''s content begin at zero.
     #[serde(default)]
@@ -133,7 +134,7 @@ pub struct Header {
 }
 
 /// An object that appears inline with text. An InlineObject contains an EmbeddedObject such as an image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InlineObject {
     /// The properties of this inline object.
     #[serde(default, rename = "inlineObjectProperties")]
@@ -153,7 +154,7 @@ pub struct InlineObject {
 }
 
 /// A List represents the list attributes for a group of paragraphs that all belong to the same list. A paragraph that''s part of a list has a reference to the list''s ID in its bullet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct List {
     /// The properties of the list.
     #[serde(default, rename = "listProperties")]
@@ -170,7 +171,7 @@ pub struct List {
 }
 
 /// A collection of all the NamedRanges in the document that share a given name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NamedRanges {
     /// The name that all the named ranges share.
     #[serde(default)]
@@ -181,7 +182,7 @@ pub struct NamedRanges {
 }
 
 /// A collection of object IDs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObjectReferences {
     /// The object IDs.
     #[serde(default, rename = "objectIds")]
@@ -189,7 +190,7 @@ pub struct ObjectReferences {
 }
 
 /// An object that''s tethered to a Paragraph and positioned relative to the beginning of the paragraph. A PositionedObject contains an EmbeddedObject such as an image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PositionedObject {
     /// The ID of this positioned object.
     #[serde(default, rename = "objectId")]
@@ -209,7 +210,7 @@ pub struct PositionedObject {
 }
 
 /// A suggested change to a Bullet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuggestedBullet {
     /// A Bullet that only includes the changes made in this suggestion. This can be used along with the bullet_suggestion_state to see which fields have changed and their new values.
     #[serde(default)]
@@ -220,7 +221,7 @@ pub struct SuggestedBullet {
 }
 
 /// A suggested change to a DateElementProperties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuggestedDateElementProperties {
     /// DateElementProperties that only includes the changes made in this suggestion. This can be used along with the date_element_properties_suggestion_state to see which fields have changed and their new values.
     #[serde(default, rename = "dateElementProperties")]
@@ -232,7 +233,7 @@ pub struct SuggestedDateElementProperties {
 }
 
 /// A suggested change to the DocumentStyle.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuggestedDocumentStyle {
     /// A DocumentStyle that only includes the changes made in this suggestion. This can be used along with the document_style_suggestion_state to see which fields have changed and their new values.
     #[serde(default, rename = "documentStyle")]
@@ -243,7 +244,7 @@ pub struct SuggestedDocumentStyle {
 }
 
 /// A suggested change to InlineObjectProperties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuggestedInlineObjectProperties {
     /// An InlineObjectProperties that only includes the changes made in this suggestion. This can be used along with the inline_object_properties_suggestion_state to see which fields have changed and their new values.
     #[serde(default, rename = "inlineObjectProperties")]
@@ -255,7 +256,7 @@ pub struct SuggestedInlineObjectProperties {
 }
 
 /// A suggested change to ListProperties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuggestedListProperties {
     /// A ListProperties that only includes the changes made in this suggestion. This can be used along with the list_properties_suggestion_state to see which fields have changed and their new values.
     #[serde(default, rename = "listProperties")]
@@ -266,7 +267,7 @@ pub struct SuggestedListProperties {
 }
 
 /// A suggested change to the NamedStyles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuggestedNamedStyles {
     /// A NamedStyles that only includes the changes made in this suggestion. This can be used along with the named_styles_suggestion_state to see which fields have changed and their new values.
     #[serde(default, rename = "namedStyles")]
@@ -277,7 +278,7 @@ pub struct SuggestedNamedStyles {
 }
 
 /// A suggested change to a ParagraphStyle.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuggestedParagraphStyle {
     /// A ParagraphStyle that only includes the changes made in this suggestion. This can be used along with the paragraph_style_suggestion_state to see which fields have changed and their new values.
     #[serde(default, rename = "paragraphStyle")]
@@ -288,7 +289,7 @@ pub struct SuggestedParagraphStyle {
 }
 
 /// A suggested change to PositionedObjectProperties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuggestedPositionedObjectProperties {
     /// A PositionedObjectProperties that only includes the changes made in this suggestion. This can be used along with the positioned_object_properties_suggestion_state to see which fields have changed and their new values.
     #[serde(default, rename = "positionedObjectProperties")]
@@ -300,7 +301,7 @@ pub struct SuggestedPositionedObjectProperties {
 }
 
 /// A suggested change to a TableCellStyle.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuggestedTableCellStyle {
     /// A TableCellStyle that only includes the changes made in this suggestion. This can be used along with the table_cell_style_suggestion_state to see which fields have changed and their new values.
     #[serde(default, rename = "tableCellStyle")]
@@ -311,7 +312,7 @@ pub struct SuggestedTableCellStyle {
 }
 
 /// A suggested change to a TableRowStyle.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuggestedTableRowStyle {
     /// A TableRowStyle that only includes the changes made in this suggestion. This can be used along with the table_row_style_suggestion_state to see which fields have changed and their new values.
     #[serde(default, rename = "tableRowStyle")]
@@ -322,7 +323,7 @@ pub struct SuggestedTableRowStyle {
 }
 
 /// A suggested change to a TextStyle.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuggestedTextStyle {
     /// A TextStyle that only includes the changes made in this suggestion. This can be used along with the text_style_suggestion_state to see which fields have changed and their new values.
     #[serde(default, rename = "textStyle")]
@@ -333,7 +334,7 @@ pub struct SuggestedTextStyle {
 }
 
 /// A single update to apply to a document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Request {
     /// Adds a document tab.
     #[serde(default, rename = "addDocumentTab")]
@@ -452,7 +453,7 @@ pub struct Request {
 }
 
 /// A single response from an update.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Response {
     /// The result of adding a document tab.
     #[serde(default, rename = "addDocumentTab")]
@@ -481,7 +482,7 @@ pub struct Response {
 }
 
 /// Provides control over how write requests are executed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WriteControl {
     /// The optional revision ID of the document the write request is applied to. If this is not the latest revision of the document, the request is not processed and returns a 400 bad request error. When a required revision ID is returned in a response, it indicates the revision ID of the document after the request was applied.
     #[serde(default, rename = "requiredRevisionId")]
@@ -492,7 +493,7 @@ pub struct WriteControl {
 }
 
 /// A tab in a document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Tab {
     /// The child tabs nested within this tab.
     #[serde(default, rename = "childTabs")]
@@ -506,7 +507,7 @@ pub struct Tab {
 }
 
 /// A collection of Ranges with the same named range ID. Named ranges allow developers to associate parts of a document with an arbitrary user-defined label so their contents can be programmatically read or edited later. A document can contain multiple named ranges with the same name, but every named range has a unique ID. A named range is created with a single Range, and content inserted inside a named range generally expands that range. However, certain document changes can cause the range to be split into multiple ranges. Named ranges are not private. All applications and collaborators that have access to the document can see its named ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NamedRange {
     /// The name of the named range.
     #[serde(default)]
@@ -520,7 +521,7 @@ pub struct NamedRange {
 }
 
 /// A mask that indicates which of the fields on the base Bullet have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulletSuggestionState {
     /// Indicates if there was a suggested change to the list_id.
     #[serde(default, rename = "listIdSuggested")]
@@ -534,7 +535,7 @@ pub struct BulletSuggestionState {
 }
 
 /// A mask that indicates which of the fields on the base DateElementProperties have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DateElementPropertiesSuggestionState {
     /// Indicates if there was a suggested change to date_format.
     #[serde(default, rename = "dateFormatSuggested")]
@@ -554,7 +555,7 @@ pub struct DateElementPropertiesSuggestionState {
 }
 
 /// A mask that indicates which of the fields on the base DocumentStyle have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DocumentStyleSuggestionState {
     /// A mask that indicates which of the fields in background have been changed in this suggestion.
     #[serde(default, rename = "backgroundSuggestionState")]
@@ -616,7 +617,7 @@ pub struct DocumentStyleSuggestionState {
 }
 
 /// Properties of an InlineObject.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InlineObjectProperties {
     /// The embedded object of this inline object.
     #[serde(default, rename = "embeddedObject")]
@@ -624,7 +625,7 @@ pub struct InlineObjectProperties {
 }
 
 /// A mask that indicates which of the fields on the base InlineObjectProperties have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InlineObjectPropertiesSuggestionState {
     /// A mask that indicates which of the fields in embedded_object have been changed in this suggestion.
     #[serde(default, rename = "embeddedObjectSuggestionState")]
@@ -632,7 +633,7 @@ pub struct InlineObjectPropertiesSuggestionState {
 }
 
 /// The properties of a list that describe the look and feel of bullets belonging to paragraphs associated with a list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListProperties {
     /// Describes the properties of the bullets at the associated level. A list has at most 9 levels of nesting with nesting level 0 corresponding to the top-most level and nesting level 8 corresponding to the most nested level. The nesting levels are returned in ascending order with the least nested returned first.
     #[serde(default, rename = "nestingLevels")]
@@ -640,7 +641,7 @@ pub struct ListProperties {
 }
 
 /// A mask that indicates which of the fields on the base ListProperties have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPropertiesSuggestionState {
     /// A mask that indicates which of the fields on the corresponding NestingLevel in nesting_levels have been changed in this suggestion. The nesting level suggestion states are returned in ascending order of the nesting level with the least nested returned first.
     #[serde(default, rename = "nestingLevelsSuggestionStates")]
@@ -649,7 +650,7 @@ pub struct ListPropertiesSuggestionState {
 }
 
 /// The suggestion state of a NamedStyles message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NamedStylesSuggestionState {
     /// A mask that indicates which of the fields on the corresponding NamedStyle in styles have been changed in this suggestion. The order of these named style suggestion states matches the order of the corresponding named style within the named styles suggestion.
     #[serde(default, rename = "stylesSuggestionStates")]
@@ -658,7 +659,7 @@ pub struct NamedStylesSuggestionState {
 }
 
 /// Properties of a PositionedObject.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PositionedObjectProperties {
     /// The embedded object of this positioned object.
     #[serde(default, rename = "embeddedObject")]
@@ -669,7 +670,7 @@ pub struct PositionedObjectProperties {
 }
 
 /// A mask that indicates which of the fields on the base PositionedObjectProperties have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PositionedObjectPropertiesSuggestionState {
     /// A mask that indicates which of the fields in embedded_object have been changed in this suggestion.
     #[serde(default, rename = "embeddedObjectSuggestionState")]
@@ -681,7 +682,7 @@ pub struct PositionedObjectPropertiesSuggestionState {
 }
 
 /// A mask that indicates which of the fields on the base TableCellStyle have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableCellStyleSuggestionState {
     /// Indicates if there was a suggested change to background_color.
     #[serde(default, rename = "backgroundColorSuggested")]
@@ -722,7 +723,7 @@ pub struct TableCellStyleSuggestionState {
 }
 
 /// A mask that indicates which of the fields on the base TableRowStyle have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableRowStyleSuggestionState {
     /// Indicates if there was a suggested change to min_row_height.
     #[serde(default, rename = "minRowHeightSuggested")]
@@ -730,7 +731,7 @@ pub struct TableRowStyleSuggestionState {
 }
 
 /// Adds a document tab. When a tab is added at a given index, all subsequent tabs'' indexes are incremented.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddDocumentTabRequest {
     /// The properties of the tab to add. All properties are optional.
     #[serde(default, rename = "tabProperties")]
@@ -738,7 +739,7 @@ pub struct AddDocumentTabRequest {
 }
 
 /// Creates a Footer. The new footer is applied to the SectionStyle at the location of the SectionBreak if specified, otherwise it is applied to the DocumentStyle. If a footer of the specified type already exists, a 400 bad request error is returned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateFooterRequest {
     /// The location of the SectionBreak immediately preceding the section whose SectionStyle this footer should belong to. If this is unset or refers to the first section break in the document, the footer applies to the document style.
     #[serde(default, rename = "sectionBreakLocation")]
@@ -749,7 +750,7 @@ pub struct CreateFooterRequest {
 }
 
 /// Creates a Footnote segment and inserts a new FootnoteReference to it at the given location. The new Footnote segment will contain a space followed by a newline character.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateFootnoteRequest {
     /// Inserts the footnote reference at the end of the document body. Footnote references cannot be inserted inside a header, footer or footnote. Since footnote references can only be inserted in the body, the segment ID field must be empty.
     #[serde(default, rename = "endOfSegmentLocation")]
@@ -760,7 +761,7 @@ pub struct CreateFootnoteRequest {
 }
 
 /// Creates a Header. The new header is applied to the SectionStyle at the location of the SectionBreak if specified, otherwise it is applied to the DocumentStyle. If a header of the specified type already exists, a 400 bad request error is returned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateHeaderRequest {
     /// The location of the SectionBreak which begins the section this header should belong to. If section_break_location'' is unset or if it refers to the first section break in the document body, the header applies to the DocumentStyle
     #[serde(default, rename = "sectionBreakLocation")]
@@ -771,7 +772,7 @@ pub struct CreateHeaderRequest {
 }
 
 /// Creates a NamedRange referencing the given range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateNamedRangeRequest {
     /// The name of the NamedRange. Names do not need to be unique. Names must be at least 1 character and no more than 256 characters, measured in UTF-16 code units.
     #[serde(default)]
@@ -782,7 +783,7 @@ pub struct CreateNamedRangeRequest {
 }
 
 /// Creates bullets for all of the paragraphs that overlap with the given range. The nesting level of each paragraph will be determined by counting leading tabs in front of each paragraph. To avoid excess space between the bullet and the corresponding paragraph, these leading tabs are removed by this request. This may change the indices of parts of the text. If the paragraph immediately before paragraphs being updated is in a list with a matching preset, the paragraphs being updated are added to that preceding list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateParagraphBulletsRequest {
     /// The kinds of bullet glyphs to be used. // TODO: enum values: ["BULLET_GLYPH_PRESET_UNSPECIFIED", "BULLET_DISC_CIRCLE_SQUARE", "BULLET_DIAMONDX_ARROW3D_SQUARE", "BULLET_CHECKBOX", "BULLET_ARROW_DIAMOND_DISC", "BULLET_STAR_CIRCLE_SQUARE", "BULLET_ARROW3D_CIRCLE_SQUARE", "BULLET_LEFTTRIANGLE_DIAMOND_DISC", "BULLET_DIAMONDX_HOLLOWDIAMOND_SQUARE", "BULLET_DIAMOND_CIRCLE_SQUARE", "NUMBERED_DECIMAL_ALPHA_ROMAN", "NUMBERED_DECIMAL_ALPHA_ROMAN_PARENS", "NUMBERED_DECIMAL_NESTED", "NUMBERED_UPPERALPHA_ALPHA_ROMAN", "NUMBERED_UPPERROMAN_UPPERALPHA_DECIMAL", "NUMBERED_ZERODECIMAL_ALPHA_ROMAN"]
     #[serde(default, rename = "bulletPreset")]
@@ -793,7 +794,7 @@ pub struct CreateParagraphBulletsRequest {
 }
 
 /// Deletes content from the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteContentRangeRequest {
     /// The range of content to delete. Deleting text that crosses a paragraph boundary may result in changes to paragraph styles, lists, positioned objects and bookmarks as the two paragraphs are merged. Attempting to delete certain ranges can result in an invalid document structure in which case a 400 bad request error is returned. Some examples of invalid delete requests include: * Deleting one code unit of a surrogate pair. * Deleting the last newline character of a Body, Header, Footer, Footnote, TableCell or TableOfContents. * Deleting the start or end of a Table, TableOfContents or Equation without deleting the entire element. * Deleting the newline character before a Table, TableOfContents or SectionBreak without deleting the element. * Deleting individual rows or cells of a table. Deleting the content within a table cell is allowed.
     #[serde(default)]
@@ -801,7 +802,7 @@ pub struct DeleteContentRangeRequest {
 }
 
 /// Deletes a Footer from the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteFooterRequest {
     /// The id of the footer to delete. If this footer is defined on DocumentStyle, the reference to this footer is removed, resulting in no footer of that type for the first section of the document. If this footer is defined on a SectionStyle, the reference to this footer is removed and the footer of that type is now continued from the previous section.
     #[serde(default, rename = "footerId")]
@@ -812,7 +813,7 @@ pub struct DeleteFooterRequest {
 }
 
 /// Deletes a Header from the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteHeaderRequest {
     /// The id of the header to delete. If this header is defined on DocumentStyle, the reference to this header is removed, resulting in no header of that type for the first section of the document. If this header is defined on a SectionStyle, the reference to this header is removed and the header of that type is now continued from the previous section.
     #[serde(default, rename = "headerId")]
@@ -823,7 +824,7 @@ pub struct DeleteHeaderRequest {
 }
 
 /// Deletes a NamedRange.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteNamedRangeRequest {
     /// The name of the range(s) to delete. All named ranges with the given name will be deleted.
     #[serde(default)]
@@ -837,7 +838,7 @@ pub struct DeleteNamedRangeRequest {
 }
 
 /// Deletes bullets from all of the paragraphs that overlap with the given range. The nesting level of each paragraph will be visually preserved by adding indent to the start of the corresponding paragraph.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteParagraphBulletsRequest {
     /// The range to delete bullets from.
     #[serde(default)]
@@ -845,7 +846,7 @@ pub struct DeleteParagraphBulletsRequest {
 }
 
 /// Deletes a PositionedObject from the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletePositionedObjectRequest {
     /// The ID of the positioned object to delete.
     #[serde(default, rename = "objectId")]
@@ -856,7 +857,7 @@ pub struct DeletePositionedObjectRequest {
 }
 
 /// Deletes a tab. If the tab has child tabs, they are deleted as well.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteTabRequest {
     /// The ID of the tab to delete.
     #[serde(default, rename = "tabId")]
@@ -864,7 +865,7 @@ pub struct DeleteTabRequest {
 }
 
 /// Deletes a column from a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteTableColumnRequest {
     /// The reference table cell location from which the column will be deleted. The column this cell spans will be deleted. If this is a merged cell that spans multiple columns, all columns that the cell spans will be deleted. If no columns remain in the table after this deletion, the whole table is deleted.
     #[serde(default, rename = "tableCellLocation")]
@@ -872,7 +873,7 @@ pub struct DeleteTableColumnRequest {
 }
 
 /// Deletes a row from a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteTableRowRequest {
     /// The reference table cell location from which the row will be deleted. The row this cell spans will be deleted. If this is a merged cell that spans multiple rows, all rows that the cell spans will be deleted. If no rows remain in the table after this deletion, the whole table is deleted.
     #[serde(default, rename = "tableCellLocation")]
@@ -880,7 +881,7 @@ pub struct DeleteTableRowRequest {
 }
 
 /// Inserts a date at the specified location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsertDateRequest {
     /// The properties of the date to insert.
     #[serde(default, rename = "dateElementProperties")]
@@ -894,7 +895,7 @@ pub struct InsertDateRequest {
 }
 
 /// Inserts an InlineObject containing an image at the given location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsertInlineImageRequest {
     /// Inserts the text at the end of a header, footer or the document body. Inline images cannot be inserted inside a footnote.
     #[serde(default, rename = "endOfSegmentLocation")]
@@ -911,7 +912,7 @@ pub struct InsertInlineImageRequest {
 }
 
 /// Inserts a page break followed by a newline at the specified location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsertPageBreakRequest {
     /// Inserts the page break at the end of the document body. Page breaks cannot be inserted inside a footnote, header or footer. Since page breaks can only be inserted inside the body, the segment ID field must be empty.
     #[serde(default, rename = "endOfSegmentLocation")]
@@ -922,7 +923,7 @@ pub struct InsertPageBreakRequest {
 }
 
 /// Inserts a person mention.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsertPersonRequest {
     /// Inserts the person mention at the end of a header, footer, footnote or the document body.
     #[serde(default, rename = "endOfSegmentLocation")]
@@ -936,7 +937,7 @@ pub struct InsertPersonRequest {
 }
 
 /// Inserts a section break at the given location. A newline character will be inserted before the section break.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsertSectionBreakRequest {
     /// Inserts a newline and a section break at the end of the document body. Section breaks cannot be inserted inside a footnote, header or footer. Because section breaks can only be inserted inside the body, the segment ID field must be empty.
     #[serde(default, rename = "endOfSegmentLocation")]
@@ -950,7 +951,7 @@ pub struct InsertSectionBreakRequest {
 }
 
 /// Inserts a table at the specified location. A newline character will be inserted before the inserted table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsertTableRequest {
     /// The number of columns in the table.
     #[serde(default)]
@@ -967,7 +968,7 @@ pub struct InsertTableRequest {
 }
 
 /// Inserts an empty column into a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsertTableColumnRequest {
     /// Whether to insert new column to the right of the reference cell location. - True: insert to the right. - False: insert to the left.
     #[serde(default, rename = "insertRight")]
@@ -978,7 +979,7 @@ pub struct InsertTableColumnRequest {
 }
 
 /// Inserts an empty row into a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsertTableRowRequest {
     /// Whether to insert new row below the reference cell location. - True: insert below the cell. - False: insert above the cell.
     #[serde(default, rename = "insertBelow")]
@@ -989,7 +990,7 @@ pub struct InsertTableRowRequest {
 }
 
 /// Inserts text at the specified location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsertTextRequest {
     /// Inserts the text at the end of a header, footer, footnote or the document body.
     #[serde(default, rename = "endOfSegmentLocation")]
@@ -1003,7 +1004,7 @@ pub struct InsertTextRequest {
 }
 
 /// Merges cells in a Table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MergeTableCellsRequest {
     /// The table range specifying which cells of the table to merge. Any text in the cells being merged will be concatenated and stored in the "head" cell of the range. This is the upper-left cell of the range when the content direction is left to right, and the upper-right cell of the range otherwise. If the range is non-rectangular (which can occur in some cases where the range covers cells that are already merged or where the table is non-rectangular), a 400 bad request error is returned.
     #[serde(default, rename = "tableRange")]
@@ -1011,7 +1012,7 @@ pub struct MergeTableCellsRequest {
 }
 
 /// Updates the number of pinned table header rows in a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PinTableHeaderRowsRequest {
     /// The number of table rows to pin, where 0 implies that all rows are unpinned.
     #[serde(default, rename = "pinnedHeaderRowsCount")]
@@ -1022,7 +1023,7 @@ pub struct PinTableHeaderRowsRequest {
 }
 
 /// Replaces all instances of text matching a criteria with replace text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplaceAllTextRequest {
     /// Finds text in the document matching this substring.
     #[serde(default, rename = "containsText")]
@@ -1036,7 +1037,7 @@ pub struct ReplaceAllTextRequest {
 }
 
 /// Replaces an existing image with a new image. Replacing an image removes some image effects from the existing image in order to mirror the behavior of the Docs editor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplaceImageRequest {
     /// The ID of the existing image that will be replaced. The ID can be retrieved from the response of a get request.
     #[serde(default, rename = "imageObjectId")]
@@ -1053,7 +1054,7 @@ pub struct ReplaceImageRequest {
 }
 
 /// Replaces the contents of the specified NamedRange or NamedRanges with the given replacement content. Note that an individual NamedRange may consist of multiple discontinuous ranges. In this case, only the content in the first range will be replaced. The other ranges and their content will be deleted. In cases where replacing or deleting any ranges would result in an invalid document structure, a 400 bad request error is returned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplaceNamedRangeContentRequest {
     /// The ID of the named range whose content will be replaced. If there is no named range with the given ID a 400 bad request error is returned.
     #[serde(default, rename = "namedRangeId")]
@@ -1070,7 +1071,7 @@ pub struct ReplaceNamedRangeContentRequest {
 }
 
 /// Unmerges cells in a Table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnmergeTableCellsRequest {
     /// The table range specifying which cells of the table to unmerge. All merged cells in this range will be unmerged, and cells that are already unmerged will not be affected. If the range has no merged cells, the request will do nothing. If there is text in any of the merged cells, the text will remain in the "head" cell of the resulting block of unmerged cells. The "head" cell is the upper-left cell when the content direction is from left to right, and the upper-right otherwise.
     #[serde(default, rename = "tableRange")]
@@ -1078,7 +1079,7 @@ pub struct UnmergeTableCellsRequest {
 }
 
 /// Updates the DocumentStyle.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateDocumentStyleRequest {
     /// The styles to set on the document. Certain document style changes may cause other changes in order to mirror the behavior of the Docs editor. See the documentation of DocumentStyle for more information.
     #[serde(default, rename = "documentStyle")]
@@ -1092,7 +1093,7 @@ pub struct UpdateDocumentStyleRequest {
 }
 
 /// Update the properties of a document tab.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateDocumentTabPropertiesRequest {
     /// The fields that should be updated. At least one field must be specified. The root tab_properties is implied and should not be specified. A single "*" can be used as short-hand for listing every field.
     #[serde(default)]
@@ -1103,7 +1104,7 @@ pub struct UpdateDocumentTabPropertiesRequest {
 }
 
 /// Update the styling of all paragraphs that overlap with the given range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateParagraphStyleRequest {
     /// The fields that should be updated. At least one field must be specified. The root paragraph_style is implied and should not be specified. A single "*" can be used as short-hand for listing every field. For example, to update the paragraph style''s alignment property, set fields to "alignment". To reset a property to its default value, include its field name in the field mask but leave the field itself unset.
     #[serde(default)]
@@ -1117,7 +1118,7 @@ pub struct UpdateParagraphStyleRequest {
 }
 
 /// Updates the SectionStyle.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateSectionStyleRequest {
     /// The fields that should be updated. At least one field must be specified. The root section_style is implied and must not be specified. A single "*" can be used as short-hand for listing every field. For example to update the left margin, set fields to "margin_left".
     #[serde(default)]
@@ -1131,7 +1132,7 @@ pub struct UpdateSectionStyleRequest {
 }
 
 /// Updates the style of a range of table cells.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateTableCellStyleRequest {
     /// The fields that should be updated. At least one field must be specified. The root tableCellStyle is implied and should not be specified. A single "*" can be used as short-hand for listing every field. For example to update the table cell background color, set fields to "backgroundColor". To reset a property to its default value, include its field name in the field mask but leave the field itself unset.
     #[serde(default)]
@@ -1148,7 +1149,7 @@ pub struct UpdateTableCellStyleRequest {
 }
 
 /// Updates the TableColumnProperties of columns in a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateTableColumnPropertiesRequest {
     /// The list of zero-based column indices whose property should be updated. If no indices are specified, all columns will be updated.
     #[serde(default, rename = "columnIndices")]
@@ -1165,7 +1166,7 @@ pub struct UpdateTableColumnPropertiesRequest {
 }
 
 /// Updates the TableRowStyle of rows in a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateTableRowStyleRequest {
     /// The fields that should be updated. At least one field must be specified. The root tableRowStyle is implied and should not be specified. A single "*" can be used as short-hand for listing every field. For example to update the minimum row height, set fields to "min_row_height".
     #[serde(default)]
@@ -1182,7 +1183,7 @@ pub struct UpdateTableRowStyleRequest {
 }
 
 /// Update the styling of text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateTextStyleRequest {
     /// The fields that should be updated. At least one field must be specified. The root text_style is implied and should not be specified. A single "*" can be used as short-hand for listing every field. For example, to update the text style to bold, set fields to "bold". To reset a property to its default value, include its field name in the field mask but leave the field itself unset.
     #[serde(default)]
@@ -1196,7 +1197,7 @@ pub struct UpdateTextStyleRequest {
 }
 
 /// The result of adding a document tab.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddDocumentTabResponse {
     /// The properties of the newly added tab.
     #[serde(default, rename = "tabProperties")]
@@ -1204,7 +1205,7 @@ pub struct AddDocumentTabResponse {
 }
 
 /// The result of creating a footer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateFooterResponse {
     /// The ID of the created footer.
     #[serde(default, rename = "footerId")]
@@ -1212,7 +1213,7 @@ pub struct CreateFooterResponse {
 }
 
 /// The result of creating a footnote.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateFootnoteResponse {
     /// The ID of the created footnote.
     #[serde(default, rename = "footnoteId")]
@@ -1220,7 +1221,7 @@ pub struct CreateFootnoteResponse {
 }
 
 /// The result of creating a header.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateHeaderResponse {
     /// The ID of the created header.
     #[serde(default, rename = "headerId")]
@@ -1228,7 +1229,7 @@ pub struct CreateHeaderResponse {
 }
 
 /// The result of creating a named range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateNamedRangeResponse {
     /// The ID of the created named range.
     #[serde(default, rename = "namedRangeId")]
@@ -1236,7 +1237,7 @@ pub struct CreateNamedRangeResponse {
 }
 
 /// The result of inserting an inline image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsertInlineImageResponse {
     /// The ID of the created InlineObject.
     #[serde(default, rename = "objectId")]
@@ -1244,7 +1245,7 @@ pub struct InsertInlineImageResponse {
 }
 
 /// The result of inserting an embedded Google Sheets chart.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsertInlineSheetsChartResponse {
     /// The object ID of the inserted chart.
     #[serde(default, rename = "objectId")]
@@ -1252,7 +1253,7 @@ pub struct InsertInlineSheetsChartResponse {
 }
 
 /// The result of replacing text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplaceAllTextResponse {
     /// The number of occurrences changed by replacing all text.
     #[serde(default, rename = "occurrencesChanged")]
@@ -1260,7 +1261,7 @@ pub struct ReplaceAllTextResponse {
 }
 
 /// A tab with document contents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DocumentTab {
     /// The main body of the document tab.
     #[serde(default)]
@@ -1301,7 +1302,7 @@ pub struct DocumentTab {
 }
 
 /// A mask that indicates which of the fields on the base Background have been changed in this suggestion. For any field set to true, the Backgound has a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackgroundSuggestionState {
     /// Indicates whether the current background color has been modified in this suggestion.
     #[serde(default, rename = "backgroundColorSuggested")]
@@ -1309,7 +1310,7 @@ pub struct BackgroundSuggestionState {
 }
 
 /// Contains properties describing the look and feel of a list bullet at a given level of nesting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NestingLevel {
     /// The alignment of the bullet within the space allotted for rendering the bullet. // TODO: enum values: ["BULLET_ALIGNMENT_UNSPECIFIED", "START", "CENTER", "END"]
     #[serde(default, rename = "bulletAlignment")]
@@ -1338,7 +1339,7 @@ pub struct NestingLevel {
 }
 
 /// A mask that indicates which of the fields on the base NestingLevel have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NestingLevelSuggestionState {
     /// Indicates if there was a suggested change to bullet_alignment.
     #[serde(default, rename = "bulletAlignmentSuggested")]
@@ -1367,7 +1368,7 @@ pub struct NestingLevelSuggestionState {
 }
 
 /// A suggestion state of a NamedStyle message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NamedStyleSuggestionState {
     /// The named style type that this suggestion state corresponds to. This field is provided as a convenience for matching the NamedStyleSuggestionState with its corresponding NamedStyle. // TODO: enum values: ["NAMED_STYLE_TYPE_UNSPECIFIED", "NORMAL_TEXT", "TITLE", "SUBTITLE", "HEADING_1", "HEADING_2", "HEADING_3", "HEADING_4", "HEADING_5", "HEADING_6"]
     #[serde(default, rename = "namedStyleType")]
@@ -1381,7 +1382,7 @@ pub struct NamedStyleSuggestionState {
 }
 
 /// An embedded object in the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmbeddedObject {
     /// The description of the embedded object. The title and description are both combined to display alt text.
     #[serde(default)]
@@ -1419,7 +1420,7 @@ pub struct EmbeddedObject {
 }
 
 /// The positioning of a PositionedObject. The positioned object is positioned relative to the beginning of the Paragraph it''s tethered to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PositionedObjectPositioning {
     /// The layout of this positioned object. // TODO: enum values: ["POSITIONED_OBJECT_LAYOUT_UNSPECIFIED", "WRAP_TEXT", "BREAK_LEFT", "BREAK_RIGHT", "BREAK_LEFT_RIGHT", "IN_FRONT_OF_TEXT", "BEHIND_TEXT"]
     #[serde(default)]
@@ -1433,7 +1434,7 @@ pub struct PositionedObjectPositioning {
 }
 
 /// A mask that indicates which of the fields on the base EmbeddedObject have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmbeddedObjectSuggestionState {
     /// Indicates if there was a suggested change to description.
     #[serde(default, rename = "descriptionSuggested")]
@@ -1473,7 +1474,7 @@ pub struct EmbeddedObjectSuggestionState {
 }
 
 /// A mask that indicates which of the fields on the base PositionedObjectPositioning have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PositionedObjectPositioningSuggestionState {
     /// Indicates if there was a suggested change to layout.
     #[serde(default, rename = "layoutSuggested")]
@@ -1487,7 +1488,7 @@ pub struct PositionedObjectPositioningSuggestionState {
 }
 
 /// Location at the end of a body, header, footer or footnote. The location is immediately before the last newline in the document segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EndOfSegmentLocation {
     /// The ID of the header, footer or footnote the location is in. An empty segment ID signifies the document''s body.
     #[serde(default, rename = "segmentId")]
@@ -1498,7 +1499,7 @@ pub struct EndOfSegmentLocation {
 }
 
 /// A criteria that matches a specific string of text in the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubstringMatchCriteria {
     /// Indicates whether the search should respect case: - True: the search is case sensitive. - False: the search is case insensitive.
     #[serde(default, rename = "matchCase")]
@@ -1512,7 +1513,7 @@ pub struct SubstringMatchCriteria {
 }
 
 /// A criteria that specifies in which tabs a request executes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TabsCriteria {
     /// The list of tab IDs in which the request executes.
     #[serde(default, rename = "tabIds")]
@@ -1520,7 +1521,7 @@ pub struct TabsCriteria {
 }
 
 /// A table range represents a reference to a subset of a table. It''s important to note that the cells specified by a table range do not necessarily form a rectangle. For example, let''s say we have a 3 x 3 table where all the cells of the last row are merged together. The table looks like this: [ ] A table range with table cell location = (table_start_location, row = 0, column = 0), row span = 3 and column span = 2 specifies the following cells: x x [ x x x ]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableRange {
     /// The column span of the table range.
     #[serde(default, rename = "columnSpan")]
@@ -1534,7 +1535,7 @@ pub struct TableRange {
 }
 
 /// Specifies a contiguous range of text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Range {
     /// The zero-based end index of this range, exclusive, in UTF-16 code units. In all current uses, an end index must be provided. This field is an Int32Value in order to accommodate future use cases with open-ended ranges.
     #[serde(default, rename = "endIndex")]
@@ -1551,7 +1552,7 @@ pub struct Range {
 }
 
 /// Properties of a tab.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TabProperties {
     /// Optional. The emoji icon displayed with the tab. A valid emoji icon is represented by a non-empty Unicode string. Any set of characters that don''t represent a single emoji is invalid. If an emoji is invalid, a 400 bad request error is returned. If this value is unset or empty, the tab will display the default tab icon.
     #[serde(default, rename = "iconEmoji")]
@@ -1574,7 +1575,7 @@ pub struct TabProperties {
 }
 
 /// The document body. The body typically contains the full document contents except for headers, footers, and footnotes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Body {
     /// The contents of the body. The indexes for the body''s content begin at zero.
     #[serde(default)]
@@ -1582,7 +1583,7 @@ pub struct Body {
 }
 
 /// The style of the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DocumentStyle {
     /// The background of the document. Documents cannot have a transparent background color.
     #[serde(default)]
@@ -1647,7 +1648,7 @@ pub struct DocumentStyle {
 }
 
 /// The named styles. Paragraphs in the document can inherit their TextStyle and ParagraphStyle from these named styles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NamedStyles {
     /// The named styles. There''s an entry for each of the possible named style types.
     #[serde(default)]
@@ -1655,7 +1656,7 @@ pub struct NamedStyles {
 }
 
 /// A mask that indicates which of the fields on the base ParagraphStyle have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ParagraphStyleSuggestionState {
     /// Indicates if there was a suggested change to alignment.
     #[serde(default, rename = "alignmentSuggested")]
@@ -1723,7 +1724,7 @@ pub struct ParagraphStyleSuggestionState {
 }
 
 /// A mask that indicates which of the fields on the base TextStyle have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextStyleSuggestionState {
     /// Indicates if there was a suggested change to background_color.
     #[serde(default, rename = "backgroundColorSuggested")]
@@ -1761,7 +1762,7 @@ pub struct TextStyleSuggestionState {
 }
 
 /// A border around an EmbeddedObject.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmbeddedObjectBorder {
     /// The color of the border.
     #[serde(default)]
@@ -1778,7 +1779,7 @@ pub struct EmbeddedObjectBorder {
 }
 
 /// The properties of an image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageProperties {
     /// The clockwise rotation angle of the image, in radians.
     #[serde(default)]
@@ -1804,7 +1805,7 @@ pub struct ImageProperties {
 }
 
 /// A reference to the external linked source content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LinkedContentReference {
     /// A reference to the linked chart.
     #[serde(default, rename = "sheetsChartReference")]
@@ -1812,7 +1813,7 @@ pub struct LinkedContentReference {
 }
 
 /// A mask that indicates which of the fields on the base EmbeddedObjectBorder have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmbeddedObjectBorderSuggestionState {
     /// Indicates if there was a suggested change to color.
     #[serde(default, rename = "colorSuggested")]
@@ -1829,7 +1830,7 @@ pub struct EmbeddedObjectBorderSuggestionState {
 }
 
 /// A mask that indicates which of the fields on the base ImageProperties have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImagePropertiesSuggestionState {
     /// Indicates if there was a suggested change to angle.
     #[serde(default, rename = "angleSuggested")]
@@ -1855,7 +1856,7 @@ pub struct ImagePropertiesSuggestionState {
 }
 
 /// A mask that indicates which of the fields on the base LinkedContentReference have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LinkedContentReferenceSuggestionState {
     /// A mask that indicates which of the fields in sheets_chart_reference have been changed in this suggestion.
     #[serde(default, rename = "sheetsChartReferenceSuggestionState")]
@@ -1864,7 +1865,7 @@ pub struct LinkedContentReferenceSuggestionState {
 }
 
 /// A mask that indicates which of the fields on the base Size have been changed in this suggestion. For any field set to true, the Size has a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SizeSuggestionState {
     /// Indicates if there was a suggested change to height.
     #[serde(default, rename = "heightSuggested")]
@@ -1875,7 +1876,7 @@ pub struct SizeSuggestionState {
 }
 
 /// Location of a single cell within a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableCellLocation {
     /// The zero-based column index. For example, the second column in the table has a column index of 1.
     #[serde(default, rename = "columnIndex")]
@@ -1889,7 +1890,7 @@ pub struct TableCellLocation {
 }
 
 /// Represents the background of a document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Background {
     /// The background color.
     #[serde(default)]
@@ -1897,7 +1898,7 @@ pub struct Background {
 }
 
 /// Represents document-level format settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DocumentFormat {
     /// Whether the document has pages or is pageless. // TODO: enum values: ["DOCUMENT_MODE_UNSPECIFIED", "PAGES", "PAGELESS"]
     #[serde(default, rename = "documentMode")]
@@ -1905,7 +1906,7 @@ pub struct DocumentFormat {
 }
 
 /// A width and height.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Size {
     /// The height of the object.
     #[serde(default)]
@@ -1916,7 +1917,7 @@ pub struct Size {
 }
 
 /// A named style. Paragraphs in the document can inherit their TextStyle and ParagraphStyle from this named style when they have the same named style type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NamedStyle {
     /// The type of this named style. // TODO: enum values: ["NAMED_STYLE_TYPE_UNSPECIFIED", "NORMAL_TEXT", "TITLE", "SUBTITLE", "HEADING_1", "HEADING_2", "HEADING_3", "HEADING_4", "HEADING_5", "HEADING_6"]
     #[serde(default, rename = "namedStyleType")]
@@ -1930,7 +1931,7 @@ pub struct NamedStyle {
 }
 
 /// A mask that indicates which of the fields on the base Shading have been changed in this suggested change. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShadingSuggestionState {
     /// Indicates if there was a suggested change to the Shading.
     #[serde(default, rename = "backgroundColorSuggested")]
@@ -1938,7 +1939,7 @@ pub struct ShadingSuggestionState {
 }
 
 /// The crop properties of an image. The crop rectangle is represented using fractional offsets from the original content''s 4 edges. - If the offset is in the interval (0, 1), the corresponding edge of crop rectangle is positioned inside of the image''s original bounding rectangle. - If the offset is negative or greater than 1, the corresponding edge of crop rectangle is positioned outside of the image''s original bounding rectangle. - If all offsets and rotation angles are 0, the image is not cropped.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CropProperties {
     /// The clockwise rotation angle of the crop rectangle around its center, in radians. Rotation is applied after the offsets.
     #[serde(default)]
@@ -1958,7 +1959,7 @@ pub struct CropProperties {
 }
 
 /// A reference to a linked chart embedded from Google Sheets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SheetsChartReference {
     /// The ID of the specific chart in the Google Sheets spreadsheet that''s embedded.
     #[serde(default, rename = "chartId")]
@@ -1969,7 +1970,7 @@ pub struct SheetsChartReference {
 }
 
 /// A mask that indicates which of the fields on the base CropProperties have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CropPropertiesSuggestionState {
     /// Indicates if there was a suggested change to angle.
     #[serde(default, rename = "angleSuggested")]
@@ -1989,7 +1990,7 @@ pub struct CropPropertiesSuggestionState {
 }
 
 /// A mask that indicates which of the fields on the base SheetsChartReference have been changed in this suggestion. For any field set to true, there''s a new suggested value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SheetsChartReferenceSuggestionState {
     /// Indicates if there was a suggested change to chart_id.
     #[serde(default, rename = "chartIdSuggested")]
@@ -2000,7 +2001,7 @@ pub struct SheetsChartReferenceSuggestionState {
 }
 
 /// A particular location in the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The zero-based index, in UTF-16 code units. The index is relative to the beginning of the segment specified by segment_id.
     #[serde(default)]
@@ -2014,7 +2015,7 @@ pub struct Location {
 }
 
 /// A ParagraphElement representing a spot in the text that''s dynamically replaced with content that can change over time, like a page number.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoText {
     /// The suggested deletion IDs. If empty, then there are no suggested deletions of this content.
     #[serde(default, rename = "suggestedDeletionIds")]
@@ -2034,7 +2035,7 @@ pub struct AutoText {
 }
 
 /// A reference to a bookmark in this document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BookmarkLink {
     /// The ID of a bookmark in this document.
     #[serde(default)]
@@ -2045,7 +2046,7 @@ pub struct BookmarkLink {
 }
 
 /// Describes the bullet of a paragraph.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Bullet {
     /// The ID of the list this paragraph belongs to.
     #[serde(default, rename = "listId")]
@@ -2059,7 +2060,7 @@ pub struct Bullet {
 }
 
 /// A solid color.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Color {
     /// The RGB color value.
     #[serde(default, rename = "rgbColor")]
@@ -2067,7 +2068,7 @@ pub struct Color {
 }
 
 /// A ParagraphElement representing a column break. A column break makes the subsequent text start at the top of the next column.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ColumnBreak {
     /// The suggested deletion IDs. If empty, then there are no suggested deletions of this content.
     #[serde(default, rename = "suggestedDeletionIds")]
@@ -2084,7 +2085,7 @@ pub struct ColumnBreak {
 }
 
 /// A date instance mentioned in a document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DateElement {
     /// The properties of this DateElement.
     #[serde(default, rename = "dateElementProperties")]
@@ -2110,7 +2111,7 @@ pub struct DateElement {
 }
 
 /// Properties of a DateElement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DateElementProperties {
     /// Determines how the date part of the DateElement will be displayed in the document. If unset, the default value is DATE_FORMAT_MONTH_DAY_YEAR_ABBREVIATED, indicating the DateElement will be formatted as MMM d, y in en, or locale specific equivalent. // TODO: enum values: ["DATE_FORMAT_UNSPECIFIED", "DATE_FORMAT_CUSTOM", "DATE_FORMAT_MONTH_DAY_ABBREVIATED", "DATE_FORMAT_MONTH_DAY_FULL", "DATE_FORMAT_MONTH_DAY_YEAR_ABBREVIATED", "DATE_FORMAT_ISO8601"]
     #[serde(default, rename = "dateFormat")]
@@ -2133,7 +2134,7 @@ pub struct DateElementProperties {
 }
 
 /// A magnitude in a single direction in the specified units.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Dimension {
     /// The magnitude.
     #[serde(default)]
@@ -2144,7 +2145,7 @@ pub struct Dimension {
 }
 
 /// A ParagraphElement representing an equation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Equation {
     /// The suggested deletion IDs. If empty, then there are no suggested deletions of this content.
     #[serde(default, rename = "suggestedDeletionIds")]
@@ -2155,7 +2156,7 @@ pub struct Equation {
 }
 
 /// A ParagraphElement representing a footnote reference. A footnote reference is the inline content rendered with a number and is used to identify the footnote.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FootnoteReference {
     /// The ID of the footnote that contains the content of this footnote reference.
     #[serde(default, rename = "footnoteId")]
@@ -2178,7 +2179,7 @@ pub struct FootnoteReference {
 }
 
 /// A reference to a heading in this document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HeadingLink {
     /// The ID of a heading in this document.
     #[serde(default)]
@@ -2189,7 +2190,7 @@ pub struct HeadingLink {
 }
 
 /// A ParagraphElement representing a horizontal line.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HorizontalRule {
     /// The suggested deletion IDs. If empty, then there are no suggested deletions of this content.
     #[serde(default, rename = "suggestedDeletionIds")]
@@ -2206,7 +2207,7 @@ pub struct HorizontalRule {
 }
 
 /// A ParagraphElement that contains an InlineObject.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InlineObjectElement {
     /// The ID of the InlineObject this element contains.
     #[serde(default, rename = "inlineObjectId")]
@@ -2226,7 +2227,7 @@ pub struct InlineObjectElement {
 }
 
 /// A reference to another portion of a document or an external URL resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Link {
     /// A bookmark in this document. In documents containing a single tab, links to bookmarks within the singular tab continue to return Link.bookmarkId when the includeTabsContent parameter is set to false or unset. Otherwise, this field is returned.
     #[serde(default)]
@@ -2249,7 +2250,7 @@ pub struct Link {
 }
 
 /// A color that can either be fully opaque or fully transparent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OptionalColor {
     /// If set, this will be used as an opaque color. If unset, this represents a transparent color.
     #[serde(default)]
@@ -2257,7 +2258,7 @@ pub struct OptionalColor {
 }
 
 /// A ParagraphElement representing a page break. A page break makes the subsequent text start at the top of the next page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PageBreak {
     /// The suggested deletion IDs. If empty, then there are no suggested deletions of this content.
     #[serde(default, rename = "suggestedDeletionIds")]
@@ -2274,7 +2275,7 @@ pub struct PageBreak {
 }
 
 /// A StructuralElement representing a paragraph. A paragraph is a range of content that''s terminated with a newline character.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Paragraph {
     /// The bullet for this paragraph. If not present, the paragraph does not belong to a list.
     #[serde(default)]
@@ -2300,7 +2301,7 @@ pub struct Paragraph {
 }
 
 /// A border around a paragraph.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ParagraphBorder {
     /// The color of the border.
     #[serde(default)]
@@ -2317,7 +2318,7 @@ pub struct ParagraphBorder {
 }
 
 /// A ParagraphElement describes content within a Paragraph.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ParagraphElement {
     /// An auto text paragraph element.
     #[serde(default, rename = "autoText")]
@@ -2361,7 +2362,7 @@ pub struct ParagraphElement {
 }
 
 /// Styles that apply to a whole paragraph. Inherited paragraph styles are represented as unset fields in this message. A paragraph style''s parent depends on where the paragraph style is defined: * The ParagraphStyle on a Paragraph inherits from the paragraph''s corresponding named style type. * The ParagraphStyle on a named style inherits from the normal text named style. * The ParagraphStyle of the normal text named style inherits from the default paragraph style in the Docs editor. * The ParagraphStyle on a Paragraph element that''s contained in a table may inherit its paragraph style from the table style. If the paragraph style does not inherit from a parent, unsetting fields will revert the style to a value matching the defaults in the Docs editor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ParagraphStyle {
     /// The text alignment for this paragraph. // TODO: enum values: ["ALIGNMENT_UNSPECIFIED", "START", "CENTER", "END", "JUSTIFIED"]
     #[serde(default)]
@@ -2432,7 +2433,7 @@ pub struct ParagraphStyle {
 }
 
 /// A person or email address mentioned in a document. These mentions behave as a single, immutable element containing the person''s name or email address.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Person {
     /// Output only. The unique ID of this link.
     #[serde(default, rename = "personId")]
@@ -2455,7 +2456,7 @@ pub struct Person {
 }
 
 /// Properties specific to a linked Person.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PersonProperties {
     /// The email address linked to this Person. This field is always present.
     #[serde(default)]
@@ -2466,7 +2467,7 @@ pub struct PersonProperties {
 }
 
 /// An RGB color.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RgbColor {
     /// The blue component of the color, from 0.0 to 1.0.
     #[serde(default)]
@@ -2480,7 +2481,7 @@ pub struct RgbColor {
 }
 
 /// A link to a Google resource (such as a file in Drive, a YouTube video, or a Calendar event).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RichLink {
     /// Output only. The ID of this link.
     #[serde(default, rename = "richLinkId")]
@@ -2503,7 +2504,7 @@ pub struct RichLink {
 }
 
 /// Properties specific to a RichLink.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RichLinkProperties {
     /// The [MIME type](https://developers.google.com/drive/api/v3/mime-types) of the RichLink, if there''s one (for example, when it''s a file in Drive).
     #[serde(default, rename = "mimeType")]
@@ -2517,7 +2518,7 @@ pub struct RichLinkProperties {
 }
 
 /// A StructuralElement representing a section break. A section is a range of content that has the same SectionStyle. A section break represents the start of a new section, and the section style applies to the section after the section break. The document body always begins with a section break.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SectionBreak {
     /// The style of the section after this section break.
     #[serde(default, rename = "sectionStyle")]
@@ -2531,7 +2532,7 @@ pub struct SectionBreak {
 }
 
 /// Properties that apply to a section''s column.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SectionColumnProperties {
     /// The padding at the end of the column.
     #[serde(default, rename = "paddingEnd")]
@@ -2542,7 +2543,7 @@ pub struct SectionColumnProperties {
 }
 
 /// The styling that applies to a section.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SectionStyle {
     /// The section''s columns properties. If empty, the section contains one column with the default properties in the Docs editor. A section can be updated to have no more than 3 columns. When updating this property, setting a concrete value is required. Unsetting this property will result in a 400 bad request error.
     #[serde(default, rename = "columnProperties")]
@@ -2604,7 +2605,7 @@ pub struct SectionStyle {
 }
 
 /// The shading of a paragraph.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Shading {
     /// The background color of this paragraph shading.
     #[serde(default, rename = "backgroundColor")]
@@ -2612,7 +2613,7 @@ pub struct Shading {
 }
 
 /// A StructuralElement describes content that provides structure to the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StructuralElement {
     /// The zero-based end index of this structural element, exclusive, in UTF-16 code units.
     #[serde(default, rename = "endIndex")]
@@ -2635,7 +2636,7 @@ pub struct StructuralElement {
 }
 
 /// A tab stop within a paragraph.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TabStop {
     /// The alignment of this tab stop. If unset, the value defaults to START. // TODO: enum values: ["TAB_STOP_ALIGNMENT_UNSPECIFIED", "START", "CENTER", "END"]
     #[serde(default)]
@@ -2646,7 +2647,7 @@ pub struct TabStop {
 }
 
 /// A StructuralElement representing a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Table {
     /// Number of columns in the table. It''s possible for a table to be non-rectangular, so some rows may have a different number of cells.
     #[serde(default)]
@@ -2669,7 +2670,7 @@ pub struct Table {
 }
 
 /// The contents and style of a cell in a Table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableCell {
     /// The content of the cell.
     #[serde(default)]
@@ -2695,7 +2696,7 @@ pub struct TableCell {
 }
 
 /// A border around a table cell. Table cell borders cannot be transparent. To hide a table cell border, make its width 0.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableCellBorder {
     /// The color of the border. This color cannot be transparent.
     #[serde(default)]
@@ -2709,7 +2710,7 @@ pub struct TableCellBorder {
 }
 
 /// The style of a TableCell. Inherited table cell styles are represented as unset fields in this message. A table cell style can inherit from the table''s style.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableCellStyle {
     /// The background color of the cell.
     #[serde(default, rename = "backgroundColor")]
@@ -2750,7 +2751,7 @@ pub struct TableCellStyle {
 }
 
 /// The properties of a column in a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableColumnProperties {
     /// The width of the column. Set when the column''s width_type is FIXED_WIDTH.
     #[serde(default)]
@@ -2761,7 +2762,7 @@ pub struct TableColumnProperties {
 }
 
 /// A StructuralElement representing a table of contents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableOfContents {
     /// The content of the table of contents.
     #[serde(default)]
@@ -2775,7 +2776,7 @@ pub struct TableOfContents {
 }
 
 /// The contents and style of a row in a Table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableRow {
     /// The zero-based end index of this row, exclusive, in UTF-16 code units.
     #[serde(default, rename = "endIndex")]
@@ -2801,7 +2802,7 @@ pub struct TableRow {
 }
 
 /// Styles that apply to a table row.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableRowStyle {
     /// The minimum height of the row. The row will be rendered in the Docs editor at a height equal to or greater than this value in order to show all the content in the row''s cells.
     #[serde(default, rename = "minRowHeight")]
@@ -2815,7 +2816,7 @@ pub struct TableRowStyle {
 }
 
 /// Styles that apply to a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableStyle {
     /// The properties of each column. Note that in Docs, tables contain rows and rows contain cells, similar to HTML. So the properties for a row can be found on the row''s table_row_style.
     #[serde(default, rename = "tableColumnProperties")]
@@ -2823,7 +2824,7 @@ pub struct TableStyle {
 }
 
 /// A ParagraphElement that represents a run of text that all has the same styling.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextRun {
     /// The text of this run. Any non-text elements in the run are replaced with the Unicode character U+E907.
     #[serde(default)]
@@ -2843,7 +2844,7 @@ pub struct TextRun {
 }
 
 /// Represents the styling that can be applied to text. Inherited text styles are represented as unset fields in this message. A text style''s parent depends on where the text style is defined: * The TextStyle of text in a Paragraph inherits from the paragraph''s corresponding named style type. * The TextStyle on a named style inherits from the normal text named style. * The TextStyle of the normal text named style inherits from the default text style in the Docs editor. * The TextStyle on a Paragraph element that''s contained in a table may inherit its text style from the table style. If the text style does not inherit from a parent, unsetting fields will revert the style to a value matching the defaults in the Docs editor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextStyle {
     /// The background color of the text. If set, the color is either an RGB color or transparent, depending on the color field.
     #[serde(default, rename = "backgroundColor")]
@@ -2881,7 +2882,7 @@ pub struct TextStyle {
 }
 
 /// Represents a font family and weight of text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WeightedFontFamily {
     /// The font family of the text. The font family can be any font from the Font menu in Docs or from [Google Fonts] (https://fonts.google.com/). If the font name is unrecognized, the text is rendered in Arial.
     #[serde(default, rename = "fontFamily")]

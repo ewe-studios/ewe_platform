@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Response message for Solar.FindClosestBuildingInsights. Information about the location, dimensions, and solar potential of a building.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BuildingInsights {
     /// Administrative area 1 (e.g., in the US, the state) that contains this building. For example, in the US, the abbreviation might be "MA" or "CA."
     #[serde(default, rename = "administrativeArea")]
@@ -49,7 +50,7 @@ pub struct BuildingInsights {
 }
 
 /// Information about the solar potential of a region. The actual data are contained in a number of GeoTIFF files covering the requested region, for which this message contains URLs: Each string in the DataLayers message contains a URL from which the corresponding GeoTIFF can be fetched. These URLs are valid for a few hours after they''ve been generated. Most of the GeoTIFF files are at a resolution of 0.1m/pixel, but the monthly flux file is at 0.5m/pixel, and the hourly shade files are at 1m/pixel. If a pixel_size_meters value was specified in the GetDataLayersRequest, then the minimum resolution in the GeoTIFF files will be that value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataLayers {
     /// The URL for the annual flux map (annual sunlight on roofs) of the region. Values are kWh/kW/year. This is *unmasked flux*: flux is computed for every location, not just building rooftops. Invalid locations are stored as -9999: locations outside our coverage area will be invalid, and a few locations inside the coverage area, where we were unable to calculate flux, will also be invalid.
     #[serde(default, rename = "annualFluxUrl")]
@@ -81,7 +82,7 @@ pub struct DataLayers {
 }
 
 /// Message that represents an arbitrary HTTP body. It should only be used for payload formats that can''t be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpBody {
     /// The HTTP Content-Type header value specifying the content type of the body.
     #[serde(default, rename = "contentType")]
@@ -95,7 +96,7 @@ pub struct HttpBody {
 }
 
 /// Information about the solar potential of a building. A number of fields in this are defined in terms of "panels". The fields panel_capacity_watts, panel_height_meters, and panel_width_meters describe the parameters of the model of panel used in these calculations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SolarPotential {
     /// Size and sunlight quantiles for the entire building, including parts of the roof that were not assigned to some roof segment. Because the orientations of these parts are not well characterised, the roof area estimate is unreliable, but the ground area estimate is reliable. It may be that a more reliable whole building roof area can be obtained by scaling the roof area from whole_roof_stats by the ratio of the ground areas of building_stats and whole_roof_stats.
     #[serde(default, rename = "buildingStats")]
@@ -143,7 +144,7 @@ pub struct SolarPotential {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -157,7 +158,7 @@ pub struct Date {
 }
 
 /// Analysis of the cost and benefits of the optimum solar layout for a particular electric bill size.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FinancialAnalysis {
     /// How much electricity the house uses in an average month, based on the bill size and the local electricity rates.
     #[serde(default, rename = "averageKwhPerMonth")]
@@ -186,7 +187,7 @@ pub struct FinancialAnalysis {
 }
 
 /// Information about the size and sunniness quantiles of a roof segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RoofSegmentSizeAndSunshineStats {
     /// Compass direction the roof segment is pointing in. 0 = North, 90 = East, 180 = South. For a "flat" roof segment (pitch_degrees very near 0), azimuth is not well defined, so for consistency, we define it arbitrarily to be 0 (North).
     #[serde(default, rename = "azimuthDegrees")]
@@ -209,7 +210,7 @@ pub struct RoofSegmentSizeAndSunshineStats {
 }
 
 /// SolarPanelConfig describes a particular placement of solar panels on the roof.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SolarPanelConfig {
     /// Total number of panels. Note that this is redundant to (the sum of) the corresponding fields in roof_segment_summaries.
     #[serde(default, rename = "panelsCount")]
@@ -223,7 +224,7 @@ pub struct SolarPanelConfig {
 }
 
 /// SolarPanel describes the position, orientation, and production of a single solar panel. See the panel_height_meters, panel_width_meters, and panel_capacity_watts fields in SolarPotential for information on the parameters of the panel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SolarPanel {
     /// The centre of the panel.
     #[serde(default)]
@@ -240,7 +241,7 @@ pub struct SolarPanel {
 }
 
 /// Cost and benefit of an outright purchase of a particular configuration of solar panels with a particular electricity usage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CashPurchaseSavings {
     /// Initial cost before tax incentives: the amount that must be paid out-of-pocket. Contrast with upfront_cost, which is after tax incentives.
     #[serde(default, rename = "outOfPocketCost")]
@@ -260,7 +261,7 @@ pub struct CashPurchaseSavings {
 }
 
 /// Cost and benefit of using a loan to buy a particular configuration of solar panels with a particular electricity usage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FinancedPurchaseSavings {
     /// Annual loan payments.
     #[serde(default, rename = "annualLoanPayment")]
@@ -277,7 +278,7 @@ pub struct FinancedPurchaseSavings {
 }
 
 /// Details of a financial analysis. Some of these details are already stored at higher levels (e.g., out of pocket cost). Total money amounts are over a lifetime period defined by the panel_lifetime_years field in SolarPotential. Note: The out of pocket cost of purchasing the panels is given in the out_of_pocket_cost field in CashPurchaseSavings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FinancialDetails {
     /// Total cost of electricity the user would have paid over the lifetime period if they didn''t install solar.
     #[serde(default, rename = "costOfElectricityWithoutSolar")]
@@ -312,7 +313,7 @@ pub struct FinancialDetails {
 }
 
 /// Cost and benefit of leasing a particular configuration of solar panels with a particular electricity usage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LeasingSavings {
     /// Estimated annual leasing cost.
     #[serde(default, rename = "annualLeasingCost")]
@@ -329,7 +330,7 @@ pub struct LeasingSavings {
 }
 
 /// A bounding box in lat/lng coordinates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LatLngBox {
     /// The northeast corner of the box.
     #[serde(default)]
@@ -340,7 +341,7 @@ pub struct LatLngBox {
 }
 
 /// Size and sunniness quantiles of a roof, or part of a roof.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SizeAndSunshineStats {
     /// The area of the roof or roof segment, in m^2. This is the roof area (accounting for tilt), not the ground footprint area.
     #[serde(default, rename = "areaMeters2")]
@@ -354,7 +355,7 @@ pub struct SizeAndSunshineStats {
 }
 
 /// Information about a roof segment on the building, with some number of panels placed on it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RoofSegmentSummary {
     /// Compass direction the roof segment is pointing in. 0 = North, 90 = East, 180 = South. For a "flat" roof segment (pitch_degrees very near 0), azimuth is not well defined, so for consistency, we define it arbitrarily to be 0 (North).
     #[serde(default, rename = "azimuthDegrees")]
@@ -374,7 +375,7 @@ pub struct RoofSegmentSummary {
 }
 
 /// Financial information that''s shared between different financing methods.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SavingsOverTime {
     /// Indicates whether this scenario is financially viable. Will be false for scenarios with poor financial viability (e.g., money-losing).
     #[serde(default, rename = "financiallyViable")]
@@ -397,7 +398,7 @@ pub struct SavingsOverTime {
 }
 
 /// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LatLng {
     /// The latitude in degrees. It must be in the range [-90.0, +90.0].
     #[serde(default)]
@@ -408,7 +409,7 @@ pub struct LatLng {
 }
 
 /// Represents an amount of money with its currency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Money {
     /// The three-letter currency code defined in ISO 4217.
     #[serde(default, rename = "currencyCode")]

@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// EnterpriseCrmEventbusAuthconfigAuthConfigTaskParam resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusAuthconfigAuthConfigTaskParam {
     /// Defines the credential types to be supported as Task may restrict specific types to use, e.g. Cloud SQL Task will use username/password type only.
     #[serde(default, rename = "allowedCredentialTypes")]
@@ -29,7 +30,7 @@ pub struct EnterpriseCrmEventbusAuthconfigAuthConfigTaskParam {
 }
 
 /// EnterpriseCrmEventbusProtoConnectorsGenericConnectorTaskConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoConnectorsGenericConnectorTaskConfig {
     /// User-selected connection.
     #[serde(default)]
@@ -40,7 +41,7 @@ pub struct EnterpriseCrmEventbusProtoConnectorsGenericConnectorTaskConfig {
 }
 
 /// Field Mapping Config to map multiple output fields values from input fields values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoFieldMappingConfig {
     #[serde(default, rename = "mappedFields")]
     pub mapped_fields:
@@ -48,7 +49,7 @@ pub struct EnterpriseCrmEventbusProtoFieldMappingConfig {
 }
 
 /// EnterpriseCrmEventbusProtoLoopMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoLoopMetadata {
     /// Starting from 1, not 0.
     #[serde(default, rename = "currentIterationCount")]
@@ -65,7 +66,7 @@ pub struct EnterpriseCrmEventbusProtoLoopMetadata {
 }
 
 /// Rule used to validate strings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleStringRegex {
     /// Whether the regex matcher is applied exclusively (if true, matching values will be rejected).
     #[serde(default)]
@@ -76,7 +77,7 @@ pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleStringRegex {
 }
 
 /// A generic multi-map that holds key value pairs. They keys and values can be of any type, unless specified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoParameterMap {
     #[serde(default)]
     pub entries:
@@ -90,7 +91,7 @@ pub struct EnterpriseCrmEventbusProtoParameterMap {
 }
 
 /// EnterpriseCrmEventbusProtoScatterResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoScatterResponse {
     /// The error message of the failure if applicable.
     #[serde(default, rename = "errorMsg")]
@@ -112,14 +113,14 @@ pub struct EnterpriseCrmEventbusProtoScatterResponse {
 }
 
 /// EnterpriseCrmEventbusProtoStringArray resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoStringArray {
     #[serde(default)]
     pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// EnterpriseCrmEventbusProtoStringArrayFunction resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoStringArrayFunction {
     /// TODO: enum values: ["UNSPECIFIED", "GET", "APPEND", "SIZE", "TO_SET", "APPEND_ALL", "TO_JSON", "SET", "REMOVE", "REMOVE_AT", "CONTAINS", "FOR_EACH", "FILTER"]
     #[serde(default, rename = "functionName")]
@@ -127,7 +128,7 @@ pub struct EnterpriseCrmEventbusProtoStringArrayFunction {
 }
 
 /// EnterpriseCrmEventbusProtoStringFunction resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoStringFunction {
     /// TODO: enum values: ["UNSPECIFIED", "CONCAT", "TO_UPPERCASE", "TO_LOWERCASE", "CONTAINS", "SPLIT", "LENGTH", "EQUALS", "TO_INT", "TO_DOUBLE", "TO_BOOLEAN", "TO_BASE_64", "TO_JSON", "EQUALS_IGNORE_CASE", "REPLACE_ALL", "SUBSTRING", "RESOLVE_TEMPLATE", "DECODE_BASE64_STRING"]
     #[serde(default, rename = "functionName")]
@@ -135,14 +136,14 @@ pub struct EnterpriseCrmEventbusProtoStringFunction {
 }
 
 /// EnterpriseCrmEventbusProtoStringParameterArray resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoStringParameterArray {
     #[serde(default, rename = "stringValues")]
     pub string_values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// EnterpriseCrmEventbusProtoSuspensionResolutionInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoSuspensionResolutionInfo {
     #[serde(default)]
     pub audit: ::core::option::Option<EnterpriseCrmEventbusProtoSuspensionResolutionInfoAudit>,
@@ -190,7 +191,7 @@ pub struct EnterpriseCrmEventbusProtoSuspensionResolutionInfo {
 }
 
 /// A generic multi-map that holds key value pairs. They keys and values can be of any type, unless specified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoParameterMap {
     #[serde(default)]
     pub entries: ::core::option::Option<
@@ -205,14 +206,14 @@ pub struct EnterpriseCrmFrontendsEventbusProtoParameterMap {
 }
 
 /// EnterpriseCrmFrontendsEventbusProtoStringParameterArray resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoStringParameterArray {
     #[serde(default, rename = "stringValues")]
     pub string_values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// Request for cancelling an execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaCancelExecutionRequest {
     /// Required. Reason for cancelling the execution. This is provided by the client requesting the cancellation, and is not used by the Platform.
     #[serde(default, rename = "cancelReason")]
@@ -220,7 +221,7 @@ pub struct GoogleCloudIntegrationsV1alphaCancelExecutionRequest {
 }
 
 /// Response for cancelling an execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaCancelExecutionResponse {
     /// True if cancellation performed successfully.
     #[serde(default, rename = "isCanceled")]
@@ -228,7 +229,7 @@ pub struct GoogleCloudIntegrationsV1alphaCancelExecutionResponse {
 }
 
 /// Request for the ChangeCustomerConfig rpc
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaChangeCustomerConfigRequest {
     /// Optional. The customer configuration to be updated.
     #[serde(default, rename = "customerConfig")]
@@ -239,7 +240,7 @@ pub struct GoogleCloudIntegrationsV1alphaChangeCustomerConfigRequest {
 }
 
 /// Response for the ChangeCustomerConfig rpc
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaChangeCustomerConfigResponse {
     /// Required. The updated customer configuration.
     #[serde(default, rename = "customerConfig")]
@@ -247,7 +248,7 @@ pub struct GoogleCloudIntegrationsV1alphaChangeCustomerConfigResponse {
 }
 
 /// Metadata of runtime connection schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaConnectionSchemaMetadata {
     /// List of actions.
     #[serde(default)]
@@ -258,7 +259,7 @@ pub struct GoogleCloudIntegrationsV1alphaConnectionSchemaMetadata {
 }
 
 /// Request for CreateAppsScriptProject rpc call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaCreateAppsScriptProjectRequest {
     /// The name of the Apps Script project to be created.
     #[serde(default, rename = "appsScriptProject")]
@@ -269,7 +270,7 @@ pub struct GoogleCloudIntegrationsV1alphaCreateAppsScriptProjectRequest {
 }
 
 /// Response for CreateAppsScriptProject rpc call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaCreateAppsScriptProjectResponse {
     /// The created AppsScriptProject ID.
     #[serde(default, rename = "projectId")]
@@ -277,7 +278,7 @@ pub struct GoogleCloudIntegrationsV1alphaCreateAppsScriptProjectResponse {
 }
 
 /// Request for Creating Cloud Function rpc call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaCreateCloudFunctionRequest {
     /// The function name of CF to be created
     #[serde(default, rename = "functionName")]
@@ -294,7 +295,7 @@ pub struct GoogleCloudIntegrationsV1alphaCreateCloudFunctionRequest {
 }
 
 /// Response for Creating Cloud Function rpc call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaCreateCloudFunctionResponse {
     /// The trigger url that will be returned
     #[serde(default, rename = "triggerUrl")]
@@ -302,11 +303,11 @@ pub struct GoogleCloudIntegrationsV1alphaCreateCloudFunctionResponse {
 }
 
 /// Request for the Deprovision rpc
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaDeprovisionClientRequest {}
 
 /// Response for downloading an execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaDownloadExecutionResponse {
     /// The content of downloaded execution.
     #[serde(default)]
@@ -314,7 +315,7 @@ pub struct GoogleCloudIntegrationsV1alphaDownloadExecutionResponse {
 }
 
 /// Response for DownloadIntegrationVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaDownloadIntegrationVersionResponse {
     /// String representation of the requested file.
     #[serde(default)]
@@ -326,7 +327,7 @@ pub struct GoogleCloudIntegrationsV1alphaDownloadIntegrationVersionResponse {
 }
 
 /// Response for DownloadJsonPackage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaDownloadJsonPackageResponse {
     /// List containing JSON for multiple file with type information.
     #[serde(default)]
@@ -334,7 +335,7 @@ pub struct GoogleCloudIntegrationsV1alphaDownloadJsonPackageResponse {
 }
 
 /// Response for DownloadTemplate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaDownloadTemplateResponse {
     /// String representation of the template.
     #[serde(default)]
@@ -342,7 +343,7 @@ pub struct GoogleCloudIntegrationsV1alphaDownloadTemplateResponse {
 }
 
 /// Response for DownloadTestCase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaDownloadTestCaseResponse {
     /// String representation of the test case.
     #[serde(default)]
@@ -350,7 +351,7 @@ pub struct GoogleCloudIntegrationsV1alphaDownloadTestCaseResponse {
 }
 
 /// Response containing all provisioned regions for Connector Platform.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaEnumerateConnectorPlatformRegionsResponse {
     /// All regions where Connector Platform is provisioned.
     #[serde(default)]
@@ -358,7 +359,7 @@ pub struct GoogleCloudIntegrationsV1alphaEnumerateConnectorPlatformRegionsRespon
 }
 
 /// The response for executing an integration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaExecuteEventResponse {
     /// The id of the execution corresponding to this run of integration.
     #[serde(default, rename = "executionId")]
@@ -366,7 +367,7 @@ pub struct GoogleCloudIntegrationsV1alphaExecuteEventResponse {
 }
 
 /// The request for executing an integration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaExecuteIntegrationsRequest {
     /// Optional. Flag to determine how to should propagate errors. If this flag is set to be true, it will not throw an exception. Instead, it will return a {@link ExecuteIntegrationsResponse} with an execution id and error messages as PostWithTriggerIdExecutionException in {@link EventParameters}. The flag is set to be false by default.
     #[serde(default, rename = "doNotPropagateError")]
@@ -393,7 +394,7 @@ pub struct GoogleCloudIntegrationsV1alphaExecuteIntegrationsRequest {
 }
 
 /// The response for executing an integration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaExecuteIntegrationsResponse {
     /// Details for the integration that were executed.
     #[serde(default, rename = "eventParameters")]
@@ -418,7 +419,7 @@ pub struct GoogleCloudIntegrationsV1alphaExecuteIntegrationsResponse {
 }
 
 /// The request for executing a functional test.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaExecuteTestCaseRequest {
     /// Optional. Input parameters used by test case execution.
     #[serde(default, rename = "inputParameters")]
@@ -426,11 +427,11 @@ pub struct GoogleCloudIntegrationsV1alphaExecuteTestCaseRequest {
 }
 
 /// Request for ExecuteTestCases.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaExecuteTestCasesRequest {}
 
 /// Response for ExecuteTestCases.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaExecuteTestCasesResponse {
     /// Results of each execution of test cases in an integration version.
     #[serde(default, rename = "executeTestCaseResponses")]
@@ -440,7 +441,7 @@ pub struct GoogleCloudIntegrationsV1alphaExecuteTestCasesResponse {
 }
 
 /// Request for GenerateOpenApiSpec.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaGenerateOpenApiSpecRequest {
     /// Required. List of api triggers
     #[serde(default, rename = "apiTriggerResources")]
@@ -452,7 +453,7 @@ pub struct GoogleCloudIntegrationsV1alphaGenerateOpenApiSpecRequest {
 }
 
 /// Response of the GenerateOpenApiSpec API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaGenerateOpenApiSpecResponse {
     /// Open API spec as per the required format
     #[serde(default, rename = "openApiSpec")]
@@ -460,7 +461,7 @@ pub struct GoogleCloudIntegrationsV1alphaGenerateOpenApiSpecResponse {
 }
 
 /// Returns success or error message
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaGenerateTokenResponse {
     /// The message that notifies the user if the request succeeded or not.
     #[serde(default)]
@@ -468,7 +469,7 @@ pub struct GoogleCloudIntegrationsV1alphaGenerateTokenResponse {
 }
 
 /// Response for the GetClientMetadata rpc
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaGetClientMetadataResponse {
     /// Required. Required: The client configuration that was requested
     #[serde(default)]
@@ -476,7 +477,7 @@ pub struct GoogleCloudIntegrationsV1alphaGetClientMetadataResponse {
 }
 
 /// Response for the GetClient rpc
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaGetClientResponse {
     /// Required. Required: The client configuration that was requested
     #[serde(default)]
@@ -484,7 +485,7 @@ pub struct GoogleCloudIntegrationsV1alphaGetClientResponse {
 }
 
 /// Request to Import template
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaImportTemplateRequest {
     /// Required. Resource Name of the integration where template needs to be imported/inserted.
     #[serde(default)]
@@ -495,7 +496,7 @@ pub struct GoogleCloudIntegrationsV1alphaImportTemplateRequest {
 }
 
 /// Response for import template
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaImportTemplateResponse {
     /// IntegrationVersion after the import.
     #[serde(default, rename = "integrationVersion")]
@@ -508,7 +509,7 @@ pub struct GoogleCloudIntegrationsV1alphaImportTemplateResponse {
 }
 
 /// Request for lift Suspension
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaLiftSuspensionRequest {
     /// User passed in suspension result and will be used to control workflow execution branching behavior by setting up corresponnding edge condition with suspension result. For example, if you want to lift the suspension, you can pass "Approved", or if you want to reject the suspension and terminate workfloe execution, you can pass "Rejected" and terminate the workflow execution with configuring the edge condition.
     #[serde(default, rename = "suspensionResult")]
@@ -516,7 +517,7 @@ pub struct GoogleCloudIntegrationsV1alphaLiftSuspensionRequest {
 }
 
 /// Response of lift Suspense
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaLiftSuspensionResponse {
     /// Execution Id that will be returned
     #[serde(default, rename = "eventExecutionInfoId")]
@@ -524,7 +525,7 @@ pub struct GoogleCloudIntegrationsV1alphaLiftSuspensionResponse {
 }
 
 /// Request for LinkAppsScriptProject rpc call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaLinkAppsScriptProjectRequest {
     /// The id of the Apps Script project to be linked.
     #[serde(default, rename = "scriptId")]
@@ -532,7 +533,7 @@ pub struct GoogleCloudIntegrationsV1alphaLinkAppsScriptProjectRequest {
 }
 
 /// Response for LinkAppsScriptProject rpc call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaLinkAppsScriptProjectResponse {
     /// The id of the linked Apps Script project.
     #[serde(default, rename = "scriptId")]
@@ -540,7 +541,7 @@ pub struct GoogleCloudIntegrationsV1alphaLinkAppsScriptProjectResponse {
 }
 
 /// Response to list AuthConfigs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaListAuthConfigsResponse {
     /// The list of AuthConfigs retrieved.
     #[serde(default, rename = "authConfigs")]
@@ -552,7 +553,7 @@ pub struct GoogleCloudIntegrationsV1alphaListAuthConfigsResponse {
 }
 
 /// Response to list Certificates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaListCertificatesResponse {
     /// The list of Certificates retrieved.
     #[serde(default)]
@@ -564,7 +565,7 @@ pub struct GoogleCloudIntegrationsV1alphaListCertificatesResponse {
 }
 
 /// Response containing Connections listed by region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaListConnectionsResponse {
     /// Connections.
     #[serde(default)]
@@ -575,7 +576,7 @@ pub struct GoogleCloudIntegrationsV1alphaListConnectionsResponse {
 }
 
 /// Response for listing the integration execution data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaListExecutionsResponse {
     /// Required. The detailed information of requested executions.
     #[serde(default, rename = "executionInfos")]
@@ -591,7 +592,7 @@ pub struct GoogleCloudIntegrationsV1alphaListExecutionsResponse {
 }
 
 /// Response for ListIntegrationVersions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaListIntegrationVersionsResponse {
     /// The integrations which match the request.
     #[serde(default, rename = "integrationVersions")]
@@ -606,7 +607,7 @@ pub struct GoogleCloudIntegrationsV1alphaListIntegrationVersionsResponse {
 }
 
 /// Response for ListIntegrations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaListIntegrationsResponse {
     /// The integrations which match the request.
     #[serde(default)]
@@ -618,7 +619,7 @@ pub struct GoogleCloudIntegrationsV1alphaListIntegrationsResponse {
 }
 
 /// Response for listing RuntimeActionSchemas for a specific Connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaListRuntimeActionSchemasResponse {
     /// Next page token.
     #[serde(default, rename = "nextPageToken")]
@@ -630,7 +631,7 @@ pub struct GoogleCloudIntegrationsV1alphaListRuntimeActionSchemasResponse {
 }
 
 /// Response for listing RuntimeEntitySchemas for a specific Connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaListRuntimeEntitySchemasResponse {
     /// Next page token.
     #[serde(default, rename = "nextPageToken")]
@@ -642,7 +643,7 @@ pub struct GoogleCloudIntegrationsV1alphaListRuntimeEntitySchemasResponse {
 }
 
 /// Response to list SfdcChannels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaListSfdcChannelsResponse {
     /// The token used to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -654,7 +655,7 @@ pub struct GoogleCloudIntegrationsV1alphaListSfdcChannelsResponse {
 }
 
 /// Response to list SfdcInstances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaListSfdcInstancesResponse {
     /// The token used to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -666,7 +667,7 @@ pub struct GoogleCloudIntegrationsV1alphaListSfdcInstancesResponse {
 }
 
 /// Response for Suspensions.ListSuspensions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaListSuspensionsResponse {
     /// Token to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -678,7 +679,7 @@ pub struct GoogleCloudIntegrationsV1alphaListSuspensionsResponse {
 }
 
 /// Response for a request to list templates
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaListTemplatesResponse {
     /// The token used to retrieve the next page results.
     #[serde(default, rename = "nextPageToken")]
@@ -689,7 +690,7 @@ pub struct GoogleCloudIntegrationsV1alphaListTemplatesResponse {
 }
 
 /// Response for ListTestCases
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaListTestCasesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -700,7 +701,7 @@ pub struct GoogleCloudIntegrationsV1alphaListTestCasesResponse {
 }
 
 /// Request for PostProvisioning rpc call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorRequest {
     /// Optional. Indicate which workflows to create
     #[serde(default)]
@@ -708,11 +709,11 @@ pub struct GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorRequest {
 }
 
 /// Response for PostProvisioning rpc call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaProvisionClientPostProcessorResponse {}
 
 /// Request for the Provision rpc
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaProvisionClientRequest {
     /// Optional. OPTIONAL: Cloud KMS config for AuthModule to encrypt/decrypt credentials.
     #[serde(default, rename = "cloudKmsConfig")]
@@ -738,7 +739,7 @@ pub struct GoogleCloudIntegrationsV1alphaProvisionClientRequest {
 }
 
 /// Request for PublishIntegrationVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaPublishIntegrationVersionRequest {
     /// Optional. Config parameters used during integration execution.
     #[serde(default, rename = "configParameters")]
@@ -746,11 +747,11 @@ pub struct GoogleCloudIntegrationsV1alphaPublishIntegrationVersionRequest {
 }
 
 /// Response for PublishIntegrationVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaPublishIntegrationVersionResponse {}
 
 /// Request for the ReplaceServiceAccount rpc
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaReplaceServiceAccountRequest {
     /// Required. REQUIRED: Run-as service account to be updated
     #[serde(default, rename = "runAsServiceAccount")]
@@ -758,7 +759,7 @@ pub struct GoogleCloudIntegrationsV1alphaReplaceServiceAccountRequest {
 }
 
 /// Request for replaying an execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaReplayExecutionRequest {
     /// Optional. The modified input parameters for replay. - Provide values for all the fields in the ''update_mask''. Any field not present in the ''update_mask'' will be ignored and its value will be taken from the original execution. - If the ''update_mask'' is not specified, all the parameters from original execution will be ignored and only the modified_parameters will be used.
     #[serde(default, rename = "modifiedParameters")]
@@ -775,7 +776,7 @@ pub struct GoogleCloudIntegrationsV1alphaReplayExecutionRequest {
 }
 
 /// Response for replaying an execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaReplayExecutionResponse {
     /// Next ID: 4 The id of the execution corresponding to this run of the integration.
     #[serde(default, rename = "executionId")]
@@ -789,7 +790,7 @@ pub struct GoogleCloudIntegrationsV1alphaReplayExecutionResponse {
 }
 
 /// Request for [Suspensions.ResolveSuspensions].
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaResolveSuspensionRequest {
     /// Suspension, containing the event_execution_info_id, task_id, and state to set on the corresponding suspension record.
     #[serde(default)]
@@ -797,11 +798,11 @@ pub struct GoogleCloudIntegrationsV1alphaResolveSuspensionRequest {
 }
 
 /// Response for Suspensions.ResolveSuspensions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaResolveSuspensionResponse {}
 
 /// The request for scheduling an integration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaScheduleIntegrationsRequest {
     /// Optional. Input parameters used by integration execution.
     #[serde(default, rename = "inputParameters")]
@@ -828,7 +829,7 @@ pub struct GoogleCloudIntegrationsV1alphaScheduleIntegrationsRequest {
 }
 
 /// The response for executing an integration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaScheduleIntegrationsResponse {
     /// The execution info id for the executed integrations.
     #[serde(default, rename = "executionInfoIds")]
@@ -836,7 +837,7 @@ pub struct GoogleCloudIntegrationsV1alphaScheduleIntegrationsResponse {
 }
 
 /// Response for SearchIntegrations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaSearchIntegrationsResponse {
     /// The list of integrations that match the search criteria.
     #[serde(default)]
@@ -851,7 +852,7 @@ pub struct GoogleCloudIntegrationsV1alphaSearchIntegrationsResponse {
 }
 
 /// Response for a request to search templates
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaSearchTemplatesResponse {
     /// The token used to retrieve the next page results.
     #[serde(default, rename = "nextPageToken")]
@@ -862,7 +863,7 @@ pub struct GoogleCloudIntegrationsV1alphaSearchTemplatesResponse {
 }
 
 /// Request to Share template
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaShareTemplateRequest {
     /// Optional. Project name resources to share the template. The project names is expected in resource format Ex: projects/{project-number} or organization/{org-id}
     #[serde(default, rename = "resourceNames")]
@@ -870,7 +871,7 @@ pub struct GoogleCloudIntegrationsV1alphaShareTemplateRequest {
 }
 
 /// This message only contains a field of string array.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaStringParameterArray {
     /// String array.
     #[serde(default, rename = "stringValues")]
@@ -878,7 +879,7 @@ pub struct GoogleCloudIntegrationsV1alphaStringParameterArray {
 }
 
 /// Request for the SwitchEncryption rpc
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaSwitchEncryptionRequest {
     /// Required. REQUIRED: Cloud KMS config for AuthModule to encrypt/decrypt credentials.
     #[serde(default, rename = "cloudKmsConfig")]
@@ -886,7 +887,7 @@ pub struct GoogleCloudIntegrationsV1alphaSwitchEncryptionRequest {
 }
 
 /// Request to enable/disable variable masking for a provisioned client
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaSwitchVariableMaskingRequest {
     /// Required. REQUIRED: True if variable masking feature should be turned on for this region
     #[serde(default, rename = "enableVariableMasking")]
@@ -894,11 +895,11 @@ pub struct GoogleCloudIntegrationsV1alphaSwitchVariableMaskingRequest {
 }
 
 /// Request for TakeoverEditLock.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaTakeoverEditLockRequest {}
 
 /// Response for TakeoverEditLock.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaTakeoverEditLockResponse {
     /// Version after the lock is acquired by the new user.
     #[serde(default, rename = "integrationVersion")]
@@ -907,11 +908,11 @@ pub struct GoogleCloudIntegrationsV1alphaTakeoverEditLockResponse {
 }
 
 /// Request for TakeoverTestCaseEditLock.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaTakeoverTestCaseEditLockRequest {}
 
 /// The request for testing an integration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaTestIntegrationsRequest {
     /// Required. This is used to identify the client on whose behalf the event will be executed.
     #[serde(default, rename = "clientId")]
@@ -941,7 +942,7 @@ pub struct GoogleCloudIntegrationsV1alphaTestIntegrationsRequest {
 }
 
 /// The response for testing an integration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaTestIntegrationsResponse {
     /// Details for the integration that were executed.
     #[serde(default, rename = "eventParameters")]
@@ -963,7 +964,7 @@ pub struct GoogleCloudIntegrationsV1alphaTestIntegrationsResponse {
 }
 
 /// Request to enable/disable http call for a provisioned client
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaToggleHttpRequest {
     /// Required. REQUIRED: True if http call feature should be turned on for this region
     #[serde(default, rename = "enableHttpCall")]
@@ -971,11 +972,11 @@ pub struct GoogleCloudIntegrationsV1alphaToggleHttpRequest {
 }
 
 /// Request for UnpublishIntegrationVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaUnpublishIntegrationVersionRequest {}
 
 /// Request to Unshare template
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaUnshareTemplateRequest {
     /// Optional. Project name resources to unshare the template. The project names is expected in resource format Ex: projects/{project-number}
     #[serde(default, rename = "resourceNames")]
@@ -983,7 +984,7 @@ pub struct GoogleCloudIntegrationsV1alphaUnshareTemplateRequest {
 }
 
 /// Request for UploadIntegrationVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaUploadIntegrationVersionRequest {
     /// The textproto of the IntegrationVersion.
     #[serde(default)]
@@ -994,7 +995,7 @@ pub struct GoogleCloudIntegrationsV1alphaUploadIntegrationVersionRequest {
 }
 
 /// Response for UploadIntegrationVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaUploadIntegrationVersionResponse {
     /// The uploaded integration.
     #[serde(default, rename = "integrationVersion")]
@@ -1003,7 +1004,7 @@ pub struct GoogleCloudIntegrationsV1alphaUploadIntegrationVersionResponse {
 }
 
 /// Request for UploadTemplate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaUploadTemplateRequest {
     /// Required. The textproto of the template.
     #[serde(default)]
@@ -1014,7 +1015,7 @@ pub struct GoogleCloudIntegrationsV1alphaUploadTemplateRequest {
 }
 
 /// Response for UploadTemplate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaUploadTemplateResponse {
     /// The uploaded Template
     #[serde(default)]
@@ -1022,7 +1023,7 @@ pub struct GoogleCloudIntegrationsV1alphaUploadTemplateResponse {
 }
 
 /// Request for UploadTestCase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaUploadTestCaseRequest {
     /// The textproto of the test case.
     #[serde(default)]
@@ -1033,7 +1034,7 @@ pub struct GoogleCloudIntegrationsV1alphaUploadTestCaseRequest {
 }
 
 /// Response for UploadTestCase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaUploadTestCaseResponse {
     /// The uploaded TestCase
     #[serde(default, rename = "testCase")]
@@ -1041,7 +1042,7 @@ pub struct GoogleCloudIntegrationsV1alphaUploadTestCaseResponse {
 }
 
 /// Request to Use template
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaUseTemplateRequest {
     /// Required. Integration details which would be created via templates.
     #[serde(default, rename = "integrationDetails")]
@@ -1056,7 +1057,7 @@ pub struct GoogleCloudIntegrationsV1alphaUseTemplateRequest {
 }
 
 /// Response for use template
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaUseTemplateResponse {
     /// IntegrationVersion which is created.
     #[serde(default, rename = "integrationVersion")]
@@ -1069,11 +1070,11 @@ pub struct GoogleCloudIntegrationsV1alphaUseTemplateResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// EnterpriseCrmEventbusProtoConnectorsConnection resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoConnectorsConnection {
     /// Connection name Format: projects/{project}/locations/{location}/connections/{connection}
     #[serde(default, rename = "connectionName")]
@@ -1090,7 +1091,7 @@ pub struct EnterpriseCrmEventbusProtoConnectorsConnection {
 }
 
 /// Mapped field is a pair of input field and output field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoMappedField {
     /// The input field being mapped from.
     #[serde(default, rename = "inputField")]
@@ -1101,7 +1102,7 @@ pub struct EnterpriseCrmEventbusProtoMappedField {
 }
 
 /// Entry is a pair of key and value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoParameterMapEntry {
     #[serde(default)]
     pub key: ::core::option::Option<EnterpriseCrmEventbusProtoParameterMapField>,
@@ -1110,7 +1111,7 @@ pub struct EnterpriseCrmEventbusProtoParameterMapEntry {
 }
 
 /// EnterpriseCrmEventbusProtoSuspensionResolutionInfoAudit resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoSuspensionResolutionInfoAudit {
     #[serde(default, rename = "resolvedBy")]
     pub resolved_by: ::core::option::Option<String>,
@@ -1121,7 +1122,7 @@ pub struct EnterpriseCrmEventbusProtoSuspensionResolutionInfoAudit {
 }
 
 /// EnterpriseCrmEventbusProtoCloudKmsConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoCloudKmsConfig {
     /// Optional. The id of GCP project where the KMS key is stored. If not provided, assume the key is stored in the same GCP project defined in Client (tag 14).
     #[serde(default, rename = "gcpProjectId")]
@@ -1144,7 +1145,7 @@ pub struct EnterpriseCrmEventbusProtoCloudKmsConfig {
 }
 
 /// Represents external traffic type and id.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoExternalTraffic {
     /// Indicates the client enables internal IP feature, this is applicable for internal clients only.
     #[serde(default, rename = "enableInternalIp")]
@@ -1167,7 +1168,7 @@ pub struct EnterpriseCrmEventbusProtoExternalTraffic {
 }
 
 /// Entry is a pair of key and value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoParameterMapEntry {
     #[serde(default)]
     pub key: ::core::option::Option<EnterpriseCrmFrontendsEventbusProtoParameterMapField>,
@@ -1176,7 +1177,7 @@ pub struct EnterpriseCrmFrontendsEventbusProtoParameterMapEntry {
 }
 
 /// To store string representation of Integration file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaSerializedFile {
     /// String representation of the file content.
     #[serde(default)]
@@ -1187,7 +1188,7 @@ pub struct GoogleCloudIntegrationsV1alphaSerializedFile {
 }
 
 /// To store Integration version related file i.e. Integration Version, Config variable etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaFile {
     /// Integration version config file
     #[serde(default, rename = "integrationConfig")]
@@ -1202,7 +1203,7 @@ pub struct GoogleCloudIntegrationsV1alphaFile {
 }
 
 /// The response for executing a functional test.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaExecuteTestCaseResponse {
     /// Results of each assertions ran during execution of test case.
     #[serde(default, rename = "assertionResults")]
@@ -1220,7 +1221,7 @@ pub struct GoogleCloudIntegrationsV1alphaExecuteTestCaseResponse {
 }
 
 /// List of API triggerID and their workflow resource name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaApiTriggerResource {
     /// Required. Integration where the API is published
     #[serde(default, rename = "integrationResource")]
@@ -1231,7 +1232,7 @@ pub struct GoogleCloudIntegrationsV1alphaApiTriggerResource {
 }
 
 /// Metadata information for the given project
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaProjectProperties {
     /// Required. Required: The client billing type that was requested // TODO: enum values: ["BILLING_TYPE_UNSPECIFIED", "APIGEE_TRIALS", "APIGEE_SUBSCRIPTION", "PAYG", "SUBSCRIPTION", "NO_BILLING"]
     #[serde(default, rename = "billingType")]
@@ -1245,7 +1246,7 @@ pub struct GoogleCloudIntegrationsV1alphaProjectProperties {
 }
 
 /// The configuration information for the Client
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaClientConfig {
     /// Indicates the billing type of the client // TODO: enum values: ["BILLING_TYPE_UNSPECIFIED", "BILLING_TYPE_APIGEE_TRIALS", "BILLING_TYPE_APIGEE_SUBSCRIPTION", "BILLING_TYPE_PAYG"]
     #[serde(default, rename = "billingType")]
@@ -1296,7 +1297,7 @@ pub struct GoogleCloudIntegrationsV1alphaClientConfig {
 }
 
 /// The AuthConfig resource use to hold channels and connection config data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaAuthConfig {
     /// Certificate id for client certificate
     #[serde(default, rename = "certificateId")]
@@ -1352,7 +1353,7 @@ pub struct GoogleCloudIntegrationsV1alphaAuthConfig {
 }
 
 /// The certificate definition
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaCertificate {
     /// Status of the certificate // TODO: enum values: ["STATE_UNSPECIFIED", "ACTIVE", "EXPIRED"]
     #[serde(default, rename = "certificateStatus")]
@@ -1384,7 +1385,7 @@ pub struct GoogleCloudIntegrationsV1alphaCertificate {
 }
 
 /// Connection represents an instance of connector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1Connection {
     /// Optional. Async operations enabled for the connection. If Async Operations is enabled, Connection allows the customers to initiate async long running operations using the actions API.
     #[serde(default, rename = "asyncOperationsEnabled")]
@@ -1498,7 +1499,7 @@ pub struct GoogleCloudConnectorsV1Connection {
 }
 
 /// Contains all the execution details for a workflow instance. Next available id: 27
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoEventExecutionInfo {
     /// The event data user sends as request.
     #[serde(default, rename = "clientId")]
@@ -1572,7 +1573,7 @@ pub struct EnterpriseCrmFrontendsEventbusProtoEventExecutionInfo {
 }
 
 /// The Execution resource contains detailed information of an individual integration execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaExecution {
     /// Optional. Cloud KMS resource name for the CMEK encryption key.
     #[serde(default, rename = "cloudKmsKey")]
@@ -1632,7 +1633,7 @@ pub struct GoogleCloudIntegrationsV1alphaExecution {
 }
 
 /// The integration definition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaIntegration {
     /// Required. If any integration version is published.
     #[serde(default)]
@@ -1658,7 +1659,7 @@ pub struct GoogleCloudIntegrationsV1alphaIntegration {
 }
 
 /// Metadata of an action, including schemas for its inputs and outputs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaRuntimeActionSchema {
     /// Name of the action.
     #[serde(default)]
@@ -1672,7 +1673,7 @@ pub struct GoogleCloudIntegrationsV1alphaRuntimeActionSchema {
 }
 
 /// Metadata of an entity, including a schema for its properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaRuntimeEntitySchema {
     /// The above schema, but for an array of the associated entity.
     #[serde(default, rename = "arrayFieldSchema")]
@@ -1686,7 +1687,7 @@ pub struct GoogleCloudIntegrationsV1alphaRuntimeEntitySchema {
 }
 
 /// The SfdcChannel that points to a CDC or Platform Event Channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaSfdcChannel {
     /// Required. The Channel topic defined by salesforce once an channel is opened
     #[serde(default, rename = "channelTopic")]
@@ -1718,7 +1719,7 @@ pub struct GoogleCloudIntegrationsV1alphaSfdcChannel {
 }
 
 /// The SfdcInstance resource use to hold channels and connection config data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaSfdcInstance {
     /// A list of AuthConfigs that can be tried to open the channel to SFDC
     #[serde(default, rename = "authConfigId")]
@@ -1750,7 +1751,7 @@ pub struct GoogleCloudIntegrationsV1alphaSfdcInstance {
 }
 
 /// A record representing a suspension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaSuspension {
     /// Controls the notifications and approval permissions for this suspension.
     #[serde(default, rename = "approvalConfig")]
@@ -1786,7 +1787,7 @@ pub struct GoogleCloudIntegrationsV1alphaSuspension {
 }
 
 /// The integration search result with integration level information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaSearchIntegrationsResponseIntegrationSearchResult {
     /// Output only. The create time of the integration version.
     #[serde(default, rename = "createTime")]
@@ -1815,7 +1816,7 @@ pub struct GoogleCloudIntegrationsV1alphaSearchIntegrationsResponseIntegrationSe
 }
 
 /// Defines the template for Application Integration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaTemplate {
     /// Optional. Creator of the template.
     #[serde(default)]
@@ -1869,7 +1870,7 @@ pub struct GoogleCloudIntegrationsV1alphaTemplate {
 }
 
 /// Defines the functional test case for Application Integration. Next available id: 15
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaTestCase {
     /// Auto-generated.
     #[serde(default, rename = "createTime")]
@@ -1915,7 +1916,7 @@ pub struct GoogleCloudIntegrationsV1alphaTestCase {
 }
 
 /// Sub Integration which would be created via templates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaUseTemplateRequestIntegrationDetails {
     /// Required. Name of the sub integration which would be created via templates.
     #[serde(default)]
@@ -1926,7 +1927,7 @@ pub struct GoogleCloudIntegrationsV1alphaUseTemplateRequestIntegrationDetails {
 }
 
 /// Information about the value and type of the field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoField {
     /// By default, if the cardinality is unspecified the field is considered required while mapping. // TODO: enum values: ["UNSPECIFIED", "OPTIONAL"]
     #[serde(default)]
@@ -1951,7 +1952,7 @@ pub struct EnterpriseCrmEventbusProtoField {
 }
 
 /// Field represents either the key or value in an entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoParameterMapField {
     /// Passing a literal value.
     #[serde(default, rename = "literalValue")]
@@ -1963,7 +1964,7 @@ pub struct EnterpriseCrmEventbusProtoParameterMapField {
 }
 
 /// Field represents either the key or value in an entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoParameterMapField {
     /// Passing a literal value.
     #[serde(default, rename = "literalValue")]
@@ -1975,7 +1976,7 @@ pub struct EnterpriseCrmFrontendsEventbusProtoParameterMapField {
 }
 
 /// The result of an assertion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaAssertionResult {
     /// Assertion that was run.
     #[serde(default)]
@@ -1995,7 +1996,7 @@ pub struct GoogleCloudIntegrationsV1alphaAssertionResult {
 }
 
 /// Customer configuration information for the given client
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaCustomerConfig {
     /// Optional. Cloud KMS config for Auth Module to encrypt/decrypt credentials.
     #[serde(default, rename = "cloudKmsConfig")]
@@ -2015,7 +2016,7 @@ pub struct GoogleCloudIntegrationsV1alphaCustomerConfig {
 }
 
 /// Defines parameters for a single, canonical credential.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaCredential {
     /// Auth token credential
     #[serde(default, rename = "authToken")]
@@ -2052,7 +2053,7 @@ pub struct GoogleCloudIntegrationsV1alphaCredential {
 }
 
 /// Contains client certificate information
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaClientCertificate {
     /// The ssl certificate encoded in PEM format. This string must include the begin header and end footer lines. For example, -----BEGIN CERTIFICATE----- MIICTTCCAbagAwIBAgIJAPT0tSKNxan/MA0GCSqGSIb3DQEBCwUAMCoxFzAVBgNV BAoTDkdvb2dsZSBURVNUSU5HMQ8wDQYDVQQDEwZ0ZXN0Q0EwHhcNMTUwMTAxMDAw MDAwWhcNMjUwMTAxMDAwMDAwWjAuMRcwFQYDVQQKEw5Hb29nbGUgVEVTVElORzET MBEGA1UEAwwKam9lQGJhbmFuYTCBnzANBgkqhkiG9w0BAQEFAAOBjQAwgYkCgYEA vDYFgMgxi5W488d9J7UpCInl0NXmZQpJDEHE4hvkaRlH7pnC71H0DLt0/3zATRP1 JzY2+eqBmbGl4/sgZKYv8UrLnNyQNUTsNx1iZAfPUflf5FwgVsai8BM0pUciq1NB xD429VFcrGZNucvFLh72RuRFIKH8WUpiK/iZNFkWhZ0CAwEAAaN3MHUwDgYDVR0P AQH/BAQDAgWgMB0GA1UdJQQWMBQGCCsGAQUFBwMBBggrBgEFBQcDAjAMBgNVHRMB Af8EAjAAMBkGA1UdDgQSBBCVgnFBCWgL/iwCqnGrhTPQMBsGA1UdIwQUMBKAEKey Um2o4k2WiEVA0ldQvNYwDQYJKoZIhvcNAQELBQADgYEAYK986R4E3L1v+Q6esBtW JrUwA9UmJRSQr0N5w3o9XzarU37/bkjOP0Fw0k/A6Vv1n3vlciYfBFaBIam1qRHr 5dMsYf4CZS6w50r7hyzqyrwDoyNxkLnd2PdcHT/sym1QmflsjEs7pejtnohO6N2H wQW6M0H7Zt8claGRla4fKkg= -----END CERTIFICATE-----
     #[serde(default, rename = "encryptedPrivateKey")]
@@ -2066,7 +2067,7 @@ pub struct GoogleCloudIntegrationsV1alphaClientCertificate {
 }
 
 /// Billing config for the connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1BillingConfig {
     /// Output only. Billing category for the connector. // TODO: enum values: ["BILLING_CATEGORY_UNSPECIFIED", "GCP_AND_TECHNICAL_CONNECTOR", "NON_GCP_CONNECTOR"]
     #[serde(default, rename = "billingCategory")]
@@ -2074,7 +2075,7 @@ pub struct GoogleCloudConnectorsV1BillingConfig {
 }
 
 /// This configuration provides infra configs like rate limit threshold which need to be configurable for every connector version
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1ConnectorVersionInfraConfig {
     /// Output only. The window used for ratelimiting runtime requests to connections.
     #[serde(default, rename = "connectionRatelimitWindowSeconds")]
@@ -2112,7 +2113,7 @@ pub struct GoogleCloudConnectorsV1ConnectorVersionInfraConfig {
 }
 
 /// Eventing Configuration of a connection next: 20
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1EventingConfig {
     /// Optional. Additional eventing related field values
     #[serde(default, rename = "additionalVariables")]
@@ -2159,7 +2160,7 @@ pub struct GoogleCloudConnectorsV1EventingConfig {
 }
 
 /// Eventing runtime data has the details related to eventing managed by the system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1EventingRuntimeData {
     /// Output only. Events listener endpoint. The value will populated after provisioning the events listener.
     #[serde(default, rename = "eventsListenerEndpoint")]
@@ -2180,7 +2181,7 @@ pub struct GoogleCloudConnectorsV1EventingRuntimeData {
 }
 
 /// Determines whether or no a connection is locked. If locked, a reason must be specified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1LockConfig {
     /// Optional. Indicates whether or not the connection is locked.
     #[serde(default)]
@@ -2191,7 +2192,7 @@ pub struct GoogleCloudConnectorsV1LockConfig {
 }
 
 /// Log configuration for the connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1LogConfig {
     /// Optional. Enabled represents whether logging is enabled or not for a connection.
     #[serde(default)]
@@ -2202,7 +2203,7 @@ pub struct GoogleCloudConnectorsV1LogConfig {
 }
 
 /// Node configuration for the connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1NodeConfig {
     /// Optional. Maximum number of nodes in the runtime nodes.
     #[serde(default, rename = "maxNodeCount")]
@@ -2213,7 +2214,7 @@ pub struct GoogleCloudConnectorsV1NodeConfig {
 }
 
 /// ConnectionStatus indicates the state of the connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1ConnectionStatus {
     /// Description.
     #[serde(default)]
@@ -2227,7 +2228,7 @@ pub struct GoogleCloudConnectorsV1ConnectionStatus {
 }
 
 /// * TrafficShapingConfig defines the configuration for shaping API traffic by specifying a quota limit and the duration over which this limit is enforced. This configuration helps to control and manage the rate at which API calls are made on the client side, preventing service overload on the backend. For example: - if the quota limit is 100 calls per 10 seconds, then the message would be: { quota_limit: 100 duration: { seconds: 10 } } - if the quota limit is 100 calls per 5 minutes, then the message would be: { quota_limit: 100 duration: { seconds: 300 } } - if the quota limit is 10000 calls per day, then the message would be: { quota_limit: 10000 duration: { seconds: 86400 } and so on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1TrafficShapingConfig {
     /// Required. Specifies the duration over which the API call quota limits are calculated. This duration is used to define the time window for evaluating if the number of API calls made by a user is within the allowed quota limits. For example: - To define a quota sampled over 16 seconds, set seconds to 16 - To define a quota sampled over 5 minutes, set seconds to 300 (5 * 60) - To define a quota sampled over 1 day, set seconds to 86400 (24 * 60 * 60) and so on. It is important to note that this duration is not the time the quota is valid for, but rather the time window over which the quota is evaluated. For example, if the quota is 100 calls per 10 seconds, then this duration field would be set to 10 seconds.
     #[serde(default)]
@@ -2238,7 +2239,7 @@ pub struct GoogleCloudConnectorsV1TrafficShapingConfig {
 }
 
 /// Cloud Logging details, selected by the user for the integration version (workflow). This message field will be also used in ExecutionInfo, to indicate the CloudLoggingDetails config at the time of workflow (integration version) execution, since this field value can be changed for an unpublished workflow.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoCloudLoggingDetails {
     /// Severity selected by the customer for the logs to be sent to Cloud Logging, for the integration version getting executed. // TODO: enum values: ["CLOUD_LOGGING_SEVERITY_UNSPECIFIED", "INFO", "ERROR", "WARNING"]
     #[serde(default, rename = "cloudLoggingSeverity")]
@@ -2249,7 +2250,7 @@ pub struct EnterpriseCrmEventbusProtoCloudLoggingDetails {
 }
 
 /// An error, warning, or information message associated with a workflow.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoErrorDetail {
     /// The associated error-code, which can be a common or internal code.
     #[serde(default, rename = "errorCode")]
@@ -2266,7 +2267,7 @@ pub struct EnterpriseCrmEventbusProtoErrorDetail {
 }
 
 /// Contains the details of the execution info of this event: this includes the tasks execution details plus the event execution statistics. Next available id: 12
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoEventExecutionDetails {
     /// If the execution is manually canceled, this field will contain the reason for cancellation.
     #[serde(default, rename = "cancelReason")]
@@ -2304,7 +2305,7 @@ pub struct EnterpriseCrmFrontendsEventbusProtoEventExecutionDetails {
 }
 
 /// Message that helps aggregate all sub-executions triggered by one execution and keeps track of child-parent relationships.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoExecutionTraceInfo {
     /// Parent event execution info id that triggers the current execution through SubWorkflowExecutorTask.
     #[serde(default, rename = "parentEventExecutionInfoId")]
@@ -2315,7 +2316,7 @@ pub struct EnterpriseCrmEventbusProtoExecutionTraceInfo {
 }
 
 /// Contains the details of the execution info: this includes the replay reason and replay tree connecting executions in a parent-child relationship
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoEventExecutionInfoReplayInfo {
     /// If this execution is a replay of another execution, then this field contains the original execution id.
     #[serde(default, rename = "originalExecutionInfoId")]
@@ -2332,7 +2333,7 @@ pub struct EnterpriseCrmFrontendsEventbusProtoEventExecutionInfoReplayInfo {
 }
 
 /// Contains the details of the execution info of this event: this includes the tasks execution details plus the event execution statistics. Next available id: 12
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoEventExecutionDetails {
     /// If the execution is manually canceled, this field will contain the reason for cancellation.
     #[serde(default, rename = "cancelReason")]
@@ -2368,7 +2369,7 @@ pub struct EnterpriseCrmEventbusProtoEventExecutionDetails {
 }
 
 /// Contains the details of the execution info: this includes the tasks execution details plus the event execution statistics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaExecutionDetails {
     /// List of Start and end time of the execution attempts.
     #[serde(default, rename = "attemptStats")]
@@ -2387,7 +2388,7 @@ pub struct GoogleCloudIntegrationsV1alphaExecutionDetails {
 }
 
 /// Contains the details of the execution info: this includes the replay reason and replay tree connecting executions in a parent-child relationship
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaExecutionReplayInfo {
     /// If this execution is a replay of another execution, then this field contains the original execution id.
     #[serde(default, rename = "originalExecutionInfoId")]
@@ -2404,7 +2405,7 @@ pub struct GoogleCloudIntegrationsV1alphaExecutionReplayInfo {
 }
 
 /// Configurations for approving the Suspension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaSuspensionApprovalConfig {
     /// Information to provide for recipients.
     #[serde(default, rename = "customMessage")]
@@ -2419,7 +2420,7 @@ pub struct GoogleCloudIntegrationsV1alphaSuspensionApprovalConfig {
 }
 
 /// Contains when and by whom the suspension was resolved.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaSuspensionAudit {
     /// Time at which this suspension was resolved.
     #[serde(default, rename = "resolveTime")]
@@ -2430,7 +2431,7 @@ pub struct GoogleCloudIntegrationsV1alphaSuspensionAudit {
 }
 
 /// EnterpriseCrmEventbusProtoSuspensionConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoSuspensionConfig {
     /// Optional information to provide recipients of the suspension in addition to the resolution URL, typically containing relevant parameter values from the originating workflow.
     #[serde(default, rename = "customMessage")]
@@ -2450,7 +2451,7 @@ pub struct EnterpriseCrmEventbusProtoSuspensionConfig {
 }
 
 /// Define the components that are present in a template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaTemplateComponent {
     /// Optional. Name of the component.
     #[serde(default)]
@@ -2461,7 +2462,7 @@ pub struct GoogleCloudIntegrationsV1alphaTemplateComponent {
 }
 
 /// Define the bundle of the template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaTemplateBundle {
     /// Required. Main integration templates of the template bundle.
     #[serde(default, rename = "integrationVersionTemplate")]
@@ -2475,7 +2476,7 @@ pub struct GoogleCloudIntegrationsV1alphaTemplateBundle {
 }
 
 /// The task mock configuration details and assertions for functional tests. Next available id: 6
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaTestTaskConfig {
     /// Optional. List of conditions or expressions which should be evaluated to true unless there is a bug/problem in the integration. These are evaluated one the task execution is completed as per the mock strategy in test case
     #[serde(default)]
@@ -2496,7 +2497,7 @@ pub struct GoogleCloudIntegrationsV1alphaTestTaskConfig {
 }
 
 /// Configuration information for Client''s Cloud KMS information
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaCloudKmsConfig {
     /// Required. A Cloud KMS key is a named object containing one or more key versions, along with metadata for the key. A key exists on exactly one key ring tied to a specific location.
     #[serde(default)]
@@ -2516,7 +2517,7 @@ pub struct GoogleCloudIntegrationsV1alphaCloudKmsConfig {
 }
 
 /// The credentials to authenticate a user agent with a server that is put in HTTP Authorization request header.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaAuthToken {
     /// The token for the auth type.
     #[serde(default)]
@@ -2527,7 +2528,7 @@ pub struct GoogleCloudIntegrationsV1alphaAuthToken {
 }
 
 /// Represents JSON web token(JWT), which is a compact, URL-safe means of representing claims to be transferred between two parties, enabling the claims to be digitally signed or integrity protected.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaJwt {
     /// The token calculated by the header, payload and signature.
     #[serde(default)]
@@ -2544,7 +2545,7 @@ pub struct GoogleCloudIntegrationsV1alphaJwt {
 }
 
 /// The OAuth Type where the client sends request with the client id and requested scopes to auth endpoint. User sees a consent screen and auth code is received at specified redirect url afterwards. The auth code is then combined with the client id and secret and sent to the token endpoint in exchange for the access and refresh token. The refresh token can be used to fetch new access tokens.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaOAuth2AuthorizationCode {
     /// The access token received from the token endpoint.
     #[serde(default, rename = "accessToken")]
@@ -2582,7 +2583,7 @@ pub struct GoogleCloudIntegrationsV1alphaOAuth2AuthorizationCode {
 }
 
 /// For client credentials grant, the client sends a POST request with grant_type as ''client_credentials'' to the authorization server. The authorization server will respond with a JSON object containing the access token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaOAuth2ClientCredentials {
     /// Access token fetched from the authorization server.
     #[serde(default, rename = "accessToken")]
@@ -2608,7 +2609,7 @@ pub struct GoogleCloudIntegrationsV1alphaOAuth2ClientCredentials {
 }
 
 /// For resource owner credentials grant, the client will ask the user for their authorization credentials (ususally a username and password) and send a POST request to the authorization server. The authorization server will respond with a JSON object containing the access token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaOAuth2ResourceOwnerCredentials {
     /// Access token fetched from the authorization server.
     #[serde(default, rename = "accessToken")]
@@ -2640,7 +2641,7 @@ pub struct GoogleCloudIntegrationsV1alphaOAuth2ResourceOwnerCredentials {
 }
 
 /// OIDC Token
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaOidcToken {
     /// Audience to be used when generating OIDC token. The audience claim identifies the recipients that the JWT is intended for.
     #[serde(default)]
@@ -2657,7 +2658,7 @@ pub struct GoogleCloudIntegrationsV1alphaOidcToken {
 }
 
 /// Represents the service account which can be used to generate access token for authenticating the service call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaServiceAccountCredentials {
     /// A space-delimited list of requested scope permissions.
     #[serde(default)]
@@ -2668,7 +2669,7 @@ pub struct GoogleCloudIntegrationsV1alphaServiceAccountCredentials {
 }
 
 /// Username and password pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaUsernameAndPassword {
     /// Password to be used
     #[serde(default)]
@@ -2679,7 +2680,7 @@ pub struct GoogleCloudIntegrationsV1alphaUsernameAndPassword {
 }
 
 /// Autoscaling config for connector deployment system metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1hPAConfig {
     /// Output only. Percent CPU utilization where HPA triggers autoscaling.
     #[serde(default, rename = "cpuUtilizationThreshold")]
@@ -2690,7 +2691,7 @@ pub struct GoogleCloudConnectorsV1hPAConfig {
 }
 
 /// Resource limits defined for connection pods of a given connector type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1ResourceLimits {
     /// Output only. CPU limit.
     #[serde(default)]
@@ -2701,7 +2702,7 @@ pub struct GoogleCloudConnectorsV1ResourceLimits {
 }
 
 /// Resource requests defined for connection pods of a given connector type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1ResourceRequests {
     /// Output only. CPU request.
     #[serde(default)]
@@ -2712,7 +2713,7 @@ pub struct GoogleCloudConnectorsV1ResourceRequests {
 }
 
 /// AuthConfig defines details of a authentication type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1AuthConfig {
     /// Optional. List containing additional auth configs.
     #[serde(default, rename = "additionalVariables")]
@@ -2748,7 +2749,7 @@ pub struct GoogleCloudConnectorsV1AuthConfig {
 }
 
 /// Dead Letter configuration details provided by the user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1EventingConfigDeadLetterConfig {
     /// Optional. Project which has the topic given.
     #[serde(default, rename = "projectId")]
@@ -2759,7 +2760,7 @@ pub struct GoogleCloudConnectorsV1EventingConfigDeadLetterConfig {
 }
 
 /// Data enrichment configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1EnrichmentConfig {
     /// Optional. Append ACL to the event.
     #[serde(default, rename = "appendAcl")]
@@ -2767,7 +2768,7 @@ pub struct GoogleCloudConnectorsV1EnrichmentConfig {
 }
 
 /// Define the Connectors target endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1DestinationConfig {
     /// Optional. The destinations for the key.
     #[serde(default)]
@@ -2778,7 +2779,7 @@ pub struct GoogleCloudConnectorsV1DestinationConfig {
 }
 
 /// SSL Configuration of a connection
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1SslConfig {
     /// Optional. Additional SSL related field values
     #[serde(default, rename = "additionalVariables")]
@@ -2814,7 +2815,7 @@ pub struct GoogleCloudConnectorsV1SslConfig {
 }
 
 /// EventingStatus indicates the state of eventing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1EventingStatus {
     /// Output only. Description of error if State is set to "ERROR".
     #[serde(default)]
@@ -2825,7 +2826,7 @@ pub struct GoogleCloudConnectorsV1EventingStatus {
 }
 
 /// WebhookSubscriptions has details of webhook subscriptions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1EventingRuntimeDataWebhookSubscriptions {
     /// Output only. Webhook data.
     #[serde(default, rename = "webhookData")]
@@ -2835,7 +2836,7 @@ pub struct GoogleCloudConnectorsV1EventingRuntimeDataWebhookSubscriptions {
 }
 
 /// Registered ids for errors, as "oneof" enums. Each task or logical grouping of tasks may share the same enum.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CrmlogErrorCode {
     /// TODO: enum values: ["COMMON_ERROR_CODE_UNSPECIFIED", "INVALID_CREDENTIALS", "REQUIRED_FIELDS_MISSING", "INVALID_FIELDS", "BACKEND", "GENERAL", "INTERNAL", "IO_ERROR", "NOT_FOUND", "EVENT_BUS", "ALREADY_EXISTS", "CONCORD", "CONVERSION", "FLUME", "PERMISSION", "SALES_FORCE", "SPANNER", "UNIMPLEMENTED", "RELTIO", "WORKFLOW_NOT_FOUND", "QUOTA_THROTTLED", "QUOTA_ENQUEUED", "INVALID_QUOTA_CONFIGURATION", "TASK_NOT_FOUND", "EXECUTION_TIMEOUT", "INVALID_EVENT_EXECUTION_STATE", "INVALID_ATTRIBUTE", "MISSING_ATTRIBUTE", "CLIENT_UNAUTHORIZED_FOR_WORKFLOW", "INVALID_PARAMETER", "MISSING_PARAMETER", "UNAUTHROIZED_WORKFLOW_EDITOR_ACTION", "FAILED_PRECONDITION", "INVALID_CLIENT", "MISSING_CLIENT", "INVALID_WORKFLOW", "MISSING_QUOTA_CONFIGURATION", "UNHANDLED_TASK_ERROR", "SCRIPT_TASK_RUNTIME_ERROR", "RPC", "INVALID_PROTO", "UNHANDLED_EVENTBUS_ERROR", "INVALID_TASK_STATE", "TYPED_TASK_INVALID_INPUT_OPERATION", "TYPED_TASK_INVALID_OUTPUT_OPERATION", "VALIDATION_ERROR", "RESUME_ERROR", "APPS_SCRIPT_EXECUTION_ERROR", "INVALID_VECTOR_USER", "INFORMATICA", "RETRYABLE_TASK_ERROR", "INVALID_TENANT", "WRONG_TENANT", "INFORMATICA_BACKEND_UNAVAILABLE", "RPC_PERMISSION_DENIED", "SYNC_EVENTBUS_EXECUTION_TIMEOUT", "ASYNC_EVENTBUS_EXECUTION_TIMEOUT", "NOT_SUPPORTED_DATA_TYPE", "UNSANITIZED_USER_INPUT", "TRANSFORM_EXPRESSION_EVALUATION_ERROR", "HTTP_EXCEPTION", "EXECUTION_CANCELLED"]
     #[serde(default, rename = "commonErrorCode")]
@@ -2843,7 +2844,7 @@ pub struct CrmlogErrorCode {
 }
 
 /// EnterpriseCrmFrontendsEventbusProtoEventExecutionSnapshot resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoEventExecutionSnapshot {
     /// Indicates "right after which checkpoint task''s execution" this snapshot is taken.
     #[serde(default, rename = "checkpointTaskNumber")]
@@ -2881,7 +2882,7 @@ pub struct EnterpriseCrmFrontendsEventbusProtoEventExecutionSnapshot {
 }
 
 /// EnterpriseCrmEventbusProtoEventExecutionDetailsEventAttemptStats resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoEventExecutionDetailsEventAttemptStats {
     /// The end time of the event execution for current attempt.
     #[serde(default, rename = "endTime")]
@@ -2892,7 +2893,7 @@ pub struct EnterpriseCrmEventbusProtoEventExecutionDetailsEventAttemptStats {
 }
 
 /// Contains the snapshot of the event execution for a given checkpoint. Next available id: 15
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoEventExecutionSnapshot {
     /// Indicates "right after which checkpoint task''s execution" this snapshot is taken.
     #[serde(default, rename = "checkpointTaskNumber")]
@@ -2939,7 +2940,7 @@ pub struct EnterpriseCrmEventbusProtoEventExecutionSnapshot {
 }
 
 /// Contains the snapshot of the execution for a given checkpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaExecutionSnapshot {
     /// Indicates "after which checkpoint task''s execution" this snapshot is taken.
     #[serde(default, rename = "checkpointTaskNumber")]
@@ -2959,7 +2960,7 @@ pub struct GoogleCloudIntegrationsV1alphaExecutionSnapshot {
 }
 
 /// Expiration configs for the approval request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaSuspensionApprovalExpiration {
     /// Output only. Time after which the suspension expires, if no action taken.
     #[serde(default, rename = "expireTime")]
@@ -2973,7 +2974,7 @@ pub struct GoogleCloudIntegrationsV1alphaSuspensionApprovalExpiration {
 }
 
 /// EnterpriseCrmEventbusProtoNotification resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoNotification {
     #[serde(default, rename = "buganizerNotification")]
     pub buganizer_notification:
@@ -2990,7 +2991,7 @@ pub struct EnterpriseCrmEventbusProtoNotification {
 }
 
 /// EnterpriseCrmEventbusProtoSuspensionExpiration resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoSuspensionExpiration {
     /// Milliseconds after which the suspension expires, if no action taken.
     #[serde(default, rename = "expireAfterMs")]
@@ -3004,7 +3005,7 @@ pub struct EnterpriseCrmEventbusProtoSuspensionExpiration {
 }
 
 /// LINT.IfChange
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoSuspensionAuthPermissions {
     /// Represents a Gaia identity for a person or service account.
     #[serde(default, rename = "gaiaIdentity")]
@@ -3020,7 +3021,7 @@ pub struct EnterpriseCrmEventbusProtoSuspensionAuthPermissions {
 }
 
 /// Define the template of IntegrationVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaIntegrationVersionTemplate {
     /// Required. Templatized version of integration.
     #[serde(default, rename = "integrationVersion")]
@@ -3032,7 +3033,7 @@ pub struct GoogleCloudIntegrationsV1alphaIntegrationVersionTemplate {
 }
 
 /// An assertion which will check for a condition over task execution status or an expression for task output variables
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaAssertion {
     /// Optional. The type of assertion to perform. // TODO: enum values: ["ASSERTION_STRATEGY_UNSPECIFIED", "ASSERT_SUCCESSFUL_EXECUTION", "ASSERT_FAILED_EXECUTION", "ASSERT_NO_EXECUTION", "ASSERT_EQUALS", "ASSERT_NOT_EQUALS", "ASSERT_CONTAINS", "ASSERT_CONDITION"]
     #[serde(default, rename = "assertionStrategy")]
@@ -3049,7 +3050,7 @@ pub struct GoogleCloudIntegrationsV1alphaAssertion {
 }
 
 /// The configuration for mocking of a task during test execution Next available id: 4
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaMockConfig {
     /// Optional. Number of times the given task should fail for failure mock strategy
     #[serde(default, rename = "failedExecutions")]
@@ -3064,7 +3065,7 @@ pub struct GoogleCloudIntegrationsV1alphaMockConfig {
 }
 
 /// The access token represents the authorization of a specific application to access specific parts of a user’s data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaAccessToken {
     /// The access token encapsulating the security identity of a process or thread.
     #[serde(default, rename = "accessToken")]
@@ -3084,7 +3085,7 @@ pub struct GoogleCloudIntegrationsV1alphaAccessToken {
 }
 
 /// A generic multi-map that holds key value pairs. They keys and values can be of any type, unless specified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaParameterMap {
     /// A list of parameter map entries.
     #[serde(default)]
@@ -3099,7 +3100,7 @@ pub struct GoogleCloudIntegrationsV1alphaParameterMap {
 }
 
 /// Parameters to support Oauth 2.0 Auth Code Grant Authentication. See https://www.rfc-editor.org/rfc/rfc6749#section-1.3.1 for more details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlow {
     /// Optional. Authorization code to be exchanged for access and refresh tokens.
     #[serde(default, rename = "authCode")]
@@ -3128,7 +3129,7 @@ pub struct GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlow {
 }
 
 /// Parameters to support Oauth 2.0 Auth Code Grant Authentication using Google Provided OAuth Client. See https://tools.ietf.org/html/rfc6749#section-1.3.1 for more details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlowGoogleManaged {
     /// Optional. Authorization code to be exchanged for access and refresh tokens.
     #[serde(default, rename = "authCode")]
@@ -3142,7 +3143,7 @@ pub struct GoogleCloudConnectorsV1AuthConfigOauth2AuthCodeFlowGoogleManaged {
 }
 
 /// Parameters to support Oauth 2.0 Client Credentials Grant Authentication. See https://tools.ietf.org/html/rfc6749#section-1.3.4 for more details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1AuthConfigOauth2ClientCredentials {
     /// Optional. The client identifier.
     #[serde(default, rename = "clientId")]
@@ -3153,7 +3154,7 @@ pub struct GoogleCloudConnectorsV1AuthConfigOauth2ClientCredentials {
 }
 
 /// Parameters to support JSON Web Token (JWT) Profile for Oauth 2.0 Authorization Grant based authentication. See https://tools.ietf.org/html/rfc7523 for more details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1AuthConfigOauth2JwtBearer {
     /// Optional. Secret version reference containing a PKCS#8 PEM-encoded private key associated with the Client Certificate. This private key will be used to sign JWTs used for the jwt-bearer authorization grant. Specified in the form as: projects/*/secrets/*/versions/*.
     #[serde(default, rename = "clientKey")]
@@ -3165,7 +3166,7 @@ pub struct GoogleCloudConnectorsV1AuthConfigOauth2JwtBearer {
 }
 
 /// Parameters to support Ssh public key Authentication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1AuthConfigSshPublicKey {
     /// Optional. Format of SSH Client cert.
     #[serde(default, rename = "certType")]
@@ -3182,7 +3183,7 @@ pub struct GoogleCloudConnectorsV1AuthConfigSshPublicKey {
 }
 
 /// Parameters to support Username and Password Authentication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1AuthConfigUserPassword {
     /// Optional. Secret version reference containing the password.
     #[serde(default)]
@@ -3193,7 +3194,7 @@ pub struct GoogleCloudConnectorsV1AuthConfigUserPassword {
 }
 
 /// GoogleCloudConnectorsV1Destination resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1Destination {
     /// For publicly routable host.
     #[serde(default)]
@@ -3207,7 +3208,7 @@ pub struct GoogleCloudConnectorsV1Destination {
 }
 
 /// WebhookData has details of webhook configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1EventingRuntimeDataWebhookData {
     /// Output only. Additional webhook related field values.
     #[serde(default, rename = "additionalVariables")]
@@ -3231,7 +3232,7 @@ pub struct GoogleCloudConnectorsV1EventingRuntimeDataWebhookData {
 }
 
 /// Contains the combined condition calculation results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoConditionResult {
     /// the current task number.
     #[serde(default, rename = "currentTaskNumber")]
@@ -3245,7 +3246,7 @@ pub struct EnterpriseCrmEventbusProtoConditionResult {
 }
 
 /// EnterpriseCrmEventbusProtoEventExecutionSnapshotEventExecutionSnapshotMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoEventExecutionSnapshotEventExecutionSnapshotMetadata {
     /// Ancestor iteration number for the task(it will only be non-empty if the task is under ''private workflow'')
     #[serde(default, rename = "ancestorIterationNumbers")]
@@ -3274,7 +3275,7 @@ pub struct EnterpriseCrmEventbusProtoEventExecutionSnapshotEventExecutionSnapsho
 }
 
 /// Contains the details of the execution of this task. Next available id: 11
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoTaskExecutionDetails {
     /// Indicates whether the task was skipped on failure. Only relevant if the task is in SKIPPED state.
     #[serde(default, rename = "skippedOnFailure")]
@@ -3292,7 +3293,7 @@ pub struct EnterpriseCrmEventbusProtoTaskExecutionDetails {
 }
 
 /// Metadata of the execution snapshot.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaExecutionSnapshotExecutionSnapshotMetadata {
     /// Ancestor iteration number for the task(it will only be non-empty if the task is under ''private workflow'')
     #[serde(default, rename = "ancestorIterationNumbers")]
@@ -3321,7 +3322,7 @@ pub struct GoogleCloudIntegrationsV1alphaExecutionSnapshotExecutionSnapshotMetad
 }
 
 /// Contains the details of the execution of this task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaTaskExecutionDetails {
     /// Status for the current task execution attempt.
     #[serde(default, rename = "taskAttemptStats")]
@@ -3336,7 +3337,7 @@ pub struct GoogleCloudIntegrationsV1alphaTaskExecutionDetails {
 }
 
 /// EnterpriseCrmEventbusProtoBuganizerNotification resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoBuganizerNotification {
     /// Whom to assign the new bug. Optional.
     #[serde(default, rename = "assigneeEmailAddress")]
@@ -3353,7 +3354,7 @@ pub struct EnterpriseCrmEventbusProtoBuganizerNotification {
 }
 
 /// Email address along with optional name and tokens. These tokens will be substituted for the variables in the form of [{var_name}], where var_name could be any string of no more than 32 bytes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoAddress {
     /// Required.
     #[serde(default)]
@@ -3365,7 +3366,7 @@ pub struct EnterpriseCrmEventbusProtoAddress {
 }
 
 /// EnterpriseCrmEventbusProtoCustomSuspensionRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoCustomSuspensionRequest {
     /// Request to fire an event containing the SuspensionInfo message.
     #[serde(default, rename = "postToQueueWithTriggerIdRequest")]
@@ -3377,7 +3378,7 @@ pub struct EnterpriseCrmEventbusProtoCustomSuspensionRequest {
 }
 
 /// EnterpriseCrmEventbusProtoSuspensionAuthPermissionsGaiaIdentity resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoSuspensionAuthPermissionsGaiaIdentity {
     #[serde(default, rename = "emailAddress")]
     pub email_address: ::core::option::Option<String>,
@@ -3386,7 +3387,7 @@ pub struct EnterpriseCrmEventbusProtoSuspensionAuthPermissionsGaiaIdentity {
 }
 
 /// The integration version definition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaIntegrationVersion {
     /// Optional. Cloud KMS resource name for the CMEK encryption key.
     #[serde(default, rename = "cloudKmsKey")]
@@ -3482,7 +3483,7 @@ pub struct GoogleCloudIntegrationsV1alphaIntegrationVersion {
 }
 
 /// This message is used for processing and persisting (when applicable) key value pair parameters for each event in the event bus. Next available id: 4
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaEventParameter {
     /// Key is used to retrieve the corresponding parameter value. This should be unique for a given fired event. These parameters must be predefined in the integration definition.
     #[serde(default)]
@@ -3496,7 +3497,7 @@ pub struct GoogleCloudIntegrationsV1alphaEventParameter {
 }
 
 /// Entry is a pair of key and value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaParameterMapEntry {
     /// Key of the map entry.
     #[serde(default)]
@@ -3507,7 +3508,7 @@ pub struct GoogleCloudIntegrationsV1alphaParameterMapEntry {
 }
 
 /// JWT claims used for the jwt-bearer authorization grant.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1AuthConfigOauth2JwtBearerJwtClaims {
     /// Optional. Value for the "aud" claim.
     #[serde(default)]
@@ -3521,7 +3522,7 @@ pub struct GoogleCloudConnectorsV1AuthConfigOauth2JwtBearerJwtClaims {
 }
 
 /// ConfigVariable represents a configuration variable present in a Connection. or AuthConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1ConfigVariable {
     /// Optional. Value is a bool.
     #[serde(default, rename = "boolValue")]
@@ -3544,7 +3545,7 @@ pub struct GoogleCloudConnectorsV1ConfigVariable {
 }
 
 /// EnterpriseCrmEventbusProtoTaskExecutionDetailsTaskAttemptStats resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoTaskExecutionDetailsTaskAttemptStats {
     /// The end time of the task execution for current attempt.
     #[serde(default, rename = "endTime")]
@@ -3555,7 +3556,7 @@ pub struct EnterpriseCrmEventbusProtoTaskExecutionDetailsTaskAttemptStats {
 }
 
 /// Status for the execution attempt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaAttemptStats {
     /// The end time of the integration execution for current attempt.
     #[serde(default, rename = "endTime")]
@@ -3566,7 +3567,7 @@ pub struct GoogleCloudIntegrationsV1alphaAttemptStats {
 }
 
 /// EnterpriseCrmEventbusProtoToken resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoToken {
     #[serde(default)]
     pub name: ::core::option::Option<String>,
@@ -3575,7 +3576,7 @@ pub struct EnterpriseCrmEventbusProtoToken {
 }
 
 /// LINT.IfChange Use this request to post all workflows associated with a given trigger id. Next available id: 13
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleInternalCloudCrmEventbusV3PostToQueueWithTriggerIdRequest {
     /// Optional. If the client id is provided, then the combination of trigger id and client id is matched across all the workflows. If the client id is not provided, then workflows with matching trigger id are executed for each client id in the {@link TriggerConfig}. For Api Trigger, the client id is required and will be validated against the allowed clients.
     #[serde(default, rename = "clientId")]
@@ -3616,7 +3617,7 @@ pub struct GoogleInternalCloudCrmEventbusV3PostToQueueWithTriggerIdRequest {
 }
 
 /// Cloud Logging details for execution info
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaCloudLoggingDetails {
     /// Optional. Severity selected by the customer for the logs to be sent to Cloud Logging, for the integration version getting executed. // TODO: enum values: ["CLOUD_LOGGING_SEVERITY_UNSPECIFIED", "INFO", "ERROR", "WARNING"]
     #[serde(default, rename = "cloudLoggingSeverity")]
@@ -3627,7 +3628,7 @@ pub struct GoogleCloudIntegrationsV1alphaCloudLoggingDetails {
 }
 
 /// Configuration detail of a error catch task
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaErrorCatcherConfig {
     /// Optional. User-provided description intended to give more business context about the error catcher config.
     #[serde(default)]
@@ -3651,7 +3652,7 @@ pub struct GoogleCloudIntegrationsV1alphaErrorCatcherConfig {
 }
 
 /// Integration Config Parameter is defined in the integration config and are used to provide external configuration for integration. It provide information about data types of the expected parameters and provide any default values or value. They can also be used to add custom attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaIntegrationConfigParameter {
     /// Optional. Integration Parameter to provide the default value, data type and attributes required for the Integration config variables.
     #[serde(default)]
@@ -3662,7 +3663,7 @@ pub struct GoogleCloudIntegrationsV1alphaIntegrationConfigParameter {
 }
 
 /// LINT.IfChange This is the frontend version of WorkflowParameters. It''s exactly like the backend version except that instead of flattening protobuf parameters and treating every field and subfield of a protobuf parameter as a separate parameter, the fields/subfields of a protobuf parameter will be nested as "children" (see ''children'' field below) parameters of the parent parameter. Please refer to enterprise/crm/eventbus/proto/workflow_parameters.proto for more information about WorkflowParameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoWorkflowParameters {
     /// Parameters are a part of Event and can be used to communiticate between different tasks that are part of the same workflow execution.
     #[serde(default)]
@@ -3672,7 +3673,7 @@ pub struct EnterpriseCrmFrontendsEventbusProtoWorkflowParameters {
 }
 
 /// The task configuration details. This is not the implementation of Task. There might be multiple TaskConfigs for the same Task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaTaskConfig {
     /// Optional. The list of conditional failure policies that will be applied to the task in order.
     #[serde(default, rename = "conditionalFailurePolicies")]
@@ -3730,7 +3731,7 @@ pub struct GoogleCloudIntegrationsV1alphaTaskConfig {
 }
 
 /// The task configuration details. This is not the implementation of Task. There might be multiple TaskConfigs for the same Task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoTaskConfig {
     /// Alert configurations on error rate, warning rate, number of runs, durations, etc.
     #[serde(default, rename = "alertConfigs")]
@@ -3826,7 +3827,7 @@ pub struct EnterpriseCrmFrontendsEventbusProtoTaskConfig {
 }
 
 /// EnterpriseCrmEventbusProtoTeardown resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoTeardown {
     /// Required.
     #[serde(default, rename = "teardownTaskConfigs")]
@@ -3835,7 +3836,7 @@ pub struct EnterpriseCrmEventbusProtoTeardown {
 }
 
 /// Configuration detail of a trigger.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaTriggerConfig {
     /// Optional. An alert threshold configuration for the [trigger + client + integration] tuple. If these values are not specified in the trigger config, default values will be populated by the system. Note that there must be exactly one alert threshold configured per [client + trigger + integration] when published.
     #[serde(default, rename = "alertConfig")]
@@ -3891,7 +3892,7 @@ pub struct GoogleCloudIntegrationsV1alphaTriggerConfig {
 }
 
 /// Configuration detail of a trigger. Next available id: 22
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoTriggerConfig {
     /// An alert threshold configuration for the [trigger + client + workflow] tuple. If these values are not specified in the trigger config, default values will be populated by the system. Note that there must be exactly one alert threshold configured per [client + trigger + workflow] when published.
     #[serde(default, rename = "alertConfig")]
@@ -3953,7 +3954,7 @@ pub struct EnterpriseCrmFrontendsEventbusProtoTriggerConfig {
 }
 
 /// Field represents either the key or value in an entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaParameterMapField {
     /// Passing a literal value.
     #[serde(default, rename = "literalValue")]
@@ -3964,7 +3965,7 @@ pub struct GoogleCloudIntegrationsV1alphaParameterMapField {
 }
 
 /// Encryption Key value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1EncryptionKey {
     /// Optional. The [KMS key name] with which the content of the Operation is encrypted. The expected format: projects/*/locations/*/keyRings/*/cryptoKeys/*. Will be empty string if google managed.
     #[serde(default, rename = "kmsKeyName")]
@@ -3975,7 +3976,7 @@ pub struct GoogleCloudConnectorsV1EncryptionKey {
 }
 
 /// Secret provides a reference to entries in Secret Manager.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudConnectorsV1Secret {
     /// Optional. The resource name of the secret version in the format, format as: projects/*/secrets/*/versions/*.
     #[serde(default, rename = "secretVersion")]
@@ -3983,7 +3984,7 @@ pub struct GoogleCloudConnectorsV1Secret {
 }
 
 /// Integration Parameter is defined in the integration config and are used to provide information about data types of the expected parameters and provide any default values if needed. They can also be used to add custom attributes. These are static in nature and should not be used for dynamic event definition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaIntegrationParameter {
     /// Indicates whether this variable contains large data and need to be uploaded to Cloud Storage.
     #[serde(default, rename = "containsLargeData")]
@@ -4024,7 +4025,7 @@ pub struct GoogleCloudIntegrationsV1alphaIntegrationParameter {
 }
 
 /// EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry {
     /// Metadata information about the parameters.
     #[serde(default)]
@@ -4078,7 +4079,7 @@ pub struct EnterpriseCrmFrontendsEventbusProtoWorkflowParameterEntry {
 }
 
 /// Conditional task failur retry strategies
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaConditionalFailurePolicies {
     /// The default failure policy to be applied if no conditional failure policy matches.
     #[serde(default, rename = "defaultFailurePolicy")]
@@ -4090,7 +4091,7 @@ pub struct GoogleCloudIntegrationsV1alphaConditionalFailurePolicies {
 }
 
 /// Policy that dictates the behavior for the task after it completes successfully.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaSuccessPolicy {
     /// State to which the execution snapshot status will be set if the task succeeds. // TODO: enum values: ["FINAL_STATE_UNSPECIFIED", "SUCCEEDED", "SUSPENDED"]
     #[serde(default, rename = "finalState")]
@@ -4098,7 +4099,7 @@ pub struct GoogleCloudIntegrationsV1alphaSuccessPolicy {
 }
 
 /// Message to be used to configure alerting in the {@code TaskConfig} protos for tasks in an event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoTaskAlertConfig {
     /// The period over which the metric value should be aggregated and evaluated. Format is , where integer should be a positive integer and unit should be one of (s,m,h,d,w) meaning (second, minute, hour, day, week).
     #[serde(default, rename = "aggregationPeriod")]
@@ -4143,7 +4144,7 @@ pub struct EnterpriseCrmEventbusProtoTaskAlertConfig {
 }
 
 /// EnterpriseCrmEventbusProtoConditionalFailurePolicies resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoConditionalFailurePolicies {
     /// The default failure policy to be applied if no conditional failure policy matches
     #[serde(default, rename = "defaultFailurePolicy")]
@@ -4155,7 +4156,7 @@ pub struct EnterpriseCrmEventbusProtoConditionalFailurePolicies {
 }
 
 /// Next available id: 4
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoRollbackStrategy {
     /// Optional. The customized parameters the user can pass to this task.
     #[serde(default)]
@@ -4169,7 +4170,7 @@ pub struct EnterpriseCrmFrontendsEventbusProtoRollbackStrategy {
 }
 
 /// Policy that dictates the behavior for the task after it completes successfully.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoSuccessPolicy {
     /// State to which the execution snapshot status will be set if the task succeeds. // TODO: enum values: ["UNSPECIFIED", "SUCCEEDED", "SUSPENDED"]
     #[serde(default, rename = "finalState")]
@@ -4177,7 +4178,7 @@ pub struct EnterpriseCrmEventbusProtoSuccessPolicy {
 }
 
 /// Contains a task''s metadata and associated information. Next available id: 7
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoTaskEntity {
     /// True if the task has conflict with vpcsc
     #[serde(default, rename = "disabledForVpcSc")]
@@ -4200,7 +4201,7 @@ pub struct EnterpriseCrmFrontendsEventbusProtoTaskEntity {
 }
 
 /// EnterpriseCrmEventbusProtoTeardownTaskConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoTeardownTaskConfig {
     /// The creator''s email address.
     #[serde(default, rename = "creatorEmail")]
@@ -4221,7 +4222,7 @@ pub struct EnterpriseCrmEventbusProtoTeardownTaskConfig {
 }
 
 /// Message to be used to configure custom alerting in the {@code EventConfig} protos for an event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaIntegrationAlertConfig {
     /// The period over which the metric value should be aggregated and evaluated. Format is , where integer should be a positive integer and unit should be one of (s,m,h,d,w) meaning (second, minute, hour, day, week). For an EXPECTED_MIN threshold, this aggregation_period must be lesser than 24 hours.
     #[serde(default, rename = "aggregationPeriod")]
@@ -4254,7 +4255,7 @@ pub struct GoogleCloudIntegrationsV1alphaIntegrationAlertConfig {
 }
 
 /// Cloud Scheduler Trigger configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaCloudSchedulerConfig {
     /// Required. The cron tab of cloud scheduler trigger.
     #[serde(default, rename = "cronTab")]
@@ -4271,7 +4272,7 @@ pub struct GoogleCloudIntegrationsV1alphaCloudSchedulerConfig {
 }
 
 /// Variables names mapped to api trigger.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaTriggerConfigVariables {
     /// Optional. List of variable names.
     #[serde(default)]
@@ -4279,7 +4280,7 @@ pub struct GoogleCloudIntegrationsV1alphaTriggerConfigVariables {
 }
 
 /// Configuration detail of coordinate, it used for UI
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaCoordinate {
     /// Required. X axis of the coordinate
     #[serde(default)]
@@ -4290,7 +4291,7 @@ pub struct GoogleCloudIntegrationsV1alphaCoordinate {
 }
 
 /// The task that is next in line to be executed, if the condition specified evaluated to true.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaNextTask {
     /// Standard filter expression for this task to become an eligible next task.
     #[serde(default)]
@@ -4310,7 +4311,7 @@ pub struct GoogleCloudIntegrationsV1alphaNextTask {
 }
 
 /// Message to be used to configure custom alerting in the {@code EventConfig} protos for an event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoWorkflowAlertConfig {
     /// For an EXPECTED_MIN threshold, this aggregation_period must be lesser than 24 hours.
     #[serde(default, rename = "aggregationPeriod")]
@@ -4355,7 +4356,7 @@ pub struct EnterpriseCrmEventbusProtoWorkflowAlertConfig {
 }
 
 /// Cloud Scheduler Trigger configuration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoCloudSchedulerConfig {
     /// Required. The cron tab of cloud scheduler trigger.
     #[serde(default, rename = "cronTab")]
@@ -4372,7 +4373,7 @@ pub struct EnterpriseCrmEventbusProtoCloudSchedulerConfig {
 }
 
 /// Variables names mapped to api trigger.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoTriggerConfigVariables {
     /// Optional. List of variable names.
     #[serde(default)]
@@ -4380,7 +4381,7 @@ pub struct EnterpriseCrmFrontendsEventbusProtoTriggerConfigVariables {
 }
 
 /// Represents two-dimensional positions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoCoordinate {
     #[serde(default)]
     pub x: ::core::option::Option<i32>,
@@ -4389,7 +4390,7 @@ pub struct EnterpriseCrmEventbusProtoCoordinate {
 }
 
 /// The task that is next in line to be executed, if the condition specified evaluated to true.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoNextTask {
     /// Combined condition for this task to become an eligible next task. Each of these combined_conditions are joined with logical OR. DEPRECATED: use condition
     #[serde(default, rename = "combinedConditions")]
@@ -4413,7 +4414,7 @@ pub struct EnterpriseCrmEventbusProtoNextTask {
 }
 
 /// EnterpriseCrmEventbusProtoTriggerCriteria resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoTriggerCriteria {
     /// Required. Standard filter expression, when true the workflow will be executed. If there''s no trigger_criteria_task_implementation_class_name specified, the condition will be validated directly.
     #[serde(default)]
@@ -4427,7 +4428,7 @@ pub struct EnterpriseCrmEventbusProtoTriggerCriteria {
 }
 
 /// The type of the parameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaValueType {
     /// Boolean Array.
     #[serde(default, rename = "booleanArray")]
@@ -4459,7 +4460,7 @@ pub struct GoogleCloudIntegrationsV1alphaValueType {
 }
 
 /// Attributes are additional options that can be associated with each event property. For more information, see
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoAttributes {
     /// Things like URL, Email, Currency, Timestamp (rather than string, int64...) // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "EMAIL", "URL", "CURRENCY", "TIMESTAMP", "DOMAIN_NAME"]
     #[serde(default, rename = "dataType")]
@@ -4491,7 +4492,7 @@ pub struct EnterpriseCrmEventbusProtoAttributes {
 }
 
 /// Represents a node identifier (type + id). Next highest id: 3
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoNodeIdentifier {
     /// Configuration of the edge.
     #[serde(default, rename = "elementIdentifier")]
@@ -4502,7 +4503,7 @@ pub struct EnterpriseCrmEventbusProtoNodeIdentifier {
 }
 
 /// Policy that defines the task retry logic and failure type. If no FailurePolicy is defined for a task, all its dependent tasks will not be executed (i.e, a retry_strategy of NONE will be applied).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaFailurePolicy {
     /// Optional. The string condition that will be evaluated to determine if the task should be retried with this failure policy.
     #[serde(default)]
@@ -4519,7 +4520,7 @@ pub struct GoogleCloudIntegrationsV1alphaFailurePolicy {
 }
 
 /// Policy that defines the task retry logic and failure type. If no FailurePolicy is defined for a task, all its dependent tasks will not be executed (i.e, a retry_strategy of NONE will be applied).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoFailurePolicy {
     /// Required if retry_strategy is FIXED_INTERVAL or LINEAR/EXPONENTIAL_BACKOFF/RESTART_WORKFLOW_WITH_BACKOFF. Defines the initial interval for backoff.
     #[serde(default, rename = "intervalInSeconds")]
@@ -4536,7 +4537,7 @@ pub struct EnterpriseCrmEventbusProtoFailurePolicy {
 }
 
 /// LINT.IfChange This message is used for processing and persisting (when applicable) key value pair parameters for each event in the event bus. Please see
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoEventParameters {
     /// Parameters are a part of Event and can be used to communicate between different tasks that are part of the same workflow execution.
     #[serde(default)]
@@ -4545,7 +4546,7 @@ pub struct EnterpriseCrmFrontendsEventbusProtoEventParameters {
 }
 
 /// TaskMetadata are attributes that are associated to every common Task we have.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoTaskMetadata {
     /// The new task name to replace the current task if it is deprecated. Otherwise, it is the same as the current task name.
     #[serde(default, rename = "activeTaskName")]
@@ -4616,7 +4617,7 @@ pub struct EnterpriseCrmEventbusProtoTaskMetadata {
 }
 
 /// EnterpriseCrmFrontendsEventbusProtoParamSpecsMessage resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoParamSpecsMessage {
     #[serde(default)]
     pub parameters:
@@ -4624,7 +4625,7 @@ pub struct EnterpriseCrmFrontendsEventbusProtoParamSpecsMessage {
 }
 
 /// Stats for the requested dimensions: QPS, duration, and error/warning rate
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusStats {
     /// Dimensions that these stats have been aggregated on.
     #[serde(default)]
@@ -4644,7 +4645,7 @@ pub struct EnterpriseCrmEventbusStats {
 }
 
 /// Task authors would use this type to configure the UI for a particular task by specifying what UI config modules should be included to compose the UI. Learn more about config module framework:
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoTaskUiConfig {
     /// Configurations of included config modules.
     #[serde(default, rename = "taskUiModuleConfigs")]
@@ -4653,7 +4654,7 @@ pub struct EnterpriseCrmEventbusProtoTaskUiConfig {
 }
 
 /// The teardown task that is next in line to be executed. We support only sequential execution of teardown tasks (i.e. no branching).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoNextTeardownTask {
     /// Required. Name of the next teardown task.
     #[serde(default)]
@@ -4661,7 +4662,7 @@ pub struct EnterpriseCrmEventbusProtoNextTeardownTask {
 }
 
 /// LINT.IfChange This message is used for storing key value pair properties for each Event / Task in the EventBus.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoEventBusProperties {
     /// An unordered list of property entries.
     #[serde(default)]
@@ -4670,7 +4671,7 @@ pub struct EnterpriseCrmEventbusProtoEventBusProperties {
 }
 
 /// The threshold value of the metric, above or below which the alert should be triggered. See EventAlertConfig or TaskAlertConfig for the different alert metric types in each case. For the *RATE metrics, one or both of these fields may be set. Zero is the default value and can be left at that. For *PERCENTILE_DURATION metrics, one or both of these fields may be set, and also, the duration threshold value should be specified in the threshold_duration_ms member below. For *AVERAGE_DURATION metrics, these fields should not be set at all. A different member, threshold_duration_ms, must be set in the EventAlertConfig or the TaskAlertConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaIntegrationAlertConfigThresholdValue {
     /// Absolute value threshold.
     #[serde(default)]
@@ -4681,7 +4682,7 @@ pub struct GoogleCloudIntegrationsV1alphaIntegrationAlertConfigThresholdValue {
 }
 
 /// List of error enums for alerts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList {
     #[serde(default, rename = "enumStrings")]
     pub enum_strings: ::core::option::Option<::std::vec::Vec<String>>,
@@ -4691,7 +4692,7 @@ pub struct EnterpriseCrmEventbusProtoBaseAlertConfigErrorEnumList {
 }
 
 /// The threshold value of the metric, above or below which the alert should be triggered. See EventAlertConfig or TaskAlertConfig for the different alert metric types in each case. For the *RATE metrics, one or both of these fields may be set. Zero is the default value and can be left at that. For *PERCENTILE_DURATION metrics, one or both of these fields may be set, and also, the duration threshold value should be specified in the threshold_duration_ms member below. For *AVERAGE_DURATION metrics, these fields should not be set at all. A different member, threshold_duration_ms, must be set in the EventAlertConfig or the TaskAlertConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoBaseAlertConfigThresholdValue {
     #[serde(default)]
     pub absolute: ::core::option::Option<String>,
@@ -4700,7 +4701,7 @@ pub struct EnterpriseCrmEventbusProtoBaseAlertConfigThresholdValue {
 }
 
 /// This message recursively combines constituent conditions using logical AND.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoCombinedCondition {
     /// A set of individual constituent conditions.
     #[serde(default)]
@@ -4708,7 +4709,7 @@ pub struct EnterpriseCrmEventbusProtoCombinedCondition {
 }
 
 /// LINT.IfChange This message is used for processing and persisting (when applicable) key value pair parameters for each event in the event bus. Please see
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoEventParameters {
     /// Parameters are a part of Event and can be used to communicate between different tasks that are part of the same integration execution.
     #[serde(default)]
@@ -4717,7 +4718,7 @@ pub struct EnterpriseCrmEventbusProtoEventParameters {
 }
 
 /// This message only contains a field of boolean array.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaBooleanParameterArray {
     /// Boolean array.
     #[serde(default, rename = "booleanValues")]
@@ -4725,7 +4726,7 @@ pub struct GoogleCloudIntegrationsV1alphaBooleanParameterArray {
 }
 
 /// This message only contains a field of double number array.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaDoubleParameterArray {
     /// Double number array.
     #[serde(default, rename = "doubleValues")]
@@ -4733,7 +4734,7 @@ pub struct GoogleCloudIntegrationsV1alphaDoubleParameterArray {
 }
 
 /// This message only contains a field of integer array.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudIntegrationsV1alphaIntParameterArray {
     /// Integer array.
     #[serde(default, rename = "intValues")]
@@ -4741,7 +4742,7 @@ pub struct GoogleCloudIntegrationsV1alphaIntParameterArray {
 }
 
 /// The LogSettings define the logging attributes for an event property. These attributes are used to map the property to the parameter in the log proto. Also used to define scrubbing/truncation behavior and PII information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoLogSettings {
     /// The name of corresponding logging field of the event property. If omitted, assumes the same name as the event property key.
     #[serde(default, rename = "logFieldName")]
@@ -4755,7 +4756,7 @@ pub struct EnterpriseCrmEventbusProtoLogSettings {
 }
 
 /// Key-value pair of EventBus parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoParameterEntry {
     /// Explicitly getting the type of the parameter. // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "STRING_VALUE", "INT_VALUE", "DOUBLE_VALUE", "BOOLEAN_VALUE", "PROTO_VALUE", "SERIALIZED_OBJECT_VALUE", "STRING_ARRAY", "INT_ARRAY", "DOUBLE_ARRAY", "PROTO_ARRAY", "PROTO_ENUM", "BOOLEAN_ARRAY", "PROTO_ENUM_ARRAY", "BYTES", "BYTES_ARRAY", "NON_SERIALIZABLE_OBJECT", "JSON_VALUE"]
     #[serde(default, rename = "dataType")]
@@ -4772,7 +4773,7 @@ pub struct EnterpriseCrmFrontendsEventbusProtoParameterEntry {
 }
 
 /// Admins are owners of a Task, and have all permissions on a particular task identified by the task name. By default, Eventbus periodically scans all task metadata and syncs (adds) any new admins defined here to Zanzibar.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoTaskMetadataAdmin {
     #[serde(default, rename = "googleGroupEmail")]
     pub google_group_email: ::core::option::Option<String>,
@@ -4781,7 +4782,7 @@ pub struct EnterpriseCrmEventbusProtoTaskMetadataAdmin {
 }
 
 /// Key-value pair of EventBus task parameters. Next id: 13
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoParamSpecEntry {
     /// The FQCN of the Java object this represents. A string, for example, would be "java.lang.String". If this is "java.lang.Object", the parameter can be of any type.
     #[serde(default, rename = "className")]
@@ -4823,7 +4824,7 @@ pub struct EnterpriseCrmFrontendsEventbusProtoParamSpecEntry {
 }
 
 /// EnterpriseCrmEventbusStatsDimensions resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusStatsDimensions {
     #[serde(default, rename = "clientId")]
     pub client_id: ::core::option::Option<String>,
@@ -4851,7 +4852,7 @@ pub struct EnterpriseCrmEventbusStatsDimensions {
 }
 
 /// Task author would use this type to configure a config module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoTaskUiModuleConfig {
     /// ID of the config module. // TODO: enum values: ["UNSPECIFIED_TASK_MODULE", "LABEL", "ERROR_HANDLING", "TASK_PARAM_TABLE", "TASK_PARAM_FORM", "PRECONDITION", "SCRIPT_EDITOR", "RPC", "TASK_SUMMARY", "SUSPENSION", "RPC_TYPED", "SUB_WORKFLOW", "APPS_SCRIPT_NAVIGATOR", "SUB_WORKFLOW_FOR_EACH_LOOP", "FIELD_MAPPING", "README", "REST_CALLER", "SUB_WORKFLOW_SCATTER_GATHER", "CLOUD_SQL", "GENERIC_CONNECTOR_TASK"]
     #[serde(default, rename = "moduleId")]
@@ -4859,7 +4860,7 @@ pub struct EnterpriseCrmEventbusProtoTaskUiModuleConfig {
 }
 
 /// Key-value pair of EventBus property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoPropertyEntry {
     /// Key is used to retrieve the corresponding property value. This should be unique for a given fired event. The Tasks should be aware of the keys used while firing the events for them to be able to retrieve the values.
     #[serde(default)]
@@ -4870,7 +4871,7 @@ pub struct EnterpriseCrmEventbusProtoPropertyEntry {
 }
 
 /// Condition that uses operator to evaluate the key against the value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoCondition {
     /// Key that''s evaluated against the value. Please note the data type of the runtime value associated with the key should match the data type of value, else an IllegalArgumentException is thrown.
     #[serde(default, rename = "eventPropertyKey")]
@@ -4884,7 +4885,7 @@ pub struct EnterpriseCrmEventbusProtoCondition {
 }
 
 /// Key-value pair of EventBus parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoParameterEntry {
     /// Key is used to retrieve the corresponding parameter value. This should be unique for a given fired event. These parameters must be predefined in the integration definition.
     #[serde(default)]
@@ -4899,7 +4900,7 @@ pub struct EnterpriseCrmEventbusProtoParameterEntry {
 }
 
 /// EnterpriseCrmEventbusProtoParamSpecEntryConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoParamSpecEntryConfig {
     /// A short phrase to describe what this parameter contains.
     #[serde(default, rename = "descriptivePhrase")]
@@ -4931,7 +4932,7 @@ pub struct EnterpriseCrmEventbusProtoParamSpecEntryConfig {
 }
 
 /// To support various types of parameter values. Next available id: 14
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoParameterValueType {
     #[serde(default, rename = "booleanArray")]
     pub boolean_array:
@@ -4964,7 +4965,7 @@ pub struct EnterpriseCrmFrontendsEventbusProtoParameterValueType {
 }
 
 /// EnterpriseCrmEventbusProtoParamSpecEntryProtoDefinition resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoParamSpecEntryProtoDefinition {
     /// The fully-qualified proto name. This message, for example, would be "enterprise.crm.eventbus.proto.ParamSpecEntry.ProtoDefinition".
     #[serde(default, rename = "fullName")]
@@ -4975,7 +4976,7 @@ pub struct EnterpriseCrmEventbusProtoParamSpecEntryProtoDefinition {
 }
 
 /// EnterpriseCrmEventbusProtoParamSpecEntryValidationRule resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRule {
     #[serde(default, rename = "doubleRange")]
     pub double_range:
@@ -4989,7 +4990,7 @@ pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRule {
 }
 
 /// Used for define type for values. Currently supported value types include int, string, double, array, and any proto message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoValueType {
     #[serde(default, rename = "booleanValue")]
     pub boolean_value: ::core::option::Option<bool>,
@@ -5010,42 +5011,42 @@ pub struct EnterpriseCrmEventbusProtoValueType {
 }
 
 /// EnterpriseCrmFrontendsEventbusProtoBooleanParameterArray resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoBooleanParameterArray {
     #[serde(default, rename = "booleanValues")]
     pub boolean_values: ::core::option::Option<::std::vec::Vec<bool>>,
 }
 
 /// EnterpriseCrmFrontendsEventbusProtoDoubleParameterArray resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoDoubleParameterArray {
     #[serde(default, rename = "doubleValues")]
     pub double_values: ::core::option::Option<::std::vec::Vec<f64>>,
 }
 
 /// EnterpriseCrmFrontendsEventbusProtoIntParameterArray resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoIntParameterArray {
     #[serde(default, rename = "intValues")]
     pub int_values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// EnterpriseCrmFrontendsEventbusProtoProtoParameterArray resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoProtoParameterArray {
     #[serde(default, rename = "protoValues")]
     pub proto_values: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
 
 /// EnterpriseCrmFrontendsEventbusProtoSerializedObjectParameter resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmFrontendsEventbusProtoSerializedObjectParameter {
     #[serde(default, rename = "objectValue")]
     pub object_value: ::core::option::Option<String>,
 }
 
 /// Range used to validate doubles and floats.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleDoubleRange {
     /// The inclusive maximum of the acceptable range.
     #[serde(default)]
@@ -5056,7 +5057,7 @@ pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleDoubleRange {
 }
 
 /// Range used to validate longs and ints.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleIntRange {
     /// The inclusive maximum of the acceptable range.
     #[serde(default)]
@@ -5067,21 +5068,21 @@ pub struct EnterpriseCrmEventbusProtoParamSpecEntryValidationRuleIntRange {
 }
 
 /// EnterpriseCrmEventbusProtoDoubleArray resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoDoubleArray {
     #[serde(default)]
     pub values: ::core::option::Option<::std::vec::Vec<f64>>,
 }
 
 /// EnterpriseCrmEventbusProtoIntArray resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoIntArray {
     #[serde(default)]
     pub values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// EnterpriseCrmEventbusProtoBaseFunction resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoBaseFunction {
     /// TODO: enum values: ["UNSPECIFIED", "NOW_IN_MILLIS", "INT_LIST", "ENVIRONMENT", "GET_EXECUTION_ID", "GET_INTEGRATION_NAME", "GET_REGION", "GET_UUID", "GET_PROJECT_ID"]
     #[serde(default, rename = "functionName")]
@@ -5089,7 +5090,7 @@ pub struct EnterpriseCrmEventbusProtoBaseFunction {
 }
 
 /// EnterpriseCrmEventbusProtoBaseValue resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoBaseValue {
     /// Start with a function that does not build on existing values. Eg. CurrentTime, Min, Max, Exists, etc.
     #[serde(default, rename = "baseFunction")]
@@ -5105,7 +5106,7 @@ pub struct EnterpriseCrmEventbusProtoBaseValue {
 }
 
 /// EnterpriseCrmEventbusProtoBooleanArrayFunction resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoBooleanArrayFunction {
     /// TODO: enum values: ["UNSPECIFIED", "GET", "APPEND", "SIZE", "TO_SET", "APPEND_ALL", "TO_JSON", "SET", "REMOVE", "REMOVE_AT", "CONTAINS", "FOR_EACH", "FILTER"]
     #[serde(default, rename = "functionName")]
@@ -5113,7 +5114,7 @@ pub struct EnterpriseCrmEventbusProtoBooleanArrayFunction {
 }
 
 /// EnterpriseCrmEventbusProtoBooleanFunction resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoBooleanFunction {
     /// TODO: enum values: ["UNSPECIFIED", "TO_JSON", "NOT", "AND", "NAND", "OR", "XOR", "NOR", "XNOR", "TO_STRING", "EQUALS"]
     #[serde(default, rename = "functionName")]
@@ -5121,14 +5122,14 @@ pub struct EnterpriseCrmEventbusProtoBooleanFunction {
 }
 
 /// EnterpriseCrmEventbusProtoBooleanParameterArray resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoBooleanParameterArray {
     #[serde(default, rename = "booleanValues")]
     pub boolean_values: ::core::option::Option<::std::vec::Vec<bool>>,
 }
 
 /// EnterpriseCrmEventbusProtoDoubleArrayFunction resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoDoubleArrayFunction {
     /// TODO: enum values: ["UNSPECIFIED", "GET", "APPEND", "SIZE", "SUM", "AVG", "MAX", "MIN", "TO_SET", "APPEND_ALL", "TO_JSON", "SET", "REMOVE", "REMOVE_AT", "CONTAINS", "FOR_EACH", "FILTER"]
     #[serde(default, rename = "functionName")]
@@ -5136,7 +5137,7 @@ pub struct EnterpriseCrmEventbusProtoDoubleArrayFunction {
 }
 
 /// EnterpriseCrmEventbusProtoDoubleFunction resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoDoubleFunction {
     /// TODO: enum values: ["UNSPECIFIED", "TO_JSON", "TO_STRING", "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE", "EXPONENT", "ROUND", "FLOOR", "CEIL", "GREATER_THAN", "LESS_THAN", "EQUALS", "GREATER_THAN_EQUALS", "LESS_THAN_EQUALS", "MOD"]
     #[serde(default, rename = "functionName")]
@@ -5144,14 +5145,14 @@ pub struct EnterpriseCrmEventbusProtoDoubleFunction {
 }
 
 /// EnterpriseCrmEventbusProtoDoubleParameterArray resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoDoubleParameterArray {
     #[serde(default, rename = "doubleValues")]
     pub double_values: ::core::option::Option<::std::vec::Vec<f64>>,
 }
 
 /// EnterpriseCrmEventbusProtoFunction resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoFunction {
     /// The name of the function to perform.
     #[serde(default, rename = "functionType")]
@@ -5164,7 +5165,7 @@ pub struct EnterpriseCrmEventbusProtoFunction {
 }
 
 /// EnterpriseCrmEventbusProtoFunctionType resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoFunctionType {
     /// LINT.IfChange
     #[serde(default, rename = "baseFunction")]
@@ -5205,7 +5206,7 @@ pub struct EnterpriseCrmEventbusProtoFunctionType {
 }
 
 /// EnterpriseCrmEventbusProtoIntArrayFunction resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoIntArrayFunction {
     /// TODO: enum values: ["UNSPECIFIED", "GET", "APPEND", "SIZE", "SUM", "AVG", "MAX", "MIN", "TO_SET", "APPEND_ALL", "TO_JSON", "SET", "REMOVE", "REMOVE_AT", "CONTAINS", "FOR_EACH", "FILTER"]
     #[serde(default, rename = "functionName")]
@@ -5213,7 +5214,7 @@ pub struct EnterpriseCrmEventbusProtoIntArrayFunction {
 }
 
 /// EnterpriseCrmEventbusProtoIntFunction resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoIntFunction {
     /// TODO: enum values: ["UNSPECIFIED", "ADD", "SUBTRACT", "MULTIPLY", "DIVIDE", "EXPONENT", "GREATER_THAN_EQUAL_TO", "GREATER_THAN", "LESS_THAN_EQUAL_TO", "LESS_THAN", "TO_DOUBLE", "TO_STRING", "EQUALS", "TO_JSON", "MOD", "EPOCH_TO_HUMAN_READABLE_TIME"]
     #[serde(default, rename = "functionName")]
@@ -5221,14 +5222,14 @@ pub struct EnterpriseCrmEventbusProtoIntFunction {
 }
 
 /// EnterpriseCrmEventbusProtoIntParameterArray resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoIntParameterArray {
     #[serde(default, rename = "intValues")]
     pub int_values: ::core::option::Option<::std::vec::Vec<String>>,
 }
 
 /// EnterpriseCrmEventbusProtoJsonFunction resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoJsonFunction {
     /// TODO: enum values: ["UNSPECIFIED", "GET_PROPERTY", "GET_ELEMENT", "APPEND_ELEMENT", "SIZE", "SET_PROPERTY", "FLATTEN", "FLATTEN_ONCE", "MERGE", "TO_STRING", "TO_INT", "TO_DOUBLE", "TO_BOOLEAN", "TO_PROTO", "TO_STRING_ARRAY", "TO_INT_ARRAY", "TO_DOUBLE_ARRAY", "TO_PROTO_ARRAY", "TO_BOOLEAN_ARRAY", "REMOVE_PROPERTY", "RESOLVE_TEMPLATE", "EQUALS", "FOR_EACH", "FILTER_ELEMENTS"]
     #[serde(default, rename = "functionName")]
@@ -5236,7 +5237,7 @@ pub struct EnterpriseCrmEventbusProtoJsonFunction {
 }
 
 /// LINT.IfChange To support various types of parameter values. Next available id: 14
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoParameterValueType {
     #[serde(default, rename = "booleanArray")]
     pub boolean_array:
@@ -5269,7 +5270,7 @@ pub struct EnterpriseCrmEventbusProtoParameterValueType {
 }
 
 /// EnterpriseCrmEventbusProtoProtoArrayFunction resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoProtoArrayFunction {
     /// TODO: enum values: ["UNSPECIFIED", "GET", "APPEND", "SIZE", "TO_SET", "APPEND_ALL", "TO_JSON", "SET", "REMOVE", "REMOVE_AT", "CONTAINS", "FOR_EACH", "FILTER"]
     #[serde(default, rename = "functionName")]
@@ -5277,7 +5278,7 @@ pub struct EnterpriseCrmEventbusProtoProtoArrayFunction {
 }
 
 /// EnterpriseCrmEventbusProtoProtoFunction resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoProtoFunction {
     /// TODO: enum values: ["UNSPECIFIED", "GET_STRING_SUBFIELD", "GET_INT_SUBFIELD", "GET_DOUBLE_SUBFIELD", "GET_BOOLEAN_SUBFIELD", "GET_STRING_ARRAY_SUBFIELD", "GET_INT_ARRAY_SUBFIELD", "GET_DOUBLE_ARRAY_SUBFIELD", "GET_BOOLEAN_ARRAY_SUBFIELD", "GET_PROTO_ARRAY_SUBFIELD", "GET_PROTO_SUBFIELD", "TO_JSON", "GET_BYTES_SUBFIELD_AS_UTF_8_STRING", "GET_BYTES_SUBFIELD_AS_PROTO", "EQUALS"]
     #[serde(default, rename = "functionName")]
@@ -5285,21 +5286,21 @@ pub struct EnterpriseCrmEventbusProtoProtoFunction {
 }
 
 /// EnterpriseCrmEventbusProtoProtoParameterArray resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoProtoParameterArray {
     #[serde(default, rename = "protoValues")]
     pub proto_values: ::core::option::Option<::std::vec::Vec<serde_json::Value>>,
 }
 
 /// EnterpriseCrmEventbusProtoSerializedObjectParameter resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoSerializedObjectParameter {
     #[serde(default, rename = "objectValue")]
     pub object_value: ::core::option::Option<String>,
 }
 
 /// EnterpriseCrmEventbusProtoTransformExpression resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnterpriseCrmEventbusProtoTransformExpression {
     /// Initial value upon which to perform transformations.
     #[serde(default, rename = "initialValue")]

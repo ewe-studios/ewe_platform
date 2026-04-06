@@ -8,18 +8,19 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// Message for response to listing blockchain nodes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBlockchainNodesResponse {
     /// The list of nodes
     #[serde(default, rename = "blockchainNodes")]
@@ -33,7 +34,7 @@ pub struct ListBlockchainNodesResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -44,7 +45,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -55,7 +56,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -81,7 +82,7 @@ pub struct OperationMetadata {
 }
 
 /// A representation of a blockchain node.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BlockchainNode {
     /// Immutable. The blockchain type of the node. // TODO: enum values: ["BLOCKCHAIN_TYPE_UNSPECIFIED", "ETHEREUM"]
     #[serde(default, rename = "blockchainType")]
@@ -113,7 +114,7 @@ pub struct BlockchainNode {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -133,7 +134,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -153,7 +154,7 @@ pub struct Operation {
 }
 
 /// The connection information through which to interact with a blockchain node.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectionInfo {
     /// Output only. The endpoint information through which to interact with a blockchain node.
     #[serde(default, rename = "endpointInfo")]
@@ -164,7 +165,7 @@ pub struct ConnectionInfo {
 }
 
 /// Ethereum-specific blockchain node details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EthereumDetails {
     /// Output only. Ethereum-specific endpoint information.
     #[serde(default, rename = "additionalEndpoints")]
@@ -196,7 +197,7 @@ pub struct EthereumDetails {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -210,7 +211,7 @@ pub struct Status {
 }
 
 /// Contains endpoint information through which to interact with a blockchain node.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EndpointInfo {
     /// Output only. The assigned URL for the node JSON-RPC API endpoint.
     #[serde(default, rename = "jsonRpcApiEndpoint")]
@@ -221,7 +222,7 @@ pub struct EndpointInfo {
 }
 
 /// Contains endpoint information specific to Ethereum nodes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EthereumEndpoints {
     /// Output only. The assigned URL for the node''s Beacon API endpoint.
     #[serde(default, rename = "beaconApiEndpoint")]
@@ -235,7 +236,7 @@ pub struct EthereumEndpoints {
 }
 
 /// Options for the Geth execution client. See [Command-line Options](https://geth.ethereum.org/docs/fundamentals/command-line-options) for more details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GethDetails {
     /// Immutable. Blockchain garbage collection mode. // TODO: enum values: ["GARBAGE_COLLECTION_MODE_UNSPECIFIED", "FULL", "ARCHIVE"]
     #[serde(default, rename = "garbageCollectionMode")]
@@ -243,7 +244,7 @@ pub struct GethDetails {
 }
 
 /// Configuration for validator-related parameters on the beacon client, and for any GCP-managed validator client.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValidatorConfig {
     /// An Ethereum address which the beacon client will send fee rewards to if no recipient is configured in the validator client. See https://lighthouse-book.sigmaprime.io/suggested-fee-recipient.html or https://docs.prylabs.network/docs/execution-node/fee-recipient for examples of how this is used. Note that while this is often described as "suggested", as we run the execution node we can trust the execution node, and therefore this is considered enforced.
     #[serde(default, rename = "beaconFeeRecipient")]

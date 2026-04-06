@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Request message for GetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetIamPolicyRequest {
     /// OPTIONAL: A GetPolicyOptions object for specifying options to GetIamPolicy.
     #[serde(default)]
@@ -23,7 +24,7 @@ pub struct GetIamPolicyRequest {
 }
 
 /// Common statistics on the entry''s usage. They can be set on any system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1CommonUsageStats {
     /// View count in source system.
     #[serde(default, rename = "viewCount")]
@@ -31,7 +32,7 @@ pub struct GoogleCloudDatacatalogV1CommonUsageStats {
 }
 
 /// Wrapper for any item that can be contained in the dump.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1DumpItem {
     /// Entry and its tags.
     #[serde(default, rename = "taggedEntry")]
@@ -39,7 +40,7 @@ pub struct GoogleCloudDatacatalogV1DumpItem {
 }
 
 /// Response message for ExportTaxonomies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1ExportTaxonomiesResponse {
     /// List of taxonomies and policy tags as nested protocol buffers.
     #[serde(default)]
@@ -48,7 +49,7 @@ pub struct GoogleCloudDatacatalogV1ExportTaxonomiesResponse {
 }
 
 /// Metadata message for long-running operation returned by the ImportEntries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1ImportEntriesMetadata {
     /// Partial errors that are encountered during the ImportEntries operation. There is no guarantee that all the encountered errors are reported. However, if no errors are reported, it means that no errors were encountered.
     #[serde(default)]
@@ -59,7 +60,7 @@ pub struct GoogleCloudDatacatalogV1ImportEntriesMetadata {
 }
 
 /// Request message for ImportEntries method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1ImportEntriesRequest {
     /// Path to a Cloud Storage bucket that contains a dump ready for ingestion.
     #[serde(default, rename = "gcsBucketPath")]
@@ -70,7 +71,7 @@ pub struct GoogleCloudDatacatalogV1ImportEntriesRequest {
 }
 
 /// Response message for long-running operation returned by the ImportEntries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1ImportEntriesResponse {
     /// Number of entries deleted as a result of import operation.
     #[serde(default, rename = "deletedEntriesCount")]
@@ -81,7 +82,7 @@ pub struct GoogleCloudDatacatalogV1ImportEntriesResponse {
 }
 
 /// Request message for ImportTaxonomies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1ImportTaxonomiesRequest {
     /// Cross-regional source taxonomy to import.
     #[serde(default, rename = "crossRegionalSource")]
@@ -92,7 +93,7 @@ pub struct GoogleCloudDatacatalogV1ImportTaxonomiesRequest {
 }
 
 /// Response message for ImportTaxonomies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1ImportTaxonomiesResponse {
     /// Imported taxonomies.
     #[serde(default)]
@@ -100,7 +101,7 @@ pub struct GoogleCloudDatacatalogV1ImportTaxonomiesResponse {
 }
 
 /// Response message for ListEntries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1ListEntriesResponse {
     /// Entry details.
     #[serde(default)]
@@ -111,7 +112,7 @@ pub struct GoogleCloudDatacatalogV1ListEntriesResponse {
 }
 
 /// Response message for ListEntryGroups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1ListEntryGroupsResponse {
     /// Entry group details.
     #[serde(default, rename = "entryGroups")]
@@ -122,7 +123,7 @@ pub struct GoogleCloudDatacatalogV1ListEntryGroupsResponse {
 }
 
 /// Response message for ListPolicyTags.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1ListPolicyTagsResponse {
     /// Pagination token of the next results page. Empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -133,7 +134,7 @@ pub struct GoogleCloudDatacatalogV1ListPolicyTagsResponse {
 }
 
 /// Response message for ListTags.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1ListTagsResponse {
     /// Pagination token of the next results page. Empty if there are no more items in results.
     #[serde(default, rename = "nextPageToken")]
@@ -144,7 +145,7 @@ pub struct GoogleCloudDatacatalogV1ListTagsResponse {
 }
 
 /// Response message for ListTaxonomies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1ListTaxonomiesResponse {
     /// Pagination token of the next results page. Empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -155,7 +156,7 @@ pub struct GoogleCloudDatacatalogV1ListTaxonomiesResponse {
 }
 
 /// The configuration related to the migration to Dataplex Universal Catalog applied to an organization or project. It is the response message for SetConfig and RetrieveEffectiveConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1MigrationConfig {
     /// Opt-in status for the UI switch to Dataplex Universal Catalog. // TODO: enum values: ["CATALOG_UI_EXPERIENCE_UNSPECIFIED", "CATALOG_UI_EXPERIENCE_ENABLED", "CATALOG_UI_EXPERIENCE_DISABLED"]
     #[serde(default, rename = "catalogUiExperience")]
@@ -169,7 +170,7 @@ pub struct GoogleCloudDatacatalogV1MigrationConfig {
 }
 
 /// Request message for ModifyEntryContacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1ModifyEntryContactsRequest {
     /// Required. The new value for the Contacts.
     #[serde(default)]
@@ -177,7 +178,7 @@ pub struct GoogleCloudDatacatalogV1ModifyEntryContactsRequest {
 }
 
 /// Request message for ModifyEntryOverview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1ModifyEntryOverviewRequest {
     /// Required. The new value for the Entry Overview.
     #[serde(default, rename = "entryOverview")]
@@ -185,7 +186,7 @@ pub struct GoogleCloudDatacatalogV1ModifyEntryOverviewRequest {
 }
 
 /// The configuration related to the migration from Data Catalog to Dataplex Universal Catalog that has been applied to an organization and any projects under it. It is the response message for RetrieveConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1OrganizationConfig {
     /// Map of organizations and project resource names and their configuration. The format for the map keys is organizations/{organizationId} or projects/{projectId}.
     #[serde(default)]
@@ -193,19 +194,19 @@ pub struct GoogleCloudDatacatalogV1OrganizationConfig {
 }
 
 /// Marks a CSV-encoded data source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1PhysicalSchemaCsvSchema {}
 
 /// Marks an ORC-encoded data source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1PhysicalSchemaOrcSchema {}
 
 /// Marks a Parquet-encoded data source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1PhysicalSchemaParquetSchema {}
 
 /// Long-running operation metadata message returned by the ReconcileTags.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1ReconcileTagsMetadata {
     /// Maps the name of each tagged column (or empty string for a sole entry) to tagging operation status.
     #[serde(default)]
@@ -216,7 +217,7 @@ pub struct GoogleCloudDatacatalogV1ReconcileTagsMetadata {
 }
 
 /// Request message for ReconcileTags.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1ReconcileTagsRequest {
     #[serde(default, rename = "forceDeleteMissing")]
     pub force_delete_missing: ::core::option::Option<bool>,
@@ -229,7 +230,7 @@ pub struct GoogleCloudDatacatalogV1ReconcileTagsRequest {
 }
 
 /// Long-running operation response message returned by ReconcileTags.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1ReconcileTagsResponse {
     /// Number of tags created in the request.
     #[serde(default, rename = "createdTagsCount")]
@@ -243,7 +244,7 @@ pub struct GoogleCloudDatacatalogV1ReconcileTagsResponse {
 }
 
 /// Request message for RenameTagTemplateFieldEnumValue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1RenameTagTemplateFieldEnumValueRequest {
     /// Required. The new display name of the enum value. For example, my_new_enum_value.
     #[serde(default, rename = "newEnumValueDisplayName")]
@@ -251,7 +252,7 @@ pub struct GoogleCloudDatacatalogV1RenameTagTemplateFieldEnumValueRequest {
 }
 
 /// Request message for RenameTagTemplateField.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1RenameTagTemplateFieldRequest {
     /// Required. The new ID of this tag template field. For example, my_new_field.
     #[serde(default, rename = "newTagTemplateFieldId")]
@@ -259,7 +260,7 @@ pub struct GoogleCloudDatacatalogV1RenameTagTemplateFieldRequest {
 }
 
 /// Request message for ReplaceTaxonomy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1ReplaceTaxonomyRequest {
     /// Required. Taxonomy to update along with its child policy tags.
     #[serde(default, rename = "serializedTaxonomy")]
@@ -267,7 +268,7 @@ pub struct GoogleCloudDatacatalogV1ReplaceTaxonomyRequest {
 }
 
 /// Request message for SearchCatalog.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1SearchCatalogRequest {
     /// Optional. If set, use searchAll permission granted on organizations from include_org_ids and projects from include_project_ids instead of the fine grained per resource permissions when filtering the search results. The only allowed order_by criteria for admin_search mode is default. Using this flags guarantees a full recall of the search results.
     #[serde(default, rename = "adminSearch")]
@@ -290,7 +291,7 @@ pub struct GoogleCloudDatacatalogV1SearchCatalogRequest {
 }
 
 /// Response message for SearchCatalog.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1SearchCatalogResponse {
     /// Pagination token that can be used in subsequent calls to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -308,7 +309,7 @@ pub struct GoogleCloudDatacatalogV1SearchCatalogResponse {
 }
 
 /// Request message for SetConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1SetConfigRequest {
     /// Opt-in status for the UI switch to Dataplex Universal Catalog. // TODO: enum values: ["CATALOG_UI_EXPERIENCE_UNSPECIFIED", "CATALOG_UI_EXPERIENCE_ENABLED", "CATALOG_UI_EXPERIENCE_DISABLED"]
     #[serde(default, rename = "catalogUiExperience")]
@@ -319,15 +320,15 @@ pub struct GoogleCloudDatacatalogV1SetConfigRequest {
 }
 
 /// Request message for StarEntry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1StarEntryRequest {}
 
 /// Response message for StarEntry. Empty for now
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1StarEntryResponse {}
 
 /// Contains the value and additional information on a field within a Tag.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1TagField {
     /// The value of a tag field with a boolean type.
     #[serde(default, rename = "boolValue")]
@@ -356,7 +357,7 @@ pub struct GoogleCloudDatacatalogV1TagField {
 }
 
 /// A tag template defines a tag that can have one or more typed fields. The template is used to create tags that are attached to Google Cloud resources. [Tag template roles] (https://cloud.google.com/iam/docs/roles-permissions/datacatalog) provide permissions to create, edit, and use the template. For example, see the [TagTemplate User] (https://cloud.google.com/data-catalog/docs/how-to/template-user) role that includes a permission to use the tag template to tag resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1TagTemplate {
     /// Optional. Transfer status of the TagTemplate // TODO: enum values: ["DATAPLEX_TRANSFER_STATUS_UNSPECIFIED", "MIGRATED", "TRANSFERRED"]
     #[serde(default, rename = "dataplexTransferStatus")]
@@ -376,7 +377,7 @@ pub struct GoogleCloudDatacatalogV1TagTemplate {
 }
 
 /// The template for an individual field within a tag template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1TagTemplateField {
     /// The description for this field. Defaults to an empty string.
     #[serde(default)]
@@ -399,15 +400,15 @@ pub struct GoogleCloudDatacatalogV1TagTemplateField {
 }
 
 /// Request message for UnstarEntry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1UnstarEntryRequest {}
 
 /// Response message for UnstarEntry. Empty for now
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1UnstarEntryResponse {}
 
 /// Detailed statistics on the entry''s usage. Usage statistics have the following limitations: - Only BigQuery tables have them. - They only include BigQuery query jobs. - They might be underestimated because wildcard table references are not yet counted. For more information, see [Querying multiple tables using a wildcard table] (https://cloud.google.com/bigquery/docs/querying-wildcard-tables)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1UsageStats {
     /// The number of cancelled attempts to use the underlying entry.
     #[serde(default, rename = "totalCancellations")]
@@ -424,7 +425,7 @@ pub struct GoogleCloudDatacatalogV1UsageStats {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -438,7 +439,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -446,7 +447,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -454,7 +455,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -462,7 +463,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// Encapsulates settings provided to GetIamPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetPolicyOptions {
     /// Optional. The maximum policy version that will be used to format the policy. Valid values are 0, 1, and 3. Requests specifying an invalid value will be rejected. Requests for policies with any conditional role bindings must specify version 3. Policies with no conditional role bindings may specify any valid value or leave the field unset. The policy in the response might use the policy version that you specified, or it might use a lower policy version. For example, if you specify version 3, but the policy has no conditional role bindings, the response uses version 1. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default, rename = "requestedPolicyVersion")]
@@ -470,7 +471,7 @@ pub struct GetPolicyOptions {
 }
 
 /// Wrapper containing Entry and information about Tags that should and should not be attached to it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1TaggedEntry {
     /// Optional. Tags that should be deleted from the Data Catalog. Caller should populate template name and column only.
     #[serde(default, rename = "absentTags")]
@@ -484,7 +485,7 @@ pub struct GoogleCloudDatacatalogV1TaggedEntry {
 }
 
 /// Cross-regional source used to import an existing taxonomy into a different region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1CrossRegionalSource {
     /// Required. The resource name of the source taxonomy to import.
     #[serde(default)]
@@ -492,7 +493,7 @@ pub struct GoogleCloudDatacatalogV1CrossRegionalSource {
 }
 
 /// Inline source containing taxonomies to import.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1InlineSource {
     /// Required. Taxonomies to import.
     #[serde(default)]
@@ -501,7 +502,7 @@ pub struct GoogleCloudDatacatalogV1InlineSource {
 }
 
 /// Entry group metadata. An EntryGroup resource represents a logical grouping of zero or more Data Catalog Entry resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1EntryGroup {
     /// Output only. Timestamps of the entry group. Default value is empty.
     #[serde(default, rename = "dataCatalogTimestamps")]
@@ -521,7 +522,7 @@ pub struct GoogleCloudDatacatalogV1EntryGroup {
 }
 
 /// Denotes one policy tag in a taxonomy, for example, SSN. Policy tags can be defined in a hierarchy. For example:  + Geolocation + LatLong + City + ZipCode  Where the "Geolocation" policy tag contains three children.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1PolicyTag {
     /// Output only. Resource names of child policy tags of this policy tag.
     #[serde(default, rename = "childPolicyTags")]
@@ -541,7 +542,7 @@ pub struct GoogleCloudDatacatalogV1PolicyTag {
 }
 
 /// A taxonomy is a collection of hierarchical policy tags that classify data along a common axis. For example, a "data sensitivity" taxonomy might contain the following policy tags:  + PII + Account number + Age + SSN + Zipcode + Financials + Revenue  A "data origin" taxonomy might contain the following policy tags:  + User data + Employee data + Partner data + Public data
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1Taxonomy {
     /// Optional. A list of policy types that are activated for this taxonomy. If not set, defaults to an empty list.
     #[serde(default, rename = "activatedPolicyTypes")]
@@ -567,7 +568,7 @@ pub struct GoogleCloudDatacatalogV1Taxonomy {
 }
 
 /// The criteria that select the subspace used for query matching.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1SearchCatalogRequestScope {
     /// If true, include Google Cloud public datasets in search results. By default, they are excluded. See [Google Cloud Public Datasets](/public-datasets) for more information.
     #[serde(default, rename = "includeGcpPublicDatasets")]
@@ -590,7 +591,7 @@ pub struct GoogleCloudDatacatalogV1SearchCatalogRequestScope {
 }
 
 /// Result in the response to a search request. Each result captures details of one entry that matches the search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1SearchCatalogResult {
     /// Entry description that can consist of several sentences or paragraphs that describe entry contents.
     #[serde(default)]
@@ -625,7 +626,7 @@ pub struct GoogleCloudDatacatalogV1SearchCatalogResult {
 }
 
 /// An enum value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1TagFieldEnumValue {
     /// The display name of the enum value.
     #[serde(default, rename = "displayName")]
@@ -633,7 +634,7 @@ pub struct GoogleCloudDatacatalogV1TagFieldEnumValue {
 }
 
 /// GoogleCloudDatacatalogV1FieldType resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1FieldType {
     /// An enum type.
     #[serde(default, rename = "enumType")]
@@ -644,7 +645,7 @@ pub struct GoogleCloudDatacatalogV1FieldType {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -664,7 +665,7 @@ pub struct Operation {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
@@ -678,7 +679,7 @@ pub struct Policy {
 }
 
 /// Tags contain custom metadata and are attached to Data Catalog resources. Tags conform with the specification of their tag template. See [Data Catalog IAM](https://cloud.google.com/data-catalog/docs/concepts/iam) for information on the permissions needed to create or view tags.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1Tag {
     /// Resources like entry can have schemas associated with them. This scope allows you to attach tags to an individual column based on that schema. To attach a tag to a nested column, separate column names with a dot (.). Example: column.nested_column.
     #[serde(default)]
@@ -701,7 +702,7 @@ pub struct GoogleCloudDatacatalogV1Tag {
 }
 
 /// Entry metadata. A Data Catalog entry represents another resource in Google Cloud Platform (such as a BigQuery dataset or a Pub/Sub topic) or outside of it. You can use the linked_resource field in the entry resource to refer to the original resource ID of the source system. An entry resource contains resource details, for example, its schema. Additionally, you can attach flexible metadata to an entry in the form of a Tag.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1Entry {
     /// Output only. Specification for a group of BigQuery tables with the [prefix]YYYYMMDD name pattern. For more information, see [Introduction to partitioned tables] (https://cloud.google.com/bigquery/docs/partitioned-tables#partitioning_versus_sharding).
     #[serde(default, rename = "bigqueryDateShardedSpec")]
@@ -807,7 +808,7 @@ pub struct GoogleCloudDatacatalogV1Entry {
 }
 
 /// A nested protocol buffer that represents a taxonomy and the hierarchy of its policy tags. Used for taxonomy replacement, import, and export.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1SerializedTaxonomy {
     /// A list of policy types that are activated per taxonomy.
     #[serde(default, rename = "activatedPolicyTypes")]
@@ -825,7 +826,7 @@ pub struct GoogleCloudDatacatalogV1SerializedTaxonomy {
 }
 
 /// The source system of the Taxonomy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1TaxonomyService {
     /// The service agent for the service.
     #[serde(default)]
@@ -836,7 +837,7 @@ pub struct GoogleCloudDatacatalogV1TaxonomyService {
 }
 
 /// GoogleCloudDatacatalogV1FieldTypeEnumType resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1FieldTypeEnumType {
     /// The set of allowed values for this enum. This set must not be empty and can include up to 100 allowed values. The display names of the values in this set must not be empty and must be case-insensitively unique within this set. The order of items in this set is preserved. This field can be used to create, remove, and reorder enum values. To rename enum values, use the RenameTagTemplateFieldEnumValue method.
     #[serde(default, rename = "allowedValues")]
@@ -845,7 +846,7 @@ pub struct GoogleCloudDatacatalogV1FieldTypeEnumType {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -859,7 +860,7 @@ pub struct Status {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -873,7 +874,7 @@ pub struct Binding {
 }
 
 /// Specification for a group of BigQuery tables with the [prefix]YYYYMMDD name pattern. For more information, see [Introduction to partitioned tables] (https://cloud.google.com/bigquery/docs/partitioned-tables#partitioning_versus_sharding).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1BigQueryDateShardedSpec {
     /// Output only. The Data Catalog resource name of the dataset entry the current table belongs to. For example: projects/{PROJECT_ID}/locations/{LOCATION}/entrygroups/{ENTRY_GROUP_ID}/entries/{ENTRY_ID}.
     #[serde(default)]
@@ -890,7 +891,7 @@ pub struct GoogleCloudDatacatalogV1BigQueryDateShardedSpec {
 }
 
 /// Describes a BigQuery table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1BigQueryTableSpec {
     /// Output only. The table source type. // TODO: enum values: ["TABLE_SOURCE_TYPE_UNSPECIFIED", "BIGQUERY_VIEW", "BIGQUERY_TABLE", "BIGQUERY_MATERIALIZED_VIEW"]
     #[serde(default, rename = "tableSourceType")]
@@ -904,7 +905,7 @@ pub struct GoogleCloudDatacatalogV1BigQueryTableSpec {
 }
 
 /// Business Context of the entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1BusinessContext {
     /// Contact people for the entry.
     #[serde(default)]
@@ -915,7 +916,7 @@ pub struct GoogleCloudDatacatalogV1BusinessContext {
 }
 
 /// Specification that applies to all entries that are part of CLOUD_BIGTABLE system (user_specified_type)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1CloudBigtableSystemSpec {
     /// Display name of the Instance. This is user specified and different from the resource name.
     #[serde(default, rename = "instanceDisplayName")]
@@ -923,7 +924,7 @@ pub struct GoogleCloudDatacatalogV1CloudBigtableSystemSpec {
 }
 
 /// Physical location of an entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1DataSource {
     /// Full name of a resource as defined by the service. For example: //bigquery.googleapis.com/projects/{PROJECT_ID}/locations/{LOCATION}/datasets/{DATASET_ID}/tables/{TABLE_ID}
     #[serde(default)]
@@ -940,7 +941,7 @@ pub struct GoogleCloudDatacatalogV1DataSource {
 }
 
 /// Specification that applies to a data source connection. Valid only for entries with the DATA_SOURCE_CONNECTION type. Only one of internal specs can be set at the time, and cannot be changed later.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1DataSourceConnectionSpec {
     /// Output only. Fields specific to BigQuery connections.
     #[serde(default, rename = "bigqueryConnectionSpec")]
@@ -949,7 +950,7 @@ pub struct GoogleCloudDatacatalogV1DataSourceConnectionSpec {
 }
 
 /// Specification that applies to a table resource. Valid only for entries with the TABLE type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1DatabaseTableSpec {
     /// Spec what applies to tables that are actually views. Not set for "real" tables.
     #[serde(default, rename = "databaseViewSpec")]
@@ -964,7 +965,7 @@ pub struct GoogleCloudDatacatalogV1DatabaseTableSpec {
 }
 
 /// Specification that applies to a dataset. Valid only for entries with the DATASET type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1DatasetSpec {
     /// Vertex AI Dataset specific fields
     #[serde(default, rename = "vertexDatasetSpec")]
@@ -972,7 +973,7 @@ pub struct GoogleCloudDatacatalogV1DatasetSpec {
 }
 
 /// Detail description of the source information of a Vertex Feature Online Store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1FeatureOnlineStoreSpec {
     /// Output only. Type of underlying storage for the FeatureOnlineStore. // TODO: enum values: ["STORAGE_TYPE_UNSPECIFIED", "BIGTABLE", "OPTIMIZED"]
     #[serde(default, rename = "storageType")]
@@ -980,7 +981,7 @@ pub struct GoogleCloudDatacatalogV1FeatureOnlineStoreSpec {
 }
 
 /// Specification that applies to a fileset. Valid only for entries with the ''FILESET'' type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1FilesetSpec {
     /// Fields specific to a Dataplex Universal Catalog fileset and present only in the Dataplex Universal Catalog fileset entries.
     #[serde(default, rename = "dataplexFileset")]
@@ -988,7 +989,7 @@ pub struct GoogleCloudDatacatalogV1FilesetSpec {
 }
 
 /// Describes a Cloud Storage fileset entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1GcsFilesetSpec {
     /// Required. Patterns to identify a set of files in Google Cloud Storage. For more information, see [Wildcard Names] (https://cloud.google.com/storage/docs/wildcards). Note: Currently, bucket wildcards are not supported. Examples of valid file_patterns: * gs://bucket_name/dir/*: matches all files in bucket_name/dir directory * gs://bucket_name/dir/**: matches all files in bucket_name/dir and all subdirectories * gs://bucket_name/file*: matches files prefixed by file in bucket_name * gs://bucket_name/??.txt: matches files with two characters followed by .txt in bucket_name * gs://bucket_name/[aeiou].txt: matches files that contain a single vowel character followed by .txt in bucket_name * gs://bucket_name/[a-m].txt: matches files that contain a, b, ... or m followed by .txt in bucket_name * gs://bucket_name/a/*/b: matches all files in bucket_name that match the a/*/b pattern, such as a/c/b, a/d/b * gs://another_bucket/a.txt: matches gs://another_bucket/a.txt You can combine wildcards to match complex sets of files, for example: gs://bucket_name/[a-m]??.j*g
     #[serde(default, rename = "filePatterns")]
@@ -1000,7 +1001,7 @@ pub struct GoogleCloudDatacatalogV1GcsFilesetSpec {
 }
 
 /// Specification that applies to a graph.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1GraphSpec {
     /// Optional. Edge tables of the graph.
     #[serde(default, rename = "edgeTables")]
@@ -1016,7 +1017,7 @@ pub struct GoogleCloudDatacatalogV1GraphSpec {
 }
 
 /// Specification that applies to entries that are part LOOKER system (user_specified_type)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1LookerSystemSpec {
     /// Name of the parent Looker Instance. Empty if it does not exist.
     #[serde(default, rename = "parentInstanceDisplayName")]
@@ -1039,7 +1040,7 @@ pub struct GoogleCloudDatacatalogV1LookerSystemSpec {
 }
 
 /// Specification that applies to a model. Valid only for entries with the MODEL type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1ModelSpec {
     /// Specification for vertex model resources.
     #[serde(default, rename = "vertexModelSpec")]
@@ -1047,7 +1048,7 @@ pub struct GoogleCloudDatacatalogV1ModelSpec {
 }
 
 /// Entry metadata relevant only to the user and private to them.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1PersonalDetails {
     /// Set if the entry is starred; unset otherwise.
     #[serde(default, rename = "starTime")]
@@ -1058,7 +1059,7 @@ pub struct GoogleCloudDatacatalogV1PersonalDetails {
 }
 
 /// Specification that applies to a routine. Valid only for entries with the ROUTINE type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1RoutineSpec {
     /// Fields specific for BigQuery routines.
     #[serde(default, rename = "bigqueryRoutineSpec")]
@@ -1082,7 +1083,7 @@ pub struct GoogleCloudDatacatalogV1RoutineSpec {
 }
 
 /// Represents a schema, for example, a BigQuery, GoogleSQL, or Avro schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1Schema {
     /// The unified GoogleSQL-like schema of columns. The overall maximum number of columns and nested columns is 10,000. The maximum nested depth is 15 levels.
     #[serde(default)]
@@ -1090,7 +1091,7 @@ pub struct GoogleCloudDatacatalogV1Schema {
 }
 
 /// Specification that applies to a Service resource. Valid only for entries with the SERVICE type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1ServiceSpec {
     /// Specification that applies to Instance entries of CLOUD_BIGTABLE system.
     #[serde(default, rename = "cloudBigtableInstanceSpec")]
@@ -1099,7 +1100,7 @@ pub struct GoogleCloudDatacatalogV1ServiceSpec {
 }
 
 /// Specification of a Spanner table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1SpannerTableSpec {
     /// Output only. The foreign keys of the table.
     #[serde(default, rename = "foreignKeys")]
@@ -1113,7 +1114,7 @@ pub struct GoogleCloudDatacatalogV1SpannerTableSpec {
 }
 
 /// Specification that applies to entries that are part SQL_DATABASE system (user_specified_type)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1SqlDatabaseSystemSpec {
     /// Version of the database engine.
     #[serde(default, rename = "databaseVersion")]
@@ -1127,7 +1128,7 @@ pub struct GoogleCloudDatacatalogV1SqlDatabaseSystemSpec {
 }
 
 /// The set of all usage signals that Data Catalog stores. Note: Usually, these signals are updated daily. In rare cases, an update may fail but will be performed again on the next day.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1UsageSignal {
     /// Common usage statistics over each of the predefined time ranges. Supported time ranges are {"24H", "7D", "30D", "Lifetime"}.
     #[serde(default, rename = "commonUsageWithinTimeRange")]
@@ -1144,7 +1145,7 @@ pub struct GoogleCloudDatacatalogV1UsageSignal {
 }
 
 /// A nested protocol buffer that represents a policy tag and all its descendants.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1SerializedPolicyTag {
     /// Children of the policy tag, if any.
     #[serde(default, rename = "childPolicyTags")]
@@ -1162,7 +1163,7 @@ pub struct GoogleCloudDatacatalogV1SerializedPolicyTag {
 }
 
 /// GoogleCloudDatacatalogV1FieldTypeEnumTypeEnumValue resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1FieldTypeEnumTypeEnumValue {
     /// Required. The display name of the enum value. Must not be an empty string. The name must contain only Unicode letters, numbers (0-9), underscores (_), dashes (-), spaces ( ), and can''t start or end with spaces. The maximum length is 200 characters.
     #[serde(default, rename = "displayName")]
@@ -1170,7 +1171,7 @@ pub struct GoogleCloudDatacatalogV1FieldTypeEnumTypeEnumValue {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -1187,7 +1188,7 @@ pub struct Expr {
 }
 
 /// Normal BigQuery table specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1TableSpec {
     /// Output only. If the table is date-sharded, that is, it matches the [prefix]YYYYMMDD name pattern, this field is the Data Catalog resource name of the date-sharded grouped entry. For example: projects/{PROJECT_ID}/locations/{LOCATION}/entrygroups/{ENTRY_GROUP_ID}/entries/{ENTRY_ID}. Otherwise, grouped_entry is empty.
     #[serde(default, rename = "groupedEntry")]
@@ -1195,7 +1196,7 @@ pub struct GoogleCloudDatacatalogV1TableSpec {
 }
 
 /// Table view specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1ViewSpec {
     /// Output only. The query that defines the table view.
     #[serde(default, rename = "viewQuery")]
@@ -1203,7 +1204,7 @@ pub struct GoogleCloudDatacatalogV1ViewSpec {
 }
 
 /// Contact people for the entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1Contacts {
     /// The list of contact people for the entry.
     #[serde(default)]
@@ -1211,7 +1212,7 @@ pub struct GoogleCloudDatacatalogV1Contacts {
 }
 
 /// Entry overview fields for rich text descriptions of entries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1EntryOverview {
     /// Entry overview with support for rich text. The overview must only contain Unicode characters, and should be formatted using HTML. The maximum length is 10 MiB as this value holds HTML descriptions including encoded images. The maximum length of the text without images is 100 KiB.
     #[serde(default)]
@@ -1219,7 +1220,7 @@ pub struct GoogleCloudDatacatalogV1EntryOverview {
 }
 
 /// Details the properties of the underlying storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1StorageProperties {
     /// Patterns to identify a set of files for this fileset. Examples of a valid file_pattern: * gs://bucket_name/dir/*: matches all files in the bucket_name/dir directory * gs://bucket_name/dir/**: matches all files in the bucket_name/dir and all subdirectories recursively * gs://bucket_name/file*: matches files prefixed by file in bucket_name * gs://bucket_name/??.txt: matches files with two characters followed by .txt in bucket_name * gs://bucket_name/[aeiou].txt: matches files that contain a single vowel character followed by .txt in bucket_name * gs://bucket_name/[a-m].txt: matches files that contain a, b, ... or m followed by .txt in bucket_name * gs://bucket_name/a/*/b: matches all files in bucket_name that match the a/*/b pattern, such as a/c/b, a/d/b * gs://another_bucket/a.txt: matches gs://another_bucket/a.txt
     #[serde(default, rename = "filePattern")]
@@ -1230,7 +1231,7 @@ pub struct GoogleCloudDatacatalogV1StorageProperties {
 }
 
 /// Specification for the BigQuery connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1BigQueryConnectionSpec {
     /// Specification for the BigQuery connection to a Cloud SQL instance.
     #[serde(default, rename = "cloudSql")]
@@ -1244,7 +1245,7 @@ pub struct GoogleCloudDatacatalogV1BigQueryConnectionSpec {
 }
 
 /// Specification that applies to database view.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1DatabaseTableSpecDatabaseViewSpec {
     /// Name of a singular table this view reflects one to one.
     #[serde(default, rename = "baseTable")]
@@ -1258,7 +1259,7 @@ pub struct GoogleCloudDatacatalogV1DatabaseTableSpecDatabaseViewSpec {
 }
 
 /// Entry specification for a Dataplex Universal Catalog table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1DataplexTableSpec {
     /// Common Dataplex Universal Catalog fields.
     #[serde(default, rename = "dataplexSpec")]
@@ -1273,7 +1274,7 @@ pub struct GoogleCloudDatacatalogV1DataplexTableSpec {
 }
 
 /// Specification for vertex dataset resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1VertexDatasetSpec {
     /// The number of DataItems in this Dataset. Only apply for non-structured Dataset.
     #[serde(default, rename = "dataItemCount")]
@@ -1284,7 +1285,7 @@ pub struct GoogleCloudDatacatalogV1VertexDatasetSpec {
 }
 
 /// Entry specification for a Dataplex Universal Catalog fileset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1DataplexFilesetSpec {
     /// Common Dataplex Universal Catalog fields.
     #[serde(default, rename = "dataplexSpec")]
@@ -1292,7 +1293,7 @@ pub struct GoogleCloudDatacatalogV1DataplexFilesetSpec {
 }
 
 /// Specification of a single file in Cloud Storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1GcsFileSpec {
     /// Required. Full file path. Example: gs://bucket_name/a/b.txt.
     #[serde(default, rename = "filePath")]
@@ -1306,7 +1307,7 @@ pub struct GoogleCloudDatacatalogV1GcsFileSpec {
 }
 
 /// Element table definition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1GraphSpecGraphElementTable {
     /// Required. The alias name of the graph element.
     #[serde(default)]
@@ -1347,7 +1348,7 @@ pub struct GoogleCloudDatacatalogV1GraphSpecGraphElementTable {
 }
 
 /// Specification for vertex model resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1VertexModelSpec {
     /// URI of the Docker image to be used as the custom container for serving predictions.
     #[serde(default, rename = "containerImageUri")]
@@ -1368,7 +1369,7 @@ pub struct GoogleCloudDatacatalogV1VertexModelSpec {
 }
 
 /// Fields specific for BigQuery routines.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1BigQueryRoutineSpec {
     /// Paths of the imported libraries.
     #[serde(default, rename = "importedLibraries")]
@@ -1376,7 +1377,7 @@ pub struct GoogleCloudDatacatalogV1BigQueryRoutineSpec {
 }
 
 /// Input or output argument of a function or stored procedure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1RoutineSpecArgument {
     /// Specifies whether the argument is input or output. // TODO: enum values: ["MODE_UNSPECIFIED", "IN", "OUT", "INOUT"]
     #[serde(default)]
@@ -1390,7 +1391,7 @@ pub struct GoogleCloudDatacatalogV1RoutineSpecArgument {
 }
 
 /// A column within a schema. Columns can be nested inside other columns.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1ColumnSchema {
     /// Required. Name of the column. Must be a UTF-8 string without dots (.). The maximum size is 64 bytes.
     #[serde(default)]
@@ -1430,7 +1431,7 @@ pub struct GoogleCloudDatacatalogV1ColumnSchema {
 }
 
 /// Specification that applies to Instance entries that are part of CLOUD_BIGTABLE system. (user_specified_type)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1CloudBigtableInstanceSpec {
     /// The list of clusters for the Instance.
     #[serde(default, rename = "cloudBigtableClusterSpecs")]
@@ -1440,7 +1441,7 @@ pub struct GoogleCloudDatacatalogV1CloudBigtableInstanceSpec {
 }
 
 /// Specification of a Spanner foreign key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1SpannerTableSpecSpannerForeignKey {
     /// Output only. The ordered list of column mappings for this foreign key.
     #[serde(default, rename = "columnMappings")]
@@ -1458,7 +1459,7 @@ pub struct GoogleCloudDatacatalogV1SpannerTableSpecSpannerForeignKey {
 }
 
 /// Specification of a Spanner primary key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1SpannerTableSpecSpannerPrimaryKey {
     /// Output only. Column names of the primary key.
     #[serde(default)]
@@ -1466,7 +1467,7 @@ pub struct GoogleCloudDatacatalogV1SpannerTableSpecSpannerPrimaryKey {
 }
 
 /// A contact person for the entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1ContactsPerson {
     /// Designation of the person, for example, Data Steward.
     #[serde(default)]
@@ -1477,7 +1478,7 @@ pub struct GoogleCloudDatacatalogV1ContactsPerson {
 }
 
 /// Specification for the BigQuery connection to a Cloud SQL instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1CloudSqlBigQueryConnectionSpec {
     /// Database name.
     #[serde(default)]
@@ -1491,7 +1492,7 @@ pub struct GoogleCloudDatacatalogV1CloudSqlBigQueryConnectionSpec {
 }
 
 /// External table registered by Dataplex Universal Catalog. Dataplex Universal Catalog publishes data discovered from an asset into multiple other systems (BigQuery, DPMS) in form of tables. We call them "external tables". External tables are also synced into the Data Catalog. This message contains pointers to those external tables (fully qualified name, resource name et cetera) within the Data Catalog.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1DataplexExternalTable {
     /// Name of the Data Catalog entry representing the external table.
     #[serde(default, rename = "dataCatalogEntry")]
@@ -1508,7 +1509,7 @@ pub struct GoogleCloudDatacatalogV1DataplexExternalTable {
 }
 
 /// Common Dataplex Universal Catalog fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1DataplexSpec {
     /// Fully qualified resource name of an asset in Dataplex Universal Catalog, to which the underlying data source (Cloud Storage bucket or BigQuery dataset) of the entity is attached.
     #[serde(default)]
@@ -1525,7 +1526,7 @@ pub struct GoogleCloudDatacatalogV1DataplexSpec {
 }
 
 /// Timestamps associated with this resource in a particular system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1SystemTimestamps {
     /// Creation timestamp of the resource within the given system.
     #[serde(default, rename = "createTime")]
@@ -1539,7 +1540,7 @@ pub struct GoogleCloudDatacatalogV1SystemTimestamps {
 }
 
 /// A reference to a source or destination node in a graph edge.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1GraphSpecGraphElementTableGraphNodeReference {
     /// Required. The referencing columns in the edge table. The size of edge_table_columns must be equal to the size of node_table_columns.
     #[serde(default, rename = "edgeTableColumns")]
@@ -1553,7 +1554,7 @@ pub struct GoogleCloudDatacatalogV1GraphSpecGraphElementTableGraphNodeReference 
 }
 
 /// The label and its properties. Each label is associated with a set of properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1GraphSpecGraphElementTableLabelAndProperties {
     /// Required. The name of the label.
     #[serde(default)]
@@ -1566,7 +1567,7 @@ pub struct GoogleCloudDatacatalogV1GraphSpecGraphElementTableLabelAndProperties 
 }
 
 /// Detail description of the source information of a Vertex model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1VertexModelSourceInfo {
     /// If this Model is copy of another Model. If true then source_type pertains to the original.
     #[serde(default)]
@@ -1577,7 +1578,7 @@ pub struct GoogleCloudDatacatalogV1VertexModelSourceInfo {
 }
 
 /// Column info specific to Looker System.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1ColumnSchemaLookerColumnSpec {
     /// Looker specific column type of this column. // TODO: enum values: ["LOOKER_COLUMN_TYPE_UNSPECIFIED", "DIMENSION", "DIMENSION_GROUP", "FILTER", "MEASURE", "PARAMETER"]
     #[serde(default, rename = "type")]
@@ -1585,7 +1586,7 @@ pub struct GoogleCloudDatacatalogV1ColumnSchemaLookerColumnSpec {
 }
 
 /// Represents the type of a field element.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1ColumnSchemaFieldElementType {
     /// Required. The type of a field element. See ColumnSchema.type.
     #[serde(default, rename = "type")]
@@ -1593,7 +1594,7 @@ pub struct GoogleCloudDatacatalogV1ColumnSchemaFieldElementType {
 }
 
 /// Spec that applies to clusters of an Instance of Cloud Bigtable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1CloudBigtableInstanceSpecCloudBigtableClusterSpec {
     /// Name of the cluster.
     #[serde(default, rename = "displayName")]
@@ -1610,7 +1611,7 @@ pub struct GoogleCloudDatacatalogV1CloudBigtableInstanceSpecCloudBigtableCluster
 }
 
 /// Column mapping for a Spanner foreign key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1SpannerTableSpecSpannerForeignKeyForeignKeyColumnMapping {
     /// Output only. The column in the current table that is part of the foreign key.
     #[serde(default)]
@@ -1621,7 +1622,7 @@ pub struct GoogleCloudDatacatalogV1SpannerTableSpecSpannerForeignKeyForeignKeyCo
 }
 
 /// Native schema used by a resource represented as an entry. Used by query engines for deserializing and parsing source data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1PhysicalSchema {
     /// Schema in Avro JSON format.
     #[serde(default)]
@@ -1644,7 +1645,7 @@ pub struct GoogleCloudDatacatalogV1PhysicalSchema {
 }
 
 /// A property declaration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1GraphSpecGraphElementTableProperty {
     /// Required. Property name.
     #[serde(default)]
@@ -1655,7 +1656,7 @@ pub struct GoogleCloudDatacatalogV1GraphSpecGraphElementTableProperty {
 }
 
 /// Schema in Avro JSON format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1PhysicalSchemaAvroSchema {
     /// JSON source of the Avro schema.
     #[serde(default)]
@@ -1663,7 +1664,7 @@ pub struct GoogleCloudDatacatalogV1PhysicalSchemaAvroSchema {
 }
 
 /// Schema in protocol buffer format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1PhysicalSchemaProtobufSchema {
     /// Protocol buffer source of the schema.
     #[serde(default)]
@@ -1671,7 +1672,7 @@ pub struct GoogleCloudDatacatalogV1PhysicalSchemaProtobufSchema {
 }
 
 /// Schema in Thrift format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogV1PhysicalSchemaThriftSchema {
     /// Thrift IDL source of the schema.
     #[serde(default)]

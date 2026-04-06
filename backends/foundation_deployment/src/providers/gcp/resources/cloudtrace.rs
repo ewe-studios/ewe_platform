@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The allowed types for [VALUE] in a [KEY]:[VALUE] attribute.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttributeValue {
     /// A Boolean value represented by true or false.
     #[serde(default, rename = "boolValue")]
@@ -25,7 +26,7 @@ pub struct AttributeValue {
 }
 
 /// The request message for the BatchWriteSpans method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchWriteSpansRequest {
     /// Required. A list of new spans. The span names must not match existing spans, otherwise the results are undefined.
     #[serde(default)]
@@ -33,11 +34,11 @@ pub struct BatchWriteSpansRequest {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Represents a string that might be shortened to a specified length.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TruncatableString {
     /// The number of bytes removed from the original string. If this value is 0, then the string was not shortened.
     #[serde(default, rename = "truncatedByteCount")]
@@ -48,7 +49,7 @@ pub struct TruncatableString {
 }
 
 /// A span represents a single operation within a trace. Spans can be nested to form a trace tree. Often, a trace contains a root span that describes the end-to-end latency, and one or more subspans for its sub-operations. A trace can also contain multiple root spans, or none at all. Spans do not need to be contiguous. There might be gaps or overlaps between spans in a trace.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Span {
     /// A set of attributes on the span. You can have up to 32 attributes per span.
     #[serde(default)]
@@ -95,7 +96,7 @@ pub struct Span {
 }
 
 /// A collection of links, which are references from this span to a span in the same or different trace.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Links {
     /// The number of dropped links after the maximum size was enforced. If this value is 0, then no links were dropped.
     #[serde(default, rename = "droppedLinksCount")]
@@ -106,7 +107,7 @@ pub struct Links {
 }
 
 /// A call stack appearing in a trace.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StackTrace {
     /// Stack frames in this stack trace. A maximum of 128 frames are allowed.
     #[serde(default, rename = "stackFrames")]
@@ -117,7 +118,7 @@ pub struct StackTrace {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -131,7 +132,7 @@ pub struct Status {
 }
 
 /// A collection of TimeEvents. A TimeEvent is a time-stamped annotation on the span, consisting of either user-supplied key:value pairs, or details of a message sent/received between Spans.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeEvents {
     /// The number of dropped annotations in all the included time events. If the value is 0, then no annotations were dropped.
     #[serde(default, rename = "droppedAnnotationsCount")]
@@ -145,7 +146,7 @@ pub struct TimeEvents {
 }
 
 /// A pointer from the current span to another span in the same trace or in a different trace. For example, this can be used in batching operations, where a single batch handler processes multiple requests from different traces or when the handler receives a request from a different project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Link {
     /// A set of attributes on the link. Up to 32 attributes can be specified per link.
     #[serde(default)]
@@ -162,7 +163,7 @@ pub struct Link {
 }
 
 /// A collection of stack frames, which can be truncated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StackFrames {
     /// The number of stack frames that were dropped because there were too many stack frames. If this value is 0, then no stack frames were dropped.
     #[serde(default, rename = "droppedFramesCount")]
@@ -173,7 +174,7 @@ pub struct StackFrames {
 }
 
 /// A time-stamped annotation or message event in the Span.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeEvent {
     /// Text annotation with a set of attributes.
     #[serde(default)]
@@ -187,7 +188,7 @@ pub struct TimeEvent {
 }
 
 /// Represents a single stack frame in a stack trace.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StackFrame {
     /// The column number where the function call appears, if available. This is important in JavaScript because of its anonymous functions.
     #[serde(default, rename = "columnNumber")]
@@ -213,7 +214,7 @@ pub struct StackFrame {
 }
 
 /// Text annotation with a set of attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Annotation {
     /// A set of attributes on the annotation. You can have up to 4 attributes per Annotation.
     #[serde(default)]
@@ -224,7 +225,7 @@ pub struct Annotation {
 }
 
 /// An event describing a message sent/received between Spans.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MessageEvent {
     /// The number of compressed bytes sent or received. If missing, the compressed size is assumed to be the same size as the uncompressed size.
     #[serde(default, rename = "compressedSizeBytes")]
@@ -241,7 +242,7 @@ pub struct MessageEvent {
 }
 
 /// Binary module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Module {
     /// A unique identifier for the module, usually a hash of its contents (up to 128 bytes).
     #[serde(default, rename = "buildId")]
@@ -252,7 +253,7 @@ pub struct Module {
 }
 
 /// A set of attributes as key-value pairs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Attributes {
     /// A set of attributes. Each attribute''s key can be up to 128 bytes long. The value can be a string up to 256 bytes, a signed 64-bit integer, or the boolean values true or false. For example: "/instance_id": { "string_value": { "value": "my-instance" } } "/http/request_bytes": { "int_value": 300 } "example.com/myattribute": { "bool_value": false }
     #[serde(default, rename = "attributeMap")]

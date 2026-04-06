@@ -8,17 +8,18 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Resource used when the AddMessage endpoints are called.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddMessageRequest {
     #[serde(default)]
     pub message: ::core::option::Option<Message>,
 }
 
 /// EventTicketClassAddMessageResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventTicketClassAddMessageResponse {
     /// The updated EventTicketClass resource.
     #[serde(default)]
@@ -26,7 +27,7 @@ pub struct EventTicketClassAddMessageResponse {
 }
 
 /// EventTicketClassListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventTicketClassListResponse {
     /// Pagination of the response.
     #[serde(default)]
@@ -37,7 +38,7 @@ pub struct EventTicketClassListResponse {
 }
 
 /// EventTicketObjectAddMessageResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventTicketObjectAddMessageResponse {
     /// The updated EventTicketObject resource.
     #[serde(default)]
@@ -45,7 +46,7 @@ pub struct EventTicketObjectAddMessageResponse {
 }
 
 /// EventTicketObjectListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventTicketObjectListResponse {
     /// Pagination of the response.
     #[serde(default)]
@@ -56,7 +57,7 @@ pub struct EventTicketObjectListResponse {
 }
 
 /// FlightClassAddMessageResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlightClassAddMessageResponse {
     /// The updated FlightClass resource.
     #[serde(default)]
@@ -64,7 +65,7 @@ pub struct FlightClassAddMessageResponse {
 }
 
 /// FlightClassListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlightClassListResponse {
     /// Pagination of the response.
     #[serde(default)]
@@ -75,7 +76,7 @@ pub struct FlightClassListResponse {
 }
 
 /// FlightObjectAddMessageResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlightObjectAddMessageResponse {
     /// The updated FlightObject resource.
     #[serde(default)]
@@ -83,7 +84,7 @@ pub struct FlightObjectAddMessageResponse {
 }
 
 /// FlightObjectListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlightObjectListResponse {
     /// Pagination of the response.
     #[serde(default)]
@@ -94,7 +95,7 @@ pub struct FlightObjectListResponse {
 }
 
 /// Response to adding a new issuer message to the class. This contains the entire updated GenericClass.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenericClassAddMessageResponse {
     /// The updated EventTicketClass resource.
     #[serde(default)]
@@ -102,7 +103,7 @@ pub struct GenericClassAddMessageResponse {
 }
 
 /// List response which contains the list of all generic classes for a given issuer ID.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenericClassListResponse {
     /// Pagination of the response.
     #[serde(default)]
@@ -113,7 +114,7 @@ pub struct GenericClassListResponse {
 }
 
 /// Response to adding a new issuer message to the object. This contains the entire updated GenericObject.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenericObjectAddMessageResponse {
     /// The updated GenericObject resource.
     #[serde(default)]
@@ -121,7 +122,7 @@ pub struct GenericObjectAddMessageResponse {
 }
 
 /// List response which contains the list of all generic objects for a given issuer ID.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenericObjectListResponse {
     /// Pagination of the response.
     #[serde(default)]
@@ -132,7 +133,7 @@ pub struct GenericObjectListResponse {
 }
 
 /// GiftCardClassAddMessageResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GiftCardClassAddMessageResponse {
     /// The updated GiftCardClass resource.
     #[serde(default)]
@@ -140,7 +141,7 @@ pub struct GiftCardClassAddMessageResponse {
 }
 
 /// GiftCardClassListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GiftCardClassListResponse {
     /// Pagination of the response.
     #[serde(default)]
@@ -151,7 +152,7 @@ pub struct GiftCardClassListResponse {
 }
 
 /// GiftCardObjectAddMessageResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GiftCardObjectAddMessageResponse {
     /// The updated GiftCardObject resource.
     #[serde(default)]
@@ -159,7 +160,7 @@ pub struct GiftCardObjectAddMessageResponse {
 }
 
 /// GiftCardObjectListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GiftCardObjectListResponse {
     /// Pagination of the response.
     #[serde(default)]
@@ -170,7 +171,7 @@ pub struct GiftCardObjectListResponse {
 }
 
 /// IssuerListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuerListResponse {
     /// Resources corresponding to the list request.
     #[serde(default)]
@@ -178,7 +179,7 @@ pub struct IssuerListResponse {
 }
 
 /// JwtInsertResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JwtInsertResponse {
     /// Data that corresponds to the ids of the provided classes and objects in the JWT. resources will only include the non-empty arrays (i.e. if the JWT only includes eventTicketObjects, then that is the only field that will be present in resources).
     #[serde(default)]
@@ -189,7 +190,7 @@ pub struct JwtInsertResponse {
 }
 
 /// A JWT representation of a pass.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JwtResource {
     /// Required. A string representing a JWT of the format described at https://developers.google.com/wallet/reference/rest/v1/Jwt
     #[serde(default)]
@@ -197,7 +198,7 @@ pub struct JwtResource {
 }
 
 /// LocalizedString resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocalizedString {
     /// Contains the string to be displayed if no appropriate translation is available.
     #[serde(default, rename = "defaultValue")]
@@ -211,7 +212,7 @@ pub struct LocalizedString {
 }
 
 /// LoyaltyClassAddMessageResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoyaltyClassAddMessageResponse {
     /// The updated LoyaltyClass resource.
     #[serde(default)]
@@ -219,7 +220,7 @@ pub struct LoyaltyClassAddMessageResponse {
 }
 
 /// LoyaltyClassListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoyaltyClassListResponse {
     /// Pagination of the response.
     #[serde(default)]
@@ -230,7 +231,7 @@ pub struct LoyaltyClassListResponse {
 }
 
 /// LoyaltyObjectAddMessageResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoyaltyObjectAddMessageResponse {
     /// The updated LoyaltyObject resource.
     #[serde(default)]
@@ -238,7 +239,7 @@ pub struct LoyaltyObjectAddMessageResponse {
 }
 
 /// LoyaltyObjectListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoyaltyObjectListResponse {
     /// Pagination of the response.
     #[serde(default)]
@@ -249,7 +250,7 @@ pub struct LoyaltyObjectListResponse {
 }
 
 /// ModifyLinkedOfferObjectsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModifyLinkedOfferObjectsRequest {
     /// The linked offer object ids to add or remove from the object.
     #[serde(default, rename = "linkedOfferObjectIds")]
@@ -257,7 +258,7 @@ pub struct ModifyLinkedOfferObjectsRequest {
 }
 
 /// OfferClassAddMessageResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OfferClassAddMessageResponse {
     /// The updated OfferClass resource.
     #[serde(default)]
@@ -265,7 +266,7 @@ pub struct OfferClassAddMessageResponse {
 }
 
 /// OfferClassListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OfferClassListResponse {
     /// Pagination of the response.
     #[serde(default)]
@@ -276,7 +277,7 @@ pub struct OfferClassListResponse {
 }
 
 /// OfferObjectAddMessageResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OfferObjectAddMessageResponse {
     /// The updated OfferObject resource.
     #[serde(default)]
@@ -284,7 +285,7 @@ pub struct OfferObjectAddMessageResponse {
 }
 
 /// OfferObjectListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OfferObjectListResponse {
     /// Pagination of the response.
     #[serde(default)]
@@ -295,7 +296,7 @@ pub struct OfferObjectListResponse {
 }
 
 /// Permissions resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Permissions {
     /// ID of the issuer the list of permissions refer to.
     #[serde(default, rename = "issuerId")]
@@ -306,7 +307,7 @@ pub struct Permissions {
 }
 
 /// Request to send a private pass update notice information to Google, so that devices can then fetch the notice prompting the user to update a pass.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetPassUpdateNoticeRequest {
     /// Required. A fully qualified identifier of the pass that the issuer wants to notify the pass holder(s) about. Formatted as .
     #[serde(default, rename = "externalPassId")]
@@ -320,11 +321,11 @@ pub struct SetPassUpdateNoticeRequest {
 }
 
 /// A response to a request to notify Google of an awaiting update to a private pass.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetPassUpdateNoticeResponse {}
 
 /// SmartTap resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SmartTap {
     /// The unique identifier for a smart tap. This value should follow the format issuer ID.identifier where the former is issued by Google and latter is the Smart Tap id. The Smart Tap id is a Base64 encoded string which represents the id which was generated by the Google Pay app.
     #[serde(default)]
@@ -341,7 +342,7 @@ pub struct SmartTap {
 }
 
 /// TransitClassAddMessageResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransitClassAddMessageResponse {
     /// The updated TransitClass resource.
     #[serde(default)]
@@ -349,7 +350,7 @@ pub struct TransitClassAddMessageResponse {
 }
 
 /// TransitClassListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransitClassListResponse {
     /// Pagination of the response.
     #[serde(default)]
@@ -360,7 +361,7 @@ pub struct TransitClassListResponse {
 }
 
 /// TransitObjectAddMessageResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransitObjectAddMessageResponse {
     /// The updated TransitObject resource.
     #[serde(default)]
@@ -368,7 +369,7 @@ pub struct TransitObjectAddMessageResponse {
 }
 
 /// TransitObjectListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransitObjectListResponse {
     /// Pagination of the response.
     #[serde(default)]
@@ -379,7 +380,7 @@ pub struct TransitObjectListResponse {
 }
 
 /// Request to upload rotating barcode values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransitObjectUploadRotatingBarcodeValuesRequest {
     /// A reference to the rotating barcode values payload that was uploaded.
     #[serde(default)]
@@ -390,11 +391,11 @@ pub struct TransitObjectUploadRotatingBarcodeValuesRequest {
 }
 
 /// Response for uploading rotating barcode values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransitObjectUploadRotatingBarcodeValuesResponse {}
 
 /// TranslatedString resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TranslatedString {
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#translatedString".
     #[serde(default)]
@@ -408,11 +409,11 @@ pub struct TranslatedString {
 }
 
 /// Request to upload a private image to use in a pass.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadPrivateImageRequest {}
 
 /// Response for uploading the private image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadPrivateImageResponse {
     /// Unique ID of the uploaded image to be referenced later in Image.private_image_id.
     #[serde(default, rename = "privateImageId")]
@@ -420,7 +421,7 @@ pub struct UploadPrivateImageResponse {
 }
 
 /// Issuer resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Issuer {
     /// Allows the issuer to provide their callback settings.
     #[serde(default, rename = "callbackOptions")]
@@ -443,7 +444,7 @@ pub struct Issuer {
 }
 
 /// Resources resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Resources {
     /// A list of event ticket classes.
     #[serde(default, rename = "eventTicketClasses")]
@@ -490,7 +491,7 @@ pub struct Resources {
 }
 
 /// ModifyLinkedOfferObjects resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModifyLinkedOfferObjects {
     /// The linked offer object ids to add to the object.
     #[serde(default, rename = "addLinkedOfferObjectIds")]
@@ -501,7 +502,7 @@ pub struct ModifyLinkedOfferObjects {
 }
 
 /// Permission resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Permission {
     /// The email address of the user, group, or service account to which this permission refers to.
     #[serde(default, rename = "emailAddress")]
@@ -512,7 +513,7 @@ pub struct Permission {
 }
 
 /// IssuerToUserInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuerToUserInfo {
     /// TODO: enum values: ["ACTION_UNSPECIFIED", "S2AP", "s2ap", "SIGN_UP", "signUp"]
     #[serde(default)]
@@ -528,7 +529,7 @@ pub struct IssuerToUserInfo {
 }
 
 /// Pagination resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Pagination {
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#pagination".
     #[serde(default)]
@@ -542,7 +543,7 @@ pub struct Pagination {
 }
 
 /// A reference to data stored on the filesystem, on GFS or in blobstore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Media {
     /// Deprecated, use one of explicit hash type fields instead. Algorithm used for calculating the hash. As of 2011/01/21, "MD5" is the only possible value for this field. New values may be added at any time.
     #[serde(default)]
@@ -637,7 +638,7 @@ pub struct Media {
 }
 
 /// Extra information added to operations that support Scotty media requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MediaRequestInfo {
     /// The number of current bytes uploaded or downloaded.
     #[serde(default, rename = "currentBytes")]
@@ -672,7 +673,7 @@ pub struct MediaRequestInfo {
 }
 
 /// IssuerContactInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssuerContactInfo {
     /// Email addresses which will receive alerts.
     #[serde(default, rename = "alertsEmails")]
@@ -689,7 +690,7 @@ pub struct IssuerContactInfo {
 }
 
 /// SmartTapMerchantData resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SmartTapMerchantData {
     /// Available only to Smart Tap enabled partners. Contact support for additional guidance.
     #[serde(default, rename = "authenticationKeys")]
@@ -700,7 +701,7 @@ pub struct SmartTapMerchantData {
 }
 
 /// EventTicketObject resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventTicketObject {
     /// Optional app or website link that will be displayed as a button on the front of the pass. If AppLinkData is provided for the corresponding class only object AppLinkData will be displayed.
     #[serde(default, rename = "appLinkData")]
@@ -813,7 +814,7 @@ pub struct EventTicketObject {
 }
 
 /// FlightObject resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlightObject {
     /// Optional app or website link that will be displayed as a button on the front of the pass. If AppLinkData is provided for the corresponding class only object AppLinkData will be displayed.
     #[serde(default, rename = "appLinkData")]
@@ -917,7 +918,7 @@ pub struct FlightObject {
 }
 
 /// Generic Class
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenericClass {
     /// Optional app or website link that will be displayed as a button on the front of the pass. If AppLinkData is provided for the corresponding object that will be used instead.
     #[serde(default, rename = "appLinkData")]
@@ -967,7 +968,7 @@ pub struct GenericClass {
 }
 
 /// Generic Object
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenericObject {
     /// Optional app or website link that will be displayed as a button on the front of the pass. If AppLinkData is provided for the corresponding class only object AppLinkData will be displayed.
     #[serde(default, rename = "appLinkData")]
@@ -1056,7 +1057,7 @@ pub struct GenericObject {
 }
 
 /// GiftCardObject resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GiftCardObject {
     /// Optional app or website link that will be displayed as a button on the front of the pass. If AppLinkData is provided for the corresponding class only object AppLinkData will be displayed.
     #[serde(default, rename = "appLinkData")]
@@ -1160,7 +1161,7 @@ pub struct GiftCardObject {
 }
 
 /// LoyaltyObject resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoyaltyObject {
     /// The loyalty account identifier. Recommended maximum length is 20 characters.
     #[serde(default, rename = "accountId")]
@@ -1264,7 +1265,7 @@ pub struct LoyaltyObject {
 }
 
 /// OfferObject resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OfferObject {
     /// Optional app or website link that will be displayed as a button on the front of the pass. If AppLinkData is provided for the corresponding class only object AppLinkData will be displayed.
     #[serde(default, rename = "appLinkData")]
@@ -1353,7 +1354,7 @@ pub struct OfferObject {
 }
 
 /// TransitObject resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransitObject {
     /// The activation status for the object. Required if the class has activationOptions set.
     #[serde(default, rename = "activationStatus")]
@@ -1487,7 +1488,7 @@ pub struct TransitObject {
 }
 
 /// SignUpInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SignUpInfo {
     /// ID of the class the user can sign up for.
     #[serde(default, rename = "classId")]
@@ -1495,7 +1496,7 @@ pub struct SignUpInfo {
 }
 
 /// Detailed Content-Type information from Scotty. The Content-Type of the media will typically be filled in by the header or Scotty''s best_guess, but this extended information provides the backend with more information so that it can make a better decision if needed. This is only used on media upload requests from Scotty.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentTypeInfo {
     /// Scotty''s best guess of what the content type of the file is.
     #[serde(default, rename = "bestGuess")]
@@ -1515,7 +1516,7 @@ pub struct ContentTypeInfo {
 }
 
 /// Backend response for a Diff get checksums response. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiffChecksumsResponse {
     /// Exactly one of these fields must be populated. If checksums_location is filled, the server will return the corresponding contents to the user. If object_location is filled, the server will calculate the checksums based on the content there and return that to the user. For details on the format of the checksums, see http://go/scotty-diff-protocol.
     #[serde(default, rename = "checksumsLocation")]
@@ -1535,7 +1536,7 @@ pub struct DiffChecksumsResponse {
 }
 
 /// Backend response for a Diff download response. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiffDownloadResponse {
     /// The original object location.
     #[serde(default, rename = "objectLocation")]
@@ -1543,7 +1544,7 @@ pub struct DiffDownloadResponse {
 }
 
 /// A Diff upload request. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiffUploadRequest {
     /// The location of the checksums for the new object. Agents must clone the object located here, as the upload server will delete the contents once a response is received. For details on the format of the checksums, see http://go/scotty-diff-protocol.
     #[serde(default, rename = "checksumsInfo")]
@@ -1557,7 +1558,7 @@ pub struct DiffUploadRequest {
 }
 
 /// Backend response for a Diff upload request. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiffUploadResponse {
     /// The object version of the object at the server. Must be included in the end notification response. The version in the end notification response must correspond to the new version of the object that is now stored at the server, after the upload.
     #[serde(default, rename = "objectVersion")]
@@ -1568,7 +1569,7 @@ pub struct DiffUploadResponse {
 }
 
 /// Backend response for a Diff get version response. For details on the Scotty Diff protocol, visit http://go/scotty-diff-protocol.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiffVersionResponse {
     /// The total size of the server object.
     #[serde(default, rename = "objectSizeBytes")]
@@ -1579,7 +1580,7 @@ pub struct DiffVersionResponse {
 }
 
 /// Parameters specific to media downloads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DownloadParameters {
     /// A boolean to be returned in the response to Scotty. Allows/disallows gzip encoding of the payload content when the server thinks it''s advantageous (hence, does not guarantee compression) which allows Scotty to GZip the response to the client.
     #[serde(default, rename = "allowGzipCompression")]
@@ -1590,7 +1591,7 @@ pub struct DownloadParameters {
 }
 
 /// AuthenticationKey resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthenticationKey {
     /// Available only to Smart Tap enabled partners. Contact support for additional guidance.
     #[serde(default)]
@@ -1601,7 +1602,7 @@ pub struct AuthenticationKey {
 }
 
 /// EventTicketClass resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventTicketClass {
     /// Deprecated. Use multipleDevicesAndHoldersAllowedStatus instead.
     #[serde(default, rename = "allowMultipleUsersPerObject")]
@@ -1747,7 +1748,7 @@ pub struct EventTicketClass {
 }
 
 /// EventReservationInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventReservationInfo {
     /// The confirmation code of the event reservation. This may also take the form of an "order number", "confirmation number", "reservation number", or other equivalent.
     #[serde(default, rename = "confirmationCode")]
@@ -1758,7 +1759,7 @@ pub struct EventReservationInfo {
 }
 
 /// EventSeat resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventSeat {
     /// The gate the ticket holder should enter to get to their seat, such as "A" or "West". This field is localizable so you may translate words or use different alphabets for the characters in an identifier.
     #[serde(default)]
@@ -1778,7 +1779,7 @@ pub struct EventSeat {
 }
 
 /// BoardingAndSeatingInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BoardingAndSeatingInfo {
     /// Set this field only if this flight boards through more than one door or bridge and you want to explicitly print the door location on the boarding pass. Most airlines route their passengers to the right door or bridge by refering to doors/bridges by the seatClass. In those cases boardingDoor should not be set. // TODO: enum values: ["BOARDING_DOOR_UNSPECIFIED", "FRONT", "front", "BACK", "back"]
     #[serde(default, rename = "boardingDoor")]
@@ -1810,7 +1811,7 @@ pub struct BoardingAndSeatingInfo {
 }
 
 /// FlightClass resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlightClass {
     /// Deprecated. Use multipleDevicesAndHoldersAllowedStatus instead.
     #[serde(default, rename = "allowMultipleUsersPerObject")]
@@ -1941,7 +1942,7 @@ pub struct FlightClass {
 }
 
 /// ReservationInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReservationInfo {
     /// Confirmation code needed to check into this flight. This is the number that the passenger would enter into a kiosk at the airport to look up the flight and print a boarding pass.
     #[serde(default, rename = "confirmationCode")]
@@ -1958,7 +1959,7 @@ pub struct ReservationInfo {
 }
 
 /// Indicates if the object needs to have notification enabled. We support only one of ExpiryNotification/UpcomingNotification. expiryNotification takes precedence over upcomingNotification. In other words if expiryNotification is set, we ignore the upcomingNotification field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Notifications {
     /// A notification would be triggered at a specific time before the card expires.
     #[serde(default, rename = "expiryNotification")]
@@ -1969,7 +1970,7 @@ pub struct Notifications {
 }
 
 /// GiftCardClass resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GiftCardClass {
     /// Determines whether the merchant supports gift card redemption using barcode. If true, app displays a barcode for the gift card on the Gift card details screen. If false, a barcode is not displayed.
     #[serde(default, rename = "allowBarcodeRedemption")]
@@ -2097,7 +2098,7 @@ pub struct GiftCardClass {
 }
 
 /// LoyaltyClass resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoyaltyClass {
     /// The account ID label, such as "Member ID." Recommended maximum length is 15 characters to ensure full string is displayed on smaller screens.
     #[serde(default, rename = "accountIdLabel")]
@@ -2243,7 +2244,7 @@ pub struct LoyaltyClass {
 }
 
 /// LoyaltyPoints resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoyaltyPoints {
     /// The account holder''s loyalty point balance, such as "500" or "$10.00". Recommended maximum length is 7 characters. This is a required field of loyaltyPoints and secondaryLoyaltyPoints.
     #[serde(default)]
@@ -2257,7 +2258,7 @@ pub struct LoyaltyPoints {
 }
 
 /// OfferClass resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OfferClass {
     /// Deprecated. Use multipleDevicesAndHoldersAllowedStatus instead.
     #[serde(default, rename = "allowMultipleUsersPerObject")]
@@ -2394,7 +2395,7 @@ pub struct OfferClass {
 }
 
 /// The activation status of the object. This field includes activation status if valuable supports activation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivationStatus {
     /// TODO: enum values: ["UNKNOWN_STATE", "NOT_ACTIVATED", "not_activated", "ACTIVATED", "activated"]
     #[serde(default)]
@@ -2402,7 +2403,7 @@ pub struct ActivationStatus {
 }
 
 /// Barcode resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Barcode {
     /// An optional text that will override the default text that shows under the barcode. This field is intended for a human readable equivalent of the barcode value, used when the barcode cannot be scanned.
     #[serde(default, rename = "alternateText")]
@@ -2425,7 +2426,7 @@ pub struct Barcode {
 }
 
 /// TransitClass resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransitClass {
     /// Activation options for an activatable ticket.
     #[serde(default, rename = "activationOptions")]
@@ -2598,7 +2599,7 @@ pub struct TransitClass {
 }
 
 /// Device context associated with the object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceContext {
     /// If set, redemption information will only be returned to the given device upon activation of the object. This should not be used as a stable identifier to trace a user''s device. It can change across different passes for the same device or even across different activations for the same device. When setting this, callers must also set has_linked_device on the object being activated.
     #[serde(default, rename = "deviceToken")]
@@ -2606,7 +2607,7 @@ pub struct DeviceContext {
 }
 
 /// GroupingInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GroupingInfo {
     /// Optional grouping ID for grouping the passes with the same ID visually together. Grouping with different types of passes is allowed.
     #[serde(default, rename = "groupingId")]
@@ -2617,7 +2618,7 @@ pub struct GroupingInfo {
 }
 
 /// Container for any constraints that may be placed on passes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PassConstraints {
     /// The NFC constraints for the pass.
     #[serde(default, rename = "nfcConstraint")]
@@ -2628,7 +2629,7 @@ pub struct PassConstraints {
 }
 
 /// PurchaseDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PurchaseDetails {
     /// ID of the account used to purchase the ticket.
     #[serde(default, rename = "accountId")]
@@ -2648,7 +2649,7 @@ pub struct PurchaseDetails {
 }
 
 /// RotatingBarcode resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RotatingBarcode {
     /// An optional text that will override the default text that shows under the barcode. This field is intended for a human readable equivalent of the barcode value, used when the barcode cannot be scanned.
     #[serde(default, rename = "alternateText")]
@@ -2674,7 +2675,7 @@ pub struct RotatingBarcode {
 }
 
 /// Defines restrictions on the object that will be verified during save. Note: this is an advanced feature, please contact Google for implementation support.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SaveRestrictions {
     /// Restrict the save of the referencing object to the given email address only. This is the hex output of SHA256 sum of the email address, all lowercase and without any notations like "." or "+", except "@". For example, for example@example.com, this value will be 31c5543c1734d25c7206f5fd591525d0295bec6fe84ff82f946a34fe970a1e66 and for Example@example.com, this value will be bc34f262c93ad7122763684ccea6f07fb7f5d8a2d11e60ce15a6f43fe70ce632 If email address of the logged-in user who tries to save this pass does not match with the defined value here, users won''t be allowed to save this pass. They will instead be prompted with an error to contact the issuer. This information should be gathered from the user with an explicit consent via Sign in with Google integration https://developers.google.com/identity/authentication. Please contact with support before using Save Restrictions.
     #[serde(default, rename = "restrictToEmailSha256")]
@@ -2682,7 +2683,7 @@ pub struct SaveRestrictions {
 }
 
 /// TicketLeg resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TicketLeg {
     /// The date/time of arrival. This is an ISO 8601 extended format date/time, with or without an offset. Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: 1985-04-12T23:20:50.52Z would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. 1985-04-12T19:20:50.52-04:00 would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the event were in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. 1985-04-12T19:20:50.52 would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. The portion of the date/time without the offset is considered the "local date/time". This should be the local date/time at the destination station. For example, if the event occurs at the 20th hour of June 5th, 2018 at the destination station, the local date/time portion should be 2018-06-05T20:00:00. If the local date/time at the destination station is 4 hours before UTC, an offset of -04:00 may be appended. Without offset information, some rich features may not be available.
     #[serde(default, rename = "arrivalDateTime")]
@@ -2729,7 +2730,7 @@ pub struct TicketLeg {
 }
 
 /// TicketRestrictions resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TicketRestrictions {
     /// Extra restrictions that don''t fall under the "route" or "time" categories.
     #[serde(default, rename = "otherRestrictions")]
@@ -2746,7 +2747,7 @@ pub struct TicketRestrictions {
 }
 
 /// A sequence of media data references representing composite data. Introduced to support Bigstore composite objects. For details, visit http://go/bigstore-composites.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompositeMedia {
     /// Blobstore v1 reference, set if reference_type is BLOBSTORE_REF This should be the byte representation of a blobstore.BlobRef. Since Blobstore is deprecating v1, use blobstore2_info instead. For now, any v2 blob will also be represented in this field as v1 BlobRef.
     #[serde(default, rename = "blobRef")]
@@ -2784,7 +2785,7 @@ pub struct CompositeMedia {
 }
 
 /// EventDateTime resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventDateTime {
     /// A custom label to use for the doors open value (doorsOpen) on the card detail view. This should only be used if the default "Doors Open" label or one of the doorsOpenLabel options is not sufficient. Both doorsOpenLabel and customDoorsOpenLabel may not be set. If neither is set, the label will default to "Doors Open", localized. If the doors open field is unset, this label will not be used.
     #[serde(default, rename = "customDoorsOpenLabel")]
@@ -2807,7 +2808,7 @@ pub struct EventDateTime {
 }
 
 /// EventVenue resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventVenue {
     /// The address of the venue, such as "24 Willie Mays Plaza\nSan Francisco, CA 94107". Address lines are separated by line feed (\n) characters. This is required.
     #[serde(default)]
@@ -2821,7 +2822,7 @@ pub struct EventVenue {
 }
 
 /// BoardingAndSeatingPolicy resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BoardingAndSeatingPolicy {
     /// Indicates the policy the airline uses for boarding. If unset, Google will default to zoneBased. // TODO: enum values: ["BOARDING_POLICY_UNSPECIFIED", "ZONE_BASED", "zoneBased", "GROUP_BASED", "groupBased", "BOARDING_POLICY_OTHER", "boardingPolicyOther"]
     #[serde(default, rename = "boardingPolicy")]
@@ -2835,7 +2836,7 @@ pub struct BoardingAndSeatingPolicy {
 }
 
 /// AirportInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AirportInfo {
     /// Three character IATA airport code. This is a required field for origin and destination. Eg: "SFO"
     #[serde(default, rename = "airportIataCode")]
@@ -2855,7 +2856,7 @@ pub struct AirportInfo {
 }
 
 /// FlightHeader resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlightHeader {
     /// Information about airline carrier. This is a required property of flightHeader.
     #[serde(default)]
@@ -2878,7 +2879,7 @@ pub struct FlightHeader {
 }
 
 /// FrequentFlyerInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FrequentFlyerInfo {
     /// Frequent flyer number. Required for each nested object of kind walletobjects#frequentFlyerInfo.
     #[serde(default, rename = "frequentFlyerNumber")]
@@ -2892,7 +2893,7 @@ pub struct FrequentFlyerInfo {
 }
 
 /// Indicates that the issuer would like Google Wallet to send expiry notifications 2 days prior to the card expiration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExpiryNotification {
     /// Indicates if the object needs to have expiry notification enabled.
     #[serde(default, rename = "enableNotification")]
@@ -2900,7 +2901,7 @@ pub struct ExpiryNotification {
 }
 
 /// Indicates that the issuer would like Google Wallet to send an upcoming card validity notification 1 day before card becomes valid/usable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpcomingNotification {
     /// Indicates if the object needs to have upcoming notification enabled.
     #[serde(default, rename = "enableNotification")]
@@ -2908,7 +2909,7 @@ pub struct UpcomingNotification {
 }
 
 /// Information about how a class may be discovered and instantiated from within the Google Wallet app. This is done by searching for a loyalty or gift card program and scanning or manually entering.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiscoverableProgram {
     /// Information about the ability to signin and add a valuable for this program through a merchant site. Used when MERCHANT_HOSTED_SIGNIN is enabled.
     #[serde(default, rename = "merchantSigninInfo")]
@@ -2922,7 +2923,7 @@ pub struct DiscoverableProgram {
 }
 
 /// LoyaltyPointsBalance resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoyaltyPointsBalance {
     /// The double form of a balance. Only one of these subtypes (string, int, double, money) should be populated.
     #[serde(default)]
@@ -2939,7 +2940,7 @@ pub struct LoyaltyPointsBalance {
 }
 
 /// ActivationOptions for the class
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivationOptions {
     /// HTTPS URL that supports REST semantics. Would be used for requesting activation from partners for given valuable, triggered by the users.
     #[serde(default, rename = "activationUrl")]
@@ -2950,7 +2951,7 @@ pub struct ActivationOptions {
 }
 
 /// AppLinkData resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppLinkData {
     /// Optional information about the partner app link.
     #[serde(default, rename = "androidAppLinkInfo")]
@@ -2967,7 +2968,7 @@ pub struct AppLinkData {
 }
 
 /// CallbackOptions resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CallbackOptions {
     /// URL for the merchant endpoint that would be called to request updates. The URL should be hosted on HTTPS and robots.txt should allow the URL path to be accessible by UserAgent:Googlebot. Deprecated.
     #[serde(default, rename = "updateRequestUrl")]
@@ -2978,7 +2979,7 @@ pub struct CallbackOptions {
 }
 
 /// ClassTemplateInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClassTemplateInfo {
     /// Specifies extra information to be displayed above and below the barcode.
     #[serde(default, rename = "cardBarcodeSectionDetails")]
@@ -2995,7 +2996,7 @@ pub struct ClassTemplateInfo {
 }
 
 /// ImageModuleData resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageModuleData {
     /// The ID associated with an image module. This field is here to enable ease of management of image modules.
     #[serde(default)]
@@ -3006,7 +3007,7 @@ pub struct ImageModuleData {
 }
 
 /// InfoModuleData resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InfoModuleData {
     /// A list of collections of labels and values. These will be displayed one after the other in a singular column.
     #[serde(default, rename = "labelValueRows")]
@@ -3016,7 +3017,7 @@ pub struct InfoModuleData {
 }
 
 /// LinksModuleData resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LinksModuleData {
     /// The list of URIs.
     #[serde(default)]
@@ -3024,7 +3025,7 @@ pub struct LinksModuleData {
 }
 
 /// LatLongPoint resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LatLongPoint {
     /// Identifies what kind of resource this is. Value: the fixed string "walletobjects#latLongPoint".
     #[serde(default)]
@@ -3038,7 +3039,7 @@ pub struct LatLongPoint {
 }
 
 /// Locations of interest for this class or object. Currently, this location is used for geofenced notifications. When a user is within a set radius of this lat/long, and dwells there, Google will trigger a notification. When a user exits this radius, the notification will be hidden.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MerchantLocation {
     /// The latitude specified as any value in the range of -90.0 through +90.0, both inclusive. Values outside these bounds will be rejected.
     #[serde(default)]
@@ -3049,7 +3050,7 @@ pub struct MerchantLocation {
 }
 
 /// A message that will be displayed with a Valuable
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Message {
     /// The message body.
     #[serde(default)]
@@ -3078,14 +3079,14 @@ pub struct Message {
 }
 
 /// Review resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Review {
     #[serde(default)]
     pub comments: ::core::option::Option<String>,
 }
 
 /// SecurityAnimation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityAnimation {
     /// Type of animation. // TODO: enum values: ["ANIMATION_UNSPECIFIED", "FOIL_SHIMMER", "foilShimmer"]
     #[serde(default, rename = "animationType")]
@@ -3093,7 +3094,7 @@ pub struct SecurityAnimation {
 }
 
 /// Data for Text module. All fields are optional. Header will be displayed if available, different types of bodies will be concatenated if they are defined.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextModuleData {
     /// The body of the Text Module, which is defined as an uninterrupted string. Recommended maximum length is 500 characters to ensure full string is displayed on smaller screens.
     #[serde(default)]
@@ -3113,7 +3114,7 @@ pub struct TextModuleData {
 }
 
 /// Data for Value Added module. Required fields are header and uri.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValueAddedModuleData {
     /// Body to be displayed on the module. Character limit is 50 and longer strings will be truncated.
     #[serde(default)]
@@ -3136,7 +3137,7 @@ pub struct ValueAddedModuleData {
 }
 
 /// TicketCost resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TicketCost {
     /// A message describing any kind of discount that was applied.
     #[serde(default, rename = "discountMessage")]
@@ -3150,7 +3151,7 @@ pub struct TicketCost {
 }
 
 /// A payload containing many barcode values and start date/time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RotatingBarcodeValues {
     /// Required. The amount of time each barcode is valid for.
     #[serde(default, rename = "periodMillis")]
@@ -3164,7 +3165,7 @@ pub struct RotatingBarcodeValues {
 }
 
 /// Configuration for the time-based OTP substitutions. See https://tools.ietf.org/html/rfc6238
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RotatingBarcodeTotpDetails {
     /// The TOTP algorithm used to generate the OTP. // TODO: enum values: ["TOTP_ALGORITHM_UNSPECIFIED", "TOTP_SHA1"]
     #[serde(default)]
@@ -3179,7 +3180,7 @@ pub struct RotatingBarcodeTotpDetails {
 }
 
 /// TicketSeat resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TicketSeat {
     /// The identifier of the train car or coach in which the ticketed seat is located. Eg. "10"
     #[serde(default)]
@@ -3199,7 +3200,7 @@ pub struct TicketSeat {
 }
 
 /// Information to read/write to blobstore2.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Blobstore2Info {
     /// The blob generation id.
     #[serde(default, rename = "blobGeneration")]
@@ -3225,7 +3226,7 @@ pub struct Blobstore2Info {
 }
 
 /// This is a copy of the tech.blob.ObjectId proto, which could not be used directly here due to transitive closure issues with JavaScript support; see http://b/8801763.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObjectId {
     /// The name of the bucket to which this object belongs.
     #[serde(default, rename = "bucketName")]
@@ -3239,7 +3240,7 @@ pub struct ObjectId {
 }
 
 /// FlightCarrier resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlightCarrier {
     /// A logo for the airline alliance, displayed below the QR code that the passenger scans to board.
     #[serde(default, rename = "airlineAllianceLogo")]
@@ -3265,7 +3266,7 @@ pub struct FlightCarrier {
 }
 
 /// Information about the merchant hosted signin flow for a program.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiscoverableProgramMerchantSigninInfo {
     /// The URL to direct the user to for the merchant''s signin site.
     #[serde(default, rename = "signinWebsite")]
@@ -3273,7 +3274,7 @@ pub struct DiscoverableProgramMerchantSigninInfo {
 }
 
 /// Information about the merchant hosted signup flow for a program.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiscoverableProgramMerchantSignupInfo {
     /// User data that is sent in a POST request to the signup website URL. This information is encoded and then shared so that the merchant''s website can prefill fields used to enroll the user for the discoverable program.
     #[serde(default, rename = "signupSharedDatas")]
@@ -3284,7 +3285,7 @@ pub struct DiscoverableProgramMerchantSignupInfo {
 }
 
 /// AppLinkDataAppLinkInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppLinkDataAppLinkInfo {
     /// Deprecated. Image isn''t supported in the app link module.
     #[serde(default, rename = "appLogoImage")]
@@ -3301,7 +3302,7 @@ pub struct AppLinkDataAppLinkInfo {
 }
 
 /// CardBarcodeSectionDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CardBarcodeSectionDetails {
     /// Optional information to display below the barcode.
     #[serde(default, rename = "firstBottomDetail")]
@@ -3315,7 +3316,7 @@ pub struct CardBarcodeSectionDetails {
 }
 
 /// CardTemplateOverride resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CardTemplateOverride {
     /// Template information for rows in the card view. At most three rows are allowed to be specified.
     #[serde(default, rename = "cardRowTemplateInfos")]
@@ -3323,7 +3324,7 @@ pub struct CardTemplateOverride {
 }
 
 /// DetailsTemplateOverride resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DetailsTemplateOverride {
     /// Information for the "nth" item displayed in the details list.
     #[serde(default, rename = "detailsItemInfos")]
@@ -3331,7 +3332,7 @@ pub struct DetailsTemplateOverride {
 }
 
 /// ListTemplateOverride resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTemplateOverride {
     /// Specifies from a predefined set of options or from a reference to the field what will be displayed in the first row. To set this override, set the FirstRowOption.fieldOption to the FieldSelector of your choice.
     #[serde(default, rename = "firstRowOption")]
@@ -3345,7 +3346,7 @@ pub struct ListTemplateOverride {
 }
 
 /// LabelValueRow resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LabelValueRow {
     /// A list of labels and values. These will be displayed in a singular column, one after the other, not in multiple columns, despite the field name.
     #[serde(default)]
@@ -3353,7 +3354,7 @@ pub struct LabelValueRow {
 }
 
 /// Constraints that all must be met for the module to be shown.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModuleViewConstraints {
     /// The period of time that the module will be displayed to users. Can define both a startTime and endTime. The module is displayed immediately after insertion unless a startTime is set. The module is displayed indefinitely if endTime is not set.
     #[serde(default, rename = "displayInterval")]
@@ -3361,7 +3362,7 @@ pub struct ModuleViewConstraints {
 }
 
 /// Money resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Money {
     /// The currency code, such as "USD" or "EUR."
     #[serde(default, rename = "currencyCode")]
@@ -3375,7 +3376,7 @@ pub struct Money {
 }
 
 /// Configuration for the key and value length. See https://www.rfc-editor.org/rfc/rfc4226#section-5.3
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RotatingBarcodeTotpDetailsTotpParameters {
     /// The secret key used for the TOTP value generation, encoded as a Base16 string.
     #[serde(default)]
@@ -3386,7 +3387,7 @@ pub struct RotatingBarcodeTotpDetailsTotpParameters {
 }
 
 /// Wrapping type for Google hosted images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Image {
     /// Description of the image used for accessibility.
     #[serde(default, rename = "contentDescription")]
@@ -3403,7 +3404,7 @@ pub struct Image {
 }
 
 /// AppLinkDataAppLinkInfoAppTarget resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppLinkDataAppLinkInfoAppTarget {
     /// Package name for AppTarget. For example: com.google.android.gm
     #[serde(default, rename = "packageName")]
@@ -3414,7 +3415,7 @@ pub struct AppLinkDataAppLinkInfoAppTarget {
 }
 
 /// BarcodeSectionDetail resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BarcodeSectionDetail {
     /// A reference to an existing text-based or image field to display.
     #[serde(default, rename = "fieldSelector")]
@@ -3422,7 +3423,7 @@ pub struct BarcodeSectionDetail {
 }
 
 /// CardRowTemplateInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CardRowTemplateInfo {
     /// Template for a row containing one item. Exactly one of "one_item", "two_items", "three_items" must be set.
     #[serde(default, rename = "oneItem")]
@@ -3436,7 +3437,7 @@ pub struct CardRowTemplateInfo {
 }
 
 /// DetailsItemInfo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DetailsItemInfo {
     /// The item to be displayed in the details list.
     #[serde(default)]
@@ -3444,7 +3445,7 @@ pub struct DetailsItemInfo {
 }
 
 /// FirstRowOption resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirstRowOption {
     /// A reference to the field to be displayed in the first row.
     #[serde(default, rename = "fieldOption")]
@@ -3455,7 +3456,7 @@ pub struct FirstRowOption {
 }
 
 /// A pair of text strings to be displayed in the details view. Note we no longer display LabelValue/LabelValueRow as a table, instead a list of items.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LabelValue {
     /// The label for a specific row and column. Recommended maximum is 15 characters for a two-column layout and 30 characters for a one-column layout.
     #[serde(default)]
@@ -3472,7 +3473,7 @@ pub struct LabelValue {
 }
 
 /// TimeInterval resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeInterval {
     /// End time of the interval. Offset is not required. If an offset is provided and start time is set, start must also include an offset.
     #[serde(default)]
@@ -3486,7 +3487,7 @@ pub struct TimeInterval {
 }
 
 /// ImageUri resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageUri {
     /// Additional information about the image, which is unused and retained only for backward compatibility.
     #[serde(default)]
@@ -3500,7 +3501,7 @@ pub struct ImageUri {
 }
 
 /// Uri resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Uri {
     /// The URI''s title appearing in the app as text. Recommended maximum is 20 characters to ensure full string is displayed on smaller screens. Note that in some contexts this text is not used, such as when description is part of an image.
     #[serde(default)]
@@ -3520,7 +3521,7 @@ pub struct Uri {
 }
 
 /// CardRowOneItem resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CardRowOneItem {
     /// The item to be displayed in the row. This item will be automatically centered.
     #[serde(default)]
@@ -3528,7 +3529,7 @@ pub struct CardRowOneItem {
 }
 
 /// CardRowThreeItems resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CardRowThreeItems {
     /// The item to be displayed at the end of the row. This item will be aligned to the right.
     #[serde(default, rename = "endItem")]
@@ -3542,7 +3543,7 @@ pub struct CardRowThreeItems {
 }
 
 /// CardRowTwoItems resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CardRowTwoItems {
     /// The item to be displayed at the end of the row. This item will be aligned to the right.
     #[serde(default, rename = "endItem")]
@@ -3553,7 +3554,7 @@ pub struct CardRowTwoItems {
 }
 
 /// DateTime resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DateTime {
     /// An ISO 8601 extended format date/time. Offset may or may not be required (refer to the parent field''s documentation). Time may be specified up to nanosecond precision. Offsets may be specified with seconds precision (even though offset seconds is not part of ISO 8601). For example: 1985-04-12T23:20:50.52Z would be 20 minutes and 50.52 seconds after the 23rd hour of April 12th, 1985 in UTC. 1985-04-12T19:20:50.52-04:00 would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985, 4 hours before UTC (same instant in time as the above example). If the date/time is intended for a physical location in New York, this would be the equivalent of Eastern Daylight Time (EDT). Remember that offset varies in regions that observe Daylight Saving Time (or Summer Time), depending on the time of the year. 1985-04-12T19:20:50.52 would be 20 minutes and 50.52 seconds after the 19th hour of April 12th, 1985 with no offset information. Providing an offset makes this an absolute instant in time around the world. The date/time will be adjusted based on the user''s time zone. For example, a time of 2018-06-19T18:30:00-04:00 will be 18:30:00 for a user in New York and 15:30:00 for a user in Los Angeles. Omitting the offset makes this a local date/time, representing several instants in time around the world. The date/time will always be in the user''s current time zone. For example, a time of 2018-06-19T18:30:00 will be 18:30:00 for a user in New York and also 18:30:00 for a user in Los Angeles. This is useful when the same local date/time should apply to many physical locations across several time zones.
     #[serde(default)]
@@ -3561,7 +3562,7 @@ pub struct DateTime {
 }
 
 /// TemplateItem resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TemplateItem {
     /// A reference to a field to display. If both firstValue and secondValue are populated, they will both appear as one item with a slash between them. For example, values A and B would be shown as "A / B".
     #[serde(default, rename = "firstValue")]
@@ -3575,7 +3576,7 @@ pub struct TemplateItem {
 }
 
 /// Custom field selector to use with field overrides.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FieldSelector {
     /// If more than one reference is supplied, then the first one that references a non-empty field will be displayed.
     #[serde(default)]
@@ -3583,7 +3584,7 @@ pub struct FieldSelector {
 }
 
 /// Reference definition to use with field overrides.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FieldReference {
     /// Only valid if the fieldPath references a date field. Chooses how the date field will be formatted and displayed in the UI. // TODO: enum values: ["DATE_FORMAT_UNSPECIFIED", "DATE_TIME", "dateTime", "DATE_ONLY", "dateOnly", "TIME_ONLY", "timeOnly", "DATE_TIME_YEAR", "dateTimeYear", "DATE_YEAR", "dateYear", "YEAR_MONTH", "YEAR_MONTH_DAY"]
     #[serde(default, rename = "dateFormat")]

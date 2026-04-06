@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Response message for PlaceActions.ListPlaceActionLinks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPlaceActionLinksResponse {
     /// If there are more place action links than the requested page size, then this field is populated with a token to fetch the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -26,7 +27,7 @@ pub struct ListPlaceActionLinksResponse {
 }
 
 /// Response message for PlaceActions.ListPlaceActionTypeMetadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPlaceActionTypeMetadataResponse {
     /// If the number of action types exceeded the requested page size, this field will be populated with a token to fetch the next page on a subsequent call to placeActionTypeMetadata.list. If there are no more results, this field will not be present in the response.
     #[serde(default, rename = "nextPageToken")]
@@ -38,7 +39,7 @@ pub struct ListPlaceActionTypeMetadataResponse {
 }
 
 /// Represents a place action link and its attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlaceActionLink {
     /// Output only. The time when the place action link was created.
     #[serde(default, rename = "createTime")]
@@ -67,7 +68,7 @@ pub struct PlaceActionLink {
 }
 
 /// Metadata for supported place action types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlaceActionTypeMetadata {
     /// The localized display name for the attribute, if available; otherwise, the English display name.
     #[serde(default, rename = "displayName")]

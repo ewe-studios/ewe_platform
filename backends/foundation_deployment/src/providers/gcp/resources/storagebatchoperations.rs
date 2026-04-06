@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Message for Job to Cancel
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelJobRequest {
     /// Optional. An optional request ID to identify requests. Specify a unique request ID in case you need to retry your request. Requests with same request_id will be ignored for at least 60 minutes since the first request. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
@@ -19,19 +20,19 @@ pub struct CancelJobRequest {
 }
 
 /// Message for response to cancel Job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelJobResponse {}
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Message for response to listing BucketOperations
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBucketOperationsResponse {
     /// A list of storage batch bucket operations.
     #[serde(default, rename = "bucketOperations")]
@@ -45,7 +46,7 @@ pub struct ListBucketOperationsResponse {
 }
 
 /// Message for response to listing Jobs
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListJobsResponse {
     /// A list of storage batch jobs.
     #[serde(default)]
@@ -59,7 +60,7 @@ pub struct ListJobsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -70,7 +71,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -84,7 +85,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Describes the payload of a user defined object custom context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObjectCustomContextPayload {
     /// The value of the object custom context. If set, value must NOT be an empty string since it is a required field in custom context. If unset, value will be ignored and no changes will be made to the value field of the custom context payload.
     #[serde(default)]
@@ -92,7 +93,7 @@ pub struct ObjectCustomContextPayload {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -115,7 +116,7 @@ pub struct OperationMetadata {
 }
 
 /// BucketOperation represents a bucket-level breakdown of a Job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BucketOperation {
     /// The bucket name of the objects to be transformed in the BucketOperation.
     #[serde(default, rename = "bucketName")]
@@ -165,7 +166,7 @@ pub struct BucketOperation {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -185,7 +186,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -205,7 +206,7 @@ pub struct Operation {
 }
 
 /// The Storage Batch Operations Job description.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Job {
     /// Specifies a list of buckets and their objects to be transformed.
     #[serde(default, rename = "bucketList")]
@@ -261,7 +262,7 @@ pub struct Job {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -275,7 +276,7 @@ pub struct Status {
 }
 
 /// Describes list of buckets and their objects to be transformed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BucketList {
     /// Required. List of buckets and their objects to be transformed. Currently, only one bucket configuration is supported. If multiple buckets are specified, an error will be returned.
     #[serde(default)]
@@ -283,7 +284,7 @@ pub struct BucketList {
 }
 
 /// Describes details about the progress of the job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Counters {
     /// Output only. The number of objects that failed due to user errors or service errors.
     #[serde(default, rename = "failedObjectCount")]
@@ -309,7 +310,7 @@ pub struct Counters {
 }
 
 /// Describes options to delete an object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteObject {
     /// Required. Controls deletion behavior when versioning is enabled for the object''s bucket. If true both live and noncurrent objects will be permanently deleted. Otherwise live objects in versioned buckets will become noncurrent and objects that were already noncurrent will be skipped. This setting doesn''t have any impact on the Soft Delete feature. All objects deleted by this service can be be restored for the duration of the Soft Delete retention duration if enabled. If enabled and the manifest doesn''t specify an object''s generation, a GetObjectMetadata call (a Class B operation) will be made to determine the live object generation.
     #[serde(default, rename = "permanentObjectDeletionEnabled")]
@@ -317,7 +318,7 @@ pub struct DeleteObject {
 }
 
 /// A summary of errors by error code, plus a count and sample error log entries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorSummary {
     /// Required. The canonical error code. // TODO: enum values: ["OK", "CANCELLED", "UNKNOWN", "INVALID_ARGUMENT", "DEADLINE_EXCEEDED", "NOT_FOUND", "ALREADY_EXISTS", "PERMISSION_DENIED", "UNAUTHENTICATED", "RESOURCE_EXHAUSTED", "FAILED_PRECONDITION", "ABORTED", "OUT_OF_RANGE", "UNIMPLEMENTED", "INTERNAL", "UNAVAILABLE", "DATA_LOSS"]
     #[serde(default, rename = "errorCode")]
@@ -331,7 +332,7 @@ pub struct ErrorSummary {
 }
 
 /// Specifies the Cloud Logging behavior.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoggingConfig {
     /// Required. States in which Action are logged.If empty, no logs are generated.
     #[serde(default, rename = "logActionStates")]
@@ -342,7 +343,7 @@ pub struct LoggingConfig {
 }
 
 /// Describes options for object metadata update.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PutMetadata {
     /// Optional. Updates objects Cache-Control fixed metadata. Unset values will be ignored. Set empty values to clear the metadata. Additionally, the value for Custom-Time cannot decrease. Refer to documentation in https://cloud.google.com/storage/docs/metadata#caching_data.
     #[serde(default, rename = "cacheControl")]
@@ -371,7 +372,7 @@ pub struct PutMetadata {
 }
 
 /// Describes options to update object hold.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PutObjectHold {
     /// Required. Updates object event based holds state. When object event based hold is set, object cannot be deleted or replaced. Resets object''s time in the bucket for the purposes of the retention period. // TODO: enum values: ["HOLD_STATUS_UNSPECIFIED", "SET", "UNSET"]
     #[serde(default, rename = "eventBasedHold")]
@@ -382,7 +383,7 @@ pub struct PutObjectHold {
 }
 
 /// Describes options for object rewrite.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RewriteObject {
     /// Required. Resource name of the Cloud KMS key that will be used to encrypt the object. The Cloud KMS key must be located in same location as the object. Refer to https://cloud.google.com/storage/docs/encryption/using-customer-managed-keys#add-object-key for additional documentation. Format: projects/{project}/locations/{location}/keyRings/{keyring}/cryptoKeys/{key} For example: "projects/123456/locations/us-central1/keyRings/my-keyring/cryptoKeys/my-key". The object will be rewritten and set with the specified KMS key.
     #[serde(default, rename = "kmsKey")]
@@ -390,7 +391,7 @@ pub struct RewriteObject {
 }
 
 /// Describes options to update object custom contexts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateObjectCustomContext {
     /// If set, must be set to true and all existing object custom contexts will be deleted.
     #[serde(default, rename = "clearAll")]
@@ -401,7 +402,7 @@ pub struct UpdateObjectCustomContext {
 }
 
 /// Describes configuration of a single bucket and its objects to be transformed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Bucket {
     /// Required. Bucket name for the objects to be transformed.
     #[serde(default)]
@@ -415,7 +416,7 @@ pub struct Bucket {
 }
 
 /// An entry describing an error that has occurred.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorLogEntry {
     /// Optional. Output only. At most 5 error log entries are recorded for a given error code for a job.
     #[serde(default, rename = "errorDetails")]
@@ -426,7 +427,7 @@ pub struct ErrorLogEntry {
 }
 
 /// Describes options for object retention update.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObjectRetention {
     /// Required. The time when the object will be retained until. UNSET will clear the retention. Must be specified in RFC 3339 format e.g. YYYY-MM-DD''T''HH:MM:SS.SS''Z'' or YYYY-MM-DD''T''HH:MM:SS''Z''.
     #[serde(default, rename = "retainUntilTime")]
@@ -437,7 +438,7 @@ pub struct ObjectRetention {
 }
 
 /// Describes a collection of updates to apply to custom contexts identified by key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomContextUpdates {
     /// Optional. Custom contexts to clear by key. A key cannot be present in both updates and keys_to_clear.
     #[serde(default, rename = "keysToClear")]
@@ -448,7 +449,7 @@ pub struct CustomContextUpdates {
 }
 
 /// Describes list of objects to be transformed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Manifest {
     /// Required. manifest_location must contain the manifest source file that is a CSV file in a Google Cloud Storage bucket. Each row in the file must include the object details i.e. BucketId and Name. Generation may optionally be specified. When it is not specified the live object is acted upon. manifest_location should either be 1) An absolute path to the object in the format of gs://bucket_name/path/file_name.csv. 2) An absolute path with a single wildcard character in the file name, for example gs://bucket_name/path/file_name*.csv. If manifest location is specified with a wildcard, objects in all manifest files matching the pattern will be acted upon.
     #[serde(default, rename = "manifestLocation")]
@@ -456,7 +457,7 @@ pub struct Manifest {
 }
 
 /// Describes prefixes of objects to be transformed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrefixList {
     /// Optional. Include prefixes of the objects to be transformed. * Supports full object name * Supports prefix of the object name * Wildcards are not supported * Supports empty string for all objects in a bucket.
     #[serde(default, rename = "includedObjectPrefixes")]

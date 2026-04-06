@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Definition of the validation rules. Those are the input to the validator logic and they are used to validate a document. Next ID: 3
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInput {
     #[serde(default, rename = "validationRules")]
     pub validation_rules: ::core::option::Option<
@@ -20,7 +21,7 @@ pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInput {
 }
 
 /// Metadata of the auto-labeling documents operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3AutoLabelDocumentsMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -39,11 +40,11 @@ pub struct GoogleCloudDocumentaiUiv1beta3AutoLabelDocumentsMetadata {
 }
 
 /// The response proto of AutoLabelDocuments method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3AutoLabelDocumentsResponse {}
 
 /// GoogleCloudDocumentaiUiv1beta3BatchDeleteDocumentsMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3BatchDeleteDocumentsMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -65,11 +66,11 @@ pub struct GoogleCloudDocumentaiUiv1beta3BatchDeleteDocumentsMetadata {
 }
 
 /// Response of the delete documents operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3BatchDeleteDocumentsResponse {}
 
 /// GoogleCloudDocumentaiUiv1beta3BatchMoveDocumentsMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3BatchMoveDocumentsMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -91,11 +92,11 @@ pub struct GoogleCloudDocumentaiUiv1beta3BatchMoveDocumentsMetadata {
 }
 
 /// Response of the batch move documents operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3BatchMoveDocumentsResponse {}
 
 /// GoogleCloudDocumentaiUiv1beta3BatchUpdateDocumentsMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3BatchUpdateDocumentsMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -111,11 +112,11 @@ pub struct GoogleCloudDocumentaiUiv1beta3BatchUpdateDocumentsMetadata {
 }
 
 /// Response of the batch update documents operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3BatchUpdateDocumentsResponse {}
 
 /// The long-running operation metadata for the CreateLabelerPool method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3CreateLabelerPoolOperationMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -124,7 +125,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3CreateLabelerPoolOperationMetadata {
 }
 
 /// The long-running operation metadata for DeleteLabelerPool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3DeleteLabelerPoolOperationMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -133,7 +134,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3DeleteLabelerPoolOperationMetadata {
 }
 
 /// The long-running operation metadata for the DeleteProcessor method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3DeleteProcessorMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -142,7 +143,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3DeleteProcessorMetadata {
 }
 
 /// The long-running operation metadata for the DeleteProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3DeleteProcessorVersionMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -151,7 +152,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3DeleteProcessorVersionMetadata {
 }
 
 /// The long-running operation metadata for the DeployProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3DeployProcessorVersionMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -160,11 +161,11 @@ pub struct GoogleCloudDocumentaiUiv1beta3DeployProcessorVersionMetadata {
 }
 
 /// Response message for the DeployProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3DeployProcessorVersionResponse {}
 
 /// The long-running operation metadata for the DisableProcessor method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3DisableProcessorMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -173,11 +174,11 @@ pub struct GoogleCloudDocumentaiUiv1beta3DisableProcessorMetadata {
 }
 
 /// Response message for the DisableProcessor method. Intentionally empty proto for adding fields in future.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3DisableProcessorResponse {}
 
 /// The long-running operation metadata for the EnableProcessor method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3EnableProcessorMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -186,11 +187,11 @@ pub struct GoogleCloudDocumentaiUiv1beta3EnableProcessorMetadata {
 }
 
 /// Response message for the EnableProcessor method. Intentionally empty proto for adding fields in future.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3EnableProcessorResponse {}
 
 /// Metadata of the EvaluateProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3EvaluateProcessorVersionMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -199,7 +200,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3EvaluateProcessorVersionMetadata {
 }
 
 /// Response of the EvaluateProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3EvaluateProcessorVersionResponse {
     /// The resource name of the created evaluation.
     #[serde(default)]
@@ -207,7 +208,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3EvaluateProcessorVersionResponse {
 }
 
 /// Metadata of the batch export documents operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3ExportDocumentsMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -228,11 +229,11 @@ pub struct GoogleCloudDocumentaiUiv1beta3ExportDocumentsMetadata {
 }
 
 /// The response proto of ExportDocuments method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3ExportDocumentsResponse {}
 
 /// Metadata message associated with the ExportProcessorVersion operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3ExportProcessorVersionMetadata {
     /// The common metadata about the operation.
     #[serde(default, rename = "commonMetadata")]
@@ -241,7 +242,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3ExportProcessorVersionMetadata {
 }
 
 /// Response message associated with the ExportProcessorVersion operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3ExportProcessorVersionResponse {
     /// The Cloud Storage URI containing the output artifacts.
     #[serde(default, rename = "gcsUri")]
@@ -249,7 +250,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3ExportProcessorVersionResponse {
 }
 
 /// Metadata of the import document operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3ImportDocumentsMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -275,11 +276,11 @@ pub struct GoogleCloudDocumentaiUiv1beta3ImportDocumentsMetadata {
 }
 
 /// Response of the import document operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3ImportDocumentsResponse {}
 
 /// The long-running operation metadata for the ImportProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3ImportProcessorVersionMetadata {
     /// The basic metadata for the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -288,7 +289,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3ImportProcessorVersionMetadata {
 }
 
 /// The response message for the ImportProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3ImportProcessorVersionResponse {
     /// The destination processor version name.
     #[serde(default, rename = "processorVersion")]
@@ -296,7 +297,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3ImportProcessorVersionResponse {
 }
 
 /// The first-class citizen for Document AI. Each processor defines how to extract structural information from a document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3Processor {
     /// Optional. SchemaVersion used by the Processor. It is the same as Processor''s DatasetSchema.schema_version Format is projects/{project}/locations/{location}/schemas/{schema}/schemaVersions/{schema_version}
     #[serde(default, rename = "activeSchemaVersion")]
@@ -339,7 +340,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3Processor {
 }
 
 /// A processor version is an implementation of a processor. Each processor can have multiple versions, pretrained by Google internally or uptrained by the customer. A processor can only have one default version at a time. Its document-processing behavior is defined by that version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3ProcessorVersion {
     /// Output only. The time the processor version was created.
     #[serde(default, rename = "createTime")]
@@ -395,7 +396,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3ProcessorVersion {
 }
 
 /// The metadata proto of ResyncDataset method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3ResyncDatasetMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -416,11 +417,11 @@ pub struct GoogleCloudDocumentaiUiv1beta3ResyncDatasetMetadata {
 }
 
 /// The response proto of ResyncDataset method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3ResyncDatasetResponse {}
 
 /// Metadata of the sample documents operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3SampleDocumentsMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -429,7 +430,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3SampleDocumentsMetadata {
 }
 
 /// Response of the sample documents operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3SampleDocumentsResponse {
     /// The status of sampling documents in test split.
     #[serde(default, rename = "sampleTestStatus")]
@@ -445,7 +446,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3SampleDocumentsResponse {
 }
 
 /// The long-running operation metadata for the SetDefaultProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3SetDefaultProcessorVersionMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -454,11 +455,11 @@ pub struct GoogleCloudDocumentaiUiv1beta3SetDefaultProcessorVersionMetadata {
 }
 
 /// Response message for the SetDefaultProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3SetDefaultProcessorVersionResponse {}
 
 /// The metadata that represents a processor version being created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3TrainProcessorVersionMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -477,7 +478,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3TrainProcessorVersionMetadata {
 }
 
 /// The response for TrainProcessorVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3TrainProcessorVersionResponse {
     /// The resource name of the processor version produced by training.
     #[serde(default, rename = "processorVersion")]
@@ -485,7 +486,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3TrainProcessorVersionResponse {
 }
 
 /// The long-running operation metadata for the UndeployProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3UndeployProcessorVersionMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -494,11 +495,11 @@ pub struct GoogleCloudDocumentaiUiv1beta3UndeployProcessorVersionMetadata {
 }
 
 /// Response message for the UndeployProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3UndeployProcessorVersionResponse {}
 
 /// GoogleCloudDocumentaiUiv1beta3UpdateDatasetOperationMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3UpdateDatasetOperationMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -507,7 +508,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3UpdateDatasetOperationMetadata {
 }
 
 /// The long-running operation metadata for updating the human review configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3UpdateHumanReviewConfigMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -516,7 +517,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3UpdateHumanReviewConfigMetadata {
 }
 
 /// The long-running operation metadata for UpdateLabelerPool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3UpdateLabelerPoolOperationMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -525,7 +526,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3UpdateLabelerPoolOperationMetadata {
 }
 
 /// The long-running operation metadata for the UpdateProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3UpdateProcessorVersionMetadata {
     /// The basic metadata for the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -534,7 +535,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3UpdateProcessorVersionMetadata {
 }
 
 /// The long-running operation metadata for BatchProcessDocuments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1BatchProcessMetadata {
     /// The creation time of the operation.
     #[serde(default, rename = "createTime")]
@@ -556,7 +557,7 @@ pub struct GoogleCloudDocumentaiV1BatchProcessMetadata {
 }
 
 /// Request message for BatchProcessDocuments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1BatchProcessRequest {
     /// The output configuration for the BatchProcessDocuments method.
     #[serde(default, rename = "documentOutputConfig")]
@@ -576,11 +577,11 @@ pub struct GoogleCloudDocumentaiV1BatchProcessRequest {
 }
 
 /// Response message for BatchProcessDocuments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1BatchProcessResponse {}
 
 /// The long-running operation metadata for the DeleteProcessor method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DeleteProcessorMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -588,7 +589,7 @@ pub struct GoogleCloudDocumentaiV1DeleteProcessorMetadata {
 }
 
 /// The long-running operation metadata for the DeleteProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DeleteProcessorVersionMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -596,7 +597,7 @@ pub struct GoogleCloudDocumentaiV1DeleteProcessorVersionMetadata {
 }
 
 /// The long-running operation metadata for the DeployProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DeployProcessorVersionMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -604,15 +605,15 @@ pub struct GoogleCloudDocumentaiV1DeployProcessorVersionMetadata {
 }
 
 /// Request message for the DeployProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DeployProcessorVersionRequest {}
 
 /// Response message for the DeployProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DeployProcessorVersionResponse {}
 
 /// The long-running operation metadata for the DisableProcessor method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DisableProcessorMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -620,15 +621,15 @@ pub struct GoogleCloudDocumentaiV1DisableProcessorMetadata {
 }
 
 /// Request message for the DisableProcessor method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DisableProcessorRequest {}
 
 /// Response message for the DisableProcessor method. Intentionally empty proto for adding fields in future.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DisableProcessorResponse {}
 
 /// The long-running operation metadata for the EnableProcessor method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1EnableProcessorMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -636,15 +637,15 @@ pub struct GoogleCloudDocumentaiV1EnableProcessorMetadata {
 }
 
 /// Request message for the EnableProcessor method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1EnableProcessorRequest {}
 
 /// Response message for the EnableProcessor method. Intentionally empty proto for adding fields in future.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1EnableProcessorResponse {}
 
 /// Metadata of the EvaluateProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1EvaluateProcessorVersionMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -652,7 +653,7 @@ pub struct GoogleCloudDocumentaiV1EvaluateProcessorVersionMetadata {
 }
 
 /// Evaluates the given ProcessorVersion against the supplied documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1EvaluateProcessorVersionRequest {
     /// Optional. The documents used in the evaluation. If unspecified, use the processor''s dataset as evaluation input.
     #[serde(default, rename = "evaluationDocuments")]
@@ -661,7 +662,7 @@ pub struct GoogleCloudDocumentaiV1EvaluateProcessorVersionRequest {
 }
 
 /// Response of the EvaluateProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1EvaluateProcessorVersionResponse {
     /// The resource name of the created evaluation.
     #[serde(default)]
@@ -669,7 +670,7 @@ pub struct GoogleCloudDocumentaiV1EvaluateProcessorVersionResponse {
 }
 
 /// Response message for the FetchProcessorTypes method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1FetchProcessorTypesResponse {
     /// The list of processor types.
     #[serde(default, rename = "processorTypes")]
@@ -678,7 +679,7 @@ pub struct GoogleCloudDocumentaiV1FetchProcessorTypesResponse {
 }
 
 /// Request message for GenerateSchemaVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1GenerateSchemaVersionRequest {
     /// The base schema version name to use for the schema generation. Format: projects/{project}/locations/{location}/schemas/{schema}/schemaVersions/{schema_version}
     #[serde(default, rename = "baseSchemaVersion")]
@@ -703,7 +704,7 @@ pub struct GoogleCloudDocumentaiV1GenerateSchemaVersionRequest {
 }
 
 /// Response message for GenerateSchemaVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1GenerateSchemaVersionResponse {
     /// The schema version generated by the model.
     #[serde(default, rename = "schemaVersion")]
@@ -711,7 +712,7 @@ pub struct GoogleCloudDocumentaiV1GenerateSchemaVersionResponse {
 }
 
 /// The response from ListEvaluations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1ListEvaluationsResponse {
     /// The evaluations requested.
     #[serde(default)]
@@ -722,7 +723,7 @@ pub struct GoogleCloudDocumentaiV1ListEvaluationsResponse {
 }
 
 /// Response message for the ListProcessorTypes method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1ListProcessorTypesResponse {
     /// Points to the next page, otherwise empty.
     #[serde(default, rename = "nextPageToken")]
@@ -734,7 +735,7 @@ pub struct GoogleCloudDocumentaiV1ListProcessorTypesResponse {
 }
 
 /// Response message for the ListProcessorVersions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1ListProcessorVersionsResponse {
     /// Points to the next processor, otherwise empty.
     #[serde(default, rename = "nextPageToken")]
@@ -746,7 +747,7 @@ pub struct GoogleCloudDocumentaiV1ListProcessorVersionsResponse {
 }
 
 /// Response message for the ListProcessors method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1ListProcessorsResponse {
     /// Points to the next processor, otherwise empty.
     #[serde(default, rename = "nextPageToken")]
@@ -757,7 +758,7 @@ pub struct GoogleCloudDocumentaiV1ListProcessorsResponse {
 }
 
 /// Response message for ListSchemaVersions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1ListSchemaVersionsResponse {
     /// Points to the next SchemaVersion, otherwise empty.
     #[serde(default, rename = "nextPageToken")]
@@ -769,7 +770,7 @@ pub struct GoogleCloudDocumentaiV1ListSchemaVersionsResponse {
 }
 
 /// Response message for ListSchemas.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1ListSchemasResponse {
     /// Points to the next Schema, otherwise empty.
     #[serde(default, rename = "nextPageToken")]
@@ -780,7 +781,7 @@ pub struct GoogleCloudDocumentaiV1ListSchemasResponse {
 }
 
 /// Request message for the ProcessDocument method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1ProcessRequest {
     /// Specifies which fields to include in the ProcessResponse.document output. Only supports top-level document and pages field, so it must be in the form of {document_field_name} or pages.{page_field_name}.
     #[serde(default, rename = "fieldMask")]
@@ -809,7 +810,7 @@ pub struct GoogleCloudDocumentaiV1ProcessRequest {
 }
 
 /// Response message for the ProcessDocument method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1ProcessResponse {
     /// The document payload, will populate fields based on the processor''s behavior.
     #[serde(default)]
@@ -820,7 +821,7 @@ pub struct GoogleCloudDocumentaiV1ProcessResponse {
 }
 
 /// The long-running operation metadata for the ReviewDocument method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1ReviewDocumentOperationMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -831,7 +832,7 @@ pub struct GoogleCloudDocumentaiV1ReviewDocumentOperationMetadata {
 }
 
 /// Request message for the ReviewDocument method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1ReviewDocumentRequest {
     /// The document schema of the human review task.
     #[serde(default, rename = "documentSchema")]
@@ -848,7 +849,7 @@ pub struct GoogleCloudDocumentaiV1ReviewDocumentRequest {
 }
 
 /// Response message for the ReviewDocument method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1ReviewDocumentResponse {
     /// The Cloud Storage uri for the human reviewed document if the review is succeeded.
     #[serde(default, rename = "gcsDestination")]
@@ -862,7 +863,7 @@ pub struct GoogleCloudDocumentaiV1ReviewDocumentResponse {
 }
 
 /// The long-running operation metadata for the SetDefaultProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1SetDefaultProcessorVersionMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -870,7 +871,7 @@ pub struct GoogleCloudDocumentaiV1SetDefaultProcessorVersionMetadata {
 }
 
 /// Request message for the SetDefaultProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1SetDefaultProcessorVersionRequest {
     /// Required. The resource name of child ProcessorVersion to use as default. Format: projects/{project}/locations/{location}/processors/{processor}/processorVersions/{version}
     #[serde(default, rename = "defaultProcessorVersion")]
@@ -878,11 +879,11 @@ pub struct GoogleCloudDocumentaiV1SetDefaultProcessorVersionRequest {
 }
 
 /// Response message for the SetDefaultProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1SetDefaultProcessorVersionResponse {}
 
 /// The metadata that represents a processor version being created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1TrainProcessorVersionMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -900,7 +901,7 @@ pub struct GoogleCloudDocumentaiV1TrainProcessorVersionMetadata {
 }
 
 /// Request message for the TrainProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1TrainProcessorVersionRequest {
     /// Optional. The processor version to use as a base for training. This processor version must be a child of parent. Format: projects/{project}/locations/{location}/processors/{processor}/processorVersions/{processorVersion}.
     #[serde(default, rename = "baseProcessorVersion")]
@@ -928,7 +929,7 @@ pub struct GoogleCloudDocumentaiV1TrainProcessorVersionRequest {
 }
 
 /// The response for TrainProcessorVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1TrainProcessorVersionResponse {
     /// The resource name of the processor version produced by training.
     #[serde(default, rename = "processorVersion")]
@@ -936,7 +937,7 @@ pub struct GoogleCloudDocumentaiV1TrainProcessorVersionResponse {
 }
 
 /// The long-running operation metadata for the UndeployProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1UndeployProcessorVersionMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -944,15 +945,15 @@ pub struct GoogleCloudDocumentaiV1UndeployProcessorVersionMetadata {
 }
 
 /// Request message for the UndeployProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1UndeployProcessorVersionRequest {}
 
 /// Response message for the UndeployProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1UndeployProcessorVersionResponse {}
 
 /// GoogleCloudDocumentaiV1beta3BatchDeleteDocumentsMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3BatchDeleteDocumentsMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -974,11 +975,11 @@ pub struct GoogleCloudDocumentaiV1beta3BatchDeleteDocumentsMetadata {
 }
 
 /// Response of the delete documents operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3BatchDeleteDocumentsResponse {}
 
 /// The long-running operation metadata for BatchProcessDocuments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3BatchProcessMetadata {
     /// The creation time of the operation.
     #[serde(default, rename = "createTime")]
@@ -1000,11 +1001,11 @@ pub struct GoogleCloudDocumentaiV1beta3BatchProcessMetadata {
 }
 
 /// Response message for BatchProcessDocuments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3BatchProcessResponse {}
 
 /// A singleton resource under a Processor which configures a collection of documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3Dataset {
     /// Optional. Deprecated. Warehouse-based dataset configuration is not supported.
     #[serde(default, rename = "documentWarehouseConfig")]
@@ -1032,11 +1033,11 @@ pub struct GoogleCloudDocumentaiV1beta3Dataset {
 }
 
 /// Configuration specific to an unmanaged dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3DatasetUnmanagedDatasetConfig {}
 
 /// The long-running operation metadata for the DeleteProcessor method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3DeleteProcessorMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -1045,7 +1046,7 @@ pub struct GoogleCloudDocumentaiV1beta3DeleteProcessorMetadata {
 }
 
 /// The long-running operation metadata for the DeleteProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3DeleteProcessorVersionMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -1054,7 +1055,7 @@ pub struct GoogleCloudDocumentaiV1beta3DeleteProcessorVersionMetadata {
 }
 
 /// The long-running operation metadata for the DeployProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3DeployProcessorVersionMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -1063,11 +1064,11 @@ pub struct GoogleCloudDocumentaiV1beta3DeployProcessorVersionMetadata {
 }
 
 /// Response message for the DeployProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3DeployProcessorVersionResponse {}
 
 /// The long-running operation metadata for the DisableProcessor method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3DisableProcessorMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -1076,11 +1077,11 @@ pub struct GoogleCloudDocumentaiV1beta3DisableProcessorMetadata {
 }
 
 /// Response message for the DisableProcessor method. Intentionally empty proto for adding fields in future.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3DisableProcessorResponse {}
 
 /// The long-running operation metadata for the EnableProcessor method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3EnableProcessorMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -1089,11 +1090,11 @@ pub struct GoogleCloudDocumentaiV1beta3EnableProcessorMetadata {
 }
 
 /// Response message for the EnableProcessor method. Intentionally empty proto for adding fields in future.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3EnableProcessorResponse {}
 
 /// Metadata of the EvaluateProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3EvaluateProcessorVersionMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -1102,7 +1103,7 @@ pub struct GoogleCloudDocumentaiV1beta3EvaluateProcessorVersionMetadata {
 }
 
 /// Response of the EvaluateProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3EvaluateProcessorVersionResponse {
     /// The resource name of the created evaluation.
     #[serde(default)]
@@ -1110,7 +1111,7 @@ pub struct GoogleCloudDocumentaiV1beta3EvaluateProcessorVersionResponse {
 }
 
 /// Metadata of the import document operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3ImportDocumentsMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -1134,11 +1135,11 @@ pub struct GoogleCloudDocumentaiV1beta3ImportDocumentsMetadata {
 }
 
 /// Response of the import document operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3ImportDocumentsResponse {}
 
 /// The long-running operation metadata for the ImportProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3ImportProcessorVersionMetadata {
     /// The basic metadata for the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -1147,7 +1148,7 @@ pub struct GoogleCloudDocumentaiV1beta3ImportProcessorVersionMetadata {
 }
 
 /// The response message for the ImportProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3ImportProcessorVersionResponse {
     /// The destination processor version name.
     #[serde(default, rename = "processorVersion")]
@@ -1155,7 +1156,7 @@ pub struct GoogleCloudDocumentaiV1beta3ImportProcessorVersionResponse {
 }
 
 /// The first-class citizen for Document AI. Each processor defines how to extract structural information from a document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3Processor {
     /// Optional. SchemaVersion used by the Processor. It is the same as Processor''s DatasetSchema.schema_version Format is projects/{project}/locations/{location}/schemas/{schema}/schemaVersions/{schema_version}
     #[serde(default, rename = "activeSchemaVersion")]
@@ -1197,7 +1198,7 @@ pub struct GoogleCloudDocumentaiV1beta3Processor {
 }
 
 /// A processor version is an implementation of a processor. Each processor can have multiple versions, pretrained by Google internally or uptrained by the customer. A processor can only have one default version at a time. Its document-processing behavior is defined by that version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3ProcessorVersion {
     /// Output only. The time the processor version was created.
     #[serde(default, rename = "createTime")]
@@ -1246,7 +1247,7 @@ pub struct GoogleCloudDocumentaiV1beta3ProcessorVersion {
 }
 
 /// The long-running operation metadata for the ReviewDocument method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3ReviewDocumentOperationMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -1270,7 +1271,7 @@ pub struct GoogleCloudDocumentaiV1beta3ReviewDocumentOperationMetadata {
 }
 
 /// Response message for the ReviewDocument method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3ReviewDocumentResponse {
     /// The Cloud Storage uri for the human reviewed document if the review is succeeded.
     #[serde(default, rename = "gcsDestination")]
@@ -1284,7 +1285,7 @@ pub struct GoogleCloudDocumentaiV1beta3ReviewDocumentResponse {
 }
 
 /// The long-running operation metadata for the SetDefaultProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3SetDefaultProcessorVersionMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -1293,11 +1294,11 @@ pub struct GoogleCloudDocumentaiV1beta3SetDefaultProcessorVersionMetadata {
 }
 
 /// Response message for the SetDefaultProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3SetDefaultProcessorVersionResponse {}
 
 /// The metadata that represents a processor version being created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3TrainProcessorVersionMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -1316,7 +1317,7 @@ pub struct GoogleCloudDocumentaiV1beta3TrainProcessorVersionMetadata {
 }
 
 /// The response for TrainProcessorVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3TrainProcessorVersionResponse {
     /// The resource name of the processor version produced by training.
     #[serde(default, rename = "processorVersion")]
@@ -1324,7 +1325,7 @@ pub struct GoogleCloudDocumentaiV1beta3TrainProcessorVersionResponse {
 }
 
 /// The long-running operation metadata for the UndeployProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3UndeployProcessorVersionMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -1333,11 +1334,11 @@ pub struct GoogleCloudDocumentaiV1beta3UndeployProcessorVersionMetadata {
 }
 
 /// Response message for the UndeployProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3UndeployProcessorVersionResponse {}
 
 /// GoogleCloudDocumentaiV1beta3UpdateDatasetOperationMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3UpdateDatasetOperationMetadata {
     /// The basic metadata of the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -1346,7 +1347,7 @@ pub struct GoogleCloudDocumentaiV1beta3UpdateDatasetOperationMetadata {
 }
 
 /// The long-running operation metadata for the UpdateProcessorVersion method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3UpdateProcessorVersionMetadata {
     /// The basic metadata for the long-running operation.
     #[serde(default, rename = "commonMetadata")]
@@ -1355,7 +1356,7 @@ pub struct GoogleCloudDocumentaiV1beta3UpdateProcessorVersionMetadata {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudLocationListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -1366,7 +1367,7 @@ pub struct GoogleCloudLocationListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -1380,11 +1381,11 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// Next ID: 9
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRule {
     #[serde(default, rename = "childAlignmentRule")]
     pub child_alignment_rule: ::core::option::Option<
@@ -1418,7 +1419,7 @@ pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRule 
 }
 
 /// The status of individual documents in the auto-labeling process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3AutoLabelDocumentsMetadataIndividualAutoLabelStatus {
     /// The document id of the auto-labeled document. This will replace the gcs_uri.
     #[serde(default, rename = "documentId")]
@@ -1429,7 +1430,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3AutoLabelDocumentsMetadataIndividualAut
 }
 
 /// The status of each individual document in the batch delete process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3BatchDeleteDocumentsMetadataIndividualBatchDeleteStatus {
     /// The document id of the document.
     #[serde(default, rename = "documentId")]
@@ -1440,7 +1441,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3BatchDeleteDocumentsMetadataIndividualB
 }
 
 /// The status of each individual document in the batch move process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3BatchMoveDocumentsMetadataIndividualBatchMoveStatus {
     /// The document id of the document.
     #[serde(default, rename = "documentId")]
@@ -1451,7 +1452,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3BatchMoveDocumentsMetadataIndividualBat
 }
 
 /// The status of each individual document in the batch update process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3BatchUpdateDocumentsMetadataIndividualBatchUpdateStatus {
     /// The document id of the document.
     #[serde(default, rename = "documentId")]
@@ -1462,7 +1463,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3BatchUpdateDocumentsMetadataIndividualB
 }
 
 /// The status of each individual document in the export process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3ExportDocumentsMetadataIndividualExportStatus {
     /// The path to source docproto of the document.
     #[serde(default, rename = "documentId")]
@@ -1476,7 +1477,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3ExportDocumentsMetadataIndividualExport
 }
 
 /// The statistic representing a dataset split type for this export.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3ExportDocumentsMetadataSplitExportStat {
     /// The dataset split type. // TODO: enum values: ["DATASET_SPLIT_TYPE_UNSPECIFIED", "DATASET_SPLIT_TRAIN", "DATASET_SPLIT_TEST", "DATASET_SPLIT_UNASSIGNED"]
     #[serde(default, rename = "splitType")]
@@ -1487,7 +1488,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3ExportDocumentsMetadataSplitExportStat 
 }
 
 /// The validation status of each import config. Status is set to an error if there are no documents to import in the import_config, or OK if the operation will try to proceed with at least one document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3ImportDocumentsMetadataImportConfigValidationResult {
     /// The source Cloud Storage URI specified in the import config.
     #[serde(default, rename = "inputGcsSource")]
@@ -1498,7 +1499,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3ImportDocumentsMetadataImportConfigVali
 }
 
 /// The status of each individual document in the import process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3ImportDocumentsMetadataIndividualImportStatus {
     /// The source Cloud Storage URI of the document.
     #[serde(default, rename = "inputGcsSource")]
@@ -1515,7 +1516,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3ImportDocumentsMetadataIndividualImport
 }
 
 /// Contains the alias and the aliased resource name of processor version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3ProcessorVersionAlias {
     /// The alias in the form of processor_version resource name.
     #[serde(default)]
@@ -1526,7 +1527,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3ProcessorVersionAlias {
 }
 
 /// Information about the upcoming deprecation of this processor version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3ProcessorVersionDeprecationInfo {
     /// The time at which this processor version will be deprecated.
     #[serde(default, rename = "deprecationTime")]
@@ -1537,7 +1538,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3ProcessorVersionDeprecationInfo {
 }
 
 /// The schema defines the output of the processed document by a processor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3DocumentSchema {
     /// Description of the schema.
     #[serde(default)]
@@ -1559,7 +1560,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3DocumentSchema {
 }
 
 /// Information about Generative AI model-based processor versions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3ProcessorVersionGenAiModelInfo {
     /// Information for a custom Generative AI model created by the user.
     #[serde(default, rename = "customGenAiModelInfo")]
@@ -1574,7 +1575,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3ProcessorVersionGenAiModelInfo {
 }
 
 /// Gives a short summary of an evaluation, and links to the evaluation itself.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3EvaluationReference {
     /// An aggregate of the statistics for the evaluation with fuzzy matching on.
     #[serde(default, rename = "aggregateMetrics")]
@@ -1592,7 +1593,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3EvaluationReference {
 }
 
 /// The schema defines the output of the processed document by a processor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3Schema {
     /// Description of the schema.
     #[serde(default)]
@@ -1607,7 +1608,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3Schema {
 }
 
 /// Resync status against inconsistency types on the dataset level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3ResyncDatasetMetadataDatasetResyncStatus {
     /// The type of the inconsistency of the dataset. // TODO: enum values: ["DATASET_INCONSISTENCY_TYPE_UNSPECIFIED", "DATASET_INCONSISTENCY_TYPE_NO_STORAGE_MARKER"]
     #[serde(default, rename = "datasetInconsistencyType")]
@@ -1618,7 +1619,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3ResyncDatasetMetadataDatasetResyncStatu
 }
 
 /// Resync status for each document per inconsistency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3ResyncDatasetMetadataIndividualDocumentResyncStatus {
     /// The document identifier.
     #[serde(default, rename = "documentId")]
@@ -1632,7 +1633,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3ResyncDatasetMetadataIndividualDocument
 }
 
 /// GoogleCloudDocumentaiUiv1beta3SampleDocumentsResponseSelectedDocument resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3SampleDocumentsResponseSelectedDocument {
     /// An internal identifier for document.
     #[serde(default, rename = "documentId")]
@@ -1640,7 +1641,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3SampleDocumentsResponseSelectedDocument
 }
 
 /// The dataset validation information. This includes any and all errors with documents and the dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3TrainProcessorVersionMetadataDatasetValidation {
     /// The total number of dataset errors.
     #[serde(default, rename = "datasetErrorCount")]
@@ -1657,7 +1658,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3TrainProcessorVersionMetadataDatasetVal
 }
 
 /// The common metadata for long running operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3CommonOperationMetadata {
     /// The creation time of the operation.
     #[serde(default, rename = "createTime")]
@@ -1677,7 +1678,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3CommonOperationMetadata {
 }
 
 /// The status of a each individual document in the batch process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1BatchProcessMetadataIndividualProcessStatus {
     /// The status of human review on the processed document.
     #[serde(default, rename = "humanReviewStatus")]
@@ -1694,7 +1695,7 @@ pub struct GoogleCloudDocumentaiV1BatchProcessMetadataIndividualProcessStatus {
 }
 
 /// Config that controls the output of documents. All documents will be written as a JSON file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentOutputConfig {
     /// Output config to write the results to Cloud Storage.
     #[serde(default, rename = "gcsOutputConfig")]
@@ -1703,7 +1704,7 @@ pub struct GoogleCloudDocumentaiV1DocumentOutputConfig {
 }
 
 /// The parameters for the schema generation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1GenerateSchemaVersionRequestGenerateSchemaVersionParams {
     /// Optional. Previous prompt-answers in a chronological order.
     #[serde(default)]
@@ -1714,7 +1715,7 @@ pub struct GoogleCloudDocumentaiV1GenerateSchemaVersionRequestGenerateSchemaVers
 }
 
 /// A set of inline documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1Documents {
     /// The list of documents.
     #[serde(default)]
@@ -1722,7 +1723,7 @@ pub struct GoogleCloudDocumentaiV1Documents {
 }
 
 /// Specifies a set of raw documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1RawDocuments {
     /// Specifies raw document content and mime type.
     #[serde(default)]
@@ -1730,7 +1731,7 @@ pub struct GoogleCloudDocumentaiV1RawDocuments {
 }
 
 /// An evaluation of a ProcessorVersion''s performance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1Evaluation {
     /// Metrics for all the entities in aggregate.
     #[serde(default, rename = "allEntitiesMetrics")]
@@ -1762,7 +1763,7 @@ pub struct GoogleCloudDocumentaiV1Evaluation {
 }
 
 /// A processor type is responsible for performing a certain document understanding task on a certain type of document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1ProcessorType {
     /// Whether the processor type allows creation. If true, users can create a processor of this processor type. Otherwise, users need to request access.
     #[serde(default, rename = "allowCreation")]
@@ -1789,7 +1790,7 @@ pub struct GoogleCloudDocumentaiV1ProcessorType {
 }
 
 /// The first-class citizen for Document AI. Each processor defines how to extract structural information from a document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1Processor {
     /// Optional. SchemaVersion used by the Processor. It is the same as Processor''s DatasetSchema.schema_version Format is projects/{project}/locations/{location}/schemas/{schema}/schemaVersions/{schema_version}
     #[serde(default, rename = "activeSchemaVersion")]
@@ -1831,7 +1832,7 @@ pub struct GoogleCloudDocumentaiV1Processor {
 }
 
 /// NextSchema is a collection of SchemaVersions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1NextSchema {
     /// Output only. The time when the Schema was created.
     #[serde(default, rename = "createTime")]
@@ -1851,7 +1852,7 @@ pub struct GoogleCloudDocumentaiV1NextSchema {
 }
 
 /// Options for Process API
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1ProcessOptions {
     /// Only process certain pages from the end, same as above.
     #[serde(default, rename = "fromEnd")]
@@ -1875,7 +1876,7 @@ pub struct GoogleCloudDocumentaiV1ProcessOptions {
 }
 
 /// The dataset validation information. This includes any and all errors with documents and the dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1TrainProcessorVersionMetadataDatasetValidation {
     /// The total number of dataset errors.
     #[serde(default, rename = "datasetErrorCount")]
@@ -1892,7 +1893,7 @@ pub struct GoogleCloudDocumentaiV1TrainProcessorVersionMetadataDatasetValidation
 }
 
 /// Options to control the training of the Custom Document Extraction (CDE) Processor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1TrainProcessorVersionRequestCustomDocumentExtractionOptions {
     /// Optional. Training method to use for CDE training. // TODO: enum values: ["TRAINING_METHOD_UNSPECIFIED", "MODEL_BASED", "TEMPLATE_BASED"]
     #[serde(default, rename = "trainingMethod")]
@@ -1900,7 +1901,7 @@ pub struct GoogleCloudDocumentaiV1TrainProcessorVersionRequestCustomDocumentExtr
 }
 
 /// Options to control foundation model tuning of the processor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1TrainProcessorVersionRequestFoundationModelTuningOptions {
     /// Optional. The multiplier to apply to the recommended learning rate. Valid values are between 0.1 and 10. If not provided, recommended learning rate will be used.
     #[serde(default, rename = "learningRateMultiplier")]
@@ -1914,7 +1915,7 @@ pub struct GoogleCloudDocumentaiV1TrainProcessorVersionRequestFoundationModelTun
 }
 
 /// The input data used to train a new ProcessorVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1TrainProcessorVersionRequestInputData {
     /// The documents used for testing the trained version.
     #[serde(default, rename = "testDocuments")]
@@ -1926,7 +1927,7 @@ pub struct GoogleCloudDocumentaiV1TrainProcessorVersionRequestInputData {
 }
 
 /// A processor version is an implementation of a processor. Each processor can have multiple versions, pretrained by Google internally or uptrained by the customer. A processor can only have one default version at a time. Its document-processing behavior is defined by that version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1ProcessorVersion {
     /// Output only. The time the processor version was created.
     #[serde(default, rename = "createTime")]
@@ -1975,7 +1976,7 @@ pub struct GoogleCloudDocumentaiV1ProcessorVersion {
 }
 
 /// The common metadata for long running operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1CommonOperationMetadata {
     /// The creation time of the operation.
     #[serde(default, rename = "createTime")]
@@ -1995,7 +1996,7 @@ pub struct GoogleCloudDocumentaiV1CommonOperationMetadata {
 }
 
 /// The status of each individual document in the batch delete process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3BatchDeleteDocumentsMetadataIndividualBatchDeleteStatus {
     /// The document id of the document.
     #[serde(default, rename = "documentId")]
@@ -2006,7 +2007,7 @@ pub struct GoogleCloudDocumentaiV1beta3BatchDeleteDocumentsMetadataIndividualBat
 }
 
 /// The status of a each individual document in the batch process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3BatchProcessMetadataIndividualProcessStatus {
     /// The name of the operation triggered by the processed document. If the human review process isn''t triggered, this field will be empty. It has the same response type and metadata as the long-running operation returned by the ReviewDocument method.
     #[serde(default, rename = "humanReviewOperation")]
@@ -2026,7 +2027,7 @@ pub struct GoogleCloudDocumentaiV1beta3BatchProcessMetadataIndividualProcessStat
 }
 
 /// Configuration specific to the Document AI Warehouse-based implementation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3DatasetDocumentWarehouseConfig {
     /// Output only. The collection in Document AI Warehouse associated with the dataset.
     #[serde(default)]
@@ -2037,7 +2038,7 @@ pub struct GoogleCloudDocumentaiV1beta3DatasetDocumentWarehouseConfig {
 }
 
 /// Configuration specific to the Cloud Storage-based implementation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3DatasetGCSManagedConfig {
     /// Required. The Cloud Storage URI (a directory) where the documents belonging to the dataset must be stored.
     #[serde(default, rename = "gcsPrefix")]
@@ -2045,7 +2046,7 @@ pub struct GoogleCloudDocumentaiV1beta3DatasetGCSManagedConfig {
 }
 
 /// The validation status of each import config. Status is set to an error if there are no documents to import in the import_config, or OK if the operation will try to proceed with at least one document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3ImportDocumentsMetadataImportConfigValidationResult {
     /// The source Cloud Storage URI specified in the import config.
     #[serde(default, rename = "inputGcsSource")]
@@ -2056,7 +2057,7 @@ pub struct GoogleCloudDocumentaiV1beta3ImportDocumentsMetadataImportConfigValida
 }
 
 /// The status of each individual document in the import process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3ImportDocumentsMetadataIndividualImportStatus {
     /// The source Cloud Storage URI of the document.
     #[serde(default, rename = "inputGcsSource")]
@@ -2070,7 +2071,7 @@ pub struct GoogleCloudDocumentaiV1beta3ImportDocumentsMetadataIndividualImportSt
 }
 
 /// Contains the alias and the aliased resource name of processor version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3ProcessorVersionAlias {
     /// The alias in the form of processor_version resource name.
     #[serde(default)]
@@ -2081,7 +2082,7 @@ pub struct GoogleCloudDocumentaiV1beta3ProcessorVersionAlias {
 }
 
 /// Information about the upcoming deprecation of this processor version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3ProcessorVersionDeprecationInfo {
     /// The time at which this processor version will be deprecated.
     #[serde(default, rename = "deprecationTime")]
@@ -2092,7 +2093,7 @@ pub struct GoogleCloudDocumentaiV1beta3ProcessorVersionDeprecationInfo {
 }
 
 /// The schema defines the output of the processed document by a processor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3DocumentSchema {
     /// Description of the schema.
     #[serde(default)]
@@ -2114,7 +2115,7 @@ pub struct GoogleCloudDocumentaiV1beta3DocumentSchema {
 }
 
 /// Information about Generative AI model-based processor versions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3ProcessorVersionGenAiModelInfo {
     /// Information for a custom Generative AI model created by the user.
     #[serde(default, rename = "customGenAiModelInfo")]
@@ -2129,7 +2130,7 @@ pub struct GoogleCloudDocumentaiV1beta3ProcessorVersionGenAiModelInfo {
 }
 
 /// Gives a short summary of an evaluation, and links to the evaluation itself.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3EvaluationReference {
     /// An aggregate of the statistics for the evaluation with fuzzy matching on.
     #[serde(default, rename = "aggregateMetrics")]
@@ -2147,7 +2148,7 @@ pub struct GoogleCloudDocumentaiV1beta3EvaluationReference {
 }
 
 /// The dataset validation information. This includes any and all errors with documents and the dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3TrainProcessorVersionMetadataDatasetValidation {
     /// The total number of dataset errors.
     #[serde(default, rename = "datasetErrorCount")]
@@ -2164,7 +2165,7 @@ pub struct GoogleCloudDocumentaiV1beta3TrainProcessorVersionMetadataDatasetValid
 }
 
 /// The common metadata for long running operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3CommonOperationMetadata {
     /// The creation time of the operation.
     #[serde(default, rename = "createTime")]
@@ -2184,7 +2185,7 @@ pub struct GoogleCloudDocumentaiV1beta3CommonOperationMetadata {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudLocationLocation {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -2204,7 +2205,7 @@ pub struct GoogleCloudLocationLocation {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -2224,7 +2225,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// A rule that aligns specified child fields with a parent field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleChildAlignmentRule {
     /// The alignment rule to apply to the child fields.
     #[serde(default, rename = "alignmentRule")]
@@ -2244,7 +2245,7 @@ pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleC
 }
 
 /// A rule that aligns specified fields with each other.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleEntityAlignmentRule {
     /// The alignment rule to apply to the fields.
     #[serde(default, rename = "alignmentRule")]
@@ -2259,7 +2260,7 @@ pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleE
 }
 
 /// CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFieldOccurrences resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFieldOccurrences {
     #[serde(default)]
     pub field: ::core::option::Option<
@@ -2273,7 +2274,7 @@ pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleF
 }
 
 /// CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFieldRegex resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFieldRegex {
     #[serde(default)]
     pub field: ::core::option::Option<
@@ -2285,7 +2286,7 @@ pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleF
 }
 
 /// CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidation {
     #[serde(default, rename = "leftOperand")]
     pub left_operand: ::core::option::Option<::std::boxed::Box<CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidationOperation>>,
@@ -2297,7 +2298,7 @@ pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleF
 }
 
 /// EntityType is the wrapper of a label of the corresponding model with detailed attributes and limitations for entity-based processors. Multiple types can also compose a dependency tree to represent nested types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3DocumentSchemaEntityType {
     /// The entity type that this type is derived from. For now, one and only one should be set.
     #[serde(default, rename = "baseTypes")]
@@ -2327,7 +2328,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3DocumentSchemaEntityType {
 }
 
 /// Metadata for global schema behavior.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3DocumentSchemaMetadata {
     /// If true, on a given page, there can be multiple document annotations covering it.
     #[serde(default, rename = "documentAllowMultipleLabels")]
@@ -2344,7 +2345,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3DocumentSchemaMetadata {
 }
 
 /// Information for a custom Generative AI model created by the user. These are created with Create New Version in either the Call foundation model or Fine tuning tabs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3ProcessorVersionGenAiModelInfoCustomGenAiModelInfo {
     /// The base processor version ID for the custom model.
     #[serde(default, rename = "baseProcessorVersionId")]
@@ -2355,7 +2356,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3ProcessorVersionGenAiModelInfoCustomGen
 }
 
 /// Information for a pretrained Google-managed foundation model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3ProcessorVersionGenAiModelInfoFoundationGenAiModelInfo {
     /// Whether fine tuning is allowed for this base processor version.
     #[serde(default, rename = "finetuningAllowed")]
@@ -2366,7 +2367,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3ProcessorVersionGenAiModelInfoFoundatio
 }
 
 /// Evaluation metrics, either in aggregate or about a specific entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3EvaluationMetrics {
     /// The calculated F1 score.
     #[serde(default, rename = "f1Score")]
@@ -2404,7 +2405,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3EvaluationMetrics {
 }
 
 /// EntityType is the wrapper of a label of the corresponding model with detailed attributes and limitations for entity-based processors. Multiple types can also compose a dependency tree to represent nested types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3SchemaEntityType {
     #[serde(default, rename = "baseType")]
     pub base_type: ::core::option::Option<String>,
@@ -2436,7 +2437,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3SchemaEntityType {
 }
 
 /// Document Identifier.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3DocumentId {
     /// A document id within user-managed Cloud Storage.
     #[serde(default, rename = "gcsManagedDocId")]
@@ -2452,7 +2453,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3DocumentId {
 }
 
 /// The status of human review on a processed document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1HumanReviewStatus {
     /// The name of the operation triggered by the processed document. This field is populated only when the state is HUMAN_REVIEW_IN_PROGRESS. It has the same response type and metadata as the long-running operation returned by ReviewDocument.
     #[serde(default, rename = "humanReviewOperation")]
@@ -2466,7 +2467,7 @@ pub struct GoogleCloudDocumentaiV1HumanReviewStatus {
 }
 
 /// The configuration used when outputting documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentOutputConfigGcsOutputConfig {
     /// Specifies which fields to include in the output documents. Only supports top level document and pages field so it must be in the form of {document_field_name} or pages.{page_field_name}.
     #[serde(default, rename = "fieldMask")]
@@ -2482,7 +2483,7 @@ pub struct GoogleCloudDocumentaiV1DocumentOutputConfigGcsOutputConfig {
 }
 
 /// The history of schema generation iterations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1SchemaGenerationHistory {
     /// Required. Previous prompt-answers in a chronological order.
     #[serde(default)]
@@ -2491,7 +2492,7 @@ pub struct GoogleCloudDocumentaiV1SchemaGenerationHistory {
 }
 
 /// Document represents the canonical document resource in Document AI. It is an interchange format that provides insights into documents and allows for collaboration between users and Document AI to iterate and optimize for quality.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1Document {
     /// Document chunked based on chunking config.
     #[serde(default, rename = "chunkedDocument")]
@@ -2554,7 +2555,7 @@ pub struct GoogleCloudDocumentaiV1Document {
 }
 
 /// Payload message of raw document content (bytes).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1RawDocument {
     /// Inline document content.
     #[serde(default)]
@@ -2568,7 +2569,7 @@ pub struct GoogleCloudDocumentaiV1RawDocument {
 }
 
 /// A revision of the evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1EvaluationEvaluationRevision {
     /// Output only. Metrics for all the entities in aggregate.
     #[serde(default, rename = "allEntitiesMetrics")]
@@ -2586,7 +2587,7 @@ pub struct GoogleCloudDocumentaiV1EvaluationEvaluationRevision {
 }
 
 /// The location information about where the processor is available.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1ProcessorTypeLocationInfo {
     /// The location ID. For supported locations, refer to [regional and multi-regional support](/document-ai/docs/regions).
     #[serde(default, rename = "locationId")]
@@ -2594,7 +2595,7 @@ pub struct GoogleCloudDocumentaiV1ProcessorTypeLocationInfo {
 }
 
 /// Contains the alias and the aliased resource name of processor version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1ProcessorVersionAlias {
     /// The alias in the form of processor_version resource name.
     #[serde(default)]
@@ -2605,7 +2606,7 @@ pub struct GoogleCloudDocumentaiV1ProcessorVersionAlias {
 }
 
 /// A list of individual page numbers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1ProcessOptionsIndividualPageSelector {
     /// Optional. Indices of the pages (starting from 1).
     #[serde(default)]
@@ -2613,7 +2614,7 @@ pub struct GoogleCloudDocumentaiV1ProcessOptionsIndividualPageSelector {
 }
 
 /// Serving config for layout parser processor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1ProcessOptionsLayoutConfig {
     /// Optional. Config for chunking in layout parser processor.
     #[serde(default, rename = "chunkingConfig")]
@@ -2634,7 +2635,7 @@ pub struct GoogleCloudDocumentaiV1ProcessOptionsLayoutConfig {
 }
 
 /// Config for Document OCR.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1OcrConfig {
     /// A list of advanced OCR options to further fine-tune OCR behavior. Current valid values are: - legacy_layout: a heuristics layout detection algorithm, which serves as an alternative to the current ML-based layout detection algorithm. Customers can choose the best suitable layout algorithm based on their situation.
     #[serde(default, rename = "advancedOcrOptions")]
@@ -2663,7 +2664,7 @@ pub struct GoogleCloudDocumentaiV1OcrConfig {
 }
 
 /// The common config to specify a set of documents used as input.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1BatchDocumentsInputConfig {
     /// The set of documents individually specified on Cloud Storage.
     #[serde(default, rename = "gcsDocuments")]
@@ -2674,7 +2675,7 @@ pub struct GoogleCloudDocumentaiV1BatchDocumentsInputConfig {
 }
 
 /// Information about the upcoming deprecation of this processor version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1ProcessorVersionDeprecationInfo {
     /// The time at which this processor version will be deprecated.
     #[serde(default, rename = "deprecationTime")]
@@ -2685,7 +2686,7 @@ pub struct GoogleCloudDocumentaiV1ProcessorVersionDeprecationInfo {
 }
 
 /// Information about Generative AI model-based processor versions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1ProcessorVersionGenAiModelInfo {
     /// Information for a custom Generative AI model created by the user.
     #[serde(default, rename = "customGenAiModelInfo")]
@@ -2700,7 +2701,7 @@ pub struct GoogleCloudDocumentaiV1ProcessorVersionGenAiModelInfo {
 }
 
 /// Gives a short summary of an evaluation, and links to the evaluation itself.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1EvaluationReference {
     /// An aggregate of the statistics for the evaluation with fuzzy matching on.
     #[serde(default, rename = "aggregateMetrics")]
@@ -2717,7 +2718,7 @@ pub struct GoogleCloudDocumentaiV1EvaluationReference {
 }
 
 /// The status of human review on a processed document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3HumanReviewStatus {
     /// The name of the operation triggered by the processed document. This field is populated only when the state is HUMAN_REVIEW_IN_PROGRESS. It has the same response type and metadata as the long-running operation returned by ReviewDocument.
     #[serde(default, rename = "humanReviewOperation")]
@@ -2731,7 +2732,7 @@ pub struct GoogleCloudDocumentaiV1beta3HumanReviewStatus {
 }
 
 /// Specifies all documents on Cloud Storage with a common prefix.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3GcsPrefix {
     /// The URI prefix.
     #[serde(default, rename = "gcsUriPrefix")]
@@ -2739,7 +2740,7 @@ pub struct GoogleCloudDocumentaiV1beta3GcsPrefix {
 }
 
 /// Document Identifier.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3DocumentId {
     /// A document id within user-managed Cloud Storage.
     #[serde(default, rename = "gcsManagedDocId")]
@@ -2755,7 +2756,7 @@ pub struct GoogleCloudDocumentaiV1beta3DocumentId {
 }
 
 /// EntityType is the wrapper of a label of the corresponding model with detailed attributes and limitations for entity-based processors. Multiple types can also compose a dependency tree to represent nested types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3DocumentSchemaEntityType {
     /// The entity type that this type is derived from. For now, one and only one should be set.
     #[serde(default, rename = "baseTypes")]
@@ -2785,7 +2786,7 @@ pub struct GoogleCloudDocumentaiV1beta3DocumentSchemaEntityType {
 }
 
 /// Metadata for global schema behavior.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3DocumentSchemaMetadata {
     /// If true, on a given page, there can be multiple document annotations covering it.
     #[serde(default, rename = "documentAllowMultipleLabels")]
@@ -2802,7 +2803,7 @@ pub struct GoogleCloudDocumentaiV1beta3DocumentSchemaMetadata {
 }
 
 /// Information for a custom Generative AI model created by the user. These are created with Create New Version in either the Call foundation model or Fine tuning tabs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3ProcessorVersionGenAiModelInfoCustomGenAiModelInfo {
     /// The base processor version ID for the custom model.
     #[serde(default, rename = "baseProcessorVersionId")]
@@ -2813,7 +2814,7 @@ pub struct GoogleCloudDocumentaiV1beta3ProcessorVersionGenAiModelInfoCustomGenAi
 }
 
 /// Information for a pretrained Google-managed foundation model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3ProcessorVersionGenAiModelInfoFoundationGenAiModelInfo {
     /// Whether fine tuning is allowed for this base processor version.
     #[serde(default, rename = "finetuningAllowed")]
@@ -2824,7 +2825,7 @@ pub struct GoogleCloudDocumentaiV1beta3ProcessorVersionGenAiModelInfoFoundationG
 }
 
 /// Evaluation metrics, either in aggregate or about a specific entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3EvaluationMetrics {
     /// The calculated F1 score.
     #[serde(default, rename = "f1Score")]
@@ -2862,7 +2863,7 @@ pub struct GoogleCloudDocumentaiV1beta3EvaluationMetrics {
 }
 
 /// A rule for checking field alignment. Horizontal alignment checks if fields are on the same row by comparing y-coordinates of bounding box centers, while vertical alignment checks if fields are on the same column by comparing x-coordinates of bounding box centers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleAlignmentRule {
     /// TODO: enum values: ["ALIGNMENT_TYPE_UNSPECIFIED", "ALIGNMENT_TYPE_HORIZONTAL", "ALIGNMENT_TYPE_VERTICAL"]
     #[serde(default, rename = "alignmentType")]
@@ -2873,7 +2874,7 @@ pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleA
 }
 
 /// CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidationOperation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleFormValidationOperation {
     /// A list of constants to be used as operands.
     #[serde(default)]
@@ -2890,7 +2891,7 @@ pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleF
 }
 
 /// Metadata about an entity type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3EntityTypeMetadata {
     /// Field tier metadata on the property
     #[serde(default, rename = "fieldTierMetadata")]
@@ -2918,7 +2919,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3EntityTypeMetadata {
 }
 
 /// Defines the a list of enum values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3DocumentSchemaEntityTypeEnumValues {
     /// The individual values that this enum values type can include.
     #[serde(default)]
@@ -2926,7 +2927,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3DocumentSchemaEntityTypeEnumValues {
 }
 
 /// Defines properties that can be part of the entity type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3DocumentSchemaEntityTypeProperty {
     /// The description of the property. Could be used to provide more information about the property for model calls.
     #[serde(default)]
@@ -2952,7 +2953,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3DocumentSchemaEntityTypeProperty {
 }
 
 /// Identifies a document uniquely within the scope of a dataset in the user-managed Cloud Storage option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3DocumentIdGCSManagedDocumentId {
     /// Id of the document (indexed) managed by Content Warehouse.
     #[serde(default, rename = "cwDocId")]
@@ -2963,7 +2964,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3DocumentIdGCSManagedDocumentId {
 }
 
 /// The revision reference specifies which revision on the document to read.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3RevisionRef {
     /// Reads the revision generated by the processor version. The format takes the full resource name of processor version. projects/{project}/locations/{location}/processors/{processor}/processorVersions/{processorVersion}
     #[serde(default, rename = "latestProcessorVersion")]
@@ -2977,7 +2978,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3RevisionRef {
 }
 
 /// Identifies a document uniquely within the scope of a dataset in unmanaged option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3DocumentIdUnmanagedDocumentId {
     /// Required. The id of the document.
     #[serde(default, rename = "docId")]
@@ -2985,7 +2986,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3DocumentIdUnmanagedDocumentId {
 }
 
 /// The sharding config for the output document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentOutputConfigGcsOutputConfigShardingConfig {
     /// The number of overlapping pages between consecutive shards.
     #[serde(default, rename = "pagesOverlap")]
@@ -2996,7 +2997,7 @@ pub struct GoogleCloudDocumentaiV1DocumentOutputConfigGcsOutputConfigShardingCon
 }
 
 /// A single iteration of the schema generation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1SchemaGenerationIteration {
     /// Optional. The previous schema version adjusted by the model.
     #[serde(default, rename = "adjustedSchema")]
@@ -3010,7 +3011,7 @@ pub struct GoogleCloudDocumentaiV1SchemaGenerationIteration {
 }
 
 /// Represents the chunks that the document is divided into.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentChunkedDocument {
     /// List of chunks.
     #[serde(default)]
@@ -3020,7 +3021,7 @@ pub struct GoogleCloudDocumentaiV1DocumentChunkedDocument {
 }
 
 /// Represents the parsed layout of a document as a collection of blocks that the document is divided into.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayout {
     /// List of blocks in the document.
     #[serde(default)]
@@ -3030,7 +3031,7 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayout {
 }
 
 /// Entity revision.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentEntitiesRevision {
     /// The entities in this revision.
     #[serde(default)]
@@ -3048,7 +3049,7 @@ pub struct GoogleCloudDocumentaiV1DocumentEntitiesRevision {
 }
 
 /// Relationship between Entities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentEntityRelation {
     /// Object entity id.
     #[serde(default, rename = "objectId")]
@@ -3062,7 +3063,7 @@ pub struct GoogleCloudDocumentaiV1DocumentEntityRelation {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -3076,7 +3077,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// A page in a Document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPage {
     /// A list of visually detected text blocks on the page. A block has a set of lines (collected into paragraphs) that have a common line-spacing and orientation.
     #[serde(default)]
@@ -3140,7 +3141,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPage {
 }
 
 /// Contains past or forward revisions of this document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentRevision {
     /// If the change was made by a person specify the name or id of that person.
     #[serde(default)]
@@ -3166,7 +3167,7 @@ pub struct GoogleCloudDocumentaiV1DocumentRevision {
 }
 
 /// For a large document, sharding may be performed to produce several document shards. Each document shard contains this field to detail which shard it is.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentShardInfo {
     /// The index of the first page in Document.pages in the overall document global pages. Available for document shards created by the document splitter.
     #[serde(default, rename = "pageOffset")]
@@ -3183,7 +3184,7 @@ pub struct GoogleCloudDocumentaiV1DocumentShardInfo {
 }
 
 /// This message is used for text changes aka. OCR corrections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentTextChange {
     /// The text that replaces the text identified in the text_anchor.
     #[serde(default, rename = "changedText")]
@@ -3198,7 +3199,7 @@ pub struct GoogleCloudDocumentaiV1DocumentTextChange {
 }
 
 /// Annotation for common text style attributes. This adheres to CSS conventions as much as possible.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentStyle {
     /// Text background color.
     #[serde(default, rename = "backgroundColor")]
@@ -3227,7 +3228,7 @@ pub struct GoogleCloudDocumentaiV1DocumentStyle {
 }
 
 /// Metrics across multiple confidence levels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1EvaluationMultiConfidenceMetrics {
     /// The calculated area under the precision recall curve (AUPRC), computed by integrating over all confidence thresholds.
     #[serde(default)]
@@ -3257,7 +3258,7 @@ pub struct GoogleCloudDocumentaiV1EvaluationMultiConfidenceMetrics {
 }
 
 /// Evaluation counters for the documents that were used.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1EvaluationCounters {
     /// How many documents were used in the evaluation.
     #[serde(default, rename = "evaluatedDocumentsCount")]
@@ -3274,7 +3275,7 @@ pub struct GoogleCloudDocumentaiV1EvaluationCounters {
 }
 
 /// Serving config for chunking.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1ProcessOptionsLayoutConfigChunkingConfig {
     /// Optional. The chunk sizes to use when splitting documents, in order of level.
     #[serde(default, rename = "chunkSize")]
@@ -3285,7 +3286,7 @@ pub struct GoogleCloudDocumentaiV1ProcessOptionsLayoutConfigChunkingConfig {
 }
 
 /// Hints for OCR Engine
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1OcrConfigHints {
     /// List of BCP-47 language codes to use for OCR. In most cases, not specifying it yields the best results since it enables automatic language detection. For languages based on the Latin alphabet, setting hints is not needed. In rare cases, when the language of the text in the image is known, setting a hint will help get better results (although it will be a significant hindrance if the hint is wrong).
     #[serde(default, rename = "languageHints")]
@@ -3293,7 +3294,7 @@ pub struct GoogleCloudDocumentaiV1OcrConfigHints {
 }
 
 /// Configurations for premium OCR features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1OcrConfigPremiumFeatures {
     /// Turn on font identification model and return font style information.
     #[serde(default, rename = "computeStyleInfo")]
@@ -3307,7 +3308,7 @@ pub struct GoogleCloudDocumentaiV1OcrConfigPremiumFeatures {
 }
 
 /// Specifies a set of documents on Cloud Storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1GcsDocuments {
     /// The list of documents.
     #[serde(default)]
@@ -3315,7 +3316,7 @@ pub struct GoogleCloudDocumentaiV1GcsDocuments {
 }
 
 /// Specifies all documents on Cloud Storage with a common prefix.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1GcsPrefix {
     /// The URI prefix.
     #[serde(default, rename = "gcsUriPrefix")]
@@ -3323,7 +3324,7 @@ pub struct GoogleCloudDocumentaiV1GcsPrefix {
 }
 
 /// Information for a custom Generative AI model created by the user. These are created with Create New Version in either the Call foundation model or Fine tuning tabs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1ProcessorVersionGenAiModelInfoCustomGenAiModelInfo {
     /// The base processor version ID for the custom model.
     #[serde(default, rename = "baseProcessorVersionId")]
@@ -3334,7 +3335,7 @@ pub struct GoogleCloudDocumentaiV1ProcessorVersionGenAiModelInfoCustomGenAiModel
 }
 
 /// Information for a pretrained Google-managed foundation model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1ProcessorVersionGenAiModelInfoFoundationGenAiModelInfo {
     /// Whether fine tuning is allowed for this base processor version.
     #[serde(default, rename = "finetuningAllowed")]
@@ -3345,7 +3346,7 @@ pub struct GoogleCloudDocumentaiV1ProcessorVersionGenAiModelInfoFoundationGenAiM
 }
 
 /// Identifies a document uniquely within the scope of a dataset in the user-managed Cloud Storage option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3DocumentIdGCSManagedDocumentId {
     /// Id of the document (indexed) managed by Content Warehouse.
     #[serde(default, rename = "cwDocId")]
@@ -3356,7 +3357,7 @@ pub struct GoogleCloudDocumentaiV1beta3DocumentIdGCSManagedDocumentId {
 }
 
 /// The revision reference specifies which revision on the document to read.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3RevisionRef {
     /// Reads the revision generated by the processor version. The format takes the full resource name of processor version. projects/{project}/locations/{location}/processors/{processor}/processorVersions/{processorVersion}
     #[serde(default, rename = "latestProcessorVersion")]
@@ -3370,7 +3371,7 @@ pub struct GoogleCloudDocumentaiV1beta3RevisionRef {
 }
 
 /// Identifies a document uniquely within the scope of a dataset in unmanaged option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3DocumentIdUnmanagedDocumentId {
     /// Required. The id of the document.
     #[serde(default, rename = "docId")]
@@ -3378,7 +3379,7 @@ pub struct GoogleCloudDocumentaiV1beta3DocumentIdUnmanagedDocumentId {
 }
 
 /// Metadata about an entity type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3EntityTypeMetadata {
     /// Whether the entity type should be considered inactive.
     #[serde(default)]
@@ -3386,7 +3387,7 @@ pub struct GoogleCloudDocumentaiV1beta3EntityTypeMetadata {
 }
 
 /// Defines the a list of enum values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3DocumentSchemaEntityTypeEnumValues {
     /// The individual values that this enum values type can include.
     #[serde(default)]
@@ -3394,7 +3395,7 @@ pub struct GoogleCloudDocumentaiV1beta3DocumentSchemaEntityTypeEnumValues {
 }
 
 /// Defines properties that can be part of the entity type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3DocumentSchemaEntityTypeProperty {
     /// The description of the property. Could be used to provide more information about the property for model calls.
     #[serde(default)]
@@ -3420,7 +3421,7 @@ pub struct GoogleCloudDocumentaiV1beta3DocumentSchemaEntityTypeProperty {
 }
 
 /// CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleField resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleField {
     /// Default value to use if the field is not present. If the field is missing and the default value is not set, the validation run as if the field is not present in the validation logic.
     #[serde(default, rename = "defaultValue")]
@@ -3433,7 +3434,7 @@ pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleF
 }
 
 /// Metadata about a property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3PropertyMetadata {
     /// Field extraction metadata on the property.
     #[serde(default, rename = "fieldExtractionMetadata")]
@@ -3465,7 +3466,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3PropertyMetadata {
 }
 
 /// SchemaVersion is a version of the Schema which is created in SchemaGroup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1SchemaVersion {
     /// Output only. The time when the SchemaVersion was created.
     #[serde(default, rename = "createTime")]
@@ -3485,7 +3486,7 @@ pub struct GoogleCloudDocumentaiV1SchemaVersion {
 }
 
 /// Represents a chunk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunk {
     /// ID of the chunk.
     #[serde(default, rename = "chunkId")]
@@ -3513,7 +3514,7 @@ pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunk {
 }
 
 /// An entity that could be a phrase in the text or a property that belongs to the document. It is a known entity type, such as a person, an organization, or location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentEntity {
     /// Optional. Confidence of detected Schema entity. Range [0, 1].
     #[serde(default)]
@@ -3555,7 +3556,7 @@ pub struct GoogleCloudDocumentaiV1DocumentEntity {
 }
 
 /// The output of the validation given the document and the validation rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentEntityValidationOutput {
     /// The overall result of the validation, true if all applicable rules are valid.
     #[serde(default, rename = "passAllRules")]
@@ -3568,7 +3569,7 @@ pub struct GoogleCloudDocumentaiV1DocumentEntityValidationOutput {
 }
 
 /// A block has a set of lines (collected into paragraphs) that have a common line-spacing and orientation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageBlock {
     /// A list of detected languages together with confidence.
     #[serde(default, rename = "detectedLanguages")]
@@ -3584,7 +3585,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageBlock {
 }
 
 /// A detected barcode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageDetectedBarcode {
     /// Detailed barcode information of the DetectedBarcode.
     #[serde(default)]
@@ -3595,7 +3596,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageDetectedBarcode {
 }
 
 /// Dimension for the page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageDimension {
     /// Page height.
     #[serde(default)]
@@ -3609,7 +3610,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageDimension {
 }
 
 /// A form field detected on the page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageFormField {
     /// Created for Labeling UI to export key text. If corrections were made to the text identified by the field_name.text_anchor, this field will contain the correction.
     #[serde(default, rename = "correctedKeyText")]
@@ -3642,7 +3643,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageFormField {
 }
 
 /// Rendered image contents for this page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageImage {
     /// Raw byte content of the image.
     #[serde(default)]
@@ -3659,7 +3660,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageImage {
 }
 
 /// Image quality scores for the page image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageImageQualityScores {
     /// A list of detected defects.
     #[serde(default, rename = "detectedDefects")]
@@ -3672,7 +3673,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageImageQualityScores {
 }
 
 /// A collection of tokens that a human would perceive as a line. Does not cross column boundaries, can be horizontal, vertical, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageLine {
     /// A list of detected languages together with confidence.
     #[serde(default, rename = "detectedLanguages")]
@@ -3688,7 +3689,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageLine {
 }
 
 /// A collection of lines that a human would perceive as a paragraph.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageParagraph {
     /// A list of detected languages together with confidence.
     #[serde(default, rename = "detectedLanguages")]
@@ -3704,7 +3705,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageParagraph {
 }
 
 /// A detected symbol.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageSymbol {
     /// A list of detected languages together with confidence.
     #[serde(default, rename = "detectedLanguages")]
@@ -3717,7 +3718,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageSymbol {
 }
 
 /// A table representation similar to HTML table structure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageTable {
     /// Body rows of the table.
     #[serde(default, rename = "bodyRows")]
@@ -3741,7 +3742,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageTable {
 }
 
 /// A detected token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageToken {
     /// Detected break at the end of a Token.
     #[serde(default, rename = "detectedBreak")]
@@ -3764,7 +3765,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageToken {
 }
 
 /// Representation for transformation matrix, intended to be compatible and used with OpenCV format for image manipulation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageMatrix {
     /// Number of columns in the matrix.
     #[serde(default)]
@@ -3781,7 +3782,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageMatrix {
 }
 
 /// Detected non-text visual elements, for example, checkbox, signature etc. on the page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageVisualElement {
     /// A list of detected languages together with confidence.
     #[serde(default, rename = "detectedLanguages")]
@@ -3797,7 +3798,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageVisualElement {
 }
 
 /// Human Review information of the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentRevisionHumanReview {
     /// Human review state. For example, requested, succeeded, rejected.
     #[serde(default)]
@@ -3808,7 +3809,7 @@ pub struct GoogleCloudDocumentaiV1DocumentRevisionHumanReview {
 }
 
 /// Font size with unit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentStyleFontSize {
     /// Font size for the text.
     #[serde(default)]
@@ -3819,7 +3820,7 @@ pub struct GoogleCloudDocumentaiV1DocumentStyleFontSize {
 }
 
 /// Evaluations metrics, at a specific confidence level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1EvaluationConfidenceLevelMetrics {
     /// The confidence level.
     #[serde(default, rename = "confidenceLevel")]
@@ -3830,7 +3831,7 @@ pub struct GoogleCloudDocumentaiV1EvaluationConfidenceLevelMetrics {
 }
 
 /// Specifies a document stored on Cloud Storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1GcsDocument {
     /// The Cloud Storage object uri.
     #[serde(default, rename = "gcsUri")]
@@ -3841,7 +3842,7 @@ pub struct GoogleCloudDocumentaiV1GcsDocument {
 }
 
 /// Metadata about a property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3PropertyMetadata {
     /// Field extraction metadata on the property.
     #[serde(default, rename = "fieldExtractionMetadata")]
@@ -3853,14 +3854,14 @@ pub struct GoogleCloudDocumentaiV1beta3PropertyMetadata {
 }
 
 /// The constant value used in the validation rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiDocumentaiLabHifiaToolsValidationValidatorInputValidationRuleConstant {
     #[serde(default, rename = "floatValue")]
     pub float_value: ::core::option::Option<f32>,
 }
 
 /// Metadata for how this field value is extracted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3FieldExtractionMetadata {
     /// Entity query config.
     #[serde(default, rename = "entityQuery")]
@@ -3872,7 +3873,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3FieldExtractionMetadata {
 }
 
 /// Metadata for the field tier of a property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3FieldTierMetadata {
     /// Integer that indicates the tier of a property. e.g. Invoice has entities that are classified as tier 1 which is the most important, while tier 2 and tier 3 less so. This attribute can be used to filter schema attributes before running eval. e.g. compute F1 score for only tier 1 entities. If not present this attribute should be inferred as 1.
     #[serde(default, rename = "tierLevel")]
@@ -3880,7 +3881,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3FieldTierMetadata {
 }
 
 /// Metadata for human review labeling config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3HumanReviewLabelingMetadata {
     /// Whether to enable normalization editing.
     #[serde(default, rename = "enableNormalizationEditing")]
@@ -3888,7 +3889,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3HumanReviewLabelingMetadata {
 }
 
 /// Metadata for Human Review config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3HumanReviewValidationMetadata {
     /// The confidence threshold if human review validation is enabled.
     #[serde(default, rename = "confidenceThreshold")]
@@ -3899,7 +3900,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3HumanReviewValidationMetadata {
 }
 
 /// Metadata that specifies whether a label is editable and reasons why. These fields are read-only. Changing these fields has no impact on the backend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3SchemaEditabilityMetadata {
     /// Explicit flag that controls whether the label is editable.
     #[serde(default)]
@@ -3910,7 +3911,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3SchemaEditabilityMetadata {
 }
 
 /// Metadata for schema inference. Only used on dataset.schema for schema inference, can be safely ignored elsewhere.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3SchemaInferenceMetadata {
     /// True if is inferred by schema inference.
     #[serde(default)]
@@ -3918,7 +3919,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3SchemaInferenceMetadata {
 }
 
 /// The schema defines the output of the processed document by a processor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentSchema {
     /// Description of the schema.
     #[serde(default)]
@@ -3939,7 +3940,7 @@ pub struct GoogleCloudDocumentaiV1DocumentSchema {
 }
 
 /// Represents the page footer associated with the chunk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageFooter {
     /// Page span of the footer.
     #[serde(default, rename = "pageSpan")]
@@ -3951,7 +3952,7 @@ pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageFooter {
 }
 
 /// Represents the page header associated with the chunk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageHeader {
     /// Page span of the header.
     #[serde(default, rename = "pageSpan")]
@@ -3963,7 +3964,7 @@ pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageHeader {
 }
 
 /// Parsed and normalized entity value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentEntityNormalizedValue {
     /// Postal address. See also: https://github.com/googleapis/googleapis/blob/master/google/type/postal_address.proto
     #[serde(default, rename = "addressValue")]
@@ -3995,7 +3996,7 @@ pub struct GoogleCloudDocumentaiV1DocumentEntityNormalizedValue {
 }
 
 /// Referencing the visual context of the entity in the Document.pages. Page anchors can be cross-page, consist of multiple bounding polygons and optionally reference specific layout element types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageAnchor {
     /// One or more references to visual page elements
     #[serde(default, rename = "pageRefs")]
@@ -4004,7 +4005,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageAnchor {
 }
 
 /// Validation result for a single validation rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentEntityValidationOutputValidationResult {
     /// Optional. The name of the rule resource that is used for validation. Format: projects/{project}/locations/{location}/rules/{rule}
     #[serde(default)]
@@ -4024,7 +4025,7 @@ pub struct GoogleCloudDocumentaiV1DocumentEntityValidationOutputValidationResult
 }
 
 /// Encodes the detailed information of a barcode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1Barcode {
     /// Format of a barcode. The supported formats are: - CODE_128: Code 128 type. - CODE_39: Code 39 type. - CODE_93: Code 93 type. - CODABAR: Codabar type. - DATA_MATRIX: 2D Data Matrix type. - ITF: ITF type. - EAN_13: EAN-13 type. - EAN_8: EAN-8 type. - QR_CODE: 2D QR code type. - UPC_A: UPC-A type. - UPC_E: UPC-E type. - PDF417: PDF417 type. - AZTEC: 2D Aztec code type. - DATABAR: GS1 DataBar code type.
     #[serde(default)]
@@ -4038,7 +4039,7 @@ pub struct GoogleCloudDocumentaiV1Barcode {
 }
 
 /// Image Quality Defects
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageImageQualityScoresDetectedDefect {
     /// Confidence of detected defect. Range [0, 1] where 1 indicates strong confidence that the defect exists.
     #[serde(default)]
@@ -4049,7 +4050,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageImageQualityScoresDetectedDefect {
 }
 
 /// A row of table cells.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageTableTableRow {
     /// Cells that make up this row.
     #[serde(default)]
@@ -4058,7 +4059,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageTableTableRow {
 }
 
 /// Detected break at the end of a Token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageTokenDetectedBreak {
     /// Detected break type. // TODO: enum values: ["TYPE_UNSPECIFIED", "SPACE", "WIDE_SPACE", "HYPHEN"]
     #[serde(default, rename = "type")]
@@ -4066,7 +4067,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageTokenDetectedBreak {
 }
 
 /// Structure to identify provenance relationships between annotations in different revisions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentProvenance {
     /// The Id of this operation. Needs to be unique within the scope of the revision.
     #[serde(default)]
@@ -4084,7 +4085,7 @@ pub struct GoogleCloudDocumentaiV1DocumentProvenance {
 }
 
 /// Font and other text style attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageTokenStyleInfo {
     /// Color of the background.
     #[serde(default, rename = "backgroundColor")]
@@ -4134,7 +4135,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageTokenStyleInfo {
 }
 
 /// Evaluation metrics, either in aggregate or about a specific entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1EvaluationMetrics {
     /// The calculated F1 score.
     #[serde(default, rename = "f1Score")]
@@ -4172,7 +4173,7 @@ pub struct GoogleCloudDocumentaiV1EvaluationMetrics {
 }
 
 /// Metadata for how this field value is extracted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3FieldExtractionMetadata {
     /// Summary options config.
     #[serde(default, rename = "summaryOptions")]
@@ -4180,7 +4181,7 @@ pub struct GoogleCloudDocumentaiV1beta3FieldExtractionMetadata {
 }
 
 /// Message for entity query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3FieldExtractionMetadataEntityQuery {
     /// The original entity query inputed by the user.
     #[serde(default, rename = "userEntityQuery")]
@@ -4188,7 +4189,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3FieldExtractionMetadataEntityQuery {
 }
 
 /// Metadata for document summarization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiUiv1beta3SummaryOptions {
     /// The format the summary should be in. // TODO: enum values: ["FORMAT_UNSPECIFIED", "PARAGRAPH", "BULLETS"]
     #[serde(default)]
@@ -4199,7 +4200,7 @@ pub struct GoogleCloudDocumentaiUiv1beta3SummaryOptions {
 }
 
 /// EntityType is the wrapper of a label of the corresponding model with detailed attributes and limitations for entity-based processors. Multiple types can also compose a dependency tree to represent nested types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentSchemaEntityType {
     /// The entity type that this type is derived from. For now, one and only one should be set.
     #[serde(default, rename = "baseTypes")]
@@ -4222,7 +4223,7 @@ pub struct GoogleCloudDocumentaiV1DocumentSchemaEntityType {
 }
 
 /// Metadata for global schema behavior.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentSchemaMetadata {
     /// If true, on a given page, there can be multiple document annotations covering it.
     #[serde(default, rename = "documentAllowMultipleLabels")]
@@ -4239,7 +4240,7 @@ pub struct GoogleCloudDocumentaiV1DocumentSchemaMetadata {
 }
 
 /// Represents where the chunk starts and ends in the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageSpan {
     /// Page where chunk ends in the document.
     #[serde(default, rename = "pageEnd")]
@@ -4250,7 +4251,7 @@ pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageSpan {
 }
 
 /// Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypePostalAddress {
     /// Unstructured address lines describing the lower levels of an address. Because values in address_lines do not have type information and may sometimes contain multiple values in a single field (for example, "Austin, TX"), it is important that the line order is clear. The order of address lines should be "envelope order" for the country or region of the address. In places where this can vary (for example, Japan), address_language is used to make it explicit (for example, "ja" for large-to-small ordering and "ja-Latn" or "en" for small-to-large). In this way, the most specific line of an address can be selected based on the language. The minimum permitted structural representation of an address consists of a region_code with all remaining information placed in the address_lines. It would be possible to format such an address very approximately without geocoding, but no semantic reasoning could be made about any of the address components until it was at least partially resolved. Creating an address only containing a region_code and address_lines and then geocoding is the recommended way to handle completely unstructured addresses (as opposed to guessing which parts of the address should be localities or administrative areas).
     #[serde(default, rename = "addressLines")]
@@ -4288,7 +4289,7 @@ pub struct GoogleTypePostalAddress {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeDate {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -4302,7 +4303,7 @@ pub struct GoogleTypeDate {
 }
 
 /// Represents civil time (or occasionally physical time). This type can represent a civil time in one of a few possible ways: * When utc_offset is set and time_zone is unset: a civil time on a calendar day with a particular offset from UTC. * When time_zone is set and utc_offset is unset: a civil time on a calendar day in a particular time zone. * When neither time_zone nor utc_offset is set: a civil time on a calendar day in local time. The date is relative to the Proleptic Gregorian Calendar. If year, month, or day are 0, the DateTime is considered not to have a specific year, month, or day respectively. This type may also be used to represent a physical time if all the date and time fields are set and either case of the time_offset oneof is set. Consider using Timestamp message for physical time instead. If your use case also would like to store the user''s timezone, that can be done in another field. This type is more flexible than some applications may want. Make sure to document and validate your application''s limitations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeDateTime {
     /// Optional. Day of month. Must be from 1 to 31 and valid for the year and month, or 0 if specifying a datetime without a day.
     #[serde(default)]
@@ -4334,7 +4335,7 @@ pub struct GoogleTypeDateTime {
 }
 
 /// Represents an amount of money with its currency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeMoney {
     /// The three-letter currency code defined in ISO 4217.
     #[serde(default, rename = "currencyCode")]
@@ -4348,7 +4349,7 @@ pub struct GoogleTypeMoney {
 }
 
 /// Represents a weak reference to a page element within a document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageAnchorPageRef {
     /// Optional. Identifies the bounding polygon of a layout element on the page. If layout_type is set, the bounding polygon must be exactly the same to the layout element it''s referring to.
     #[serde(default, rename = "boundingPoly")]
@@ -4369,7 +4370,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageAnchorPageRef {
 }
 
 /// A cell representation inside the table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageTableTableCell {
     /// How many columns this cell spans.
     #[serde(default, rename = "colSpan")]
@@ -4388,7 +4389,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageTableTableCell {
 }
 
 /// The parent element the current element is based on. Used for referencing/aligning, removal and replacement operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentProvenanceParent {
     /// The id of the parent provenance.
     #[serde(default)]
@@ -4402,7 +4403,7 @@ pub struct GoogleCloudDocumentaiV1DocumentProvenanceParent {
 }
 
 /// Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of java.awt.Color in Java; it can also be trivially provided to UIColor''s +colorWithRed:green:blue:alpha method in iOS; and, with just a little work, it can be easily formatted into a CSS rgba() string in JavaScript. This reference page doesn''t have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most 1e-5. Example (Java): import com.google.type.Color; // ... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha() ? protocolor.getAlpha().getValue() : 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color .newBuilder() .setRed(red / denominator) .setGreen(green / denominator) .setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha != 255) { result.setAlpha( FloatValue .newBuilder() .setValue(((float) alpha) / denominator) .build()); } return resultBuilder.build(); } // ... Example (iOS / Obj-C): // ... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper != nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha &lt;= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } // ... Example (JavaScript): // ... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!(''alpha'' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join('',''); return [''rgba('', rgbParams, '','', alphaFrac, '')''].join(''''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red &lt;&lt; 16) | (green &lt;&lt; 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = [''#'']; for (var i = 0; i &lt; missingZeros; i++) { resultBuilder.push(''0''); } resultBuilder.push(hexString); return resultBuilder.join(''''); }; // ...
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeColor {
     /// The fraction of this color that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (this color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color. This uses a wrapper message rather than a simple float scalar so that it is possible to distinguish between a default value and the value being unset. If omitted, this color object is rendered as a solid color (as if the alpha value had been explicitly given a value of 1.0).
     #[serde(default)]
@@ -4419,7 +4420,7 @@ pub struct GoogleTypeColor {
 }
 
 /// Metadata for document summarization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1beta3SummaryOptions {
     /// The format the summary should be in. // TODO: enum values: ["FORMAT_UNSPECIFIED", "PARAGRAPH", "BULLETS"]
     #[serde(default)]
@@ -4430,7 +4431,7 @@ pub struct GoogleCloudDocumentaiV1beta3SummaryOptions {
 }
 
 /// Defines the a list of enum values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentSchemaEntityTypeEnumValues {
     /// The individual values that this enum values type can include.
     #[serde(default)]
@@ -4438,7 +4439,7 @@ pub struct GoogleCloudDocumentaiV1DocumentSchemaEntityTypeEnumValues {
 }
 
 /// Defines properties that can be part of the entity type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentSchemaEntityTypeProperty {
     /// User defined name for the property.
     #[serde(default, rename = "displayName")]
@@ -4458,7 +4459,7 @@ pub struct GoogleCloudDocumentaiV1DocumentSchemaEntityTypeProperty {
 }
 
 /// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeTimeZone {
     /// IANA Time Zone Database time zone. For example "America/New_York".
     #[serde(default)]
@@ -4469,7 +4470,7 @@ pub struct GoogleTypeTimeZone {
 }
 
 /// Detected language for a structural component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageDetectedLanguage {
     /// Confidence of detected language. Range [0, 1].
     #[serde(default)]
@@ -4480,7 +4481,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageDetectedLanguage {
 }
 
 /// Visual element describing a layout unit on a page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageLayout {
     /// The bounding polygon for the Layout.
     #[serde(default, rename = "boundingPoly")]
@@ -4498,7 +4499,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageLayout {
 }
 
 /// Text reference indexing into the Document.text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentTextAnchor {
     /// Contains the content of the text span so that users do not have to look it up in the text_segments. It is always populated for formFields.
     #[serde(default)]
@@ -4511,7 +4512,7 @@ pub struct GoogleCloudDocumentaiV1DocumentTextAnchor {
 }
 
 /// A text segment in the Document.text. The indices may be out of bounds which indicate that the text extends into another document shard for large sharded documents. See ShardInfo.text_offset
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentTextAnchorTextSegment {
     /// TextSegment half open end UTF-8 char index in the Document.text.
     #[serde(default, rename = "endIndex")]
@@ -4522,7 +4523,7 @@ pub struct GoogleCloudDocumentaiV1DocumentTextAnchorTextSegment {
 }
 
 /// A bounding polygon for the detected image annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1BoundingPoly {
     /// The bounding polygon normalized vertices.
     #[serde(default, rename = "normalizedVertices")]
@@ -4534,7 +4535,7 @@ pub struct GoogleCloudDocumentaiV1BoundingPoly {
 }
 
 /// Represents a block. A block could be one of the various types (text, table, list) supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock {
     /// ID of the block.
     #[serde(default, rename = "blockId")]
@@ -4574,7 +4575,7 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock {
 }
 
 /// Represents a list type block.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListBlock {
     /// List entries that constitute a list block.
     #[serde(default, rename = "listEntries")]
@@ -4589,7 +4590,7 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
 }
 
 /// Represents an entry in the list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListEntry {
     /// A list entry is a list of blocks. Repeated blocks support further hierarchies and nested blocks.
     #[serde(default)]
@@ -4599,7 +4600,7 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
 }
 
 /// Represents where the block starts and ends in the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutPageSpan {
     /// Page where block ends in the document.
     #[serde(default, rename = "pageEnd")]
@@ -4610,7 +4611,7 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
 }
 
 /// Represents a table type block.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableBlock {
     /// Body rows containing main table content.
     #[serde(default, rename = "bodyRows")]
@@ -4632,7 +4633,7 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
 }
 
 /// Represents a cell in a table row.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableCell {
     /// A table cell is a list of blocks. Repeated blocks support further hierarchies and nested blocks.
     #[serde(default)]
@@ -4648,7 +4649,7 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
 }
 
 /// Represents a row in a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableRow {
     /// A table row is a list of table cells.
     #[serde(default)]
@@ -4660,7 +4661,7 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
 }
 
 /// Represents a text type block.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTextBlock {
     /// A text block could further have child blocks. Repeated blocks support further hierarchies and nested blocks.
     #[serde(default)]
@@ -4676,7 +4677,7 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1NormalizedVertex {
     /// X coordinate.
     #[serde(default)]
@@ -4687,7 +4688,7 @@ pub struct GoogleCloudDocumentaiV1NormalizedVertex {
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the vertex coordinates are in the same scale as the original image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1Vertex {
     /// X coordinate.
     #[serde(default)]

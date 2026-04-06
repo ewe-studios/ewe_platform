@@ -8,34 +8,35 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// An automated bidding strategy that raises bids for clicks that seem more likely to lead to a conversion and lowers them for clicks where they seem less likely. This bidding strategy is deprecated and cannot be created anymore. Use ManualCpc with enhanced_cpc_enabled set to true for equivalent functionality.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonEnhancedCpc {}
 
 /// A rule specifying the maximum number of times an ad (or some set of ads) can be shown to a user over a particular time period.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonFrequencyCapEntry {}
 
 /// Manual bidding strategy that allows advertiser to set the bid per advertiser-specified action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonManualCpa {}
 
 /// Manual impression-based bidding where user pays per thousand impressions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonManualCpm {}
 
 /// A Search Ads 360 product ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonSearchAds360ProductAdInfo {}
 
 /// Target CPM (cost per thousand impressions) is an automated bidding strategy that sets bids to optimize performance given the target CPM you set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonTargetCpm {}
 
 /// Describes how a Search Ads 360 API call failed. It''s returned inside google.rpc.Status.details when a call fails.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ErrorsSearchAds360Failure {
     /// The list of errors that occurred.
     #[serde(default)]
@@ -47,7 +48,7 @@ pub struct GoogleAdsSearchads360v0ErrorsSearchAds360Failure {
 }
 
 /// Response message for CustomerService.ListAccessibleCustomers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ServicesListAccessibleCustomersResponse {
     /// Resource name of customers directly accessible by the user authenticating the call.
     #[serde(default, rename = "resourceNames")]
@@ -55,7 +56,7 @@ pub struct GoogleAdsSearchads360v0ServicesListAccessibleCustomersResponse {
 }
 
 /// Response message for fetching all custom columns associated with a customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ServicesListCustomColumnsResponse {
     /// The CustomColumns owned by the provided customer.
     #[serde(default, rename = "customColumns")]
@@ -64,7 +65,7 @@ pub struct GoogleAdsSearchads360v0ServicesListCustomColumnsResponse {
 }
 
 /// Request message for SearchAds360FieldService.SearchSearchAds360Fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ServicesSearchSearchAds360FieldsRequest {
     /// Number of elements to retrieve in a single page. When too large a page is requested, the server may decide to further limit the number of returned resources.
     #[serde(default, rename = "pageSize")]
@@ -78,7 +79,7 @@ pub struct GoogleAdsSearchads360v0ServicesSearchSearchAds360FieldsRequest {
 }
 
 /// Response message for SearchAds360FieldService.SearchSearchAds360Fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ServicesSearchSearchAds360FieldsResponse {
     /// Pagination token used to retrieve the next page of results. Pass the content of this string as the page_token attribute of the next request. next_page_token is not returned for the last page.
     #[serde(default, rename = "nextPageToken")]
@@ -93,7 +94,7 @@ pub struct GoogleAdsSearchads360v0ServicesSearchSearchAds360FieldsResponse {
 }
 
 /// Request message for SearchAds360Service.Search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ServicesSearchSearchAds360Request {
     /// Number of elements to retrieve in a single page. When too large a page is requested, the server may decide to further limit the number of returned resources.
     #[serde(default, rename = "pageSize")]
@@ -116,7 +117,7 @@ pub struct GoogleAdsSearchads360v0ServicesSearchSearchAds360Request {
 }
 
 /// Response message for SearchAds360Service.Search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ServicesSearchSearchAds360Response {
     /// The headers of the conversion custom dimensions in the results.
     #[serde(default, rename = "conversionCustomDimensionHeaders")]
@@ -161,7 +162,7 @@ pub struct GoogleAdsSearchads360v0ServicesSearchSearchAds360Response {
 }
 
 /// Search Ads 360-specific error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ErrorsSearchAds360Error {
     /// Additional error details, which are returned by certain error codes. Most error codes do not include details.
     #[serde(default)]
@@ -181,7 +182,7 @@ pub struct GoogleAdsSearchads360v0ErrorsSearchAds360Error {
 }
 
 /// A custom column. See Search Ads 360 custom column at https://support.google.com/sa360/answer/9633916
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesCustomColumn {
     /// Output only. User-defined description of the custom column.
     #[serde(default)]
@@ -216,7 +217,7 @@ pub struct GoogleAdsSearchads360v0ResourcesCustomColumn {
 }
 
 /// A field or resource (artifact) used by SearchAds360Service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesSearchAds360Field {
     /// Output only. The names of all resources that are selectable with the described artifact. Fields from these resources do not segment metrics when included in search queries. This field is only set for artifacts whose category is RESOURCE.
     #[serde(default, rename = "attributeResources")]
@@ -263,7 +264,7 @@ pub struct GoogleAdsSearchads360v0ResourcesSearchAds360Field {
 }
 
 /// Message for conversion custom dimension header.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ServicesConversionCustomDimensionHeader {
     /// The conversion custom dimension ID.
     #[serde(default)]
@@ -274,7 +275,7 @@ pub struct GoogleAdsSearchads360v0ServicesConversionCustomDimensionHeader {
 }
 
 /// Message for conversion custom metric header.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ServicesConversionCustomMetricHeader {
     /// The conversion custom metric ID.
     #[serde(default)]
@@ -285,7 +286,7 @@ pub struct GoogleAdsSearchads360v0ServicesConversionCustomMetricHeader {
 }
 
 /// Message for custom column header.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ServicesCustomColumnHeader {
     /// The custom column ID.
     #[serde(default)]
@@ -299,7 +300,7 @@ pub struct GoogleAdsSearchads360v0ServicesCustomColumnHeader {
 }
 
 /// Message for raw event conversion dimension header.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ServicesRawEventConversionDimensionHeader {
     /// The conversion custom variable ID.
     #[serde(default)]
@@ -310,7 +311,7 @@ pub struct GoogleAdsSearchads360v0ServicesRawEventConversionDimensionHeader {
 }
 
 /// Message for raw event conversion metric header.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ServicesRawEventConversionMetricHeader {
     /// The conversion custom variable ID.
     #[serde(default)]
@@ -321,7 +322,7 @@ pub struct GoogleAdsSearchads360v0ServicesRawEventConversionMetricHeader {
 }
 
 /// A returned row from the query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ServicesSearchAds360Row {
     /// The accessible bidding strategy referenced in the query.
     #[serde(default, rename = "accessibleBiddingStrategy")]
@@ -528,7 +529,7 @@ pub struct GoogleAdsSearchads360v0ServicesSearchAds360Row {
 }
 
 /// Additional error details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ErrorsErrorDetails {
     /// Details on the quota error, including the scope (account or developer), the rate bucket name and the retry delay.
     #[serde(default, rename = "quotaErrorDetails")]
@@ -539,7 +540,7 @@ pub struct GoogleAdsSearchads360v0ErrorsErrorDetails {
 }
 
 /// The error reason represented by type and enum.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ErrorsErrorCode {
     /// Indicates failure to properly authenticate user. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "AUTHENTICATION_ERROR", "CLIENT_CUSTOMER_ID_INVALID", "CUSTOMER_NOT_FOUND", "GOOGLE_ACCOUNT_DELETED", "GOOGLE_ACCOUNT_COOKIE_INVALID", "GOOGLE_ACCOUNT_AUTHENTICATION_FAILED", "GOOGLE_ACCOUNT_USER_AND_ADS_USER_MISMATCH", "LOGIN_COOKIE_REQUIRED", "NOT_ADS_USER", "OAUTH_TOKEN_INVALID", "OAUTH_TOKEN_EXPIRED", "OAUTH_TOKEN_DISABLED", "OAUTH_TOKEN_REVOKED", "OAUTH_TOKEN_HEADER_INVALID", "LOGIN_COOKIE_INVALID", "USER_ID_INVALID", "TWO_STEP_VERIFICATION_NOT_ENROLLED", "ADVANCED_PROTECTION_NOT_ENROLLED"]
     #[serde(default, rename = "authenticationError")]
@@ -586,7 +587,7 @@ pub struct GoogleAdsSearchads360v0ErrorsErrorCode {
 }
 
 /// Describes the part of the request proto that caused the error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ErrorsErrorLocation {
     /// A field path that indicates which field was invalid in the request.
     #[serde(default, rename = "fieldPathElements")]
@@ -596,7 +597,7 @@ pub struct GoogleAdsSearchads360v0ErrorsErrorLocation {
 }
 
 /// Represents a view of BiddingStrategies owned by and shared with the customer. In contrast to BiddingStrategy, this resource includes strategies owned by managers of the customer and shared with this customer - in addition to strategies owned by this customer. This resource does not provide metrics and only exposes a limited subset of the BiddingStrategy attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategy {
     /// Output only. The ID of the bidding strategy.
     #[serde(default)]
@@ -647,7 +648,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategy {
 }
 
 /// An ad group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAdGroup {
     /// The ad rotation mode of the ad group. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "OPTIMIZE", "ROTATE_FOREVER"]
     #[serde(default, rename = "adRotationMode")]
@@ -709,7 +710,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAdGroup {
 }
 
 /// An ad group ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAdGroupAd {
     /// Immutable. The ad.
     #[serde(default)]
@@ -741,7 +742,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAdGroupAd {
 }
 
 /// A relationship between an ad group ad and an effective label. An effective label is a label inherited or directly assigned to this ad group ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAdGroupAdEffectiveLabel {
     /// Immutable. The ad group ad to which the effective label is attached.
     #[serde(default, rename = "adGroupAd")]
@@ -758,7 +759,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAdGroupAdEffectiveLabel {
 }
 
 /// A relationship between an ad group ad and a label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAdGroupAdLabel {
     /// Immutable. The ad group ad to which the label is attached.
     #[serde(default, rename = "adGroupAd")]
@@ -775,7 +776,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAdGroupAdLabel {
 }
 
 /// A link between an ad group and an asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAdGroupAsset {
     /// Required. Immutable. The ad group to which the asset is linked.
     #[serde(default, rename = "adGroup")]
@@ -792,7 +793,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAdGroupAsset {
 }
 
 /// AdGroupAssetSet is the linkage between an ad group and an asset set. Creating an AdGroupAssetSet links an asset set with an ad group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAdGroupAssetSet {
     /// Immutable. The ad group to which this asset set is linked.
     #[serde(default, rename = "adGroup")]
@@ -809,7 +810,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAdGroupAssetSet {
 }
 
 /// An ad group audience view. Includes performance data from interests and remarketing lists for Display Network and YouTube Network ads, and remarketing lists for search ads (RLSA), aggregated at the audience level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAdGroupAudienceView {
     /// Output only. The resource name of the ad group audience view. Ad group audience view resource names have the form: customers/{customer_id}/adGroupAudienceViews/{ad_group_id}~{criterion_id}
     #[serde(default, rename = "resourceName")]
@@ -817,7 +818,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAdGroupAudienceView {
 }
 
 /// Represents an ad group bid modifier.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAdGroupBidModifier {
     /// The modifier for the bid when the criterion matches. The modifier must be in the range: 0.1 - 10.0. Use 0 to opt out of a Device type.
     #[serde(default, rename = "bidModifier")]
@@ -831,7 +832,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAdGroupBidModifier {
 }
 
 /// An ad group criterion. The ad_group_criterion report only returns criteria that were explicitly added to the ad group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAdGroupCriterion {
     /// Immutable. The ad group to which the criterion belongs.
     #[serde(default, rename = "adGroup")]
@@ -926,7 +927,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAdGroupCriterion {
 }
 
 /// A relationship between an ad group criterion and an effective label. An effective label is a label inherited or directly assigned to this ad group criterion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAdGroupCriterionEffectiveLabel {
     /// Immutable. The ad group criterion to which the effective label is attached.
     #[serde(default, rename = "adGroupCriterion")]
@@ -943,7 +944,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAdGroupCriterionEffectiveLabel {
 }
 
 /// A relationship between an ad group criterion and a label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAdGroupCriterionLabel {
     /// Immutable. The ad group criterion to which the label is attached.
     #[serde(default, rename = "adGroupCriterion")]
@@ -960,7 +961,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAdGroupCriterionLabel {
 }
 
 /// A relationship between an ad group and an effective label. An effective label is a label inherited or directly assigned to this ad group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAdGroupEffectiveLabel {
     /// Immutable. The ad group to which the effective label is attached.
     #[serde(default, rename = "adGroup")]
@@ -977,7 +978,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAdGroupEffectiveLabel {
 }
 
 /// A relationship between an ad group and a label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAdGroupLabel {
     /// Immutable. The ad group to which the label is attached.
     #[serde(default, rename = "adGroup")]
@@ -994,7 +995,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAdGroupLabel {
 }
 
 /// An age range view.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAgeRangeView {
     /// Output only. The resource name of the age range view. Age range view resource names have the form: customers/{customer_id}/ageRangeViews/{ad_group_id}~{criterion_id}
     #[serde(default, rename = "resourceName")]
@@ -1002,7 +1003,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAgeRangeView {
 }
 
 /// Asset is a part of an ad which can be shared across multiple ads. It can be an image (ImageAsset), a video (YoutubeVideoAsset), etc. Assets are immutable and cannot be removed. To stop an asset from serving, remove the asset from the entity that is using it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAsset {
     /// Output only. A unified call asset.
     #[serde(default, rename = "callAsset")]
@@ -1078,7 +1079,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAsset {
 }
 
 /// An asset group. AssetGroupAsset is used to link an asset to the asset group. AssetGroupSignal is used to associate a signal to an asset group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAssetGroup {
     /// Output only. Overall ad strength of this asset group. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "PENDING", "NO_ADS", "POOR", "AVERAGE", "GOOD", "EXCELLENT"]
     #[serde(default, rename = "adStrength")]
@@ -1113,7 +1114,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAssetGroup {
 }
 
 /// AssetGroupAsset is the link between an asset and an asset group. Adding an AssetGroupAsset links an asset with an asset group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAssetGroupAsset {
     /// Immutable. The asset which this asset group asset is linking.
     #[serde(default)]
@@ -1133,7 +1134,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAssetGroupAsset {
 }
 
 /// AssetGroupListingGroupFilter represents a listing group filter tree node in an asset group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAssetGroupListingGroupFilter {
     /// Immutable. The asset group which this asset group listing group filter is part of.
     #[serde(default, rename = "assetGroup")]
@@ -1164,7 +1165,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAssetGroupListingGroupFilter {
 }
 
 /// AssetGroupSignal represents a signal in an asset group. The existence of a signal tells the performance max campaign who''s most likely to convert. Performance Max uses the signal to look for new people with similar or stronger intent to find conversions across Search, Display, Video, and more.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAssetGroupSignal {
     /// Immutable. The asset group which this asset group signal belongs to.
     #[serde(default, rename = "assetGroup")]
@@ -1178,7 +1179,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAssetGroupSignal {
 }
 
 /// A view on the usage of asset group asset top combinations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAssetGroupTopCombinationView {
     /// Output only. The top combinations of assets that served together.
     #[serde(default, rename = "assetGroupTopCombinations")]
@@ -1191,7 +1192,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAssetGroupTopCombinationView {
 }
 
 /// An asset set representing a collection of assets. Use AssetSetAsset to link an asset to the asset set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAssetSet {
     /// Output only. The ID of the asset set.
     #[serde(default)]
@@ -1202,7 +1203,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAssetSet {
 }
 
 /// AssetSetAsset is the link between an asset and an asset set. Adding an AssetSetAsset links an asset with an asset set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAssetSetAsset {
     /// Immutable. The asset which this asset set asset is linking to.
     #[serde(default)]
@@ -1219,7 +1220,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAssetSetAsset {
 }
 
 /// Audience is an effective targeting option that lets you intersect different segment attributes, such as detailed demographics and affinities, to create audiences that represent sections of your target segments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAudience {
     /// Description of this audience.
     #[serde(default)]
@@ -1236,7 +1237,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAudience {
 }
 
 /// A bidding strategy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesBiddingStrategy {
     /// Output only. The number of campaigns attached to this bidding strategy. This field is read-only.
     #[serde(default, rename = "campaignCount")]
@@ -1296,7 +1297,7 @@ pub struct GoogleAdsSearchads360v0ResourcesBiddingStrategy {
 }
 
 /// A campaign.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesCampaign {
     /// Output only. Resource name of AccessibleBiddingStrategy, a read-only view of the unrestricted attributes of the attached portfolio bidding strategy identified by ''bidding_strategy''. Empty, if the campaign does not use a portfolio strategy. Unrestricted strategy attributes are available to all customers with whom the strategy is shared and are read from the AccessibleBiddingStrategy resource. In contrast, restricted attributes are only available to the owner customer of the strategy and their managers. Restricted attributes can only be read from the BiddingStrategy resource.
     #[serde(default, rename = "accessibleBiddingStrategy")]
@@ -1454,7 +1455,7 @@ pub struct GoogleAdsSearchads360v0ResourcesCampaign {
 }
 
 /// A link between a Campaign and an Asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesCampaignAsset {
     /// Immutable. The asset which is linked to the campaign.
     #[serde(default)]
@@ -1471,7 +1472,7 @@ pub struct GoogleAdsSearchads360v0ResourcesCampaignAsset {
 }
 
 /// CampaignAssetSet is the linkage between a campaign and an asset set. Adding a CampaignAssetSet links an asset set with a campaign.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesCampaignAssetSet {
     /// Immutable. The asset set which is linked to the campaign.
     #[serde(default, rename = "assetSet")]
@@ -1488,7 +1489,7 @@ pub struct GoogleAdsSearchads360v0ResourcesCampaignAssetSet {
 }
 
 /// A campaign audience view. Includes performance data from interests and remarketing lists for Display Network and YouTube Network ads, and remarketing lists for search ads (RLSA), aggregated by campaign and audience criterion. This view only includes audiences attached at the campaign level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesCampaignAudienceView {
     /// Output only. The resource name of the campaign audience view. Campaign audience view resource names have the form: customers/{customer_id}/campaignAudienceViews/{campaign_id}~{criterion_id}
     #[serde(default, rename = "resourceName")]
@@ -1496,7 +1497,7 @@ pub struct GoogleAdsSearchads360v0ResourcesCampaignAudienceView {
 }
 
 /// A campaign budget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesCampaignBudget {
     /// The average daily amount to be spent by the campaign. This field is used when the CampaignBudget period is set to DAILY, which is the default. Amount is specified in micros in the account''s local currency. One million micros is equivalent to one currency unit. The effective monthly spend is capped at 30.4 times this daily amount. This field is mutually exclusive with ''total_amount_micros''. Only one of ''amount_micros'' or ''total_amount_micros'' should be set.
     #[serde(default, rename = "amountMicros")]
@@ -1513,7 +1514,7 @@ pub struct GoogleAdsSearchads360v0ResourcesCampaignBudget {
 }
 
 /// A campaign criterion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesCampaignCriterion {
     /// Immutable. Age range.
     #[serde(default, rename = "ageRange")]
@@ -1569,7 +1570,7 @@ pub struct GoogleAdsSearchads360v0ResourcesCampaignCriterion {
 }
 
 /// Represents a relationship between a campaign and an effective label. An effective label is a label inherited or directly assigned to this campaign.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesCampaignEffectiveLabel {
     /// Immutable. The campaign to which the effective label is attached.
     #[serde(default)]
@@ -1586,7 +1587,7 @@ pub struct GoogleAdsSearchads360v0ResourcesCampaignEffectiveLabel {
 }
 
 /// Represents a relationship between a campaign and a label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesCampaignLabel {
     /// Immutable. The campaign to which the label is attached.
     #[serde(default)]
@@ -1603,7 +1604,7 @@ pub struct GoogleAdsSearchads360v0ResourcesCampaignLabel {
 }
 
 /// Cart data sales view. Provides information about the products which were purchased if conversions with cart data is implemented. Performance metrics like revenue, gross profit, lead/cross-sell metrics etc. and Merchant Center attributes such as brand, category etc. are available for products defined in an inventory feed and sold as a result of Google ads. For purchases attributed to clicks on Shopping ads, dimensions of both clicked and sold products can be viewed together.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesCartDataSalesView {
     /// Output only. The resource name of the Cart data sales view. Cart data sales view resource names have the form: customers/{customer_id}/cartDataSalesView
     #[serde(default, rename = "resourceName")]
@@ -1611,7 +1612,7 @@ pub struct GoogleAdsSearchads360v0ResourcesCartDataSalesView {
 }
 
 /// A conversion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesConversion {
     /// Output only. Ad ID. A value of 0 indicates that the ad is unattributed.
     #[serde(default, rename = "adId")]
@@ -1688,7 +1689,7 @@ pub struct GoogleAdsSearchads360v0ResourcesConversion {
 }
 
 /// A conversion action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesConversionAction {
     /// App ID for an app conversion action.
     #[serde(default, rename = "appId")]
@@ -1745,7 +1746,7 @@ pub struct GoogleAdsSearchads360v0ResourcesConversionAction {
 }
 
 /// A conversion custom variable. See "About custom Floodlight metrics and dimensions in the new Search Ads 360" at https://support.google.com/sa360/answer/13567857
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesConversionCustomVariable {
     /// Output only. Cardinality of the conversion custom variable. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "BELOW_ALL_LIMITS", "EXCEEDS_SEGMENTATION_LIMIT_BUT_NOT_STATS_LIMIT", "APPROACHES_STATS_LIMIT", "EXCEEDS_STATS_LIMIT"]
     #[serde(default)]
@@ -1780,7 +1781,7 @@ pub struct GoogleAdsSearchads360v0ResourcesConversionCustomVariable {
 }
 
 /// A customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesCustomer {
     /// Output only. The account level of the customer: Manager, Sub-manager, Associate manager, Service account. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "CLIENT_ACCOUNT_FACEBOOK", "CLIENT_ACCOUNT_GOOGLE_ADS", "CLIENT_ACCOUNT_MICROSOFT", "CLIENT_ACCOUNT_YAHOO_JAPAN", "CLIENT_ACCOUNT_ENGINE_TRACK", "MANAGER", "SUB_MANAGER", "ASSOCIATE_MANAGER"]
     #[serde(default, rename = "accountLevel")]
@@ -1859,7 +1860,7 @@ pub struct GoogleAdsSearchads360v0ResourcesCustomer {
 }
 
 /// A link between a customer and an asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesCustomerAsset {
     /// Required. Immutable. The asset which is linked to the customer.
     #[serde(default)]
@@ -1873,7 +1874,7 @@ pub struct GoogleAdsSearchads360v0ResourcesCustomerAsset {
 }
 
 /// CustomerAssetSet is the linkage between a customer and an asset set. Adding a CustomerAssetSet links an asset set with a customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesCustomerAssetSet {
     /// Immutable. The asset set which is linked to the customer.
     #[serde(default, rename = "assetSet")]
@@ -1890,7 +1891,7 @@ pub struct GoogleAdsSearchads360v0ResourcesCustomerAssetSet {
 }
 
 /// A link between the given customer and a client customer. CustomerClients only exist for manager customers. All direct and indirect client customers are included, as well as the manager itself.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesCustomerClient {
     /// Output only. The resource names of the labels owned by the requesting customer that are applied to the client customer. Label resource names have the form: customers/{customer_id}/labels/{label_id}
     #[serde(default, rename = "appliedLabels")]
@@ -1931,7 +1932,7 @@ pub struct GoogleAdsSearchads360v0ResourcesCustomerClient {
 }
 
 /// Represents customer-manager link relationship.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesCustomerManagerLink {
     /// Output only. The manager customer linked to the customer.
     #[serde(default, rename = "managerCustomer")]
@@ -1951,7 +1952,7 @@ pub struct GoogleAdsSearchads360v0ResourcesCustomerManagerLink {
 }
 
 /// A dynamic search ads search term view.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesDynamicSearchAdsSearchTermView {
     /// Output only. The dynamically selected landing page URL of the impression. This field is read-only.
     #[serde(default, rename = "landingPage")]
@@ -1962,7 +1963,7 @@ pub struct GoogleAdsSearchads360v0ResourcesDynamicSearchAdsSearchTermView {
 }
 
 /// A gender view. The gender_view resource reflects the effective serving state, rather than what criteria were added. An ad group without gender criteria by default shows to all genders, so all genders appear in gender_view with stats.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesGenderView {
     /// Output only. The resource name of the gender view. Gender view resource names have the form: customers/{customer_id}/genderViews/{ad_group_id}~{criterion_id}
     #[serde(default, rename = "resourceName")]
@@ -1970,7 +1971,7 @@ pub struct GoogleAdsSearchads360v0ResourcesGenderView {
 }
 
 /// A geo target constant.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesGeoTargetConstant {
     /// Output only. The fully qualified English name, consisting of the target''s name and that of its parent and country.
     #[serde(default, rename = "canonicalName")]
@@ -1999,7 +2000,7 @@ pub struct GoogleAdsSearchads360v0ResourcesGeoTargetConstant {
 }
 
 /// A keyword view.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesKeywordView {
     /// Output only. The resource name of the keyword view. Keyword view resource names have the form: customers/{customer_id}/keywordViews/{ad_group_id}~{criterion_id}
     #[serde(default, rename = "resourceName")]
@@ -2007,7 +2008,7 @@ pub struct GoogleAdsSearchads360v0ResourcesKeywordView {
 }
 
 /// A label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesLabel {
     /// Output only. ID of the label. Read only.
     #[serde(default)]
@@ -2027,7 +2028,7 @@ pub struct GoogleAdsSearchads360v0ResourcesLabel {
 }
 
 /// A language.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesLanguageConstant {
     /// Output only. The language code, for example, "en_US", "en_AU", "es", "fr", etc.
     #[serde(default)]
@@ -2047,7 +2048,7 @@ pub struct GoogleAdsSearchads360v0ResourcesLanguageConstant {
 }
 
 /// A location view summarizes the performance of campaigns by a Location criterion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesLocationView {
     /// Output only. The resource name of the location view. Location view resource names have the form: customers/{customer_id}/locationViews/{campaign_id}~{criterion_id}
     #[serde(default, rename = "resourceName")]
@@ -2055,7 +2056,7 @@ pub struct GoogleAdsSearchads360v0ResourcesLocationView {
 }
 
 /// Metrics data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonMetrics {
     /// Search absolute top impression share is the percentage of your Search ad impressions that are shown in the most prominent Search position.
     #[serde(default, rename = "absoluteTopImpressionPercentage")]
@@ -2362,7 +2363,7 @@ pub struct GoogleAdsSearchads360v0CommonMetrics {
 }
 
 /// A Product Bidding Category.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesProductBiddingCategoryConstant {
     /// Output only. Two-letter upper-case country code of the product bidding category.
     #[serde(default, rename = "countryCode")]
@@ -2391,7 +2392,7 @@ pub struct GoogleAdsSearchads360v0ResourcesProductBiddingCategoryConstant {
 }
 
 /// A product group view.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesProductGroupView {
     /// Output only. The resource name of the product group view. Product group view resource names have the form: customers/{customer_id}/productGroupViews/{ad_group_id}~{criterion_id}
     #[serde(default, rename = "resourceName")]
@@ -2399,7 +2400,7 @@ pub struct GoogleAdsSearchads360v0ResourcesProductGroupView {
 }
 
 /// Segment only fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonSegments {
     /// Ad Format type. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "VERTICAL_ADS_PROMOTION", "VERTICAL_ADS_BOOKING_LINK", "TEXT"]
     #[serde(default, rename = "adFormatType")]
@@ -2629,7 +2630,7 @@ pub struct GoogleAdsSearchads360v0CommonSegments {
 }
 
 /// Shopping performance view. Provides Shopping campaign and Performance Max campaign statistics aggregated at several product dimension levels. Product dimension values from Merchant Center such as brand, category, custom attributes, product condition, and product type will reflect the state of each dimension as of the date and time when the corresponding event was recorded. The number of impressions and clicks that shopping_performance_view returns stats for may be different from campaign reports. shopping_performance_view shows impressions and clicks on products appearing in ads, while campaign reports show impressions and clicks on the ads themselves. Depending on the format, an ad can show from zero to several products, so the numbers may not match. In Search Ads 360 UI, you can query impressions and clicks of products appearing in ads by selecting a column from "Product attributes" in the report editor. For example, selecting the "Brand" column is equivalent to selecting segments.product_brand.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesShoppingPerformanceView {
     /// Output only. The resource name of the Shopping performance view. Shopping performance view resource names have the form: customers/{customer_id}/shoppingPerformanceView
     #[serde(default, rename = "resourceName")]
@@ -2637,7 +2638,7 @@ pub struct GoogleAdsSearchads360v0ResourcesShoppingPerformanceView {
 }
 
 /// A user list. This is a list of users a customer may target. The unique key of a user list consists of the following fields: id. Note that the name must also be unique for user lists owned by a given customer, except in some cases where access_reason is set to SHARED. Violating the unique name constraint produces error: UserListError.INVALID_NAME.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesUserList {
     /// Output only. Id of the user list.
     #[serde(default)]
@@ -2654,7 +2655,7 @@ pub struct GoogleAdsSearchads360v0ResourcesUserList {
 }
 
 /// A user location view. User Location View includes all metrics aggregated at the country level, one row per country. It reports metrics at the actual physical location of the user by targeted or not targeted location. If other segment fields are used, you may get more than one row per country.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesUserLocationView {
     /// Output only. Criterion Id for the country.
     #[serde(default, rename = "countryCriterionId")]
@@ -2668,7 +2669,7 @@ pub struct GoogleAdsSearchads360v0ResourcesUserLocationView {
 }
 
 /// A visit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesVisit {
     /// Output only. Ad ID. A value of 0 indicates that the ad is unattributed.
     #[serde(default, rename = "adId")]
@@ -2715,7 +2716,7 @@ pub struct GoogleAdsSearchads360v0ResourcesVisit {
 }
 
 /// A webpage view.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesWebpageView {
     /// Output only. The resource name of the webpage view. Webpage view resource names have the form: customers/{customer_id}/webpageViews/{ad_group_id}~{criterion_id}
     #[serde(default, rename = "resourceName")]
@@ -2723,7 +2724,7 @@ pub struct GoogleAdsSearchads360v0ResourcesWebpageView {
 }
 
 /// Additional quota error details when there is QuotaError.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ErrorsQuotaErrorDetails {
     /// The high level description of the quota bucket. Examples are "Get requests for standard access" or "Requests per account".
     #[serde(default, rename = "rateName")]
@@ -2737,7 +2738,7 @@ pub struct GoogleAdsSearchads360v0ErrorsQuotaErrorDetails {
 }
 
 /// A part of a field path.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ErrorsErrorLocationFieldPathElement {
     /// The name of a field or a oneof
     #[serde(default, rename = "fieldName")]
@@ -2748,7 +2749,7 @@ pub struct GoogleAdsSearchads360v0ErrorsErrorLocationFieldPathElement {
 }
 
 /// An automated bidding strategy to help get the most conversion value for your campaigns while spending your budget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategyMaximizeConversionValue {
     /// Output only. The target return on ad spend (ROAS) option. If set, the bid strategy will maximize revenue while averaging the target return on ad spend. If the target ROAS is high, the bid strategy may not be able to spend the full budget. If the target ROAS is not set, the bid strategy will aim to achieve the highest possible ROAS for the budget.
     #[serde(default, rename = "targetRoas")]
@@ -2756,7 +2757,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategyMaximizeConv
 }
 
 /// An automated bidding strategy to help get the most conversions for your campaigns while spending your budget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategyMaximizeConversions {
     /// Output only. The target cost per acquisition (CPA) option. This is the average amount that you would like to spend per acquisition.
     #[serde(default, rename = "targetCpa")]
@@ -2767,7 +2768,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategyMaximizeConv
 }
 
 /// An automated bid strategy that sets bids to help get as many conversions as possible at the target cost-per-acquisition (CPA) you set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategyTargetCpa {
     /// Output only. Average CPA target. This target should be greater than or equal to minimum billable unit based on the currency for the account.
     #[serde(default, rename = "targetCpaMicros")]
@@ -2775,7 +2776,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategyTargetCpa {
 }
 
 /// An automated bidding strategy that sets bids so that a certain percentage of search ads are shown at the top of the first page (or other targeted location).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategyTargetImpressionShare {
     /// Output only. The highest CPC bid the automated bidding system is permitted to specify. This is a required field entered by the advertiser that sets the ceiling and specified in local micros.
     #[serde(default, rename = "cpcBidCeilingMicros")]
@@ -2789,7 +2790,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategyTargetImpres
 }
 
 /// An automated bidding strategy that helps you maximize revenue while averaging a specific target return on ad spend (ROAS).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategyTargetRoas {
     /// Output only. The chosen revenue (based on conversion data) per unit of spend.
     #[serde(default, rename = "targetRoas")]
@@ -2797,7 +2798,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategyTargetRoas {
 }
 
 /// An automated bid strategy that sets your bids to help get as many clicks as possible within your budget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategyTargetSpend {
     /// Output only. Maximum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy.
     #[serde(default, rename = "cpcBidCeilingMicros")]
@@ -2808,7 +2809,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAccessibleBiddingStrategyTargetSpend 
 }
 
 /// Settings for the targeting-related features, at the campaign and ad group levels. For more details about the targeting setting, visit https://support.google.com/google-ads/answer/7365594
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonTargetingSetting {
     /// The per-targeting-dimension setting to restrict the reach of your campaign or ad group.
     #[serde(default, rename = "targetRestrictions")]
@@ -2817,7 +2818,7 @@ pub struct GoogleAdsSearchads360v0CommonTargetingSetting {
 }
 
 /// An ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAd {
     /// The URL that appears in the ad description for some ad formats.
     #[serde(default, rename = "displayUrl")]
@@ -2872,7 +2873,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAd {
 }
 
 /// A listing group criterion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonListingGroupInfo {
     /// Type of the listing group. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "SUBDIVISION", "UNIT"]
     #[serde(default, rename = "type")]
@@ -2880,7 +2881,7 @@ pub struct GoogleAdsSearchads360v0CommonListingGroupInfo {
 }
 
 /// Estimates for criterion bids at various positions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAdGroupCriterionPositionEstimates {
     /// Output only. The estimate of the CPC bid required for ad to be displayed at the top of the first page of search results.
     #[serde(default, rename = "topOfPageCpcMicros")]
@@ -2888,7 +2889,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAdGroupCriterionPositionEstimates {
 }
 
 /// A container for ad group criterion quality information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAdGroupCriterionQualityInfo {
     /// Output only. The quality score. This field may not be populated if Google does not have enough information to determine a value.
     #[serde(default, rename = "qualityScore")]
@@ -2896,7 +2897,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAdGroupCriterionQualityInfo {
 }
 
 /// A unified call asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonUnifiedCallAsset {
     /// List of non-overlapping schedules specifying all time intervals for which the asset may serve. There can be a maximum of 6 schedules per day, 42 in total.
     #[serde(default, rename = "adScheduleTargets")]
@@ -2932,7 +2933,7 @@ pub struct GoogleAdsSearchads360v0CommonUnifiedCallAsset {
 }
 
 /// A call to action asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonCallToActionAsset {
     /// Call to action. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "LEARN_MORE", "GET_QUOTE", "APPLY_NOW", "SIGN_UP", "CONTACT_US", "SUBSCRIBE", "DOWNLOAD", "BOOK_NOW", "SHOP_NOW", "BUY_NOW", "DONATE_NOW", "ORDER_NOW", "PLAY_NOW", "SEE_MORE", "START_NOW", "VISIT_SITE", "WATCH_NOW"]
     #[serde(default, rename = "callToAction")]
@@ -2940,7 +2941,7 @@ pub struct GoogleAdsSearchads360v0CommonCallToActionAsset {
 }
 
 /// A unified callout asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonUnifiedCalloutAsset {
     /// List of non-overlapping schedules specifying all time intervals for which the asset may serve. There can be a maximum of 6 schedules per day, 42 in total.
     #[serde(default, rename = "adScheduleTargets")]
@@ -2961,7 +2962,7 @@ pub struct GoogleAdsSearchads360v0CommonUnifiedCalloutAsset {
 }
 
 /// An Image asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonImageAsset {
     /// File size of the image asset in bytes.
     #[serde(default, rename = "fileSize")]
@@ -2975,7 +2976,7 @@ pub struct GoogleAdsSearchads360v0CommonImageAsset {
 }
 
 /// A unified location asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonUnifiedLocationAsset {
     /// The list of business locations for the customer. This will only be returned if the Location Asset is syncing from the Business Profile account. It is possible to have multiple Business Profile listings under the same account that point to the same Place ID.
     #[serde(default, rename = "businessProfileLocations")]
@@ -2991,7 +2992,7 @@ pub struct GoogleAdsSearchads360v0CommonUnifiedLocationAsset {
 }
 
 /// An asset representing a mobile app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonMobileAppAsset {
     /// Required. A string that uniquely identifies a mobile application. It should just contain the platform native id, like "com.android.ebay" for Android or "12345689" for iOS.
     #[serde(default, rename = "appId")]
@@ -3002,7 +3003,7 @@ pub struct GoogleAdsSearchads360v0CommonMobileAppAsset {
 }
 
 /// A Unified Page Feed asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonUnifiedPageFeedAsset {
     /// Labels used to group the page urls.
     #[serde(default)]
@@ -3013,7 +3014,7 @@ pub struct GoogleAdsSearchads360v0CommonUnifiedPageFeedAsset {
 }
 
 /// A unified sitelink asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonUnifiedSitelinkAsset {
     /// List of non-overlapping schedules specifying all time intervals for which the asset may serve. There can be a maximum of 6 schedules per day, 42 in total.
     #[serde(default, rename = "adScheduleTargets")]
@@ -3046,7 +3047,7 @@ pub struct GoogleAdsSearchads360v0CommonUnifiedSitelinkAsset {
 }
 
 /// A Text asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonTextAsset {
     /// Text content of the text asset.
     #[serde(default)]
@@ -3054,7 +3055,7 @@ pub struct GoogleAdsSearchads360v0CommonTextAsset {
 }
 
 /// A YouTube asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonYoutubeVideoAsset {
     /// YouTube video id. This is the 11 character string value used in the YouTube video URL.
     #[serde(default, rename = "youtubeVideoId")]
@@ -3065,7 +3066,7 @@ pub struct GoogleAdsSearchads360v0CommonYoutubeVideoAsset {
 }
 
 /// The path defining of dimensions defining a listing group filter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionPath {
     /// Output only. The complete path of dimensions through the listing group filter hierarchy (excluding the root node) to this listing group filter.
     #[serde(default)]
@@ -3075,7 +3076,7 @@ pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionPath {
 }
 
 /// An audience criterion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonAudienceInfo {
     /// The Audience resource name.
     #[serde(default)]
@@ -3083,7 +3084,7 @@ pub struct GoogleAdsSearchads360v0CommonAudienceInfo {
 }
 
 /// Asset group asset combination data
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesAssetGroupAssetCombinationData {
     /// Output only. Served assets.
     #[serde(default, rename = "assetCombinationServedAssets")]
@@ -3092,7 +3093,7 @@ pub struct GoogleAdsSearchads360v0ResourcesAssetGroupAssetCombinationData {
 }
 
 /// An automated bidding strategy that sets bids based on the target fraction of auctions where the advertiser should outrank a specific competitor. This strategy is deprecated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonTargetOutrankShare {
     /// Maximum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy.
     #[serde(default, rename = "cpcBidCeilingMicros")]
@@ -3100,7 +3101,7 @@ pub struct GoogleAdsSearchads360v0CommonTargetOutrankShare {
 }
 
 /// The setting for controlling Dynamic Search Ads (DSA).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesCampaignDynamicSearchAdsSetting {
     /// Required. The Internet domain name that this setting represents, for example, "google.com" or "www.google.com".
     #[serde(default, rename = "domainName")]
@@ -3114,7 +3115,7 @@ pub struct GoogleAdsSearchads360v0ResourcesCampaignDynamicSearchAdsSetting {
 }
 
 /// Represents a collection of settings related to ads geotargeting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesCampaignGeoTargetTypeSetting {
     /// The setting used for negative geotargeting in this particular campaign. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "PRESENCE_OR_INTEREST", "PRESENCE"]
     #[serde(default, rename = "negativeGeoTargetType")]
@@ -3125,7 +3126,7 @@ pub struct GoogleAdsSearchads360v0ResourcesCampaignGeoTargetTypeSetting {
 }
 
 /// Manual click-based bidding where user pays per click.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonManualCpc {
     /// Whether bids are to be enhanced based on conversion optimizer data.
     #[serde(default, rename = "enhancedCpcEnabled")]
@@ -3133,7 +3134,7 @@ pub struct GoogleAdsSearchads360v0CommonManualCpc {
 }
 
 /// An automated bidding strategy to help get the most conversion value for your campaigns while spending your budget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonMaximizeConversionValue {
     /// Maximum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy. Mutable for portfolio bidding strategies only.
     #[serde(default, rename = "cpcBidCeilingMicros")]
@@ -3147,7 +3148,7 @@ pub struct GoogleAdsSearchads360v0CommonMaximizeConversionValue {
 }
 
 /// An automated bidding strategy to help get the most conversions for your campaigns while spending your budget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonMaximizeConversions {
     /// Maximum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy. Mutable for portfolio bidding strategies only.
     #[serde(default, rename = "cpcBidCeilingMicros")]
@@ -3161,7 +3162,7 @@ pub struct GoogleAdsSearchads360v0CommonMaximizeConversions {
 }
 
 /// The network settings for the campaign.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesCampaignNetworkSettings {
     /// Whether ads will be served on specified placements in the Google Display Network. Placements are specified using the Placement criterion.
     #[serde(default, rename = "targetContentNetwork")]
@@ -3178,7 +3179,7 @@ pub struct GoogleAdsSearchads360v0ResourcesCampaignNetworkSettings {
 }
 
 /// Optimization goal setting for this campaign, which includes a set of optimization goal types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesCampaignOptimizationGoalSetting {
     /// The list of optimization goal types.
     #[serde(default, rename = "optimizationGoalTypes")]
@@ -3186,7 +3187,7 @@ pub struct GoogleAdsSearchads360v0ResourcesCampaignOptimizationGoalSetting {
 }
 
 /// A bidding strategy where bids are a fraction of the advertised price for some good or service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonPercentCpc {
     /// Maximum bid limit that can be set by the bid strategy. This is an optional field entered by the advertiser and specified in local micros. Note: A zero value is interpreted in the same way as having bid_ceiling undefined.
     #[serde(default, rename = "cpcBidCeilingMicros")]
@@ -3197,7 +3198,7 @@ pub struct GoogleAdsSearchads360v0CommonPercentCpc {
 }
 
 /// Settings for Real-Time Bidding, a feature only available for campaigns targeting the Ad Exchange network.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonRealTimeBiddingSetting {
     /// Whether the campaign is opted in to real-time bidding.
     #[serde(default, rename = "optIn")]
@@ -3205,7 +3206,7 @@ pub struct GoogleAdsSearchads360v0CommonRealTimeBiddingSetting {
 }
 
 /// Selective optimization setting for this campaign, which includes a set of conversion actions to optimize this campaign towards. This feature only applies to app campaigns that use MULTI_CHANNEL as AdvertisingChannelType and APP_CAMPAIGN or APP_CAMPAIGN_FOR_ENGAGEMENT as AdvertisingChannelSubType.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesCampaignSelectiveOptimization {
     /// The selected set of resource names for conversion actions for optimizing this campaign.
     #[serde(default, rename = "conversionActions")]
@@ -3213,7 +3214,7 @@ pub struct GoogleAdsSearchads360v0ResourcesCampaignSelectiveOptimization {
 }
 
 /// The setting for Shopping campaigns. Defines the universe of products that can be advertised by the campaign, and how this campaign interacts with other Shopping campaigns.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesCampaignShoppingSetting {
     /// Priority of the campaign. Campaigns with numerically higher priorities take precedence over those with lower priorities. This field is required for Shopping campaigns, with values between 0 and 2, inclusive. This field is optional for Smart Shopping campaigns, but must be equal to 3 if set.
     #[serde(default, rename = "campaignPriority")]
@@ -3236,7 +3237,7 @@ pub struct GoogleAdsSearchads360v0ResourcesCampaignShoppingSetting {
 }
 
 /// An automated bid strategy that sets bids to help get as many conversions as possible at the target cost-per-acquisition (CPA) you set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonTargetCpa {
     /// Maximum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy. This should only be set for portfolio bid strategies.
     #[serde(default, rename = "cpcBidCeilingMicros")]
@@ -3250,7 +3251,7 @@ pub struct GoogleAdsSearchads360v0CommonTargetCpa {
 }
 
 /// An automated bidding strategy that sets bids so that a certain percentage of search ads are shown at the top of the first page (or other targeted location).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonTargetImpressionShare {
     /// The highest CPC bid the automated bidding system is permitted to specify. This is a required field entered by the advertiser that sets the ceiling and specified in local micros.
     #[serde(default, rename = "cpcBidCeilingMicros")]
@@ -3264,7 +3265,7 @@ pub struct GoogleAdsSearchads360v0CommonTargetImpressionShare {
 }
 
 /// An automated bidding strategy that helps you maximize revenue while averaging a specific target return on ad spend (ROAS).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonTargetRoas {
     /// Maximum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy. This should only be set for portfolio bid strategies.
     #[serde(default, rename = "cpcBidCeilingMicros")]
@@ -3278,7 +3279,7 @@ pub struct GoogleAdsSearchads360v0CommonTargetRoas {
 }
 
 /// An automated bid strategy that sets your bids to help get as many clicks as possible within your budget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonTargetSpend {
     /// Maximum bid limit that can be set by the bid strategy. The limit applies to all keywords managed by the strategy.
     #[serde(default, rename = "cpcBidCeilingMicros")]
@@ -3289,7 +3290,7 @@ pub struct GoogleAdsSearchads360v0CommonTargetSpend {
 }
 
 /// Campaign-level settings for tracking information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesCampaignTrackingSetting {
     /// Output only. The url used for dynamic tracking.
     #[serde(default, rename = "trackingUrl")]
@@ -3297,7 +3298,7 @@ pub struct GoogleAdsSearchads360v0ResourcesCampaignTrackingSetting {
 }
 
 /// A mapping that can be used by custom parameter tags in a tracking_url_template, final_urls, or mobile_final_urls.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonCustomParameter {
     /// The key matching the parameter tag name.
     #[serde(default)]
@@ -3308,7 +3309,7 @@ pub struct GoogleAdsSearchads360v0CommonCustomParameter {
 }
 
 /// An age range criterion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonAgeRangeInfo {
     /// Type of the age range. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "AGE_RANGE_18_24", "AGE_RANGE_25_34", "AGE_RANGE_35_44", "AGE_RANGE_45_54", "AGE_RANGE_55_64", "AGE_RANGE_65_UP", "AGE_RANGE_UNDETERMINED"]
     #[serde(default, rename = "type")]
@@ -3316,7 +3317,7 @@ pub struct GoogleAdsSearchads360v0CommonAgeRangeInfo {
 }
 
 /// A device criterion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonDeviceInfo {
     /// Type of the device. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "MOBILE", "TABLET", "DESKTOP", "CONNECTED_TV", "OTHER"]
     #[serde(default, rename = "type")]
@@ -3324,7 +3325,7 @@ pub struct GoogleAdsSearchads360v0CommonDeviceInfo {
 }
 
 /// A gender criterion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonGenderInfo {
     /// Type of the gender. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "MALE", "FEMALE", "UNDETERMINED"]
     #[serde(default, rename = "type")]
@@ -3332,7 +3333,7 @@ pub struct GoogleAdsSearchads360v0CommonGenderInfo {
 }
 
 /// A language criterion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonLanguageInfo {
     /// The language constant resource name.
     #[serde(default, rename = "languageConstant")]
@@ -3340,7 +3341,7 @@ pub struct GoogleAdsSearchads360v0CommonLanguageInfo {
 }
 
 /// A location criterion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonLocationInfo {
     /// The geo target constant resource name.
     #[serde(default, rename = "geoTargetConstant")]
@@ -3348,7 +3349,7 @@ pub struct GoogleAdsSearchads360v0CommonLocationInfo {
 }
 
 /// A radius around a list of locations specified through a feed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonLocationGroupInfo {
     /// FeedItemSets whose FeedItems are targeted. If multiple IDs are specified, then all items that appear in at least one set are targeted. This field cannot be used with geo_target_constants. This is optional and can only be set in CREATE operations.
     #[serde(default, rename = "feedItemSets")]
@@ -3365,7 +3366,7 @@ pub struct GoogleAdsSearchads360v0CommonLocationGroupInfo {
 }
 
 /// A User List criterion. Represents a user list that is defined by the advertiser to be targeted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonUserListInfo {
     /// The User List resource name.
     #[serde(default, rename = "userList")]
@@ -3373,7 +3374,7 @@ pub struct GoogleAdsSearchads360v0CommonUserListInfo {
 }
 
 /// Represents a criterion for targeting webpages of an advertiser''s website.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonWebpageInfo {
     /// Conditions, or logical expressions, for webpage targeting. The list of webpage targeting conditions are and-ed together when evaluated for targeting. An empty list of conditions indicates all pages of the campaign''s website are targeted. This field is required for CREATE operations and is prohibited on UPDATE operations.
     #[serde(default)]
@@ -3388,7 +3389,7 @@ pub struct GoogleAdsSearchads360v0CommonWebpageInfo {
 }
 
 /// Settings related to this conversion action''s attribution model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesConversionActionAttributionModelSettings {
     /// The attribution model type of this conversion action. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "EXTERNAL", "GOOGLE_ADS_LAST_CLICK", "GOOGLE_SEARCH_ATTRIBUTION_FIRST_CLICK", "GOOGLE_SEARCH_ATTRIBUTION_LINEAR", "GOOGLE_SEARCH_ATTRIBUTION_TIME_DECAY", "GOOGLE_SEARCH_ATTRIBUTION_POSITION_BASED", "GOOGLE_SEARCH_ATTRIBUTION_DATA_DRIVEN"]
     #[serde(default, rename = "attributionModel")]
@@ -3399,7 +3400,7 @@ pub struct GoogleAdsSearchads360v0ResourcesConversionActionAttributionModelSetti
 }
 
 /// Settings related to a Floodlight conversion action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesConversionActionFloodlightSettings {
     /// Output only. String used to identify a Floodlight activity group when reporting conversions.
     #[serde(default, rename = "activityGroupTag")]
@@ -3413,7 +3414,7 @@ pub struct GoogleAdsSearchads360v0ResourcesConversionActionFloodlightSettings {
 }
 
 /// Settings related to the value for conversion events associated with this conversion action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesConversionActionValueSettings {
     /// Controls whether the default value and default currency code are used in place of the value and currency code specified in conversion events for this conversion action.
     #[serde(default, rename = "alwaysUseDefaultValue")]
@@ -3427,7 +3428,7 @@ pub struct GoogleAdsSearchads360v0ResourcesConversionActionValueSettings {
 }
 
 /// Information for Search Ads 360 Floodlight Conversion Custom Variables.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesConversionCustomVariableFloodlightConversionCustomVariableInfo
 {
     /// Output only. Floodlight variable data type defined in Search Ads 360. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "NUMBER", "STRING"]
@@ -3439,7 +3440,7 @@ pub struct GoogleAdsSearchads360v0ResourcesConversionCustomVariableFloodlightCon
 }
 
 /// A collection of customer-wide settings related to Search Ads 360 Conversion Tracking.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesConversionTrackingSetting {
     /// Output only. Whether the customer has accepted customer data terms. If using cross-account conversion tracking, this value is inherited from the manager. This field is read-only. For more information, see https://support.google.com/adspolicy/answer/7475709.
     #[serde(default, rename = "acceptedCustomerDataTerms")]
@@ -3465,7 +3466,7 @@ pub struct GoogleAdsSearchads360v0ResourcesConversionTrackingSetting {
 }
 
 /// DoubleClick Campaign Manager (DCM) setting for a manager customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesDoubleClickCampaignManagerSetting {
     /// Output only. ID of the Campaign Manager advertiser associated with this customer.
     #[serde(default, rename = "advertiserId")]
@@ -3479,7 +3480,7 @@ pub struct GoogleAdsSearchads360v0ResourcesDoubleClickCampaignManagerSetting {
 }
 
 /// A type of label displaying text on a colored background.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonTextLabel {
     /// Background color of the label in HEX format. This string must match the regular expression ''^\#([a-fA-F0-9]{6}|[a-fA-F0-9]{3})$''. Note: The background color may not be visible for manager accounts.
     #[serde(default, rename = "backgroundColor")]
@@ -3490,7 +3491,7 @@ pub struct GoogleAdsSearchads360v0CommonTextLabel {
 }
 
 /// An AssetInteractionTarget segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonAssetInteractionTarget {
     /// The asset resource name.
     #[serde(default)]
@@ -3501,7 +3502,7 @@ pub struct GoogleAdsSearchads360v0CommonAssetInteractionTarget {
 }
 
 /// A generic data container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonValue {
     /// A boolean.
     #[serde(default, rename = "booleanValue")]
@@ -3521,7 +3522,7 @@ pub struct GoogleAdsSearchads360v0CommonValue {
 }
 
 /// A Keyword criterion segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonKeyword {
     /// The AdGroupCriterion resource name.
     #[serde(default, rename = "adGroupCriterion")]
@@ -3532,7 +3533,7 @@ pub struct GoogleAdsSearchads360v0CommonKeyword {
 }
 
 /// The list of per-targeting-dimension targeting settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonTargetRestriction {
     /// Indicates whether to restrict your ads to show only for the criteria you have selected for this targeting_dimension, or to target all values for this targeting_dimension and show ads based on your targeting in other TargetingDimensions. A value of true means that these criteria will only apply bid modifiers, and not affect targeting. A value of false means that these criteria will restrict targeting as well as applying bid modifiers.
     #[serde(default, rename = "bidOnly")]
@@ -3543,7 +3544,7 @@ pub struct GoogleAdsSearchads360v0CommonTargetRestriction {
 }
 
 /// An expanded dynamic search ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonSearchAds360ExpandedDynamicSearchAdInfo {
     /// The tracking id of the ad.
     #[serde(default, rename = "adTrackingId")]
@@ -3557,7 +3558,7 @@ pub struct GoogleAdsSearchads360v0CommonSearchAds360ExpandedDynamicSearchAdInfo 
 }
 
 /// A Search Ads 360 expanded text ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonSearchAds360ExpandedTextAdInfo {
     /// The tracking id of the ad.
     #[serde(default, rename = "adTrackingId")]
@@ -3586,7 +3587,7 @@ pub struct GoogleAdsSearchads360v0CommonSearchAds360ExpandedTextAdInfo {
 }
 
 /// A URL for deep linking into an app for the given operating system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonFinalAppUrl {
     /// The operating system targeted by this URL. Required. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "IOS", "ANDROID"]
     #[serde(default, rename = "osType")]
@@ -3597,7 +3598,7 @@ pub struct GoogleAdsSearchads360v0CommonFinalAppUrl {
 }
 
 /// A Search Ads 360 responsive search ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonSearchAds360ResponsiveSearchAdInfo {
     /// The tracking id of the ad.
     #[serde(default, rename = "adTrackingId")]
@@ -3619,7 +3620,7 @@ pub struct GoogleAdsSearchads360v0CommonSearchAds360ResponsiveSearchAdInfo {
 }
 
 /// A Search Ads 360 text ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonSearchAds360TextAdInfo {
     /// The tracking id of the ad.
     #[serde(default, rename = "adTrackingId")]
@@ -3642,7 +3643,7 @@ pub struct GoogleAdsSearchads360v0CommonSearchAds360TextAdInfo {
 }
 
 /// Metadata for an image at a certain size, either original or resized.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonImageDimension {
     /// Height of the image.
     #[serde(default, rename = "heightPixels")]
@@ -3656,7 +3657,7 @@ pub struct GoogleAdsSearchads360v0CommonImageDimension {
 }
 
 /// Business Profile location data synced from the linked Business Profile account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonBusinessProfileLocation {
     /// Advertiser specified label for the location on the Business Profile account. This is synced from the Business Profile account.
     #[serde(default)]
@@ -3670,7 +3671,7 @@ pub struct GoogleAdsSearchads360v0CommonBusinessProfileLocation {
 }
 
 /// Represents an AdSchedule criterion. AdSchedule is specified as the day of the week and a time interval within which ads will be shown. No more than six AdSchedules can be added for the same day.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonAdScheduleInfo {
     /// Day of the week the schedule applies to. This field is required for CREATE operations and is prohibited on UPDATE operations. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default, rename = "dayOfWeek")]
@@ -3690,7 +3691,7 @@ pub struct GoogleAdsSearchads360v0CommonAdScheduleInfo {
 }
 
 /// Listing dimensions for the asset group listing group filter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimension {
     /// Bidding category of a product offer.
     #[serde(default, rename = "productBiddingCategory")]
@@ -3730,7 +3731,7 @@ pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimension {
 }
 
 /// Contains the usage information of the asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonAssetUsage {
     /// Resource name of the asset.
     #[serde(default)]
@@ -3741,7 +3742,7 @@ pub struct GoogleAdsSearchads360v0CommonAssetUsage {
 }
 
 /// Logical expression for targeting webpages of an advertiser''s website.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonWebpageConditionInfo {
     /// Argument of webpage targeting condition.
     #[serde(default)]
@@ -3755,7 +3756,7 @@ pub struct GoogleAdsSearchads360v0CommonWebpageConditionInfo {
 }
 
 /// A keyword criterion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonKeywordInfo {
     /// The match type of the keyword. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "EXACT", "PHRASE", "BROAD"]
     #[serde(default, rename = "matchType")]
@@ -3766,7 +3767,7 @@ pub struct GoogleAdsSearchads360v0CommonKeywordInfo {
 }
 
 /// A text asset used inside an ad.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0CommonAdTextAsset {
     /// Asset text.
     #[serde(default)]
@@ -3774,7 +3775,7 @@ pub struct GoogleAdsSearchads360v0CommonAdTextAsset {
 }
 
 /// One element of a bidding category at a certain level. Top-level categories are at level 1, their children at level 2, and so on. We currently support up to 5 levels. The user must specify a dimension type that indicates the level of the category. All cases of the same subdivision must have the same dimension type (category level).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductBiddingCategory {
     /// ID of the product bidding category. This ID is equivalent to the google_product_category ID as described in this article: https://support.google.com/merchants/answer/6324436
     #[serde(default)]
@@ -3785,7 +3786,7 @@ pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductBid
 }
 
 /// Brand of the product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductBrand {
     /// String value of the product brand.
     #[serde(default)]
@@ -3793,7 +3794,7 @@ pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductBra
 }
 
 /// Locality of a product offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductChannel {
     /// Value of the locality. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "ONLINE", "LOCAL"]
     #[serde(default)]
@@ -3801,7 +3802,7 @@ pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductCha
 }
 
 /// Condition of a product offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductCondition {
     /// Value of the condition. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "NEW", "REFURBISHED", "USED"]
     #[serde(default)]
@@ -3809,7 +3810,7 @@ pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductCon
 }
 
 /// Custom attribute of a product offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductCustomAttribute {
     /// Indicates the index of the custom attribute. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "INDEX0", "INDEX1", "INDEX2", "INDEX3", "INDEX4"]
     #[serde(default)]
@@ -3820,7 +3821,7 @@ pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductCus
 }
 
 /// Item id of a product offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductItemId {
     /// Value of the id.
     #[serde(default)]
@@ -3828,7 +3829,7 @@ pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductIte
 }
 
 /// Type of a product offer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAdsSearchads360v0ResourcesListingGroupFilterDimensionProductType {
     /// Level of the type. // TODO: enum values: ["UNSPECIFIED", "UNKNOWN", "LEVEL1", "LEVEL2", "LEVEL3", "LEVEL4", "LEVEL5"]
     #[serde(default)]

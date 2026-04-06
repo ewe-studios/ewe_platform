@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// CancelTaskRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelTaskRequest {
     /// Optional tenant, provided as a path parameter. Experimental, might still change for 1.0 release.
     #[serde(default)]
@@ -19,11 +20,11 @@ pub struct CancelTaskRequest {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// The response message for SubscriptionsService.ListSubscriptions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSubscriptionsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -34,7 +35,7 @@ pub struct ListSubscriptionsResponse {
 }
 
 /// ListTaskPushNotificationConfigResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTaskPushNotificationConfigResponse {
     /// The list of push notification configurations.
     #[serde(default)]
@@ -45,7 +46,7 @@ pub struct ListTaskPushNotificationConfigResponse {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -65,11 +66,11 @@ pub struct Operation {
 }
 
 /// The request message for SubscriptionsService.ReactivateSubscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReactivateSubscriptionRequest {}
 
 /// /////////// Request Messages ///////////
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SendMessageRequest {
     /// Configuration for the send request.
     #[serde(default)]
@@ -86,7 +87,7 @@ pub struct SendMessageRequest {
 }
 
 /// The stream response for a message. The stream should be one of the following sequences: If the response is a message, the stream should contain one, and only one, message and then close If the response is a task lifecycle, the first response should be a Task object followed by zero or more TaskStatusUpdateEvents and TaskArtifactUpdateEvents. The stream should complete when the Task if in an interrupted or terminal state. A stream that ends before these conditions are met are
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamResponse {
     #[serde(default, rename = "artifactUpdate")]
     pub artifact_update: ::core::option::Option<TaskArtifactUpdateEvent>,
@@ -99,7 +100,7 @@ pub struct StreamResponse {
 }
 
 /// A subscription to receive events about a Google Workspace resource. To learn more about subscriptions, see the [Google Workspace Events API overview](https://developers.google.com/workspace/events).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Subscription {
     /// Output only. The user who authorized the creation of the subscription. When a user authorizes the subscription, this field and the user_authority field have the same value and the format is: Format: users/{user} For Google Workspace users, the {user} value is the [user.id](https://developers.google.com/admin-sdk/directory/reference/rest/v1/users#User.FIELDS.ids) field from the Directory API. When a Chat app authorizes the subscription, only service_account_authority field populates and this field is empty.
     #[serde(default)]
@@ -155,7 +156,7 @@ pub struct Subscription {
 }
 
 /// TaskPushNotificationConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaskPushNotificationConfig {
     /// The resource name of the config. Format: tasks/{task_id}/pushNotificationConfigs/{config_id}
     #[serde(default)]
@@ -166,7 +167,7 @@ pub struct TaskPushNotificationConfig {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -180,7 +181,7 @@ pub struct Status {
 }
 
 /// Configuration of a send message request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SendMessageConfiguration {
     /// The output modes that the agent is expected to respond with.
     #[serde(default, rename = "acceptedOutputModes")]
@@ -197,7 +198,7 @@ pub struct SendMessageConfiguration {
 }
 
 /// TaskArtifactUpdateEvent represents a task delta where an artifact has been generated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaskArtifactUpdateEvent {
     /// Whether this should be appended to a prior one produced
     #[serde(default)]
@@ -220,7 +221,7 @@ pub struct TaskArtifactUpdateEvent {
 }
 
 /// TaskStatusUpdateEvent is a delta even on a task indicating that a task has changed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaskStatusUpdateEvent {
     /// The id of the context that the task belongs to
     #[serde(default, rename = "contextId")]
@@ -240,7 +241,7 @@ pub struct TaskStatusUpdateEvent {
 }
 
 /// Task is the core unit of action for A2A. It has a current status and when results are created for the task they are stored in the artifact. If there are multiple turns for a task, these are stored in history.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Task {
     /// A set of output artifacts for a Task.
     #[serde(default)]
@@ -263,7 +264,7 @@ pub struct Task {
 }
 
 /// The endpoint where the subscription delivers events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NotificationEndpoint {
     /// Immutable. The Pub/Sub topic that receives events for the subscription. Format: projects/{project}/topics/{topic} You must create the topic in the same Google Cloud project where you create this subscription. Note: The Google Workspace Events API uses [ordering keys](https://cloud.google.com/pubsub/docs/ordering) for the benefit of sequential events. If the Cloud Pub/Sub topic has a [message storage policy](https://cloud.google.com/pubsub/docs/resource-location-restriction#exceptions) configured to exclude the nearest Google Cloud region, publishing events with ordering keys will fail. When the topic receives events, the events are encoded as Pub/Sub messages. For details, see the [Google Cloud Pub/Sub Protocol Binding for CloudEvents](https://github.com/googleapis/google-cloudevents/blob/main/docs/spec/pubsub.md).
     #[serde(default, rename = "pubsubTopic")]
@@ -271,7 +272,7 @@ pub struct NotificationEndpoint {
 }
 
 /// Options about what data to include in the event payload. Only supported for Google Chat and Google Drive events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PayloadOptions {
     /// Optional. If include_resource is set to true, the list of fields to include in the event payload. Separate fields with a comma. For example, to include a Google Chat message''s sender and create time, enter message.sender,message.createTime. If omitted, the payload includes all fields for the resource. If you specify a field that doesn''t exist for the resource, the system ignores the field.
     #[serde(default, rename = "fieldMask")]
@@ -282,7 +283,7 @@ pub struct PayloadOptions {
 }
 
 /// Configuration for setting up push notifications for task updates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PushNotificationConfig {
     /// Information about the authentication to sent with the notification
     #[serde(default)]
@@ -299,7 +300,7 @@ pub struct PushNotificationConfig {
 }
 
 /// Artifacts are the container for task completed results. These are similar to Messages but are intended to be the product of a task, as opposed to point-to-point communication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Artifact {
     /// Unique identifier (e.g. UUID) for the artifact. It must be at least unique within a task.
     #[serde(default, rename = "artifactId")]
@@ -322,7 +323,7 @@ pub struct Artifact {
 }
 
 /// A container for the status of a task
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaskStatus {
     /// A message associated with the status.
     #[serde(default)]
@@ -336,7 +337,7 @@ pub struct TaskStatus {
 }
 
 /// Defines authentication details, used for push notifications.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthenticationInfo {
     /// Optional credentials
     #[serde(default)]
@@ -347,7 +348,7 @@ pub struct AuthenticationInfo {
 }
 
 /// Message is one unit of communication between client and server. It is associated with a context and optionally a task. Since the server is responsible for the context definition, it must always provide a context_id in its messages. The client can optionally provide the context_id if it knows the context to associate the message to. Similarly for task_id, except the server decides if a task is created and whether to include the task_id.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Message {
     /// protolint:disable REPEATED_FIELD_NAMES_PLURALIZED Content is the container of the message content.
     #[serde(default)]
@@ -373,7 +374,7 @@ pub struct Message {
 }
 
 /// Part represents a container for a section of communication content. Parts can be purely textual, some sort of file (image, video, etc) or a structured data blob (i.e. JSON).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Part {
     #[serde(default)]
     pub data: ::core::option::Option<DataPart>,
@@ -387,14 +388,14 @@ pub struct Part {
 }
 
 /// DataPart represents a structured blob. This is most commonly a JSON payload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataPart {
     #[serde(default)]
     pub data: ::core::option::Option<serde_json::Value>,
 }
 
 /// FilePart represents the different ways files can be provided. If files are small, directly feeding the bytes is supported via file_with_bytes. If the file is large, the agent should read the content as appropriate directly from the file_with_uri source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FilePart {
     #[serde(default, rename = "fileWithBytes")]
     pub file_with_bytes: ::core::option::Option<String>,

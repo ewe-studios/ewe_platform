@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A collection of tenant resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiPlatformTenantresourceTenantResource {
     /// A list of P4 service accounts (go/p4sa) to provision or deprovision.
     #[serde(default, rename = "p4ServiceAccounts")]
@@ -25,7 +26,7 @@ pub struct CloudAiPlatformTenantresourceTenantResource {
 }
 
 /// Request message for DocumentLinkService.CreateDocumentLink.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1CreateDocumentLinkRequest {
     /// Required. Document links associated with the source documents (source_document_id).
     #[serde(default, rename = "documentLink")]
@@ -36,11 +37,11 @@ pub struct GoogleCloudContentwarehouseV1CreateDocumentLinkRequest {
 }
 
 /// Metadata object for CreateDocument request (currently empty).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1CreateDocumentMetadata {}
 
 /// Request message for DocumentService.CreateDocument.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1CreateDocumentRequest {
     /// Request Option for processing Cloud AI Document in Document Warehouse. This field offers limited support for mapping entities from Cloud AI Document to Warehouse Document. Please consult with product team before using this field and other available options.
     #[serde(default, rename = "cloudAiDocumentOption")]
@@ -61,7 +62,7 @@ pub struct GoogleCloudContentwarehouseV1CreateDocumentRequest {
 }
 
 /// Response message for DocumentService.CreateDocument.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1CreateDocumentResponse {
     /// Document created after executing create request.
     #[serde(default)]
@@ -79,11 +80,11 @@ pub struct GoogleCloudContentwarehouseV1CreateDocumentResponse {
 }
 
 /// Configurations for a date time property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1DateTimeTypeOptions {}
 
 /// Request message for DocumentLinkService.DeleteDocumentLink.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1DeleteDocumentLinkRequest {
     /// The meta information collected about the document creator, used to enforce access control for the service.
     #[serde(default, rename = "requestMetadata")]
@@ -91,7 +92,7 @@ pub struct GoogleCloudContentwarehouseV1DeleteDocumentLinkRequest {
 }
 
 /// Request message for DocumentService.DeleteDocument.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1DeleteDocumentRequest {
     /// The meta information collected about the end user, used to enforce access control for the service.
     #[serde(default, rename = "requestMetadata")]
@@ -99,7 +100,7 @@ pub struct GoogleCloudContentwarehouseV1DeleteDocumentRequest {
 }
 
 /// Request message for DocumentService.FetchAcl
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1FetchAclRequest {
     /// For Get Project ACL only. Authorization check for end user will be ignored when project_owner=true.
     #[serde(default, rename = "projectOwner")]
@@ -110,7 +111,7 @@ pub struct GoogleCloudContentwarehouseV1FetchAclRequest {
 }
 
 /// Response message for DocumentService.FetchAcl.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1FetchAclResponse {
     /// Additional information for the API invocation, such as the request tracking id.
     #[serde(default)]
@@ -121,11 +122,11 @@ pub struct GoogleCloudContentwarehouseV1FetchAclResponse {
 }
 
 /// Configurations for a float property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1FloatTypeOptions {}
 
 /// Request message for DocumentService.GetDocument.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1GetDocumentRequest {
     /// The meta information collected about the end user, used to enforce access control for the service.
     #[serde(default, rename = "requestMetadata")]
@@ -133,7 +134,7 @@ pub struct GoogleCloudContentwarehouseV1GetDocumentRequest {
 }
 
 /// Request message for projectService.InitializeProject
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1InitializeProjectRequest {
     /// Required. The access control mode for accessing the customer data // TODO: enum values: ["ACL_MODE_UNKNOWN", "ACL_MODE_UNIVERSAL_ACCESS", "ACL_MODE_DOCUMENT_LEVEL_ACCESS_CONTROL_BYOID", "ACL_MODE_DOCUMENT_LEVEL_ACCESS_CONTROL_GCI"]
     #[serde(default, rename = "accessControlMode")]
@@ -153,7 +154,7 @@ pub struct GoogleCloudContentwarehouseV1InitializeProjectRequest {
 }
 
 /// Response message for projectService.InitializeProject
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1InitializeProjectResponse {
     /// The message of the project initialization process.
     #[serde(default)]
@@ -164,11 +165,11 @@ pub struct GoogleCloudContentwarehouseV1InitializeProjectResponse {
 }
 
 /// Configurations for an integer property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1IntegerTypeOptions {}
 
 /// Response message for DocumentSchemaService.ListDocumentSchemas.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1ListDocumentSchemasResponse {
     /// The document schemas from the specified parent.
     #[serde(default, rename = "documentSchemas")]
@@ -180,7 +181,7 @@ pub struct GoogleCloudContentwarehouseV1ListDocumentSchemasResponse {
 }
 
 /// Response message for DocumentLinkService.ListLinkedSources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1ListLinkedSourcesRequest {
     /// The maximum number of document-links to return. The service may return fewer than this value. If unspecified, at most 50 document-links will be returned. The maximum value is 1000; values above 1000 will be coerced to 1000.
     #[serde(default, rename = "pageSize")]
@@ -194,7 +195,7 @@ pub struct GoogleCloudContentwarehouseV1ListLinkedSourcesRequest {
 }
 
 /// Response message for DocumentLinkService.ListLinkedSources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1ListLinkedSourcesResponse {
     /// Source document-links.
     #[serde(default, rename = "documentLinks")]
@@ -206,7 +207,7 @@ pub struct GoogleCloudContentwarehouseV1ListLinkedSourcesResponse {
 }
 
 /// Request message for DocumentLinkService.ListLinkedTargets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1ListLinkedTargetsRequest {
     /// The meta information collected about the document creator, used to enforce access control for the service.
     #[serde(default, rename = "requestMetadata")]
@@ -214,7 +215,7 @@ pub struct GoogleCloudContentwarehouseV1ListLinkedTargetsRequest {
 }
 
 /// Response message for DocumentLinkService.ListLinkedTargets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1ListLinkedTargetsResponse {
     /// Target document-links.
     #[serde(default, rename = "documentLinks")]
@@ -226,7 +227,7 @@ pub struct GoogleCloudContentwarehouseV1ListLinkedTargetsResponse {
 }
 
 /// Response message for RuleSetService.ListRuleSets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1ListRuleSetsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -237,7 +238,7 @@ pub struct GoogleCloudContentwarehouseV1ListRuleSetsResponse {
 }
 
 /// Response message for SynonymSetService.ListSynonymSets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1ListSynonymSetsResponse {
     /// A page token, received from a previous ListSynonymSets call. Provide this to retrieve the subsequent page.
     #[serde(default, rename = "nextPageToken")]
@@ -249,7 +250,7 @@ pub struct GoogleCloudContentwarehouseV1ListSynonymSetsResponse {
 }
 
 /// Request message for DocumentService.LockDocument.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1LockDocumentRequest {
     /// The collection the document connects to.
     #[serde(default, rename = "collectionId")]
@@ -260,11 +261,11 @@ pub struct GoogleCloudContentwarehouseV1LockDocumentRequest {
 }
 
 /// Configurations for a Map property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1MapTypeOptions {}
 
 /// Status of a project, including the project state, dbType, aclMode and etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1ProjectStatus {
     /// Access control mode. // TODO: enum values: ["ACL_MODE_UNKNOWN", "ACL_MODE_UNIVERSAL_ACCESS", "ACL_MODE_DOCUMENT_LEVEL_ACCESS_CONTROL_BYOID", "ACL_MODE_DOCUMENT_LEVEL_ACCESS_CONTROL_GCI"]
     #[serde(default, rename = "accessControlMode")]
@@ -287,7 +288,7 @@ pub struct GoogleCloudContentwarehouseV1ProjectStatus {
 }
 
 /// Metadata message of RunPipeline method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1RunPipelineMetadata {
     /// The pipeline metadata for Export-to-CDW pipeline.
     #[serde(default, rename = "exportToCdwPipelineMetadata")]
@@ -321,7 +322,7 @@ pub struct GoogleCloudContentwarehouseV1RunPipelineMetadata {
 }
 
 /// Request message for DocumentService.RunPipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1RunPipelineRequest {
     /// Export docuemnts from Document Warehouse to CDW for training purpose.
     #[serde(default, rename = "exportCdwPipeline")]
@@ -344,7 +345,7 @@ pub struct GoogleCloudContentwarehouseV1RunPipelineRequest {
 }
 
 /// Request message for DocumentService.SearchDocuments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1SearchDocumentsRequest {
     /// Query used to search against documents (keyword, filters, etc.).
     #[serde(default, rename = "documentQuery")]
@@ -380,7 +381,7 @@ pub struct GoogleCloudContentwarehouseV1SearchDocumentsRequest {
 }
 
 /// Response message for DocumentService.SearchDocuments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1SearchDocumentsResponse {
     /// The histogram results that match with the specified SearchDocumentsRequest.histogram_queries.
     #[serde(default, rename = "histogramQueryResults")]
@@ -406,7 +407,7 @@ pub struct GoogleCloudContentwarehouseV1SearchDocumentsResponse {
 }
 
 /// Request message for DocumentService.SetAcl.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1SetAclRequest {
     /// Required. REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. This refers to an Identity and Access (IAM) policy, which specifies access controls for the Document. You can set ACL with condition for projects only. Supported operators are: =, !=, &lt;, &lt;=, &gt;, and &gt;= where the left of the operator is DocumentSchemaId or property name and the right of the operator is a number or a quoted string. You must escape backslash (\\) and quote (\") characters. Boolean expressions (AND/OR) are supported up to 3 levels of nesting (for example, "((A AND B AND C) OR D) AND E"), a maximum of 10 comparisons are allowed in the expression. The expression must be &lt; 6000 bytes in length. Sample condition: "DocumentSchemaId = \"some schema id\" OR SchemaId.floatPropertyName &gt;= 10"
     #[serde(default)]
@@ -420,7 +421,7 @@ pub struct GoogleCloudContentwarehouseV1SetAclRequest {
 }
 
 /// Response message for DocumentService.SetAcl.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1SetAclResponse {
     /// Additional information for the API invocation, such as the request tracking id.
     #[serde(default)]
@@ -431,19 +432,19 @@ pub struct GoogleCloudContentwarehouseV1SetAclResponse {
 }
 
 /// Configurations for a text property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1TextTypeOptions {}
 
 /// Configurations for a timestamp property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1TimestampTypeOptions {}
 
 /// Metadata object for UpdateDocument request (currently empty).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1UpdateDocumentMetadata {}
 
 /// Request message for DocumentService.UpdateDocument.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1UpdateDocumentRequest {
     /// Request Option for processing Cloud AI Document in Document Warehouse. This field offers limited support for mapping entities from Cloud AI Document to Warehouse Document. Please consult with product team before using this field and other available options.
     #[serde(default, rename = "cloudAiDocumentOption")]
@@ -461,7 +462,7 @@ pub struct GoogleCloudContentwarehouseV1UpdateDocumentRequest {
 }
 
 /// Response message for DocumentService.UpdateDocument.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1UpdateDocumentResponse {
     /// Updated document after executing update request.
     #[serde(default)]
@@ -475,7 +476,7 @@ pub struct GoogleCloudContentwarehouseV1UpdateDocumentResponse {
 }
 
 /// Request message for DocumentSchemaService.UpdateDocumentSchema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1UpdateDocumentSchemaRequest {
     /// Required. The document schema to update with.
     #[serde(default, rename = "documentSchema")]
@@ -483,7 +484,7 @@ pub struct GoogleCloudContentwarehouseV1UpdateDocumentSchemaRequest {
 }
 
 /// Request message for RuleSetService.UpdateRuleSet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1UpdateRuleSetRequest {
     /// Required. The rule set to update.
     #[serde(default, rename = "ruleSet")]
@@ -491,7 +492,7 @@ pub struct GoogleCloudContentwarehouseV1UpdateRuleSetRequest {
 }
 
 /// Value represents a dynamically typed value which can be either be a float, a integer, a string, or a datetime value. A producer of value is expected to set one of these variants. Absence of any variant indicates an error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1Value {
     /// Represents a boolean value.
     #[serde(default, rename = "booleanValue")]
@@ -518,11 +519,11 @@ pub struct GoogleCloudContentwarehouseV1Value {
 }
 
 /// Metadata object for CreateDocument request (currently empty).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1beta1CreateDocumentMetadata {}
 
 /// Response message for projectService.InitializeProject
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1beta1InitializeProjectResponse {
     /// The message of the project initialization process.
     #[serde(default)]
@@ -533,15 +534,15 @@ pub struct GoogleCloudContentwarehouseV1beta1InitializeProjectResponse {
 }
 
 /// Metadata object for UpdateDocument request (currently empty).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1beta1UpdateDocumentMetadata {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// The identity to configure a service account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiPlatformTenantresourceServiceAccountIdentity {
     /// Output only. The service account email that has been created.
     #[serde(default, rename = "serviceAccountEmail")]
@@ -552,7 +553,7 @@ pub struct CloudAiPlatformTenantresourceServiceAccountIdentity {
 }
 
 /// The tenant project and tenant resources. Next ID: 10
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiPlatformTenantresourceTenantProjectResource {
     /// The CloudSQL instances that are provisioned under the tenant project.
     #[serde(default, rename = "cloudSqlInstances")]
@@ -592,7 +593,7 @@ pub struct CloudAiPlatformTenantresourceTenantProjectResource {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -612,7 +613,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// A document-link between source and target document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1DocumentLink {
     /// Output only. The time when the documentLink is created.
     #[serde(default, rename = "createTime")]
@@ -640,7 +641,7 @@ pub struct GoogleCloudContentwarehouseV1DocumentLink {
 }
 
 /// Represents a list of synonyms for a given context. For example a context "sales" could contain: Synonym 1: sale, invoice, bill, order Synonym 2: money, credit, finance, payment Synonym 3: shipping, freight, transport Each SynonymSets should be disjoint
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1SynonymSet {
     /// This is a freeform field. Example contexts can be "sales," "engineering," "real estate," "accounting," etc. The context can be supplied during search requests.
     #[serde(default)]
@@ -655,7 +656,7 @@ pub struct GoogleCloudContentwarehouseV1SynonymSet {
 }
 
 /// The metadata message for Export-to-CDW pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1RunPipelineMetadataExportToCdwPipelineMetadata {
     /// The output CDW dataset resource name.
     #[serde(default, rename = "docAiDataset")]
@@ -669,7 +670,7 @@ pub struct GoogleCloudContentwarehouseV1RunPipelineMetadataExportToCdwPipelineMe
 }
 
 /// The metadata message for GcsIngest pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1RunPipelineMetadataGcsIngestPipelineMetadata {
     /// The input Cloud Storage folder in this pipeline. Format: gs:///.
     #[serde(default, rename = "inputPath")]
@@ -677,7 +678,7 @@ pub struct GoogleCloudContentwarehouseV1RunPipelineMetadataGcsIngestPipelineMeta
 }
 
 /// The status of processing a document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1RunPipelineMetadataIndividualDocumentStatus {
     /// Document identifier of an existing document.
     #[serde(default, rename = "documentId")]
@@ -688,7 +689,7 @@ pub struct GoogleCloudContentwarehouseV1RunPipelineMetadataIndividualDocumentSta
 }
 
 /// The metadata message for Process-with-DocAi pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1RunPipelineMetadataProcessWithDocAiPipelineMetadata {
     /// The input list of all the resource names of the documents to be processed.
     #[serde(default)]
@@ -699,7 +700,7 @@ pub struct GoogleCloudContentwarehouseV1RunPipelineMetadataProcessWithDocAiPipel
 }
 
 /// The configuration of exporting documents from the Document Warehouse to CDW pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1ExportToCdwPipeline {
     /// Optional. The CDW dataset resource name. This field is optional. If not set, the documents will be exported to Cloud Storage only. Format: projects/{project}/locations/{location}/processors/{processor}/dataset
     #[serde(default, rename = "docAiDataset")]
@@ -716,7 +717,7 @@ pub struct GoogleCloudContentwarehouseV1ExportToCdwPipeline {
 }
 
 /// The configuration of the Cloud Storage Ingestion pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1GcsIngestPipeline {
     /// The input Cloud Storage folder. All files under this folder will be imported to Document Warehouse. Format: gs:///.
     #[serde(default, rename = "inputPath")]
@@ -736,7 +737,7 @@ pub struct GoogleCloudContentwarehouseV1GcsIngestPipeline {
 }
 
 /// The configuration of the Cloud Storage Ingestion with DocAI Processors pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1GcsIngestWithDocAiProcessorsPipeline {
     /// The extract processors information. One matched extract processor will be used to process documents based on the classify processor result. If no classify processor is specified, the first extract processor will be used.
     #[serde(default, rename = "extractProcessorInfos")]
@@ -761,7 +762,7 @@ pub struct GoogleCloudContentwarehouseV1GcsIngestWithDocAiProcessorsPipeline {
 }
 
 /// The configuration of processing documents in Document Warehouse with DocAi processors pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1ProcessWithDocAiPipeline {
     /// The list of all the resource names of the documents to be processed. Format: projects/{project_number}/locations/{location}/documents/{document_id}.
     #[serde(default)]
@@ -778,7 +779,7 @@ pub struct GoogleCloudContentwarehouseV1ProcessWithDocAiPipeline {
 }
 
 /// GoogleCloudContentwarehouseV1DocumentQuery resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1DocumentQuery {
     /// This filter specifies a structured syntax to match against the [PropertyDefinition].is_filterable marked as true. The syntax for this expression is a subset of SQL syntax. Supported operators are: =, !=, &lt;, &lt;=, &gt;, and &gt;= where the left of the operator is a property name and the right of the operator is a number or a quoted string. You must escape backslash (\\) and quote (\") characters. Supported functions are LOWER([property_name]) to perform a case insensitive match and EMPTY([property_name]) to filter on the existence of a key. Boolean expressions (AND/OR/NOT) are supported up to 3 levels of nesting (for example, "((A AND B AND C) OR NOT D) AND E"), a maximum of 100 comparisons or functions are allowed in the expression. The expression must be &lt; 6000 bytes in length. Sample Query: (LOWER(driving_license)="class \"a\"" OR EMPTY(driving_license)) AND driving_years &gt; 10
     #[serde(default, rename = "customPropertyFilter")]
@@ -822,7 +823,7 @@ pub struct GoogleCloudContentwarehouseV1DocumentQuery {
 }
 
 /// The histogram request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1HistogramQuery {
     /// Optional. Filter the result of histogram query by the property names. It only works with histogram query count(''FilterableProperties''). It is an optional. It will perform histogram on all the property names for all the document schemas. Setting this field will have a better performance.
     #[serde(default)]
@@ -837,7 +838,7 @@ pub struct GoogleCloudContentwarehouseV1HistogramQuery {
 }
 
 /// Histogram result that matches HistogramQuery specified in searches.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1HistogramQueryResult {
     /// A map from the values of the facet associated with distinct values to the number of matching entries with corresponding value. The key format is: * (for string histogram) string values stored in the field.
     #[serde(default)]
@@ -848,7 +849,7 @@ pub struct GoogleCloudContentwarehouseV1HistogramQueryResult {
 }
 
 /// Document entry with metadata inside SearchDocumentsResponse
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1SearchDocumentsResponseMatchingDocument {
     /// Document that matches the specified SearchDocumentsRequest. This document only contains indexed metadata information.
     #[serde(default)]
@@ -865,7 +866,7 @@ pub struct GoogleCloudContentwarehouseV1SearchDocumentsResponseMatchingDocument 
 }
 
 /// Request Option for processing Cloud AI Document in CW Document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1CloudAIDocumentOption {
     /// If set, only selected entities will be converted to properties.
     #[serde(default, rename = "customizedEntitiesPropertiesConversions")]
@@ -876,7 +877,7 @@ pub struct GoogleCloudContentwarehouseV1CloudAIDocumentOption {
 }
 
 /// Meta information is used to improve the performance of the service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1RequestMetadata {
     /// Provides user unique identification and groups information.
     #[serde(default, rename = "userInfo")]
@@ -884,7 +885,7 @@ pub struct GoogleCloudContentwarehouseV1RequestMetadata {
 }
 
 /// Options for Update operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1UpdateOptions {
     /// Options for merging.
     #[serde(default, rename = "mergeFieldsOptions")]
@@ -899,7 +900,7 @@ pub struct GoogleCloudContentwarehouseV1UpdateOptions {
 }
 
 /// Additional information returned to client, such as debugging information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1ResponseMetadata {
     /// A unique id associated with this call. This id is logged for tracking purpose.
     #[serde(default, rename = "requestId")]
@@ -907,7 +908,7 @@ pub struct GoogleCloudContentwarehouseV1ResponseMetadata {
 }
 
 /// Records the output of Rule Engine including rule evaluation and actions result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1RuleEngineOutput {
     /// Output from Action Executor containing rule and corresponding actions execution result.
     #[serde(default, rename = "actionExecutorOutput")]
@@ -923,7 +924,7 @@ pub struct GoogleCloudContentwarehouseV1RuleEngineOutput {
 }
 
 /// A document schema used to define document structure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1DocumentSchema {
     /// Output only. The time when the document schema is created.
     #[serde(default, rename = "createTime")]
@@ -950,7 +951,7 @@ pub struct GoogleCloudContentwarehouseV1DocumentSchema {
 }
 
 /// Represents a set of rules from a single customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1RuleSet {
     /// Short description of the rule-set.
     #[serde(default)]
@@ -967,7 +968,7 @@ pub struct GoogleCloudContentwarehouseV1RuleSet {
 }
 
 /// Represents the string value of the enum field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1EnumValue {
     /// String value of the enum field. This must match defined set of enums in document schema using EnumTypeOptions.
     #[serde(default)]
@@ -975,7 +976,7 @@ pub struct GoogleCloudContentwarehouseV1EnumValue {
 }
 
 /// The identity to configure a CloudSQL instance provisioned via SLM Terraform.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiPlatformTenantresourceCloudSqlInstanceConfig {
     /// Output only. The CloudSQL instance connection name.
     #[serde(default, rename = "cloudSqlInstanceConnectionName")]
@@ -1001,7 +1002,7 @@ pub struct CloudAiPlatformTenantresourceCloudSqlInstanceConfig {
 }
 
 /// The identity to configure a GCS bucket.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiPlatformTenantresourceGcsBucketConfig {
     #[serde(default)]
     pub admins: ::core::option::Option<::std::vec::Vec<String>>,
@@ -1023,7 +1024,7 @@ pub struct CloudAiPlatformTenantresourceGcsBucketConfig {
 }
 
 /// The dynamic IAM bindings to be granted after tenant projects are created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiPlatformTenantresourceIamPolicyBinding {
     /// Input/Output [Required]. The member service accounts with the roles above. Note: placeholders are same as the resource above.
     #[serde(default)]
@@ -1040,7 +1041,7 @@ pub struct CloudAiPlatformTenantresourceIamPolicyBinding {
 }
 
 /// The configuration for a spanner database provisioning. Next ID: 8
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiPlatformTenantresourceInfraSpannerConfig {
     /// Input [Optional]. The options to create a spanner database. Note: give the right options to ensure the right KMS key access audit logging and AxT logging in expected logging category.
     #[serde(default, rename = "createDatabaseOptions")]
@@ -1066,7 +1067,7 @@ pub struct CloudAiPlatformTenantresourceInfraSpannerConfig {
 }
 
 /// The identity to configure a tenant project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiPlatformTenantresourceTenantProjectConfig {
     /// Input/Output [Required]. The billing account properties to create the tenant project.
     #[serde(default, rename = "billingConfig")]
@@ -1084,7 +1085,7 @@ pub struct CloudAiPlatformTenantresourceTenantProjectConfig {
 }
 
 /// The identity of service accounts that have been explicitly created under tenant projects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiPlatformTenantresourceTenantServiceAccountIdentity {
     /// Output only. The email address of the generated service account.
     #[serde(default, rename = "serviceAccountEmail")]
@@ -1095,7 +1096,7 @@ pub struct CloudAiPlatformTenantresourceTenantServiceAccountIdentity {
 }
 
 /// References to the documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1DocumentReference {
     /// Output only. The time when the document is created.
     #[serde(default, rename = "createTime")]
@@ -1127,7 +1128,7 @@ pub struct GoogleCloudContentwarehouseV1DocumentReference {
 }
 
 /// Represents a list of words given by the customer All these words are synonyms of each other.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1SynonymSetSynonym {
     /// For example: sale, invoice, bill, order
     #[serde(default)]
@@ -1135,7 +1136,7 @@ pub struct GoogleCloudContentwarehouseV1SynonymSetSynonym {
 }
 
 /// The ingestion pipeline config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1IngestPipelineConfig {
     /// The Cloud Function resource name. The Cloud Function needs to live inside consumer project and is accessible to Document AI Warehouse P4SA. Only Cloud Functions V2 is supported. Cloud function execution should complete within 5 minutes or this file ingestion may fail due to timeout. Format: https://{region}-{project_id}.cloudfunctions.net/{cloud_function} The following keys are available the request json payload. * display_name * properties * plain_text * reference_id * document_schema_name * raw_document_path * raw_document_file_type The following keys from the cloud function json response payload will be ingested to the Document AI Warehouse as part of Document proto content and/or related information. The original values will be overridden if any key is present in the response. * display_name * properties * plain_text * document_acl_policy * folder
     #[serde(default, rename = "cloudFunction")]
@@ -1152,7 +1153,7 @@ pub struct GoogleCloudContentwarehouseV1IngestPipelineConfig {
 }
 
 /// The DocAI processor information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1ProcessorInfo {
     /// The processor will process the documents with this document type.
     #[serde(default, rename = "documentType")]
@@ -1166,7 +1167,7 @@ pub struct GoogleCloudContentwarehouseV1ProcessorInfo {
 }
 
 /// To support the custom weighting across document schemas.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1CustomWeightsMetadata {
     /// List of schema and property name. Allows a maximum of 10 schemas to be specified for relevance boosting.
     #[serde(default, rename = "weightedSchemaProperties")]
@@ -1176,7 +1177,7 @@ pub struct GoogleCloudContentwarehouseV1CustomWeightsMetadata {
 }
 
 /// Filter for the specific types of documents returned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1FileTypeFilter {
     /// The type of files to return. // TODO: enum values: ["FILE_TYPE_UNSPECIFIED", "ALL", "FOLDER", "DOCUMENT", "ROOT_FOLDER"]
     #[serde(default, rename = "fileType")]
@@ -1184,7 +1185,7 @@ pub struct GoogleCloudContentwarehouseV1FileTypeFilter {
 }
 
 /// GoogleCloudContentwarehouseV1PropertyFilter resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1PropertyFilter {
     /// The filter condition. The syntax for this expression is a subset of SQL syntax. Supported operators are: =, !=, &lt;, &lt;=, &gt;, &gt;=, and ~~ where the left of the operator is a property name and the right of the operator is a number or a quoted string. You must escape backslash (\\) and quote (\") characters. ~~ is the LIKE operator. The right of the operator must be a string. The only supported property data type for LIKE is text_values. It provides semantic search functionality by parsing, stemming and doing synonyms expansion against the input query. It matches if the property contains semantic similar content to the query. It is not regex matching or wildcard matching. For example, "property.company ~~ \"google\"" will match records whose property property.compnay have values like "Google Inc.", "Google LLC" or "Google Company". Supported functions are LOWER([property_name]) to perform a case insensitive match and EMPTY([property_name]) to filter on the existence of a key. Boolean expressions (AND/OR/NOT) are supported up to 3 levels of nesting (for example, "((A AND B AND C) OR NOT D) AND E"), a maximum of 100 comparisons or functions are allowed in the expression. The expression must be &lt; 6000 bytes in length. Only properties that are marked filterable are allowed (PropertyDefinition.is_filterable). Property names do not need to be prefixed by the document schema id (as is the case with histograms), however property names will need to be prefixed by its parent hierarchy, if any. For example: top_property_name.sub_property_name. Sample Query: (LOWER(driving_license)="class \"a\"" OR EMPTY(driving_license)) AND driving_years &gt; 10 CMEK compliant deployment only supports: * Operators: =, &lt;, &lt;=, &gt;, and &gt;=. * Boolean expressions: AND and OR.
     #[serde(default)]
@@ -1195,7 +1196,7 @@ pub struct GoogleCloudContentwarehouseV1PropertyFilter {
 }
 
 /// Filter on create timestamp or update timestamp of documents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1TimeFilter {
     /// Specifies which time field to filter documents on. Defaults to TimeField.UPLOAD_TIME. // TODO: enum values: ["TIME_FIELD_UNSPECIFIED", "CREATE_TIME", "UPDATE_TIME", "DISPOSITION_TIME"]
     #[serde(default, rename = "timeField")]
@@ -1205,7 +1206,7 @@ pub struct GoogleCloudContentwarehouseV1TimeFilter {
 }
 
 /// GoogleCloudContentwarehouseV1HistogramQueryPropertyNameFilter resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1HistogramQueryPropertyNameFilter {
     /// This filter specifies the exact document schema(s) Document.document_schema_name to run histogram query against. It is optional. It will perform histogram for property names for all the document schemas if it is not set. At most 10 document schema names are allowed. Format: projects/{project_number}/locations/{location}/documentSchemas/{document_schema_id}.
     #[serde(default, rename = "documentSchemas")]
@@ -1219,7 +1220,7 @@ pub struct GoogleCloudContentwarehouseV1HistogramQueryPropertyNameFilter {
 }
 
 /// Defines the structure for content warehouse document proto.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1Document {
     /// Document AI format to save the structured content, including OCR.
     #[serde(default, rename = "cloudAiDocument")]
@@ -1287,7 +1288,7 @@ pub struct GoogleCloudContentwarehouseV1Document {
 }
 
 /// Additional result info for the question-answering feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1qAResult {
     /// The calibrated confidence score for this document, in the range [0., 1.]. This represents the confidence level for whether the returned document and snippet answers the user''s query.
     #[serde(default, rename = "confidenceScore")]
@@ -1299,7 +1300,7 @@ pub struct GoogleCloudContentwarehouseV1qAResult {
 }
 
 /// The user information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1UserInfo {
     /// The unique group identifications which the user is belong to. The format is "group:yyyy@example.com";
     #[serde(default, rename = "groupIds")]
@@ -1310,7 +1311,7 @@ pub struct GoogleCloudContentwarehouseV1UserInfo {
 }
 
 /// Options for merging updated fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1MergeFieldsOptions {
     /// When merging message fields, the default behavior is to merge the content of two message fields together. If you instead want to use the field from the source message to replace the corresponding field in the destination message, set this flag to true. When this flag is set, specified submessage fields that are missing in source will be cleared in destination.
     #[serde(default, rename = "replaceMessageFields")]
@@ -1321,7 +1322,7 @@ pub struct GoogleCloudContentwarehouseV1MergeFieldsOptions {
 }
 
 /// Represents the output of the Action Executor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1ActionExecutorOutput {
     /// List of rule and corresponding actions result.
     #[serde(default, rename = "ruleActionsPairs")]
@@ -1330,7 +1331,7 @@ pub struct GoogleCloudContentwarehouseV1ActionExecutorOutput {
 }
 
 /// Represents the output of the Rule Evaluator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1RuleEvaluatorOutput {
     /// A subset of triggered rules that failed the validation check(s) after parsing.
     #[serde(default, rename = "invalidRules")]
@@ -1345,7 +1346,7 @@ pub struct GoogleCloudContentwarehouseV1RuleEvaluatorOutput {
 }
 
 /// The options to create a spanner database. KMS key access audit logging and AxT logging will be associated with the given resource name, resource type and service name. Please ensure to give right options to enable correct audit logging and AxT logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiPlatformTenantresourceInfraSpannerConfigCreateDatabaseOptions {
     /// The cloud resource name for the CMEK encryption. For example, projects//locations/
     #[serde(default, rename = "cmekCloudResourceName")]
@@ -1359,7 +1360,7 @@ pub struct CloudAiPlatformTenantresourceInfraSpannerConfigCreateDatabaseOptions 
 }
 
 /// Describes the billing configuration for a new tenant project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleApiServiceconsumermanagementV1BillingConfig {
     /// Name of the billing account. For example billingAccounts/012345-567890-ABCDEF.
     #[serde(default, rename = "billingAccount")]
@@ -1367,7 +1368,7 @@ pub struct GoogleApiServiceconsumermanagementV1BillingConfig {
 }
 
 /// Translates to IAM Policy bindings (without auditing at this level)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleApiServiceconsumermanagementV1PolicyBinding {
     /// Uses the same format as in IAM policy. member must include both a prefix and ID. For example, user:{emailId}, serviceAccount:{emailId}, group:{emailId}.
     #[serde(default)]
@@ -1378,7 +1379,7 @@ pub struct GoogleApiServiceconsumermanagementV1PolicyBinding {
 }
 
 /// Specifies the schema property name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1WeightedSchemaProperty {
     /// The document schema name.
     #[serde(default, rename = "documentSchemaName")]
@@ -1389,7 +1390,7 @@ pub struct GoogleCloudContentwarehouseV1WeightedSchemaProperty {
 }
 
 /// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeInterval {
     /// Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.
     #[serde(default, rename = "endTime")]
@@ -1400,7 +1401,7 @@ pub struct GoogleTypeInterval {
 }
 
 /// Document represents the canonical document resource in Document AI. It is an interchange format that provides insights into documents and allows for collaboration between users and Document AI to iterate and optimize for quality.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1Document {
     /// Document chunked based on chunking config.
     #[serde(default, rename = "chunkedDocument")]
@@ -1449,7 +1450,7 @@ pub struct GoogleCloudDocumentaiV1Document {
 }
 
 /// A text span in the search text snippet that represents a highlighted section (answer context, highly relevant sentence, etc.).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1qAResultHighlight {
     /// End index of the highlight, exclusive.
     #[serde(default, rename = "endIndex")]
@@ -1460,7 +1461,7 @@ pub struct GoogleCloudContentwarehouseV1qAResultHighlight {
 }
 
 /// Represents a rule and outputs of associated actions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1RuleActionsPair {
     /// Outputs of executing the actions associated with the above rule.
     #[serde(default, rename = "actionOutputs")]
@@ -1472,7 +1473,7 @@ pub struct GoogleCloudContentwarehouseV1RuleActionsPair {
 }
 
 /// A triggered rule that failed the validation check(s) after parsing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1InvalidRule {
     /// Validation error on a parsed expression.
     #[serde(default)]
@@ -1483,7 +1484,7 @@ pub struct GoogleCloudContentwarehouseV1InvalidRule {
 }
 
 /// Represents the chunks that the document is divided into.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentChunkedDocument {
     /// List of chunks.
     #[serde(default)]
@@ -1493,7 +1494,7 @@ pub struct GoogleCloudDocumentaiV1DocumentChunkedDocument {
 }
 
 /// Represents the parsed layout of a document as a collection of blocks that the document is divided into.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayout {
     /// List of blocks in the document.
     #[serde(default)]
@@ -1503,7 +1504,7 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayout {
 }
 
 /// An entity that could be a phrase in the text or a property that belongs to the document. It is a known entity type, such as a person, an organization, or location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentEntity {
     /// Optional. Confidence of detected Schema entity. Range [0, 1].
     #[serde(default)]
@@ -1542,7 +1543,7 @@ pub struct GoogleCloudDocumentaiV1DocumentEntity {
 }
 
 /// Relationship between Entities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentEntityRelation {
     /// Object entity id.
     #[serde(default, rename = "objectId")]
@@ -1556,7 +1557,7 @@ pub struct GoogleCloudDocumentaiV1DocumentEntityRelation {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1570,7 +1571,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// A page in a Document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPage {
     /// A list of visually detected text blocks on the page. A block has a set of lines (collected into paragraphs) that have a common line-spacing and orientation.
     #[serde(default)]
@@ -1634,7 +1635,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPage {
 }
 
 /// Contains past or forward revisions of this document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentRevision {
     /// If the change was made by a person specify the name or id of that person.
     #[serde(default)]
@@ -1660,7 +1661,7 @@ pub struct GoogleCloudDocumentaiV1DocumentRevision {
 }
 
 /// For a large document, sharding may be performed to produce several document shards. Each document shard contains this field to detail which shard it is.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentShardInfo {
     /// Total number of shards.
     #[serde(default, rename = "shardCount")]
@@ -1674,7 +1675,7 @@ pub struct GoogleCloudDocumentaiV1DocumentShardInfo {
 }
 
 /// This message is used for text changes aka. OCR corrections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentTextChange {
     /// The text that replaces the text identified in the text_anchor.
     #[serde(default, rename = "changedText")]
@@ -1689,7 +1690,7 @@ pub struct GoogleCloudDocumentaiV1DocumentTextChange {
 }
 
 /// Annotation for common text style attributes. This adheres to CSS conventions as much as possible.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentStyle {
     /// Text background color.
     #[serde(default, rename = "backgroundColor")]
@@ -1718,7 +1719,7 @@ pub struct GoogleCloudDocumentaiV1DocumentStyle {
 }
 
 /// Represents the result of executing an action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1ActionOutput {
     /// ID of the action.
     #[serde(default, rename = "actionId")]
@@ -1732,7 +1733,7 @@ pub struct GoogleCloudContentwarehouseV1ActionOutput {
 }
 
 /// Represents the rule for a content warehouse trigger.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1Rule {
     /// List of actions that are executed when the rule is satisfied.
     #[serde(default)]
@@ -1752,7 +1753,7 @@ pub struct GoogleCloudContentwarehouseV1Rule {
 }
 
 /// Represents a chunk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunk {
     /// ID of the chunk.
     #[serde(default, rename = "chunkId")]
@@ -1780,7 +1781,7 @@ pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunk {
 }
 
 /// Parsed and normalized entity value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentEntityNormalizedValue {
     /// Postal address. See also: https://github.com/googleapis/googleapis/blob/master/google/type/postal_address.proto
     #[serde(default, rename = "addressValue")]
@@ -1809,7 +1810,7 @@ pub struct GoogleCloudDocumentaiV1DocumentEntityNormalizedValue {
 }
 
 /// Referencing the visual context of the entity in the Document.pages. Page anchors can be cross-page, consist of multiple bounding polygons and optionally reference specific layout element types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageAnchor {
     /// One or more references to visual page elements
     #[serde(default, rename = "pageRefs")]
@@ -1818,7 +1819,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageAnchor {
 }
 
 /// A block has a set of lines (collected into paragraphs) that have a common line-spacing and orientation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageBlock {
     /// A list of detected languages together with confidence.
     #[serde(default, rename = "detectedLanguages")]
@@ -1834,7 +1835,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageBlock {
 }
 
 /// A detected barcode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageDetectedBarcode {
     /// Detailed barcode information of the DetectedBarcode.
     #[serde(default)]
@@ -1845,7 +1846,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageDetectedBarcode {
 }
 
 /// Dimension for the page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageDimension {
     /// Page height.
     #[serde(default)]
@@ -1859,7 +1860,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageDimension {
 }
 
 /// A form field detected on the page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageFormField {
     /// Created for Labeling UI to export key text. If corrections were made to the text identified by the field_name.text_anchor, this field will contain the correction.
     #[serde(default, rename = "correctedKeyText")]
@@ -1892,7 +1893,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageFormField {
 }
 
 /// Rendered image contents for this page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageImage {
     /// Raw byte content of the image.
     #[serde(default)]
@@ -1909,7 +1910,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageImage {
 }
 
 /// Image quality scores for the page image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageImageQualityScores {
     /// A list of detected defects.
     #[serde(default, rename = "detectedDefects")]
@@ -1922,7 +1923,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageImageQualityScores {
 }
 
 /// A collection of tokens that a human would perceive as a line. Does not cross column boundaries, can be horizontal, vertical, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageLine {
     /// A list of detected languages together with confidence.
     #[serde(default, rename = "detectedLanguages")]
@@ -1938,7 +1939,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageLine {
 }
 
 /// A collection of lines that a human would perceive as a paragraph.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageParagraph {
     /// A list of detected languages together with confidence.
     #[serde(default, rename = "detectedLanguages")]
@@ -1954,7 +1955,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageParagraph {
 }
 
 /// A detected symbol.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageSymbol {
     /// A list of detected languages together with confidence.
     #[serde(default, rename = "detectedLanguages")]
@@ -1967,7 +1968,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageSymbol {
 }
 
 /// A table representation similar to HTML table structure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageTable {
     /// Body rows of the table.
     #[serde(default, rename = "bodyRows")]
@@ -1991,7 +1992,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageTable {
 }
 
 /// A detected token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageToken {
     /// Detected break at the end of a Token.
     #[serde(default, rename = "detectedBreak")]
@@ -2014,7 +2015,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageToken {
 }
 
 /// Representation for transformation matrix, intended to be compatible and used with OpenCV format for image manipulation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageMatrix {
     /// Number of columns in the matrix.
     #[serde(default)]
@@ -2031,7 +2032,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageMatrix {
 }
 
 /// Detected non-text visual elements e.g. checkbox, signature etc. on the page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageVisualElement {
     /// A list of detected languages together with confidence.
     #[serde(default, rename = "detectedLanguages")]
@@ -2047,7 +2048,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageVisualElement {
 }
 
 /// Human Review information of the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentRevisionHumanReview {
     /// Human review state. e.g. requested, succeeded, rejected.
     #[serde(default)]
@@ -2058,7 +2059,7 @@ pub struct GoogleCloudDocumentaiV1DocumentRevisionHumanReview {
 }
 
 /// Font size with unit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentStyleFontSize {
     /// Font size for the text.
     #[serde(default)]
@@ -2069,7 +2070,7 @@ pub struct GoogleCloudDocumentaiV1DocumentStyleFontSize {
 }
 
 /// Represents the action triggered by Rule Engine when the rule is true.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1Action {
     /// Action triggering access control operations.
     #[serde(default, rename = "accessControl")]
@@ -2100,7 +2101,7 @@ pub struct GoogleCloudContentwarehouseV1Action {
 }
 
 /// Represents the page footer associated with the chunk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageFooter {
     /// Page span of the footer.
     #[serde(default, rename = "pageSpan")]
@@ -2112,7 +2113,7 @@ pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageFooter {
 }
 
 /// Represents the page header associated with the chunk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageHeader {
     /// Page span of the header.
     #[serde(default, rename = "pageSpan")]
@@ -2124,7 +2125,7 @@ pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageHeader {
 }
 
 /// Represents a postal address. For example for postal delivery or payments addresses. Given a postal address, a postal service can deliver items to a premise, P.O. Box or similar. It is not intended to model geographical locations (roads, towns, mountains). In typical usage an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input / editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput) - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypePostalAddress {
     /// Unstructured address lines describing the lower levels of an address. Because values in address_lines do not have type information and may sometimes contain multiple values in a single field (For example "Austin, TX"), it is important that the line order is clear. The order of address lines should be "envelope order" for the country/region of the address. In places where this can vary (For example Japan), address_language is used to make it explicit (For example "ja" for large-to-small ordering and "ja-Latn" or "en" for small-to-large). This way, the most specific line of an address can be selected based on the language. The minimum permitted structural representation of an address consists of a region_code with all remaining information placed in the address_lines. It would be possible to format such an address very approximately without geocoding, but no semantic reasoning could be made about any of the address components until it was at least partially resolved. Creating an address only containing a region_code and address_lines, and then geocoding is the recommended way to handle completely unstructured addresses (as opposed to guessing which parts of the address should be localities or administrative areas).
     #[serde(default, rename = "addressLines")]
@@ -2162,7 +2163,7 @@ pub struct GoogleTypePostalAddress {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeDate {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -2176,7 +2177,7 @@ pub struct GoogleTypeDate {
 }
 
 /// Represents an amount of money with its currency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeMoney {
     /// The three-letter currency code defined in ISO 4217.
     #[serde(default, rename = "currencyCode")]
@@ -2190,7 +2191,7 @@ pub struct GoogleTypeMoney {
 }
 
 /// Represents a weak reference to a page element within a document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageAnchorPageRef {
     /// Optional. Identifies the bounding polygon of a layout element on the page. If layout_type is set, the bounding polygon must be exactly the same to the layout element it''s referring to.
     #[serde(default, rename = "boundingPoly")]
@@ -2210,7 +2211,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageAnchorPageRef {
 }
 
 /// Encodes the detailed information of a barcode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1Barcode {
     /// Format of a barcode. The supported formats are: - CODE_128: Code 128 type. - CODE_39: Code 39 type. - CODE_93: Code 93 type. - CODABAR: Codabar type. - DATA_MATRIX: 2D Data Matrix type. - ITF: ITF type. - EAN_13: EAN-13 type. - EAN_8: EAN-8 type. - QR_CODE: 2D QR code type. - UPC_A: UPC-A type. - UPC_E: UPC-E type. - PDF417: PDF417 type. - AZTEC: 2D Aztec code type. - DATABAR: GS1 DataBar code type.
     #[serde(default)]
@@ -2224,7 +2225,7 @@ pub struct GoogleCloudDocumentaiV1Barcode {
 }
 
 /// Image Quality Defects
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageImageQualityScoresDetectedDefect {
     /// Confidence of detected defect. Range [0, 1] where 1 indicates strong confidence that the defect exists.
     #[serde(default)]
@@ -2235,7 +2236,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageImageQualityScoresDetectedDefect {
 }
 
 /// A row of table cells.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageTableTableRow {
     /// Cells that make up this row.
     #[serde(default)]
@@ -2244,7 +2245,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageTableTableRow {
 }
 
 /// Detected break at the end of a Token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageTokenDetectedBreak {
     /// Detected break type. // TODO: enum values: ["TYPE_UNSPECIFIED", "SPACE", "WIDE_SPACE", "HYPHEN"]
     #[serde(default, rename = "type")]
@@ -2252,7 +2253,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageTokenDetectedBreak {
 }
 
 /// Structure to identify provenance relationships between annotations in different revisions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentProvenance {
     /// The Id of this operation. Needs to be unique within the scope of the revision.
     #[serde(default)]
@@ -2270,7 +2271,7 @@ pub struct GoogleCloudDocumentaiV1DocumentProvenance {
 }
 
 /// Font and other text style attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageTokenStyleInfo {
     /// Color of the background.
     #[serde(default, rename = "backgroundColor")]
@@ -2320,7 +2321,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageTokenStyleInfo {
 }
 
 /// Represents the action responsible for access control list management operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1AccessControlAction {
     /// Identifies the type of operation. // TODO: enum values: ["UNKNOWN", "ADD_POLICY_BINDING", "REMOVE_POLICY_BINDING", "REPLACE_POLICY_BINDING"]
     #[serde(default, rename = "operationType")]
@@ -2331,7 +2332,7 @@ pub struct GoogleCloudContentwarehouseV1AccessControlAction {
 }
 
 /// Represents the action responsible for adding document under a folder.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1AddToFolderAction {
     /// Names of the folder under which new document is to be added. Format: projects/{project_number}/locations/{location}/documents/{document_id}.
     #[serde(default)]
@@ -2339,7 +2340,7 @@ pub struct GoogleCloudContentwarehouseV1AddToFolderAction {
 }
 
 /// Represents the action responsible for properties update operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1DataUpdateAction {
     /// Map of (K, V) -&gt; (valid name of the field, new value of the field) E.g., ("age", "60") entry triggers update of field age with a value of 60. If the field is not present then new entry is added. During update action execution, value strings will be casted to appropriate types.
     #[serde(default)]
@@ -2347,7 +2348,7 @@ pub struct GoogleCloudContentwarehouseV1DataUpdateAction {
 }
 
 /// Represents the action responsible for data validation operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1DataValidationAction {
     /// Map of (K, V) -&gt; (field, string condition to be evaluated on the field) E.g., ("age", "age &gt; 18 && age &lt; 60") entry triggers validation of field age with the given condition. Map entries will be ANDed during validation.
     #[serde(default)]
@@ -2355,7 +2356,7 @@ pub struct GoogleCloudContentwarehouseV1DataValidationAction {
 }
 
 /// Represents the action responsible for deleting the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1DeleteDocumentAction {
     /// Boolean field to select between hard vs soft delete options. Set ''true'' for ''hard delete'' and ''false'' for ''soft delete''.
     #[serde(default, rename = "enableHardDelete")]
@@ -2363,7 +2364,7 @@ pub struct GoogleCloudContentwarehouseV1DeleteDocumentAction {
 }
 
 /// Represents the action responsible for publishing messages to a Pub/Sub topic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1PublishAction {
     /// Messages to be published.
     #[serde(default)]
@@ -2374,7 +2375,7 @@ pub struct GoogleCloudContentwarehouseV1PublishAction {
 }
 
 /// Represents the action responsible for remove a document from a specific folder.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1RemoveFromFolderAction {
     /// Condition of the action to be executed.
     #[serde(default)]
@@ -2385,7 +2386,7 @@ pub struct GoogleCloudContentwarehouseV1RemoveFromFolderAction {
 }
 
 /// Represents where the chunk starts and ends in the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageSpan {
     /// Page where chunk ends in the document.
     #[serde(default, rename = "pageEnd")]
@@ -2396,7 +2397,7 @@ pub struct GoogleCloudDocumentaiV1DocumentChunkedDocumentChunkChunkPageSpan {
 }
 
 /// A cell representation inside the table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageTableTableCell {
     /// How many columns this cell spans.
     #[serde(default, rename = "colSpan")]
@@ -2415,7 +2416,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageTableTableCell {
 }
 
 /// The parent element the current element is based on. Used for referencing/aligning, removal and replacement operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentProvenanceParent {
     /// The id of the parent provenance.
     #[serde(default)]
@@ -2429,7 +2430,7 @@ pub struct GoogleCloudDocumentaiV1DocumentProvenanceParent {
 }
 
 /// Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of java.awt.Color in Java; it can also be trivially provided to UIColor''s +colorWithRed:green:blue:alpha method in iOS; and, with just a little work, it can be easily formatted into a CSS rgba() string in JavaScript. This reference page doesn''t have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most 1e-5. Example (Java): import com.google.type.Color; // ... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha() ? protocolor.getAlpha().getValue() : 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color .newBuilder() .setRed(red / denominator) .setGreen(green / denominator) .setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha != 255) { result.setAlpha( FloatValue .newBuilder() .setValue(((float) alpha) / denominator) .build()); } return resultBuilder.build(); } // ... Example (iOS / Obj-C): // ... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper != nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha &lt;= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } // ... Example (JavaScript): // ... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!(''alpha'' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join('',''); return [''rgba('', rgbParams, '','', alphaFrac, '')''].join(''''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red &lt;&lt; 16) | (green &lt;&lt; 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = [''#'']; for (var i = 0; i &lt; missingZeros; i++) { resultBuilder.push(''0''); } resultBuilder.push(hexString); return resultBuilder.join(''''); }; // ...
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeColor {
     /// The fraction of this color that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (this color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color. This uses a wrapper message rather than a simple float scalar so that it is possible to distinguish between a default value and the value being unset. If omitted, this color object is rendered as a solid color (as if the alpha value had been explicitly given a value of 1.0).
     #[serde(default)]
@@ -2446,7 +2447,7 @@ pub struct GoogleTypeColor {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -2463,7 +2464,7 @@ pub struct GoogleIamV1Policy {
 }
 
 /// Detected language for a structural component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageDetectedLanguage {
     /// Confidence of detected language. Range [0, 1].
     #[serde(default)]
@@ -2474,7 +2475,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageDetectedLanguage {
 }
 
 /// Visual element describing a layout unit on a page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentPageLayout {
     /// The bounding polygon for the Layout.
     #[serde(default, rename = "boundingPoly")]
@@ -2491,7 +2492,7 @@ pub struct GoogleCloudDocumentaiV1DocumentPageLayout {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -2502,7 +2503,7 @@ pub struct GoogleIamV1AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -2516,7 +2517,7 @@ pub struct GoogleIamV1Binding {
 }
 
 /// A bounding polygon for the detected image annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1BoundingPoly {
     /// The bounding polygon normalized vertices.
     #[serde(default, rename = "normalizedVertices")]
@@ -2528,7 +2529,7 @@ pub struct GoogleCloudDocumentaiV1BoundingPoly {
 }
 
 /// Text reference indexing into the Document.text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentTextAnchor {
     /// Contains the content of the text span so that users do not have to look it up in the text_segments. It is always populated for formFields.
     #[serde(default)]
@@ -2541,7 +2542,7 @@ pub struct GoogleCloudDocumentaiV1DocumentTextAnchor {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -2552,7 +2553,7 @@ pub struct GoogleIamV1AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeExpr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -2569,7 +2570,7 @@ pub struct GoogleTypeExpr {
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1NormalizedVertex {
     /// X coordinate.
     #[serde(default)]
@@ -2580,7 +2581,7 @@ pub struct GoogleCloudDocumentaiV1NormalizedVertex {
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the vertex coordinates are in the same scale as the original image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1Vertex {
     /// X coordinate.
     #[serde(default)]
@@ -2591,7 +2592,7 @@ pub struct GoogleCloudDocumentaiV1Vertex {
 }
 
 /// A text segment in the Document.text. The indices may be out of bounds which indicate that the text extends into another document shard for large sharded documents. See ShardInfo.text_offset
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentTextAnchorTextSegment {
     /// TextSegment half open end UTF-8 char index in the Document.text.
     #[serde(default, rename = "endIndex")]
@@ -2602,7 +2603,7 @@ pub struct GoogleCloudDocumentaiV1DocumentTextAnchorTextSegment {
 }
 
 /// DateTime values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1DateTimeArray {
     /// List of datetime values. Both OffsetDateTime and ZonedDateTime are supported.
     #[serde(default)]
@@ -2610,7 +2611,7 @@ pub struct GoogleCloudContentwarehouseV1DateTimeArray {
 }
 
 /// Enum values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1EnumArray {
     /// List of enum values.
     #[serde(default)]
@@ -2618,7 +2619,7 @@ pub struct GoogleCloudContentwarehouseV1EnumArray {
 }
 
 /// Configurations for an enum/categorical property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1EnumTypeOptions {
     /// Required. List of possible enum values.
     #[serde(default, rename = "possibleValues")]
@@ -2629,7 +2630,7 @@ pub struct GoogleCloudContentwarehouseV1EnumTypeOptions {
 }
 
 /// Float values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1FloatArray {
     /// List of float values.
     #[serde(default)]
@@ -2637,7 +2638,7 @@ pub struct GoogleCloudContentwarehouseV1FloatArray {
 }
 
 /// Integer values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1IntegerArray {
     /// List of integer values.
     #[serde(default)]
@@ -2645,7 +2646,7 @@ pub struct GoogleCloudContentwarehouseV1IntegerArray {
 }
 
 /// Map property value. Represents a structured entries of key value pairs, consisting of field names which map to dynamically typed values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1MapProperty {
     /// Unordered map of dynamically typed values.
     #[serde(default)]
@@ -2653,7 +2654,7 @@ pub struct GoogleCloudContentwarehouseV1MapProperty {
 }
 
 /// Property of a document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1Property {
     /// Date time property values. It is not supported by CMEK compliant deployment.
     #[serde(default, rename = "dateTimeValues")]
@@ -2693,7 +2694,7 @@ pub struct GoogleCloudContentwarehouseV1Property {
 }
 
 /// Property values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1PropertyArray {
     /// List of property values.
     #[serde(default)]
@@ -2701,7 +2702,7 @@ pub struct GoogleCloudContentwarehouseV1PropertyArray {
 }
 
 /// Defines the metadata for a schema property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1PropertyDefinition {
     /// Date time property. It is not supported by CMEK compliant deployment.
     #[serde(default, rename = "dateTimeTypeOptions")]
@@ -2761,7 +2762,7 @@ pub struct GoogleCloudContentwarehouseV1PropertyDefinition {
 }
 
 /// The schema source information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1PropertyDefinitionSchemaSource {
     /// The schema name in the source.
     #[serde(default)]
@@ -2772,7 +2773,7 @@ pub struct GoogleCloudContentwarehouseV1PropertyDefinitionSchemaSource {
 }
 
 /// Configurations for a nested structured data property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1PropertyTypeOptions {
     /// Required. List of property definitions.
     #[serde(default, rename = "propertyDefinitions")]
@@ -2781,7 +2782,7 @@ pub struct GoogleCloudContentwarehouseV1PropertyTypeOptions {
 }
 
 /// String/text values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1TextArray {
     /// List of text values.
     #[serde(default)]
@@ -2789,7 +2790,7 @@ pub struct GoogleCloudContentwarehouseV1TextArray {
 }
 
 /// Timestamp values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1TimestampArray {
     /// List of timestamp values.
     #[serde(default)]
@@ -2797,7 +2798,7 @@ pub struct GoogleCloudContentwarehouseV1TimestampArray {
 }
 
 /// Timestamp value type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudContentwarehouseV1TimestampValue {
     /// The string must represent a valid instant in UTC and is parsed using java.time.format.DateTimeFormatter.ISO_INSTANT. e.g. "2013-09-29T18:46:19Z"
     #[serde(default, rename = "textValue")]
@@ -2808,7 +2809,7 @@ pub struct GoogleCloudContentwarehouseV1TimestampValue {
 }
 
 /// Represents a block. A block could be one of the various types (text, table, list) supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock {
     /// ID of the block.
     #[serde(default, rename = "blockId")]
@@ -2844,7 +2845,7 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlock {
 }
 
 /// Represents a list type block.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListBlock {
     /// List entries that constitute a list block.
     #[serde(default, rename = "listEntries")]
@@ -2859,7 +2860,7 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
 }
 
 /// Represents an entry in the list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutListEntry {
     /// A list entry is a list of blocks. Repeated blocks support further hierarchies and nested blocks.
     #[serde(default)]
@@ -2869,7 +2870,7 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
 }
 
 /// Represents where the block starts and ends in the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutPageSpan {
     /// Page where block ends in the document.
     #[serde(default, rename = "pageEnd")]
@@ -2880,7 +2881,7 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
 }
 
 /// Represents a table type block.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableBlock {
     /// Body rows containing main table content.
     #[serde(default, rename = "bodyRows")]
@@ -2902,7 +2903,7 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
 }
 
 /// Represents a cell in a table row.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableCell {
     /// A table cell is a list of blocks. Repeated blocks support further hierarchies and nested blocks.
     #[serde(default)]
@@ -2918,7 +2919,7 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
 }
 
 /// Represents a row in a table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTableRow {
     /// A table row is a list of table cells.
     #[serde(default)]
@@ -2930,7 +2931,7 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
 }
 
 /// Represents a text type block.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayoutTextBlock {
     /// A text block could further have child blocks. Repeated blocks support further hierarchies and nested blocks.
     #[serde(default)]
@@ -2946,7 +2947,7 @@ pub struct GoogleCloudDocumentaiV1DocumentDocumentLayoutDocumentLayoutBlockLayou
 }
 
 /// Represents civil time (or occasionally physical time). This type can represent a civil time in one of a few possible ways: * When utc_offset is set and time_zone is unset: a civil time on a calendar day with a particular offset from UTC. * When time_zone is set and utc_offset is unset: a civil time on a calendar day in a particular time zone. * When neither time_zone nor utc_offset is set: a civil time on a calendar day in local time. The date is relative to the Proleptic Gregorian Calendar. If year, month, or day are 0, the DateTime is considered not to have a specific year, month, or day respectively. This type may also be used to represent a physical time if all the date and time fields are set and either case of the time_offset oneof is set. Consider using Timestamp message for physical time instead. If your use case also would like to store the user''s timezone, that can be done in another field. This type is more flexible than some applications may want. Make sure to document and validate your application''s limitations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeDateTime {
     /// Optional. Day of month. Must be from 1 to 31 and valid for the year and month, or 0 if specifying a datetime without a day.
     #[serde(default)]
@@ -2978,7 +2979,7 @@ pub struct GoogleTypeDateTime {
 }
 
 /// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeTimeZone {
     /// IANA Time Zone Database time zone. For example "America/New_York".
     #[serde(default)]

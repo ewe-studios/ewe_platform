@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request message for DataprocMetastore.AlterMetadataResourceLocation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlterMetadataResourceLocationRequest {
     /// Required. The new location URI for the metadata resource.
     #[serde(default, rename = "locationUri")]
@@ -22,11 +23,11 @@ pub struct AlterMetadataResourceLocationRequest {
 }
 
 /// Response message for DataprocMetastore.AlterMetadataResourceLocation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlterMetadataResourceLocationResponse {}
 
 /// Request message for DataprocMetastore.AlterTableProperties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlterTablePropertiesRequest {
     /// A map that describes the desired values to mutate. If update_mask is empty, the properties will not update. Otherwise, the properties only alters the value whose associated paths exist in the update mask
     #[serde(default)]
@@ -40,7 +41,7 @@ pub struct AlterTablePropertiesRequest {
 }
 
 /// Configuration information for the auxiliary service versions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuxiliaryVersionConfig {
     /// Optional. A mapping of Hive metastore configuration key-value pairs to apply to the auxiliary Hive metastore (configured in hive-site.xml) in addition to the primary version''s overrides. If keys are present in both the auxiliary version''s overrides and the primary version''s overrides, the value from the auxiliary version''s overrides takes precedence.
     #[serde(default, rename = "configOverrides")]
@@ -54,7 +55,7 @@ pub struct AuxiliaryVersionConfig {
 }
 
 /// Represents a backend metastore for the federation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackendMetastore {
     /// The type of the backend metastore. // TODO: enum values: ["METASTORE_TYPE_UNSPECIFIED", "BIGQUERY", "DATAPROC_METASTORE"]
     #[serde(default, rename = "metastoreType")]
@@ -65,23 +66,23 @@ pub struct BackendMetastore {
 }
 
 /// Request message for DataprocMetastore.CancelMigration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelMigrationRequest {}
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// Request message for DataprocMetastore.CompleteMigration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompleteMigrationRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Error details in public error message for DataprocMetastore.QueryMetadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorDetails {
     /// Additional structured details about this error.Keys define the failure items. Value describes the exception or details of the item.
     #[serde(default)]
@@ -89,7 +90,7 @@ pub struct ErrorDetails {
 }
 
 /// Request message for DataprocMetastore.ExportMetadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportMetadataRequest {
     /// Optional. The type of the database dump. If unspecified, defaults to MYSQL. // TODO: enum values: ["TYPE_UNSPECIFIED", "MYSQL", "AVRO"]
     #[serde(default, rename = "databaseDumpType")]
@@ -103,7 +104,7 @@ pub struct ExportMetadataRequest {
 }
 
 /// Response message for DataprocMetastore.ListBackups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBackupsResponse {
     /// The backups of the specified service.
     #[serde(default)]
@@ -117,7 +118,7 @@ pub struct ListBackupsResponse {
 }
 
 /// Response message for ListFederations
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListFederationsResponse {
     /// The services in the specified location.
     #[serde(default)]
@@ -131,7 +132,7 @@ pub struct ListFederationsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -142,7 +143,7 @@ pub struct ListLocationsResponse {
 }
 
 /// Response message for DataprocMetastore.ListMetadataImports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMetadataImportsResponse {
     /// The imports in the specified service.
     #[serde(default, rename = "metadataImports")]
@@ -156,7 +157,7 @@ pub struct ListMetadataImportsResponse {
 }
 
 /// Response message for DataprocMetastore.ListMigrationExecutions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMigrationExecutionsResponse {
     /// The migration executions on the specified service.
     #[serde(default, rename = "migrationExecutions")]
@@ -170,7 +171,7 @@ pub struct ListMigrationExecutionsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -184,7 +185,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response message for DataprocMetastore.ListServices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListServicesResponse {
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -198,7 +199,7 @@ pub struct ListServicesResponse {
 }
 
 /// Metadata about the service in a location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocationMetadata {
     /// Deprecated: Use a single region service instead. Possible configurations supported if the current region is a custom region.
     #[serde(default, rename = "customRegionMetadata")]
@@ -213,11 +214,11 @@ pub struct LocationMetadata {
 }
 
 /// This is proto2''s version of MessageSet.DEPRECATED: DO NOT USE FOR NEW FIELDS.If you are using editions or proto2, please make your own extendable messages for your use case. If you are using proto3, please use Any instead.MessageSet was the implementation of extensions for proto1. When proto2 was introduced, extensions were implemented as a first-class feature. This schema for MessageSet was meant to be a "bridge" solution to migrate MessageSet-bearing messages from proto1 to proto2.This schema has been open-sourced only to facilitate the migration of Google products with MessageSet-bearing messages to open-source environments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MessageSet {}
 
 /// Request message for DataprocMetastore.MoveTableToDatabase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoveTableToDatabaseRequest {
     /// Required. The name of the database where the table resides.
     #[serde(default, rename = "dbName")]
@@ -231,11 +232,11 @@ pub struct MoveTableToDatabaseRequest {
 }
 
 /// Response message for DataprocMetastore.MoveTableToDatabase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoveTableToDatabaseResponse {}
 
 /// Represents the metadata of a long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -261,7 +262,7 @@ pub struct OperationMetadata {
 }
 
 /// Request message for DataprocMetastore.QueryMetadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryMetadataRequest {
     /// Required. A read-only SQL query to execute against the metadata database. The query cannot change or mutate the data.
     #[serde(default)]
@@ -269,7 +270,7 @@ pub struct QueryMetadataRequest {
 }
 
 /// Response message for DataprocMetastore.QueryMetadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryMetadataResponse {
     /// The manifest URI is link to a JSON instance in Cloud Storage. This instance manifests immediately along with QueryMetadataResponse. The content of the URI is not retriable until the long-running operation query against the metadata finishes.
     #[serde(default, rename = "resultManifestUri")]
@@ -277,7 +278,7 @@ pub struct QueryMetadataResponse {
 }
 
 /// Request message for DataprocMetastore.RestoreService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestoreServiceRequest {
     /// Optional. The relative resource name of the metastore service backup to restore from, in the following form:projects/{project_id}/locations/{location_id}/services/{service_id}/backups/{backup_id}. Mutually exclusive with backup_location, and exactly one of the two must be set.
     #[serde(default)]
@@ -294,7 +295,7 @@ pub struct RestoreServiceRequest {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -305,7 +306,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Request message for DataprocMetastore.StartMigration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartMigrationRequest {
     /// Required. The configuration details for the migration.
     #[serde(default, rename = "migrationExecution")]
@@ -316,7 +317,7 @@ pub struct StartMigrationRequest {
 }
 
 /// Wire-format for a Status object
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StatusProto {
     /// copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional int32 canonical_code = 6;
     #[serde(default, rename = "canonicalCode")]
@@ -336,7 +337,7 @@ pub struct StatusProto {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see IAM Overview (https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -344,7 +345,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -352,7 +353,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// The details of a backup resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Backup {
     /// Output only. The time when the backup was started.
     #[serde(default, rename = "createTime")]
@@ -378,7 +379,7 @@ pub struct Backup {
 }
 
 /// Represents a federation of multiple backend metastores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Federation {
     /// A map from BackendMetastore rank to BackendMetastores from which the federation service serves metadata at query time. The map key represents the order in which BackendMetastores should be evaluated to resolve database names at query time and should be greater than or equal to zero. A BackendMetastore with a lower number will be evaluated before a BackendMetastore with a higher number.
     #[serde(default, rename = "backendMetastores")]
@@ -416,7 +417,7 @@ pub struct Federation {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -436,7 +437,7 @@ pub struct Location {
 }
 
 /// A metastore resource that imports metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetadataImport {
     /// Output only. The time when the metadata import was started.
     #[serde(default, rename = "createTime")]
@@ -462,7 +463,7 @@ pub struct MetadataImport {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -482,7 +483,7 @@ pub struct Operation {
 }
 
 /// Deprecated: Use a single region service instead. Metadata about a custom region. This is only populated if the region is a custom region. For single/multi regions, it will be empty.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomRegionMetadata {
     /// The read-only regions for this custom region.
     #[serde(default, rename = "optionalReadOnlyRegions")]
@@ -496,7 +497,7 @@ pub struct CustomRegionMetadata {
 }
 
 /// Deprecated: Use a single region service instead. The metadata for the multi-region that includes the constituent regions. The metadata is only populated if the region is multi-region. For single region or custom dual region, it will be empty.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MultiRegionMetadata {
     /// The regions constituting the multi-region.
     #[serde(default, rename = "constituentRegions")]
@@ -510,7 +511,7 @@ pub struct MultiRegionMetadata {
 }
 
 /// A specification of a supported version of the Hive Metastore software.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HiveMetastoreVersion {
     /// Whether version will be chosen by the server if a metastore service is created with a HiveMetastoreConfig that omits the version.
     #[serde(default, rename = "isDefault")]
@@ -521,7 +522,7 @@ pub struct HiveMetastoreVersion {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources.A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role.For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).JSON example: { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 } YAML example: bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3 For a description of IAM and its features, see the IAM documentation (https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -538,7 +539,7 @@ pub struct Policy {
 }
 
 /// The details of a migration execution resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MigrationExecution {
     /// Deprecated: Migrations to Dataproc Metastore are no longer supported. Use BigLake Metastore migration instead. Configuration information specific to migrating from self-managed hive metastore on Google Cloud using Cloud SQL as the backend database to Dataproc Metastore.
     #[serde(default, rename = "cloudSqlMigrationConfig")]
@@ -564,7 +565,7 @@ pub struct MigrationExecution {
 }
 
 /// A managed metastore service that serves metadata queries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Service {
     /// Output only. A Cloud Storage URI (starting with gs://) that specifies where artifacts related to the metastore service are stored.
     #[serde(default, rename = "artifactGcsUri")]
@@ -644,7 +645,7 @@ pub struct Service {
 }
 
 /// A specification of the location of and metadata about a database dump from a relational database management system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabaseDump {
     /// The type of the database. // TODO: enum values: ["DATABASE_TYPE_UNSPECIFIED", "MYSQL"]
     #[serde(default, rename = "databaseType")]
@@ -661,7 +662,7 @@ pub struct DatabaseDump {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by gRPC (https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details.You can find out more about this error model and how to work with it in the API Design Guide (https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -675,7 +676,7 @@ pub struct Status {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs.If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted.Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -686,7 +687,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding.If the condition evaluates to true, then this binding applies to the current request.If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding.To learn which resources support conditions in their IAM policies, see the IAM documentation (https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -700,7 +701,7 @@ pub struct Binding {
 }
 
 /// Deprecated: Migrations to Dataproc Metastore are no longer supported. Use BigLake Metastore migration instead. Configuration information for migrating from self-managed hive metastore on Google Cloud using Cloud SQL as the backend database to Dataproc Metastore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudSQLMigrationConfig {
     /// Required. Configuration information to start the Change Data Capture (CDC) streams from customer database to backend database of Dataproc Metastore. Dataproc Metastore switches to using its backend database after the cutover phase of migration.
     #[serde(default, rename = "cdcConfig")]
@@ -711,7 +712,7 @@ pub struct CloudSQLMigrationConfig {
 }
 
 /// Encryption settings for the service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptionConfig {
     /// Optional. The fully qualified customer provided Cloud KMS key name to use for customer data encryption, in the following format:projects/{project_number}/locations/{location_id}/keyRings/{key_ring_id}/cryptoKeys/{crypto_key_id}.
     #[serde(default, rename = "kmsKey")]
@@ -719,7 +720,7 @@ pub struct EncryptionConfig {
 }
 
 /// Specifies configuration information specific to running Hive metastore software as the metastore service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HiveMetastoreConfig {
     /// Optional. A mapping of Hive metastore version to the auxiliary version configuration. When specified, a secondary Hive metastore service is created along with the primary service. All auxiliary versions must be less than the service''s primary version. The key is the auxiliary service name and it must match the regular expression a-z?. This means that the first character must be a lowercase letter, and all the following characters must be hyphens, lowercase letters, or digits, except the last character, which cannot be a hyphen.
     #[serde(default, rename = "auxiliaryVersions")]
@@ -739,7 +740,7 @@ pub struct HiveMetastoreConfig {
 }
 
 /// Maintenance window. This specifies when Dataproc Metastore may perform system maintenance operation to the service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaintenanceWindow {
     /// Optional. The day of week, when the window starts. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default, rename = "dayOfWeek")]
@@ -750,7 +751,7 @@ pub struct MaintenanceWindow {
 }
 
 /// Specifies how metastore metadata should be integrated with external services.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetadataIntegration {
     /// Optional. The integration config for the Data Catalog service.
     #[serde(default, rename = "dataCatalogConfig")]
@@ -758,7 +759,7 @@ pub struct MetadataIntegration {
 }
 
 /// The metadata management activities of the metastore service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetadataManagementActivity {
     /// Output only. The latest metadata exports of the metastore service.
     #[serde(default, rename = "metadataExports")]
@@ -769,7 +770,7 @@ pub struct MetadataManagementActivity {
 }
 
 /// Network configuration for the Dataproc Metastore service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkConfig {
     /// Immutable. The consumer-side network configuration for the Dataproc Metastore instance.
     #[serde(default)]
@@ -777,7 +778,7 @@ pub struct NetworkConfig {
 }
 
 /// Represents the scaling configuration of a metastore service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScalingConfig {
     /// Optional. The autoscaling configuration.
     #[serde(default, rename = "autoscalingConfig")]
@@ -791,7 +792,7 @@ pub struct ScalingConfig {
 }
 
 /// This specifies the configuration of scheduled backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScheduledBackup {
     /// Optional. A Cloud Storage URI of a folder, in the format gs:///. A sub-folder containing backup files will be stored below it.
     #[serde(default, rename = "backupLocation")]
@@ -814,7 +815,7 @@ pub struct ScheduledBackup {
 }
 
 /// Telemetry Configuration for the Dataproc Metastore service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TelemetryConfig {
     /// Optional. The output format of the Dataproc Metastore service''s logs. // TODO: enum values: ["LOG_FORMAT_UNSPECIFIED", "LEGACY", "JSON"]
     #[serde(default, rename = "logFormat")]
@@ -822,7 +823,7 @@ pub struct TelemetryConfig {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -833,7 +834,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec.Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -850,7 +851,7 @@ pub struct Expr {
 }
 
 /// Configuration information to start the Change Data Capture (CDC) streams from customer database to backend database of Dataproc Metastore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CdcConfig {
     /// Optional. The bucket to write the intermediate stream event data in. The bucket name must be without any prefix like "gs://". See the bucket naming requirements (https://cloud.google.com/storage/docs/buckets#naming). This field is optional. If not set, the Artifacts Cloud Storage bucket will be used.
     #[serde(default)]
@@ -876,7 +877,7 @@ pub struct CdcConfig {
 }
 
 /// Configuration information to establish customer database connection before the cutover phase of migration
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudSQLConnectionConfig {
     /// Required. The hive database name.
     #[serde(default, rename = "hiveDatabaseName")]
@@ -905,7 +906,7 @@ pub struct CloudSQLConnectionConfig {
 }
 
 /// Configuration information for a Kerberos principal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KerberosConfig {
     /// Optional. A Kerberos keytab file that can be used to authenticate a service principal with a Kerberos Key Distribution Center (KDC).
     #[serde(default)]
@@ -919,7 +920,7 @@ pub struct KerberosConfig {
 }
 
 /// Specifies how metastore metadata should be integrated with the Data Catalog service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataCatalogConfig {
     /// Optional. Defines whether the metastore metadata should be synced to Data Catalog. The default value is to disable syncing metastore metadata to Data Catalog.
     #[serde(default)]
@@ -927,7 +928,7 @@ pub struct DataCatalogConfig {
 }
 
 /// The details of a metadata export operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetadataExport {
     /// Output only. The type of the database dump. // TODO: enum values: ["TYPE_UNSPECIFIED", "MYSQL", "AVRO"]
     #[serde(default, rename = "databaseDumpType")]
@@ -947,7 +948,7 @@ pub struct MetadataExport {
 }
 
 /// The details of a metadata restore operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Restore {
     /// Output only. The relative resource name of the metastore service backup to restore from, in the following form:projects/{project_id}/locations/{location_id}/services/{service_id}/backups/{backup_id}.
     #[serde(default)]
@@ -973,7 +974,7 @@ pub struct Restore {
 }
 
 /// Contains information of the customer''s network configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Consumer {
     /// Output only. The location of the endpoint URI. Format: projects/{project}/locations/{location}.
     #[serde(default, rename = "endpointLocation")]
@@ -987,7 +988,7 @@ pub struct Consumer {
 }
 
 /// Represents the autoscaling configuration of a metastore service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoscalingConfig {
     /// Optional. Whether or not autoscaling is enabled for this service.
     #[serde(default, rename = "autoscalingEnabled")]
@@ -1001,7 +1002,7 @@ pub struct AutoscalingConfig {
 }
 
 /// The details of the latest scheduled backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LatestBackup {
     /// Output only. The ID of an in-progress scheduled backup. Empty if no backup is in progress.
     #[serde(default, rename = "backupId")]
@@ -1018,7 +1019,7 @@ pub struct LatestBackup {
 }
 
 /// A securely stored value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Secret {
     /// Optional. The relative resource name of a Secret Manager secret version, in the following form:projects/{project_number}/secrets/{secret_id}/versions/{version_id}.
     #[serde(default, rename = "cloudSecret")]
@@ -1026,7 +1027,7 @@ pub struct Secret {
 }
 
 /// Represents the autoscaling limit configuration of a metastore service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LimitConfig {
     /// Optional. The highest scaling factor that the service should be autoscaled to.
     #[serde(default, rename = "maxScalingFactor")]

@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Deletes one or more label permissions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2BatchDeleteLabelPermissionsRequest {
     /// Required. The request message specifying the resources to update.
     #[serde(default)]
@@ -24,7 +25,7 @@ pub struct GoogleAppsDriveLabelsV2BatchDeleteLabelPermissionsRequest {
 }
 
 /// Updates one or more label permissions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2BatchUpdateLabelPermissionsRequest {
     /// Required. The request message specifying the resources to update.
     #[serde(default)]
@@ -37,7 +38,7 @@ pub struct GoogleAppsDriveLabelsV2BatchUpdateLabelPermissionsRequest {
 }
 
 /// Response for updating one or more label permissions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2BatchUpdateLabelPermissionsResponse {
     /// Required. Permissions updated.
     #[serde(default)]
@@ -46,7 +47,7 @@ pub struct GoogleAppsDriveLabelsV2BatchUpdateLabelPermissionsResponse {
 }
 
 /// The set of requests for updating aspects of a label. If any request isn''t valid, no requests will be applied.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequest {
     /// The BCP-47 language code to use for evaluating localized field labels when include_label_in_response is true.
     #[serde(default, rename = "languageCode")]
@@ -68,7 +69,7 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequest {
 }
 
 /// Response for label update.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponse {
     /// The reply of the updates. This maps 1:1 with the updates, although responses to some requests may be empty.
     #[serde(default)]
@@ -81,39 +82,39 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponse {
 }
 
 /// Response following field delete.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDeleteFieldResponse {}
 
 /// Response following choice delete.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDeleteSelectionChoiceResponse {}
 
 /// Response following field disable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDisableFieldResponse {}
 
 /// Response following choice disable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseDisableSelectionChoiceResponse {}
 
 /// Response following field enable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseEnableFieldResponse {}
 
 /// Response following choice enable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseEnableSelectionChoiceResponse {}
 
 /// Response following update to field type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateFieldTypeResponse {}
 
 /// Response following update to label properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateLabelPropertiesResponse {}
 
 /// Request to deprecate a published label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DisableLabelRequest {
     /// Disabled policy to use.
     #[serde(default, rename = "disabledPolicy")]
@@ -133,7 +134,7 @@ pub struct GoogleAppsDriveLabelsV2DisableLabelRequest {
 }
 
 /// Request to enable a label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2EnableLabelRequest {
     /// The BCP-47 language code to use for evaluating localized field labels. When not specified, values in the default configured language will be used.
     #[serde(default, rename = "languageCode")]
@@ -147,7 +148,7 @@ pub struct GoogleAppsDriveLabelsV2EnableLabelRequest {
 }
 
 /// Label constraints governing the structure of a label; such as, the maximum number of fields allowed and maximum length of the label title.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2LabelLimits {
     /// The limits for fields.
     #[serde(default, rename = "fieldLimits")]
@@ -173,7 +174,7 @@ pub struct GoogleAppsDriveLabelsV2LabelLimits {
 }
 
 /// The response to a ListLabelLocksRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2ListLabelLocksResponse {
     /// Label locks.
     #[serde(default, rename = "labelLocks")]
@@ -184,7 +185,7 @@ pub struct GoogleAppsDriveLabelsV2ListLabelLocksResponse {
 }
 
 /// Response for listing the permissions on a label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2ListLabelPermissionsResponse {
     /// Label permissions.
     #[serde(default, rename = "labelPermissions")]
@@ -196,7 +197,7 @@ pub struct GoogleAppsDriveLabelsV2ListLabelPermissionsResponse {
 }
 
 /// Response for listing labels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2ListLabelsResponse {
     /// Labels.
     #[serde(default)]
@@ -207,7 +208,7 @@ pub struct GoogleAppsDriveLabelsV2ListLabelsResponse {
 }
 
 /// Request to publish a label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2PublishLabelRequest {
     /// The BCP-47 language code to use for evaluating localized field labels. When not specified, values in the default configured language will be used.
     #[serde(default, rename = "languageCode")]
@@ -221,7 +222,7 @@ pub struct GoogleAppsDriveLabelsV2PublishLabelRequest {
 }
 
 /// Request to update the CopyMode of the given label. Changes to this policy aren''t revisioned, don''t require publishing, and take effect immediately. \
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2UpdateLabelCopyModeRequest {
     /// Required. Indicates how the applied label and field values should be copied when a Drive item is copied. // TODO: enum values: ["COPY_MODE_UNSPECIFIED", "DO_NOT_COPY", "ALWAYS_COPY", "COPY_APPLIABLE"]
     #[serde(default, rename = "copyMode")]
@@ -238,7 +239,7 @@ pub struct GoogleAppsDriveLabelsV2UpdateLabelCopyModeRequest {
 }
 
 /// Request to update the EnabledAppSettings of the given label. This change is not revisioned, doesn''t require publishing, and takes effect immediately. \
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2UpdateLabelEnabledAppSettingsRequest {
     /// Required. The new EnabledAppSettings value for the label.
     #[serde(default, rename = "enabledAppSettings")]
@@ -256,7 +257,7 @@ pub struct GoogleAppsDriveLabelsV2UpdateLabelEnabledAppSettingsRequest {
 }
 
 /// The capabilities of a user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2UserCapabilities {
     /// Output only. Whether the user is allowed access to the label manager.
     #[serde(default, rename = "canAccessLabelManager")]
@@ -276,11 +277,11 @@ pub struct GoogleAppsDriveLabelsV2UserCapabilities {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// Deletes a label permission. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeleteLabelPermissionRequest {
     /// Required. Label permission resource name.
     #[serde(default)]
@@ -291,7 +292,7 @@ pub struct GoogleAppsDriveLabelsV2DeleteLabelPermissionRequest {
 }
 
 /// Updates a label permission. Permissions affect the label resource as a whole, aren''t revisioned, and don''t require publishing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2UpdateLabelPermissionRequest {
     /// Required. The permission to create or update on the label.
     #[serde(default, rename = "labelPermission")]
@@ -305,7 +306,7 @@ pub struct GoogleAppsDriveLabelsV2UpdateLabelPermissionRequest {
 }
 
 /// A single kind of update to apply to a label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestRequest {
     /// Creates a field.
     #[serde(default, rename = "createField")]
@@ -366,7 +367,7 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestRequest {
 }
 
 /// A single response from an update.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseResponse {
     /// Creates a field.
     #[serde(default, rename = "createField")]
@@ -414,7 +415,7 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseResponse {
 }
 
 /// Field constants governing the structure of a field; such as, the maximum title length, minimum and maximum field values or length, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2FieldLimits {
     /// Date field limits.
     #[serde(default, rename = "dateLimits")]
@@ -446,7 +447,7 @@ pub struct GoogleAppsDriveLabelsV2FieldLimits {
 }
 
 /// A lock that can be applied to a label, field, or choice.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2LabelLock {
     /// Output only. The user''s capabilities on this label lock.
     #[serde(default)]
@@ -475,7 +476,7 @@ pub struct GoogleAppsDriveLabelsV2LabelLock {
 }
 
 /// A label defines a taxonomy that can be applied to Drive items in order to organize and search across items. Labels can be simple strings, or can contain fields that describe additional metadata that can be further used to organize and search Drive items.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2Label {
     /// Output only. The capabilities related to this label on applied metadata.
     #[serde(default, rename = "appliedCapabilities")]
@@ -552,7 +553,7 @@ pub struct GoogleAppsDriveLabelsV2Label {
 }
 
 /// Provides control over how write requests are executed. When not specified, the last write wins.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2WriteControl {
     /// The revision ID of the label that the write request will be applied to. If this isn''t the latest revision of the label, the request will not be processed and will return a 400 Bad Request error.
     #[serde(default, rename = "requiredRevisionId")]
@@ -560,7 +561,7 @@ pub struct GoogleAppsDriveLabelsV2WriteControl {
 }
 
 /// The permission that applies to a principal (user, group, audience) on a label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2LabelPermission {
     /// Audience to grant a role to. The magic value of audiences/default may be used to apply the role to the default audience in the context of the organization that owns the label.
     #[serde(default)]
@@ -583,7 +584,7 @@ pub struct GoogleAppsDriveLabelsV2LabelPermission {
 }
 
 /// Request to create a field within a label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestCreateFieldRequest {
     /// Required. Field to create.
     #[serde(default)]
@@ -591,7 +592,7 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestCreateFieldRequest {
 }
 
 /// Request to create a selection choice.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestCreateSelectionChoiceRequest {
     /// Required. The choice to create.
     #[serde(default)]
@@ -602,7 +603,7 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestCreateSelectionChoiceRe
 }
 
 /// Request to delete the field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestDeleteFieldRequest {
     /// Required. ID of the field to delete.
     #[serde(default)]
@@ -610,7 +611,7 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestDeleteFieldRequest {
 }
 
 /// Request to delete a choice.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestDeleteSelectionChoiceRequest {
     /// Required. The selection field from which a choice will be deleted.
     #[serde(default, rename = "fieldId")]
@@ -621,7 +622,7 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestDeleteSelectionChoiceRe
 }
 
 /// Request to disable the field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestDisableFieldRequest {
     /// Required. Field disabled policy.
     #[serde(default, rename = "disabledPolicy")]
@@ -635,7 +636,7 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestDisableFieldRequest {
 }
 
 /// Request to disable a choice.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestDisableSelectionChoiceRequest {
     /// Required. The disabled policy to update.
     #[serde(default, rename = "disabledPolicy")]
@@ -652,7 +653,7 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestDisableSelectionChoiceR
 }
 
 /// Request to enable the field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestEnableFieldRequest {
     /// Required. ID of the field to enable.
     #[serde(default)]
@@ -660,7 +661,7 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestEnableFieldRequest {
 }
 
 /// Request to enable a choice.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestEnableSelectionChoiceRequest {
     /// Required. The selection field in which a choice will be enabled.
     #[serde(default, rename = "fieldId")]
@@ -671,7 +672,7 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestEnableSelectionChoiceRe
 }
 
 /// Request to update field properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestUpdateFieldPropertiesRequest {
     /// Required. The field to update.
     #[serde(default)]
@@ -685,7 +686,7 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestUpdateFieldPropertiesRe
 }
 
 /// Request to change the type of a field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestUpdateFieldTypeRequest {
     /// Update field to Date.
     #[serde(default, rename = "dateOptions")]
@@ -711,7 +712,7 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestUpdateFieldTypeRequest 
 }
 
 /// Updates basic properties of a label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestUpdateLabelPropertiesRequest {
     /// Required. Label properties to update.
     #[serde(default)]
@@ -722,7 +723,7 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestUpdateLabelPropertiesRe
 }
 
 /// Request to update a choice property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestUpdateSelectionChoicePropertiesRequest {
     /// Required. The selection field to update.
     #[serde(default, rename = "fieldId")]
@@ -740,7 +741,7 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelRequestUpdateSelectionChoicePr
 }
 
 /// Response following field create.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseCreateFieldResponse {
     /// The field of the created field. When left blank in a create request, a key will be autogenerated and can be identified here.
     #[serde(default)]
@@ -751,7 +752,7 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseCreateFieldResponse {
 }
 
 /// Response following selection choice create.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseCreateSelectionChoiceResponse {
     /// The server-generated ID of the field.
     #[serde(default, rename = "fieldId")]
@@ -762,7 +763,7 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseCreateSelectionChoiceR
 }
 
 /// Response following update to field properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateFieldPropertiesResponse {
     /// The priority of the updated field. The priority may change from what was specified to assure contiguous priorities between fields (1-n).
     #[serde(default)]
@@ -770,7 +771,7 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateFieldPropertiesR
 }
 
 /// Response following update to selection choice properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateSelectionChoicePropertiesResponse {
     /// The priority of the updated choice. The priority may change from what was specified to assure contiguous priorities between choices (1-n).
     #[serde(default)]
@@ -778,7 +779,7 @@ pub struct GoogleAppsDriveLabelsV2DeltaUpdateLabelResponseUpdateSelectionChoiceP
 }
 
 /// Limits for date field type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2DateLimits {
     /// Maximum value for the date field type.
     #[serde(default, rename = "maxValue")]
@@ -789,7 +790,7 @@ pub struct GoogleAppsDriveLabelsV2DateLimits {
 }
 
 /// Limits for integer field type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2IntegerLimits {
     /// Maximum value for an integer field type.
     #[serde(default, rename = "maxValue")]
@@ -800,7 +801,7 @@ pub struct GoogleAppsDriveLabelsV2IntegerLimits {
 }
 
 /// Limits for long text field type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2LongTextLimits {
     /// Maximum length allowed for a long text field type.
     #[serde(default, rename = "maxLength")]
@@ -811,7 +812,7 @@ pub struct GoogleAppsDriveLabelsV2LongTextLimits {
 }
 
 /// Limits for selection field type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2SelectionLimits {
     /// Limits for list-variant of a field type.
     #[serde(default, rename = "listLimits")]
@@ -831,7 +832,7 @@ pub struct GoogleAppsDriveLabelsV2SelectionLimits {
 }
 
 /// Limits for text field type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2TextLimits {
     /// Maximum length allowed for a text field type.
     #[serde(default, rename = "maxLength")]
@@ -842,7 +843,7 @@ pub struct GoogleAppsDriveLabelsV2TextLimits {
 }
 
 /// Limits for Field.Type.USER.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2UserLimits {
     /// Limits for list-variant of a field type.
     #[serde(default, rename = "listLimits")]
@@ -850,7 +851,7 @@ pub struct GoogleAppsDriveLabelsV2UserLimits {
 }
 
 /// A description of a user''s capabilities on a label lock.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2LabelLockCapabilities {
     /// True if the user is authorized to view the policy.
     #[serde(default, rename = "canViewPolicy")]
@@ -858,7 +859,7 @@ pub struct GoogleAppsDriveLabelsV2LabelLockCapabilities {
 }
 
 /// The capabilities a user has on this label''s applied metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2LabelAppliedCapabilities {
     /// Whether the user can apply this label to items.
     #[serde(default, rename = "canApply")]
@@ -872,7 +873,7 @@ pub struct GoogleAppsDriveLabelsV2LabelAppliedCapabilities {
 }
 
 /// Behavior of this label when it''s applied to Drive items.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2LabelAppliedLabelPolicy {
     /// Indicates how the applied label and field values should be copied when a Drive item is copied. // TODO: enum values: ["COPY_MODE_UNSPECIFIED", "DO_NOT_COPY", "ALWAYS_COPY", "COPY_APPLIABLE"]
     #[serde(default, rename = "copyMode")]
@@ -880,7 +881,7 @@ pub struct GoogleAppsDriveLabelsV2LabelAppliedLabelPolicy {
 }
 
 /// The UI display hints for rendering the label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2LabelDisplayHints {
     /// Whether the label should be shown in the UI as disabled.
     #[serde(default)]
@@ -897,7 +898,7 @@ pub struct GoogleAppsDriveLabelsV2LabelDisplayHints {
 }
 
 /// Describes the Google Workspace apps in which the label can be used.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2LabelEnabledAppSettings {
     /// Optional. The list of apps where the label can be used.
     #[serde(default, rename = "enabledApps")]
@@ -907,7 +908,7 @@ pub struct GoogleAppsDriveLabelsV2LabelEnabledAppSettings {
 }
 
 /// The capabilities related to this label when editing the label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2LabelSchemaCapabilities {
     /// Whether the user can delete this label. The user must have permission and the label must be disabled.
     #[serde(default, rename = "canDelete")]
@@ -924,7 +925,7 @@ pub struct GoogleAppsDriveLabelsV2LabelSchemaCapabilities {
 }
 
 /// Defines a field that has a display name, data type, and other configuration options. This field defines the kind of metadata that may be set on a Drive item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2Field {
     /// Output only. The capabilities this user has on this field and its value when the label is applied on Drive items.
     #[serde(default, rename = "appliedCapabilities")]
@@ -990,7 +991,7 @@ pub struct GoogleAppsDriveLabelsV2Field {
 }
 
 /// Basic properties of the label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2LabelProperties {
     /// The description of the label.
     #[serde(default)]
@@ -1001,7 +1002,7 @@ pub struct GoogleAppsDriveLabelsV2LabelProperties {
 }
 
 /// Limits for list-variant of a field type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2ListLimits {
     /// Maximum number of values allowed for the field type.
     #[serde(default, rename = "maxEntries")]
@@ -1009,7 +1010,7 @@ pub struct GoogleAppsDriveLabelsV2ListLimits {
 }
 
 /// An app where the label can be used.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2LabelEnabledAppSettingsEnabledApp {
     /// Optional. The name of the app. // TODO: enum values: ["APP_UNSPECIFIED", "DRIVE", "GMAIL"]
     #[serde(default)]
@@ -1017,7 +1018,7 @@ pub struct GoogleAppsDriveLabelsV2LabelEnabledAppSettingsEnabledApp {
 }
 
 /// The capabilities related to this field on applied metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2FieldAppliedCapabilities {
     /// Whether the user can read related applied metadata on items.
     #[serde(default, rename = "canRead")]
@@ -1031,7 +1032,7 @@ pub struct GoogleAppsDriveLabelsV2FieldAppliedCapabilities {
 }
 
 /// Options for the date field type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2FieldDateOptions {
     /// Output only. ICU date format.
     #[serde(default, rename = "dateFormat")]
@@ -1048,7 +1049,7 @@ pub struct GoogleAppsDriveLabelsV2FieldDateOptions {
 }
 
 /// UI display hints for rendering a field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2FieldDisplayHints {
     /// Whether the field should be shown in the UI as disabled.
     #[serde(default)]
@@ -1065,7 +1066,7 @@ pub struct GoogleAppsDriveLabelsV2FieldDisplayHints {
 }
 
 /// Options for the Integer field type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2FieldIntegerOptions {
     /// Output only. The maximum valid value for the integer field.
     #[serde(default, rename = "maxValue")]
@@ -1076,7 +1077,7 @@ pub struct GoogleAppsDriveLabelsV2FieldIntegerOptions {
 }
 
 /// The basic properties of the field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2FieldProperties {
     /// Required. The display text to show in the UI identifying this field.
     #[serde(default, rename = "displayName")]
@@ -1090,7 +1091,7 @@ pub struct GoogleAppsDriveLabelsV2FieldProperties {
 }
 
 /// The capabilities related to this field when editing the field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2FieldSchemaCapabilities {
     /// Whether the user can delete this field. The user must have permission and the field must be deprecated.
     #[serde(default, rename = "canDelete")]
@@ -1107,7 +1108,7 @@ pub struct GoogleAppsDriveLabelsV2FieldSchemaCapabilities {
 }
 
 /// Options for the selection field type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2FieldSelectionOptions {
     /// The options available for this selection field. The list order is consistent, and modified with insert_before_choice.
     #[serde(default)]
@@ -1119,7 +1120,7 @@ pub struct GoogleAppsDriveLabelsV2FieldSelectionOptions {
 }
 
 /// Options for the Text field type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2FieldTextOptions {
     /// Output only. The maximum valid length of values for the text field.
     #[serde(default, rename = "maxLength")]
@@ -1130,7 +1131,7 @@ pub struct GoogleAppsDriveLabelsV2FieldTextOptions {
 }
 
 /// Options for the user field type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2FieldUserOptions {
     /// When specified, indicates that this field supports a list of values. Once the field is published, this cannot be changed.
     #[serde(default, rename = "listOptions")]
@@ -1138,7 +1139,7 @@ pub struct GoogleAppsDriveLabelsV2FieldUserOptions {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeDate {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -1152,7 +1153,7 @@ pub struct GoogleTypeDate {
 }
 
 /// Selection field choice.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2FieldSelectionOptionsChoice {
     /// Output only. The capabilities related to this choice on applied metadata.
     #[serde(default, rename = "appliedCapabilities")]
@@ -1208,7 +1209,7 @@ pub struct GoogleAppsDriveLabelsV2FieldSelectionOptionsChoice {
 }
 
 /// Options for a multi-valued variant of an associated field type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2FieldListOptions {
     /// Maximum number of entries permitted.
     #[serde(default, rename = "maxEntries")]
@@ -1216,7 +1217,7 @@ pub struct GoogleAppsDriveLabelsV2FieldListOptions {
 }
 
 /// The capabilities related to this choice on applied metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceAppliedCapabilities {
     /// Whether the user can read related applied metadata on items.
     #[serde(default, rename = "canRead")]
@@ -1230,7 +1231,7 @@ pub struct GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceAppliedCapabilities
 }
 
 /// Information about a user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2UserInfo {
     /// The identifier for this user that can be used with the [People API](https://developers.google.com/people) to get more information. For example, people/12345678.
     #[serde(default)]
@@ -1238,7 +1239,7 @@ pub struct GoogleAppsDriveLabelsV2UserInfo {
 }
 
 /// UI display hints for rendering an option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceDisplayHints {
     /// The colors to use for the badge. Changed to Google Material colors based on the chosen properties.badge_config.color.
     #[serde(default, rename = "badgeColors")]
@@ -1261,7 +1262,7 @@ pub struct GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceDisplayHints {
 }
 
 /// The lifecycle state of an object, such as label, field, or choice. For more information, see [Label lifecycle](https://developers.google.com/workspace/drive/labels/guides/label-lifecycle). The lifecycle enforces the following transitions: * UNPUBLISHED_DRAFT (starting state) * UNPUBLISHED_DRAFT -&gt; PUBLISHED * UNPUBLISHED_DRAFT -&gt; (Deleted) * PUBLISHED -&gt; DISABLED * DISABLED -&gt; PUBLISHED * DISABLED -&gt; (Deleted) The published and disabled states have some distinct characteristics: * Published: Some kinds of changes might be made to an object in this state, in which case has_unpublished_changes will be true. Also, some kinds of changes aren''t permitted. Generally, any change that would invalidate or cause new restrictions on existing metadata related to the label are rejected. * Disabled: When disabled, the configured DisabledPolicy takes effect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2Lifecycle {
     /// The policy that governs how to show a disabled label, field, or selection choice.
     #[serde(default, rename = "disabledPolicy")]
@@ -1275,7 +1276,7 @@ pub struct GoogleAppsDriveLabelsV2Lifecycle {
 }
 
 /// Contains information about whether a label component should be considered locked.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2LockStatus {
     /// Output only. Indicates whether this label component is the (direct) target of a label lock. A label component can be implicitly locked even if it''s not the direct target of a label lock, in which case this field is set to false.
     #[serde(default)]
@@ -1283,7 +1284,7 @@ pub struct GoogleAppsDriveLabelsV2LockStatus {
 }
 
 /// Basic properties of the choice.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceProperties {
     /// The badge configuration for this choice. When set, the label that owns this choice is considered a "badged label".
     #[serde(default, rename = "badgeConfig")]
@@ -1300,7 +1301,7 @@ pub struct GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceProperties {
 }
 
 /// The capabilities related to this choice when editing the choice.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceSchemaCapabilities {
     /// Whether the user can delete this choice.
     #[serde(default, rename = "canDelete")]
@@ -1317,7 +1318,7 @@ pub struct GoogleAppsDriveLabelsV2FieldSelectionOptionsChoiceSchemaCapabilities 
 }
 
 /// The color derived from BadgeConfig and changed to the closest recommended supported color.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2BadgeColors {
     /// Output only. Badge background that pairs with the foreground.
     #[serde(default, rename = "backgroundColor")]
@@ -1331,7 +1332,7 @@ pub struct GoogleAppsDriveLabelsV2BadgeColors {
 }
 
 /// The policy that governs how to treat a disabled label, field, or selection choice in different contexts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2LifecycleDisabledPolicy {
     /// Whether to hide this disabled object in the search menu for Drive items. * When false, the object is generally shown in the UI as disabled but it appears in the search results when searching for Drive items. * When true, the object is generally hidden in the UI when searching for Drive items.
     #[serde(default, rename = "hideInSearch")]
@@ -1342,7 +1343,7 @@ pub struct GoogleAppsDriveLabelsV2LifecycleDisabledPolicy {
 }
 
 /// Badge status of the label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsDriveLabelsV2BadgeConfig {
     /// The color of the badge. When not specified, no badge is rendered. The background, foreground, and solo (light and dark mode) colors set here are changed in the Drive UI into the closest recommended supported color.
     #[serde(default)]
@@ -1353,7 +1354,7 @@ pub struct GoogleAppsDriveLabelsV2BadgeConfig {
 }
 
 /// Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of java.awt.Color in Java; it can also be trivially provided to UIColor''s +colorWithRed:green:blue:alpha method in iOS; and, with just a little work, it can be easily formatted into a CSS rgba() string in JavaScript. This reference page doesn''t have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most 1e-5. Example (Java): import com.google.type.Color; // ... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha() ? protocolor.getAlpha().getValue() : 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color .newBuilder() .setRed(red / denominator) .setGreen(green / denominator) .setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha != 255) { result.setAlpha( FloatValue .newBuilder() .setValue(((float) alpha) / denominator) .build()); } return resultBuilder.build(); } // ... Example (iOS / Obj-C): // ... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper != nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha &lt;= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } // ... Example (JavaScript): // ... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!(''alpha'' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join('',''); return [''rgba('', rgbParams, '','', alphaFrac, '')''].join(''''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red &lt;&lt; 16) | (green &lt;&lt; 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = [''#'']; for (var i = 0; i &lt; missingZeros; i++) { resultBuilder.push(''0''); } resultBuilder.push(hexString); return resultBuilder.join(''''); }; // ...
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeColor {
     /// The fraction of this color that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (this color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color. This uses a wrapper message rather than a simple float scalar so that it is possible to distinguish between a default value and the value being unset. If omitted, this color object is rendered as a solid color (as if the alpha value had been explicitly given a value of 1.0).
     #[serde(default)]

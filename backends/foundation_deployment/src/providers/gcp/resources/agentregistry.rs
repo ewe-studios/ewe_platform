@@ -8,18 +8,19 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Message for response to listing Agents
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAgentsResponse {
     /// The list of Agents.
     #[serde(default)]
@@ -30,7 +31,7 @@ pub struct ListAgentsResponse {
 }
 
 /// Message for response to listing Endpoints
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListEndpointsResponse {
     /// The list of Endpoint resources matching the parent and filter criteria in the request. Each Endpoint resource follows the format: projects/{project}/locations/{location}/endpoints/{endpoint}.
     #[serde(default)]
@@ -41,7 +42,7 @@ pub struct ListEndpointsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -52,7 +53,7 @@ pub struct ListLocationsResponse {
 }
 
 /// Message for response to listing McpServers
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMcpServersResponse {
     /// The list of McpServers.
     #[serde(default, rename = "mcpServers")]
@@ -63,7 +64,7 @@ pub struct ListMcpServersResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -77,7 +78,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Message for response to listing Services
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListServicesResponse {
     /// A token identifying a page of results the server should return. Used in page_token.
     #[serde(default, rename = "nextPageToken")]
@@ -88,7 +89,7 @@ pub struct ListServicesResponse {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -114,7 +115,7 @@ pub struct OperationMetadata {
 }
 
 /// Represents an Agent. "A2A" below refers to the Agent-to-Agent protocol.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Agent {
     /// Output only. A stable, globally unique identifier for agents.
     #[serde(default, rename = "agentId")]
@@ -158,7 +159,7 @@ pub struct Agent {
 }
 
 /// Represents an Endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Endpoint {
     /// Output only. Attributes of the Endpoint. Valid values: * agentregistry.googleapis.com/system/RuntimeReference: {"uri": "//..."} - the URI of the underlying resource hosting the Endpoint, for example, the GKE Deployment.
     #[serde(default)]
@@ -187,7 +188,7 @@ pub struct Endpoint {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -207,7 +208,7 @@ pub struct Location {
 }
 
 /// Represents an MCP (Model Context Protocol) Server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct McpServer {
     /// Output only. Attributes of the MCP Server. Valid values: * agentregistry.googleapis.com/system/RuntimeIdentity: {"principal": "principal://..."} - the runtime identity associated with the MCP Server. * agentregistry.googleapis.com/system/RuntimeReference: {"uri": "//..."} - the URI of the underlying resource hosting the MCP Server, for example, the GKE Deployment.
     #[serde(default)]
@@ -239,7 +240,7 @@ pub struct McpServer {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -259,7 +260,7 @@ pub struct Operation {
 }
 
 /// Represents a user-defined Service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Service {
     /// Optional. The spec of the Agent. When agent_spec is set, the type of the service is Agent.
     #[serde(default, rename = "agentSpec")]
@@ -294,7 +295,7 @@ pub struct Service {
 }
 
 /// Full Agent Card payload, often obtained from the A2A Agent Card.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Card {
     /// Output only. The content of the agent card.
     #[serde(default)]
@@ -305,7 +306,7 @@ pub struct Card {
 }
 
 /// Represents the protocol of an Agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Protocol {
     /// Output only. The connection details for the Agent.
     #[serde(default)]
@@ -319,7 +320,7 @@ pub struct Protocol {
 }
 
 /// Represents the skills of an Agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Skill {
     /// Output only. A more detailed description of the skill.
     #[serde(default)]
@@ -339,7 +340,7 @@ pub struct Skill {
 }
 
 /// Represents a single tool provided by an MCP Server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Tool {
     /// Output only. Annotations associated with the tool.
     #[serde(default)]
@@ -353,7 +354,7 @@ pub struct Tool {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -367,7 +368,7 @@ pub struct Status {
 }
 
 /// The spec of the agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentSpec {
     /// Optional. The content of the Agent spec in the JSON format. This payload is validated against the schema for the specified type. The content size is limited to 10KB.
     #[serde(default)]
@@ -378,7 +379,7 @@ pub struct AgentSpec {
 }
 
 /// The spec of the endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EndpointSpec {
     /// Optional. The content of the endpoint spec. Reserved for future use.
     #[serde(default)]
@@ -389,7 +390,7 @@ pub struct EndpointSpec {
 }
 
 /// The spec of the MCP Server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct McpServerSpec {
     /// Optional. The content of the MCP Server spec. This payload is validated against the schema for the specified type. The content size is limited to 10KB.
     #[serde(default)]
@@ -400,7 +401,7 @@ pub struct McpServerSpec {
 }
 
 /// Represents the connection details for an Agent or MCP Server.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Interface {
     /// Required. The protocol binding of the interface. // TODO: enum values: ["PROTOCOL_BINDING_UNSPECIFIED", "JSONRPC", "GRPC", "HTTP_JSON"]
     #[serde(default, rename = "protocolBinding")]
@@ -411,7 +412,7 @@ pub struct Interface {
 }
 
 /// Annotations describing the characteristics and behavior of a tool or operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Annotations {
     /// Output only. If true, the tool may perform destructive updates to its environment. If false, the tool performs only additive updates. NOTE: This property is meaningful only when read_only_hint == false Default: true
     #[serde(default, rename = "destructiveHint")]

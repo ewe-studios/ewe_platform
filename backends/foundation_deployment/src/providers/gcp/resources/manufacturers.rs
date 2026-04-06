@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Response for ListProductCertifications method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListProductCertificationsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -26,7 +27,7 @@ pub struct ListProductCertificationsResponse {
 }
 
 /// ListProductsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListProductsResponse {
     /// The token for the retrieval of the next page of product statuses.
     #[serde(default, rename = "nextPageToken")]
@@ -37,7 +38,7 @@ pub struct ListProductsResponse {
 }
 
 /// Product certification data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductCertification {
     /// Required. This is the product''s brand name. The brand is used to help identify your product.
     #[serde(default)]
@@ -72,7 +73,7 @@ pub struct ProductCertification {
 }
 
 /// Product data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Product {
     /// Attributes of the product uploaded to the Manufacturer Center. Manually edited attributes are taken into account.
     #[serde(default)]
@@ -104,7 +105,7 @@ pub struct Product {
 }
 
 /// Description of a certification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Certification {
     /// Required. Name of the certification body.
     #[serde(default)]
@@ -130,7 +131,7 @@ pub struct Certification {
 }
 
 /// Attributes of the product. For more information, see https://support.google.com/manufacturers/answer/6124116.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Attributes {
     /// The additional images of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#addlimage.
     #[serde(default, rename = "additionalImageLink")]
@@ -262,7 +263,7 @@ pub struct Attributes {
 }
 
 /// The destination status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DestinationStatus {
     /// Output only. List of country codes (ISO 3166-1 alpha-2) where the offer is approved.
     #[serde(default, rename = "approvedCountries")]
@@ -282,7 +283,7 @@ pub struct DestinationStatus {
 }
 
 /// Product issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Issue {
     /// Output only. List of country codes (ISO 3166-1 alpha-2) where issue applies to the manufacturer product.
     #[serde(default, rename = "applicableCountries")]
@@ -314,7 +315,7 @@ pub struct Issue {
 }
 
 /// The capacity of a product. For more information, see https://support.google.com/manufacturers/answer/6124116#capacity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Capacity {
     /// The unit of the capacity, i.e., MB, GB, or TB.
     #[serde(default)]
@@ -325,7 +326,7 @@ pub struct Capacity {
 }
 
 /// Description of a certification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleShoppingManufacturersV1ProductCertification {
     /// Required. Name of the certification body.
     #[serde(default)]
@@ -351,7 +352,7 @@ pub struct GoogleShoppingManufacturersV1ProductCertification {
 }
 
 /// The number of products in a single package. For more information, see https://support.google.com/manufacturers/answer/6124116#count.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Count {
     /// The unit in which these products are counted.
     #[serde(default)]
@@ -362,7 +363,7 @@ pub struct Count {
 }
 
 /// A feature description of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#featuredesc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FeatureDescription {
     /// A short description of the feature.
     #[serde(default)]
@@ -376,7 +377,7 @@ pub struct FeatureDescription {
 }
 
 /// Grocery resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Grocery {
     /// Active ingredients.
     #[serde(default, rename = "activeIngredients")]
@@ -408,7 +409,7 @@ pub struct Grocery {
 }
 
 /// Nutrition resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Nutrition {
     /// Added sugars.
     #[serde(default, rename = "addedSugars")]
@@ -542,7 +543,7 @@ pub struct Nutrition {
 }
 
 /// A product detail of the product. For more information, see https://support.google.com/manufacturers/answer/6124116#productdetail.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductDetail {
     /// The name of the attribute.
     #[serde(default, rename = "attributeName")]
@@ -556,7 +557,7 @@ pub struct ProductDetail {
 }
 
 /// A price.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Price {
     /// The numeric value of the price.
     #[serde(default)]
@@ -567,7 +568,7 @@ pub struct Price {
 }
 
 /// An image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Image {
     /// The URL of the image. For crawled images, this is the provided URL. For uploaded images, this is a serving URL from Google if the image has been processed successfully.
     #[serde(default, rename = "imageUrl")]
@@ -581,7 +582,7 @@ pub struct Image {
 }
 
 /// Voluntary Nutrition Facts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VoluntaryNutritionFact {
     /// Daily percentage.
     #[serde(default, rename = "dailyPercentage")]
@@ -595,7 +596,7 @@ pub struct VoluntaryNutritionFact {
 }
 
 /// Combination of float amount and unit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FloatUnit {
     /// amount.
     #[serde(default)]

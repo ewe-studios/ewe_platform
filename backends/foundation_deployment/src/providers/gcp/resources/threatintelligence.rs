@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A document that is associated with an alert.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlertDocument {
     /// Output only. AI summary of the finding.
     #[serde(default, rename = "aiSummary")]
@@ -55,7 +56,7 @@ pub struct AlertDocument {
 }
 
 /// A string with citation ids.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerProfileCitedString {
     /// Optional. The citation ids for the string.
     #[serde(default, rename = "citationIds")]
@@ -66,7 +67,7 @@ pub struct CustomerProfileCitedString {
 }
 
 /// Response message for EnumerateAlertFacets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnumerateAlertFacetsResponse {
     /// List of facets and the counts.
     #[serde(default)]
@@ -74,7 +75,7 @@ pub struct EnumerateAlertFacetsResponse {
 }
 
 /// Request message for GenerateOrgProfileConfiguration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateOrgProfileConfigurationRequest {
     /// Required. The display name of the organization to generate the profile for.
     #[serde(default, rename = "displayName")]
@@ -85,7 +86,7 @@ pub struct GenerateOrgProfileConfigurationRequest {
 }
 
 /// Response message for ListAlerts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAlertsResponse {
     /// List of alerts.
     #[serde(default)]
@@ -96,7 +97,7 @@ pub struct ListAlertsResponse {
 }
 
 /// Response message for ListConfigurationRevisions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListConfigurationRevisionsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -107,7 +108,7 @@ pub struct ListConfigurationRevisionsResponse {
 }
 
 /// Response message for ListConfigurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListConfigurationsResponse {
     /// List of configurations.
     #[serde(default)]
@@ -118,7 +119,7 @@ pub struct ListConfigurationsResponse {
 }
 
 /// Response message for ListFindings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListFindingsResponse {
     /// List of findings.
     #[serde(default)]
@@ -129,11 +130,11 @@ pub struct ListFindingsResponse {
 }
 
 /// Request message for MarkAlertAsBenign.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MarkAlertAsBenignRequest {}
 
 /// Request message for MarkAlertAsDuplicate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MarkAlertAsDuplicateRequest {
     /// Optional. Name of the alert to mark as a duplicate of. Format: projects/{project}/alerts/{alert}
     #[serde(default, rename = "duplicateOf")]
@@ -141,35 +142,35 @@ pub struct MarkAlertAsDuplicateRequest {
 }
 
 /// Request message for MarkAlertAsEscalated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MarkAlertAsEscalatedRequest {}
 
 /// Request message for MarkAlertAsFalsePositive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MarkAlertAsFalsePositiveRequest {}
 
 /// Request message for MarkAlertAsNotActionable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MarkAlertAsNotActionableRequest {}
 
 /// Request message for MarkAlertAsRead.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MarkAlertAsReadRequest {}
 
 /// Request message for MarkAlertAsResolved.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MarkAlertAsResolvedRequest {}
 
 /// Request message for MarkAlertAsTrackedExternally.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MarkAlertAsTrackedExternallyRequest {}
 
 /// Request message for MarkAlertAsTriaged.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MarkAlertAsTriagedRequest {}
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -189,7 +190,7 @@ pub struct Operation {
 }
 
 /// Response message for SearchFindings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchFindingsResponse {
     /// List of findings.
     #[serde(default)]
@@ -200,7 +201,7 @@ pub struct SearchFindingsResponse {
 }
 
 /// Response message for UpsertConfiguration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpsertConfigurationResponse {
     /// Output only. Created configuration ID with server assigned id.
     #[serde(default)]
@@ -208,7 +209,7 @@ pub struct UpsertConfigurationResponse {
 }
 
 /// The translation of an alert document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlertDocumentTranslation {
     /// Output only. The translated content of the document.
     #[serde(default, rename = "translatedContent")]
@@ -219,7 +220,7 @@ pub struct AlertDocumentTranslation {
 }
 
 /// Facet represents a sub element of a resource for filtering. The results from this method are used to populate the filterable facets in the UI.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Facet {
     /// Name of the facet. This is also the string that needs to be used in the filtering expression.
     #[serde(default)]
@@ -242,7 +243,7 @@ pub struct Facet {
 }
 
 /// Stateful object representing a group of Findings. Key feature to an Alert is that it expresses the user''s intent towards the findings of that group, even those that haven''t occurred yet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Alert {
     /// Optional. AI summary of the finding.
     #[serde(default, rename = "aiSummary")]
@@ -295,7 +296,7 @@ pub struct Alert {
 }
 
 /// A ConfigurationRevision is a snapshot of a Configuration at a point in time. It is immutable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigurationRevision {
     /// Output only. The time the Revision was created
     #[serde(default, rename = "createTime")]
@@ -309,7 +310,7 @@ pub struct ConfigurationRevision {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -323,7 +324,7 @@ pub struct Status {
 }
 
 /// A ‘stateless’ and a point in time event that a check produced a result of interest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Finding {
     /// Optional. AI summary of the finding.
     #[serde(default, rename = "aiSummary")]
@@ -364,7 +365,7 @@ pub struct Finding {
 }
 
 /// FacetCount represents a count of records with each facet value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FacetCount {
     /// Count of records with the value.
     #[serde(default)]
@@ -375,7 +376,7 @@ pub struct FacetCount {
 }
 
 /// Container for different types of alert details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlertDetail {
     /// Data Leak alert detail type.
     #[serde(default, rename = "dataLeak")]
@@ -392,7 +393,7 @@ pub struct AlertDetail {
 }
 
 /// Structured priority analysis for a threat.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PriorityAnalysis {
     /// The level of confidence in the given verdict. // TODO: enum values: ["CONFIDENCE_LEVEL_UNSPECIFIED", "CONFIDENCE_LEVEL_LOW", "CONFIDENCE_LEVEL_MEDIUM", "CONFIDENCE_LEVEL_HIGH"]
     #[serde(default)]
@@ -406,7 +407,7 @@ pub struct PriorityAnalysis {
 }
 
 /// A configuration represents a behavior an engine should follow when producing new findings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Configuration {
     /// Output only. Audit information for the configuration.
     #[serde(default)]
@@ -435,7 +436,7 @@ pub struct Configuration {
 }
 
 /// Wrapper class that contains the union struct for all the various findings detail specific classes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FindingDetail {
     /// Data Leak finding detail type.
     #[serde(default, rename = "dataLeak")]
@@ -452,7 +453,7 @@ pub struct FindingDetail {
 }
 
 /// Structured relevance analysis for a threat.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RelevanceAnalysis {
     /// The level of confidence in the given verdict. // TODO: enum values: ["CONFIDENCE_LEVEL_UNSPECIFIED", "CONFIDENCE_LEVEL_LOW", "CONFIDENCE_LEVEL_MEDIUM", "CONFIDENCE_LEVEL_HIGH"]
     #[serde(default)]
@@ -472,7 +473,7 @@ pub struct RelevanceAnalysis {
 }
 
 /// Structured severity analysis for a threat.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SeverityAnalysis {
     /// The level of confidence in the given verdict. // TODO: enum values: ["CONFIDENCE_LEVEL_UNSPECIFIED", "CONFIDENCE_LEVEL_LOW", "CONFIDENCE_LEVEL_MEDIUM", "CONFIDENCE_LEVEL_HIGH"]
     #[serde(default)]
@@ -486,7 +487,7 @@ pub struct SeverityAnalysis {
 }
 
 /// Captures the specific details of Data Leak alert.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataLeakAlertDetail {
     /// Required. Array of ids to accommodate multiple discovery documents
     #[serde(default, rename = "discoveryDocumentIds")]
@@ -497,7 +498,7 @@ pub struct DataLeakAlertDetail {
 }
 
 /// Captures the specific details of InitialAccessBroker (IAB) alert.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InitialAccessBrokerAlertDetail {
     /// Required. Array of ids to accommodate multiple discovery documents
     #[serde(default, rename = "discoveryDocumentIds")]
@@ -508,7 +509,7 @@ pub struct InitialAccessBrokerAlertDetail {
 }
 
 /// Captures the specific details of InsiderThreat alert.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsiderThreatAlertDetail {
     /// Required. Array of ids to accommodate multiple discovery documents
     #[serde(default, rename = "discoveryDocumentIds")]
@@ -519,7 +520,7 @@ pub struct InsiderThreatAlertDetail {
 }
 
 /// Tracks basic CRUD facts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Audit {
     /// Output only. Time of creation.
     #[serde(default, rename = "createTime")]
@@ -536,7 +537,7 @@ pub struct Audit {
 }
 
 /// Wrapper class that contains the union struct for all the various configuration detail specific classes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfigurationDetail {
     /// Customer Profile detail config.
     #[serde(default, rename = "customerProfile")]
@@ -547,7 +548,7 @@ pub struct ConfigurationDetail {
 }
 
 /// A detail object for a Data Leak finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataLeakFindingDetail {
     /// Required. The unique identifier of the document that triggered the Data Leak finding. This ID can be used to retrieve the content of the document for further analysis.
     #[serde(default, rename = "documentId")]
@@ -561,7 +562,7 @@ pub struct DataLeakFindingDetail {
 }
 
 /// A detail object for an Initial Access Broker (IAB) finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InitialAccessBrokerFindingDetail {
     /// Required. The unique identifier of the document that triggered the IAB finding. This ID can be used to retrieve the content of the document for further analysis.
     #[serde(default, rename = "documentId")]
@@ -575,7 +576,7 @@ pub struct InitialAccessBrokerFindingDetail {
 }
 
 /// A detail object for a InsiderThreat finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InsiderThreatFindingDetail {
     /// Required. The unique identifier of the document that triggered the InsiderThreat finding. This ID can be used to retrieve the content of the document for further analysis.
     #[serde(default, rename = "documentId")]
@@ -589,7 +590,7 @@ pub struct InsiderThreatFindingDetail {
 }
 
 /// Details the evidence used to determine the relevance verdict.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Evidence {
     /// A list of semantic themes or concepts found to be common, related, or aligned between the sources, supporting the verdict.
     #[serde(default, rename = "commonThemes")]
@@ -600,7 +601,7 @@ pub struct Evidence {
 }
 
 /// CustomerProfileConfig is the configuration for the customer profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerProfileConfig {
     /// Optional. Citations for the organization profile.
     #[serde(default)]
@@ -644,7 +645,7 @@ pub struct CustomerProfileConfig {
 }
 
 /// Citation information for the customer profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerProfileCitation {
     /// Required. The citation id for the citation. Should be unique within the profile.
     #[serde(default, rename = "citationId")]
@@ -664,7 +665,7 @@ pub struct CustomerProfileCitation {
 }
 
 /// Contact information for the customer profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerProfileContactInfo {
     /// The address of the contact.
     #[serde(default)]
@@ -687,7 +688,7 @@ pub struct CustomerProfileContactInfo {
 }
 
 /// Person information for the customer profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerProfilePerson {
     /// Optional. The citation ids for the person.
     #[serde(default, rename = "citationIds")]
@@ -701,7 +702,7 @@ pub struct CustomerProfilePerson {
 }
 
 /// Industry information for the customer profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerProfileIndustry {
     /// Optional. The citation ids for the industry.
     #[serde(default, rename = "citationIds")]
@@ -712,7 +713,7 @@ pub struct CustomerProfileIndustry {
 }
 
 /// Location information for the customer profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerProfileLocation {
     /// Required. The address of the location.
     #[serde(default)]
@@ -729,7 +730,7 @@ pub struct CustomerProfileLocation {
 }
 
 /// Company information for the customer profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerProfileCompany {
     /// Optional. The citation ids for the company.
     #[serde(default, rename = "citationIds")]
@@ -740,7 +741,7 @@ pub struct CustomerProfileCompany {
 }
 
 /// Product information for the customer profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerProfileProduct {
     /// Required. The brand of the product.
     #[serde(default)]
@@ -754,7 +755,7 @@ pub struct CustomerProfileProduct {
 }
 
 /// Security considerations for the customer profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerProfileSecurityConsiderations {
     /// Optional. A series of considerations for the security of the organization, such as "high risk of compromise" or "vulnerable to cyberbullying".
     #[serde(default)]
@@ -765,7 +766,7 @@ pub struct CustomerProfileSecurityConsiderations {
 }
 
 /// A summarized version of the customer profile. Generated by the backend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerProfileSummary {
     /// Optional. The area the customer serves.
     #[serde(default, rename = "areaServed")]
@@ -806,7 +807,7 @@ pub struct CustomerProfileSummary {
 }
 
 /// Web presence information for the customer profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerProfileWebPresence {
     /// Optional. The citation ids for the web presence.
     #[serde(default, rename = "citationIds")]

@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Message for requesting batch edit tags for ApiObservations
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchEditTagsApiObservationsRequest {
     /// Required. The request message specifying the resources to update. A maximum of 1000 apiObservations can be modified in a batch.
     #[serde(default)]
@@ -19,7 +20,7 @@ pub struct BatchEditTagsApiObservationsRequest {
 }
 
 /// Message for response to edit Tags for ApiObservations
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchEditTagsApiObservationsResponse {
     /// ApiObservations that were changed
     #[serde(default, rename = "apiObservations")]
@@ -27,23 +28,23 @@ pub struct BatchEditTagsApiObservationsResponse {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// Message for disabling an ObservationJob
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisableObservationJobRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Message for enabling an ObservationJob
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnableObservationJobRequest {}
 
 /// Entitlement stores data related to API Observation entitlement for a given project
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Entitlement {
     /// Whether API Observation is entitled.
     #[serde(default, rename = "apiObservationEntitled")]
@@ -63,7 +64,7 @@ pub struct Entitlement {
 }
 
 /// An aggregation of HTTP header occurrences.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpOperationHeader {
     /// The number of occurrences of this Header across transactions.
     #[serde(default)]
@@ -77,7 +78,7 @@ pub struct HttpOperationHeader {
 }
 
 /// An aggregation of HTTP query parameter occurrences.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpOperationQueryParam {
     /// The number of occurrences of this query parameter across transactions.
     #[serde(default)]
@@ -91,7 +92,7 @@ pub struct HttpOperationQueryParam {
 }
 
 /// Message for response to listing tags
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListApiObservationTagsResponse {
     /// The tags from the specified project
     #[serde(default, rename = "apiObservationTags")]
@@ -102,7 +103,7 @@ pub struct ListApiObservationTagsResponse {
 }
 
 /// Message for response to listing ApiObservations
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListApiObservationsResponse {
     /// The ApiObservation from the specified project and location and ObservationJobs.
     #[serde(default, rename = "apiObservations")]
@@ -113,7 +114,7 @@ pub struct ListApiObservationsResponse {
 }
 
 /// Message for response to listing ApiOperations
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListApiOperationsResponse {
     /// The ApiOperations from the specified project and location and ObservationJob and ApiObservation.
     #[serde(default, rename = "apiOperations")]
@@ -124,7 +125,7 @@ pub struct ListApiOperationsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -135,7 +136,7 @@ pub struct ListLocationsResponse {
 }
 
 /// Message for response to listing ObservationJobs
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListObservationJobsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -149,7 +150,7 @@ pub struct ListObservationJobsResponse {
 }
 
 /// Message for response to listing ObservationSources
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListObservationSourcesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -163,7 +164,7 @@ pub struct ListObservationSourcesResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -177,7 +178,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -203,7 +204,7 @@ pub struct OperationMetadata {
 }
 
 /// Message for requesting edit tags for ApiObservation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EditTagsApiObservationsRequest {
     /// Required. Identifier of ApiObservation need to be edit tags Format example: "apigee.googleapis.com|us-west1|443"
     #[serde(default, rename = "apiObservationId")]
@@ -214,7 +215,7 @@ pub struct EditTagsApiObservationsRequest {
 }
 
 /// Message describing ApiObservation object
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiObservation {
     /// The number of observed API Operations.
     #[serde(default, rename = "apiOperationCount")]
@@ -249,7 +250,7 @@ pub struct ApiObservation {
 }
 
 /// Message describing ApiOperation object
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiOperation {
     /// The number of occurrences of this API Operation.
     #[serde(default)]
@@ -269,7 +270,7 @@ pub struct ApiOperation {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -289,7 +290,7 @@ pub struct Location {
 }
 
 /// Message describing ObservationJob object
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObservationJob {
     /// Output only. [Output only] Create time stamp
     #[serde(default, rename = "createTime")]
@@ -309,7 +310,7 @@ pub struct ObservationJob {
 }
 
 /// Observation source configuration types
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObservationSource {
     /// Output only. [Output only] Create time stamp
     #[serde(default, rename = "createTime")]
@@ -329,7 +330,7 @@ pub struct ObservationSource {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -349,7 +350,7 @@ pub struct Operation {
 }
 
 /// Message for edit tag action
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TagAction {
     /// Required. Action to be applied // TODO: enum values: ["ACTION_UNSPECIFIED", "ADD", "REMOVE"]
     #[serde(default)]
@@ -360,7 +361,7 @@ pub struct TagAction {
 }
 
 /// An HTTP-based API Operation, sometimes called a "REST" Operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpOperation {
     /// HTTP Method. // TODO: enum values: ["HTTP_METHOD_UNSPECIFIED", "GET", "HEAD", "POST", "PUT", "PATCH", "DELETE", "TRACE", "OPTIONS", "CONNECT"]
     #[serde(default)]
@@ -383,7 +384,7 @@ pub struct HttpOperation {
 }
 
 /// The GCLB observation source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GclbObservationSource {
     /// Required. The VPC networks where traffic will be observed. All load balancers within this network will be observed. Currently, this is limited to only one network.
     #[serde(default, rename = "pscNetworkConfigs")]
@@ -392,7 +393,7 @@ pub struct GclbObservationSource {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -406,7 +407,7 @@ pub struct Status {
 }
 
 /// HTTP Path parameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpOperationPathParam {
     /// Data type of path param // TODO: enum values: ["DATA_TYPE_UNSPECIFIED", "BOOL", "INTEGER", "FLOAT", "STRING", "UUID"]
     #[serde(default, rename = "dataType")]
@@ -417,7 +418,7 @@ pub struct HttpOperationPathParam {
 }
 
 /// An aggregation of HTTP requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpOperationHttpRequest {
     /// Unordered map from header name to header metadata
     #[serde(default)]
@@ -425,7 +426,7 @@ pub struct HttpOperationHttpRequest {
 }
 
 /// An aggregation of HTTP responses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpOperationHttpResponse {
     /// Unordered map from header name to header metadata
     #[serde(default)]
@@ -436,7 +437,7 @@ pub struct HttpOperationHttpResponse {
 }
 
 /// Network information for setting up a PSC connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GclbObservationSourcePscNetworkConfig {
     /// Required. The VPC network. Format: projects/{project_id}/global/networks/{network}
     #[serde(default)]

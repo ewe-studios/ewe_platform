@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Empty response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmptyResponse {
     /// Apiary error details
     #[serde(default)]
@@ -19,7 +20,7 @@ pub struct EmptyResponse {
 }
 
 /// Response message for GroupsService.ListGroupItems.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGroupItemsResponse {
     /// Apiary error details
     #[serde(default)]
@@ -36,7 +37,7 @@ pub struct ListGroupItemsResponse {
 }
 
 /// Response message for GroupsService.ListGroups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGroupsResponse {
     /// Apiary error details
     #[serde(default)]
@@ -56,7 +57,7 @@ pub struct ListGroupsResponse {
 }
 
 /// Response message for TargetedQueriesService.Query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryResponse {
     /// This value specifies information about the data returned in the rows fields. Each item in the columnHeaders list identifies a field returned in the rows value, which contains a list of comma-delimited data. The columnHeaders list will begin with the dimensions specified in the API request, which will be followed by the metrics specified in the API request. The order of both dimensions and metrics will match the ordering in the API request. For example, if the API request contains the parameters dimensions=ageGroup,gender&metrics=viewerPercentage, the API response will return columns in this order: ageGroup, gender, viewerPercentage.
     #[serde(default, rename = "columnHeaders")]
@@ -73,7 +74,7 @@ pub struct QueryResponse {
 }
 
 /// A group item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GroupItem {
     /// Apiary error details
     #[serde(default)]
@@ -96,7 +97,7 @@ pub struct GroupItem {
 }
 
 /// A group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Group {
     /// The contentDetails object contains additional information about the group, such as the number and type of items that it contains.
     #[serde(default, rename = "contentDetails")]
@@ -119,7 +120,7 @@ pub struct Group {
 }
 
 /// The description of a column of the result table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResultTableColumnHeader {
     /// The type of the column (DIMENSION or METRIC).
     #[serde(default, rename = "columnType")]
@@ -133,7 +134,7 @@ pub struct ResultTableColumnHeader {
 }
 
 /// GroupItemResource resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GroupItemResource {
     /// The channel, video, playlist, or asset ID that YouTube uses to uniquely identify the item that is being added to the group.
     #[serde(default)]
@@ -144,7 +145,7 @@ pub struct GroupItemResource {
 }
 
 /// A group''s content details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GroupContentDetails {
     /// The number of items in the group.
     #[serde(default, rename = "itemCount")]
@@ -155,7 +156,7 @@ pub struct GroupContentDetails {
 }
 
 /// Request Error information. The presence of an error field signals that the operation has failed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Errors {
     /// Global error code. Deprecated and ignored. Set custom error codes in ErrorProto.domain and ErrorProto.code instead. // TODO: enum values: ["BAD_REQUEST", "FORBIDDEN", "NOT_FOUND", "CONFLICT", "GONE", "PRECONDITION_FAILED", "INTERNAL_ERROR", "SERVICE_UNAVAILABLE"]
     #[serde(default)]
@@ -169,7 +170,7 @@ pub struct Errors {
 }
 
 /// A group snippet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GroupSnippet {
     /// The date and time that the group was created. The value is specified in ISO 8601 (YYYY-MM-DDThh:mm:ss.sZ) format.
     #[serde(default, rename = "publishedAt")]
@@ -180,7 +181,7 @@ pub struct GroupSnippet {
 }
 
 /// Describes one specific error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorProto {
     /// Error arguments, to be used when building user-friendly error messages given the error domain and code. Different error codes require different arguments.
     #[serde(default)]

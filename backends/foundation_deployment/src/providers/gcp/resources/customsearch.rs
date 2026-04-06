@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Response to a custom search request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Search {
     /// Metadata and refinements associated with the given search engine, including: * The name of the search engine that was used for the query. * A set of [facet objects](https://developers.google.com/custom-search/docs/refinements#create) (refinements) you can use for refining a search.
     #[serde(default)]
@@ -40,7 +41,7 @@ pub struct Search {
 }
 
 /// A custom search result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiResult {
     /// Indicates the ID of Google''s cached version of the search result.
     #[serde(default, rename = "cacheId")]
@@ -90,7 +91,7 @@ pub struct ApiResult {
 }
 
 /// Promotion result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Promotion {
     /// An array of block objects for this promotion.
     #[serde(default, rename = "bodyLines")]

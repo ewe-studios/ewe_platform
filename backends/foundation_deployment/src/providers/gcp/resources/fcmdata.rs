@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Response message for ListAndroidDeliveryData.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseFcmDataV1beta1ListAndroidDeliveryDataResponse {
     /// The delivery data for the provided app. There will be one entry per combination of app, date, and analytics label.
     #[serde(default, rename = "androidDeliveryData")]
@@ -23,7 +24,7 @@ pub struct GoogleFirebaseFcmDataV1beta1ListAndroidDeliveryDataResponse {
 }
 
 /// Message delivery data for a given date, app, and analytics label combination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseFcmDataV1beta1AndroidDeliveryData {
     /// The analytics label associated with the messages sent. All messages sent without an analytics label will be grouped together in a single entry.
     #[serde(default, rename = "analyticsLabel")]
@@ -40,7 +41,7 @@ pub struct GoogleFirebaseFcmDataV1beta1AndroidDeliveryData {
 }
 
 /// Data detailing messaging delivery
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseFcmDataV1beta1Data {
     /// Count of messages accepted by FCM intended for Android devices. The targeted device must have opted in to the collection of usage and diagnostic information.
     #[serde(default, rename = "countMessagesAccepted")]
@@ -67,7 +68,7 @@ pub struct GoogleFirebaseFcmDataV1beta1Data {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeDate {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -81,7 +82,7 @@ pub struct GoogleTypeDate {
 }
 
 /// Overview of delivery performance for messages that were successfully delivered. All percentages are calculated with countMessagesAccepted as the denominator. These categories are not mutually exclusive; a message can be delayed for multiple reasons.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseFcmDataV1beta1DeliveryPerformancePercents {
     /// The percentage of accepted messages that were delayed because the device was in doze mode. Only [normal priority messages](https://firebase.google.com/docs/cloud-messaging/concept-options#setting-the-priority-of-a-message) should be delayed due to doze mode.
     #[serde(default, rename = "delayedDeviceDoze")]
@@ -101,7 +102,7 @@ pub struct GoogleFirebaseFcmDataV1beta1DeliveryPerformancePercents {
 }
 
 /// Additional information about message delivery. All percentages are calculated with countMessagesAccepted as the denominator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseFcmDataV1beta1MessageInsightPercents {
     /// The percentage of accepted messages that had their priority lowered from high to normal. See [documentation for setting message priority](https://firebase.google.com/docs/cloud-messaging/android/message-priority).
     #[serde(default, rename = "priorityLowered")]
@@ -109,7 +110,7 @@ pub struct GoogleFirebaseFcmDataV1beta1MessageInsightPercents {
 }
 
 /// Percentage breakdown of message delivery outcomes. These categories are mutually exclusive. All percentages are calculated with countMessagesAccepted as the denominator. These categories may not account for all message outcomes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseFcmDataV1beta1MessageOutcomePercents {
     /// The percentage of accepted messages that were [collapsed](https://firebase.google.com/docs/cloud-messaging/concept-options#collapsible_and_non-collapsible_messages) by another message.
     #[serde(default)]
@@ -135,7 +136,7 @@ pub struct GoogleFirebaseFcmDataV1beta1MessageOutcomePercents {
 }
 
 /// Additional information about [proxy notification](https://firebase.google.com/docs/cloud-messaging/android/message-priority#proxy) delivery. All percentages are calculated with countNotificationsAccepted as the denominator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleFirebaseFcmDataV1beta1ProxyNotificationInsightPercents {
     /// The percentage of accepted notifications that failed to be proxied. This is usually caused by exceptions that occurred while calling [notifyAsPackage](https://developer.android.com/reference/android/app/NotificationManager#notifyAsPackage%28java.lang.String,%20java.lang.String,%20int,%20android.app.Notification%29).
     #[serde(default)]

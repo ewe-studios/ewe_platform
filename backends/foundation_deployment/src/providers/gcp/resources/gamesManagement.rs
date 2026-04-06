@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Achievement reset all response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AchievementResetAllResponse {
     /// Uniquely identifies the type of this resource. Value is always the fixed string gamesManagement#achievementResetAllResponse.
     #[serde(default)]
@@ -22,7 +23,7 @@ pub struct AchievementResetAllResponse {
 }
 
 /// AchievementResetMultipleForAllRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AchievementResetMultipleForAllRequest {
     /// The IDs of achievements to reset.
     #[serde(default)]
@@ -33,7 +34,7 @@ pub struct AchievementResetMultipleForAllRequest {
 }
 
 /// Multiple events reset all request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventsResetMultipleForAllRequest {
     /// The IDs of events to reset.
     #[serde(default)]
@@ -44,7 +45,7 @@ pub struct EventsResetMultipleForAllRequest {
 }
 
 /// A list of hidden players.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HiddenPlayerList {
     /// The players.
     #[serde(default)]
@@ -58,7 +59,7 @@ pub struct HiddenPlayerList {
 }
 
 /// A list of leaderboard reset resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlayerScoreResetAllResponse {
     /// Uniquely identifies the type of this resource. Value is always the fixed string gamesManagement#playerScoreResetAllResponse.
     #[serde(default)]
@@ -69,7 +70,7 @@ pub struct PlayerScoreResetAllResponse {
 }
 
 /// ScoresResetMultipleForAllRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScoresResetMultipleForAllRequest {
     /// Uniquely identifies the type of this resource. Value is always the fixed string gamesManagement#scoresResetMultipleForAllRequest.
     #[serde(default)]
@@ -80,7 +81,7 @@ pub struct ScoresResetMultipleForAllRequest {
 }
 
 /// An achievement reset response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AchievementResetResponse {
     /// The current state of the achievement. This is the same as the initial state of the achievement. Possible values are: - "HIDDEN"- Achievement is hidden. - "REVEALED" - Achievement is revealed. - "UNLOCKED" - Achievement is unlocked.
     #[serde(default, rename = "currentState")]
@@ -97,7 +98,7 @@ pub struct AchievementResetResponse {
 }
 
 /// The HiddenPlayer resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HiddenPlayer {
     /// Output only. The time this player was hidden.
     #[serde(default, rename = "hiddenTimeMillis")]
@@ -111,7 +112,7 @@ pub struct HiddenPlayer {
 }
 
 /// A list of reset leaderboard entry resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlayerScoreResetResponse {
     /// The ID of an leaderboard for which player state has been updated.
     #[serde(default, rename = "definitionId")]
@@ -125,7 +126,7 @@ pub struct PlayerScoreResetResponse {
 }
 
 /// A Player resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Player {
     /// The base URL for the image that represents the player.
     #[serde(default, rename = "avatarImageUrl")]
@@ -163,7 +164,7 @@ pub struct Player {
 }
 
 /// 1P/3P metadata about the player''s experience.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GamesPlayerExperienceInfoResource {
     /// The current number of experience points for the player.
     #[serde(default, rename = "currentExperiencePoints")]
@@ -180,7 +181,7 @@ pub struct GamesPlayerExperienceInfoResource {
 }
 
 /// Profile settings
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProfileSettings {
     /// Uniquely identifies the type of this resource. Value is always the fixed string gamesManagement#profileSettings.
     #[serde(default)]
@@ -190,7 +191,7 @@ pub struct ProfileSettings {
 }
 
 /// 1P/3P metadata about a user''s level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GamesPlayerLevelResource {
     /// The level for the user.
     #[serde(default)]

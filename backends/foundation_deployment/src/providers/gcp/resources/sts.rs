@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -25,7 +26,7 @@ pub struct GoogleIamV1Binding {
 }
 
 /// Request message for ExchangeToken.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityStsV1ExchangeTokenRequest {
     /// The full resource name of the identity provider; for example: //iam.googleapis.com/projects//locations/global/workloadIdentityPools//providers/ for workload identity pool providers, or //iam.googleapis.com/locations/global/workforcePools//providers/ for workforce pool providers. Required when exchanging an external credential for a Google access token.
     #[serde(default)]
@@ -51,7 +52,7 @@ pub struct GoogleIdentityStsV1ExchangeTokenRequest {
 }
 
 /// Response message for ExchangeToken.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityStsV1ExchangeTokenResponse {
     /// The access boundary session key. This key is used along with the access boundary intermediary token to generate Credential Access Boundary tokens at client side. This field is absent when the requested_token_type from the request is not urn:ietf:params:oauth:token-type:access_boundary_intermediary_token.
     #[serde(default)]
@@ -71,7 +72,7 @@ pub struct GoogleIdentityStsV1ExchangeTokenResponse {
 }
 
 /// An Options object configures features that the Security Token Service supports, but that are not supported by standard OAuth 2.0 token exchange endpoints, as defined in https://tools.ietf.org/html/rfc8693.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityStsV1Options {
     /// An access boundary that defines the upper bound of permissions the credential may have. The value should be a JSON object of AccessBoundary. The access boundary can include up to 10 rules. The size of the parameter value should not exceed 2048 characters.
     #[serde(default, rename = "accessBoundary")]
@@ -85,7 +86,7 @@ pub struct GoogleIdentityStsV1Options {
 }
 
 /// An Options object configures features that the Security Token Service supports, but that are not supported by standard OAuth 2.0 token exchange endpoints, as defined in https://tools.ietf.org/html/rfc8693.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityStsV1betaOptions {
     /// An access boundary that defines the upper bound of permissions the credential may have. The value should be a JSON object of AccessBoundary. The access boundary can include up to 10 rules. The size of the parameter value should not exceed 2048 characters.
     #[serde(default, rename = "accessBoundary")]
@@ -96,7 +97,7 @@ pub struct GoogleIdentityStsV1betaOptions {
 }
 
 /// An access boundary defines the upper bound of what a principal may access. It includes a list of access boundary rules that each defines the resource that may be allowed as well as permissions that may be used on those resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityStsV1AccessBoundary {
     /// A list of access boundary rules which defines the upper bound of the permission a principal may carry. If multiple rules are specified, the effective access boundary is the union of all the access boundary rules attached. One access boundary can contain at most 10 rules.
     #[serde(default, rename = "accessBoundaryRules")]
@@ -105,7 +106,7 @@ pub struct GoogleIdentityStsV1AccessBoundary {
 }
 
 /// An access boundary defines the upper bound of what a principal may access. It includes a list of access boundary rules that each defines the resource that may be allowed as well as permissions that may be used on those resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityStsV1betaAccessBoundary {
     /// A list of access boundary rules which defines the upper bound of the permission a principal may carry. If multiple rules are specified, the effective access boundary is the union of all the access boundary rules attached. One access boundary can contain at most 10 rules.
     #[serde(default, rename = "accessBoundaryRules")]
@@ -114,7 +115,7 @@ pub struct GoogleIdentityStsV1betaAccessBoundary {
 }
 
 /// An access boundary rule defines an upper bound of IAM permissions on a single resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityStsV1AccessBoundaryRule {
     /// The availability condition further constrains the access allowed by the access boundary rule. If the condition evaluates to true, then this access boundary rule will provide access to the specified resource, assuming the principal has the required permissions for the resource. If the condition does not evaluate to true, then access to the specified resource will not be available. Note that all access boundary rules in an access boundary are evaluated together as a union. As such, another access boundary rule may allow access to the resource, even if this access boundary rule does not allow access. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). The maximum length of the expression field is 2048 characters.
     #[serde(default, rename = "availabilityCondition")]
@@ -128,7 +129,7 @@ pub struct GoogleIdentityStsV1AccessBoundaryRule {
 }
 
 /// An access boundary rule defines an upper bound of IAM permissions on a single resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIdentityStsV1betaAccessBoundaryRule {
     /// The availability condition further constrains the access allowed by the access boundary rule. If the condition evaluates to true, then this access boundary rule will provide access to the specified resource, assuming the principal has the required permissions for the resource. If the condition does not evaluate to true, then access to the specified resource will not be available. Note that all access boundary rules in an access boundary are evaluated together as a union. As such, another access boundary rule may allow access to the resource, even if this access boundary rule does not allow access. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). The maximum length of the expression field is 2048 characters.
     #[serde(default, rename = "availabilityCondition")]
@@ -142,7 +143,7 @@ pub struct GoogleIdentityStsV1betaAccessBoundaryRule {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeExpr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]

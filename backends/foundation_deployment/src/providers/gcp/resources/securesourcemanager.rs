@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request to batch create pull request comments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchCreatePullRequestCommentsRequest {
     /// Required. The request message specifying the resources to create. There should be exactly one CreatePullRequestCommentRequest with CommentDetail being REVIEW in the list, and no more than 100 CreatePullRequestCommentRequests with CommentDetail being CODE in the list
     #[serde(default)]
@@ -19,7 +20,7 @@ pub struct BatchCreatePullRequestCommentsRequest {
 }
 
 /// The response to batch create pull request comments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchCreatePullRequestCommentsResponse {
     /// The list of pull request comments created.
     #[serde(default, rename = "pullRequestComments")]
@@ -27,11 +28,11 @@ pub struct BatchCreatePullRequestCommentsResponse {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// The request to close an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloseIssueRequest {
     /// Optional. The current etag of the issue. If the etag is provided and does not match the current etag of the issue, closing will be blocked and an ABORTED error will be returned.
     #[serde(default)]
@@ -39,15 +40,15 @@ pub struct CloseIssueRequest {
 }
 
 /// ClosePullRequestRequest is the request to close a pull request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClosePullRequestRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Response message containing the content of a blob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchBlobResponse {
     /// The content of the blob, encoded as base64.
     #[serde(default)]
@@ -58,7 +59,7 @@ pub struct FetchBlobResponse {
 }
 
 /// Response message containing a list of TreeEntry objects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchTreeResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -69,7 +70,7 @@ pub struct FetchTreeResponse {
 }
 
 /// ListBranchRulesResponse is the response to listing branchRules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBranchRulesResponse {
     /// The list of branch rules.
     #[serde(default, rename = "branchRules")]
@@ -80,7 +81,7 @@ pub struct ListBranchRulesResponse {
 }
 
 /// ListHooksResponse is response to list hooks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListHooksResponse {
     /// The list of hooks.
     #[serde(default)]
@@ -91,7 +92,7 @@ pub struct ListHooksResponse {
 }
 
 /// ListInstancesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInstancesResponse {
     /// The list of instances.
     #[serde(default)]
@@ -105,7 +106,7 @@ pub struct ListInstancesResponse {
 }
 
 /// The response to list issue comments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListIssueCommentsResponse {
     /// The list of issue comments.
     #[serde(default, rename = "issueComments")]
@@ -116,7 +117,7 @@ pub struct ListIssueCommentsResponse {
 }
 
 /// The response to list issues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListIssuesResponse {
     /// The list of issues.
     #[serde(default)]
@@ -127,7 +128,7 @@ pub struct ListIssuesResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -138,7 +139,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -152,7 +153,7 @@ pub struct ListOperationsResponse {
 }
 
 /// The response to list pull request comments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPullRequestCommentsResponse {
     /// A token to set as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -163,7 +164,7 @@ pub struct ListPullRequestCommentsResponse {
 }
 
 /// ListPullRequestFileDiffsResponse is the response containing file diffs returned from ListPullRequestFileDiffs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPullRequestFileDiffsResponse {
     /// The list of pull request file diffs.
     #[serde(default, rename = "fileDiffs")]
@@ -174,7 +175,7 @@ pub struct ListPullRequestFileDiffsResponse {
 }
 
 /// ListPullRequestsResponse is the response to list pull requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPullRequestsResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -185,7 +186,7 @@ pub struct ListPullRequestsResponse {
 }
 
 /// ListRepositoriesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRepositoriesResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -196,11 +197,11 @@ pub struct ListRepositoriesResponse {
 }
 
 /// MergePullRequestRequest is the request to merge a pull request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MergePullRequestRequest {}
 
 /// The request to open an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OpenIssueRequest {
     /// Optional. The current etag of the issue. If the etag is provided and does not match the current etag of the issue, opening will be blocked and an ABORTED error will be returned.
     #[serde(default)]
@@ -208,11 +209,11 @@ pub struct OpenIssueRequest {
 }
 
 /// OpenPullRequestRequest is the request to open a pull request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OpenPullRequestRequest {}
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -238,7 +239,7 @@ pub struct OperationMetadata {
 }
 
 /// The request to resolve multiple pull request comments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResolvePullRequestCommentsRequest {
     /// Optional. If set, at least one comment in a thread is required, rest of the comments in the same thread will be automatically updated to resolved. If unset, all comments in the same thread need be present.
     #[serde(default, rename = "autoFill")]
@@ -249,7 +250,7 @@ pub struct ResolvePullRequestCommentsRequest {
 }
 
 /// The response to resolve multiple pull request comments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResolvePullRequestCommentsResponse {
     /// The list of pull request comments resolved.
     #[serde(default, rename = "pullRequestComments")]
@@ -257,7 +258,7 @@ pub struct ResolvePullRequestCommentsResponse {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -268,7 +269,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -276,7 +277,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -284,7 +285,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// The request to unresolve multiple pull request comments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnresolvePullRequestCommentsRequest {
     /// Optional. If set, at least one comment in a thread is required, rest of the comments in the same thread will be automatically updated to unresolved. If unset, all comments in the same thread need be present.
     #[serde(default, rename = "autoFill")]
@@ -295,7 +296,7 @@ pub struct UnresolvePullRequestCommentsRequest {
 }
 
 /// The response to unresolve multiple pull request comments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnresolvePullRequestCommentsResponse {
     /// The list of pull request comments unresolved.
     #[serde(default, rename = "pullRequestComments")]
@@ -303,7 +304,7 @@ pub struct UnresolvePullRequestCommentsResponse {
 }
 
 /// The request to create a pull request comment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreatePullRequestCommentRequest {
     /// Required. The pull request in which to create the pull request comment. Format: projects/{project_number}/locations/{location_id}/repositories/{repository_id}/pullRequests/{pull_request_id}
     #[serde(default)]
@@ -314,7 +315,7 @@ pub struct CreatePullRequestCommentRequest {
 }
 
 /// Represents an entry within a tree structure (like a Git tree).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TreeEntry {
     /// Output only. The file mode as a string (e.g., "100644"). Indicates file type. Output-only.
     #[serde(default)]
@@ -334,7 +335,7 @@ pub struct TreeEntry {
 }
 
 /// Metadata of a BranchRule. BranchRule is the protection rule to enforce pre-defined rules on designated branches within a repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BranchRule {
     /// Optional. Determines if allow stale reviews or approvals before merging to the branch.
     #[serde(default, rename = "allowStaleReviews")]
@@ -387,7 +388,7 @@ pub struct BranchRule {
 }
 
 /// Metadata of a Secure Source Manager Hook.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Hook {
     /// Output only. Create timestamp.
     #[serde(default, rename = "createTime")]
@@ -419,7 +420,7 @@ pub struct Hook {
 }
 
 /// A resource that represents a Secure Source Manager instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Instance {
     /// Output only. Create timestamp.
     #[serde(default, rename = "createTime")]
@@ -455,7 +456,7 @@ pub struct Instance {
 }
 
 /// IssueComment represents a comment on an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IssueComment {
     /// Required. The comment body.
     #[serde(default)]
@@ -472,7 +473,7 @@ pub struct IssueComment {
 }
 
 /// Metadata of an Issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Issue {
     /// Optional. Issue body. Provides a detailed description of the issue.
     #[serde(default)]
@@ -501,7 +502,7 @@ pub struct Issue {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -521,7 +522,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -541,7 +542,7 @@ pub struct Operation {
 }
 
 /// Metadata of a FileDiff. FileDiff represents a single file diff in a pull request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FileDiff {
     /// Output only. The action taken on the file (eg. added, modified, deleted). // TODO: enum values: ["ACTION_UNSPECIFIED", "ADDED", "MODIFIED", "DELETED"]
     #[serde(default)]
@@ -558,7 +559,7 @@ pub struct FileDiff {
 }
 
 /// Metadata of a PullRequest. PullRequest is the request from a user to merge a branch (head) into another branch (base).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PullRequest {
     /// Required. The branch to merge changes in.
     #[serde(default)]
@@ -590,7 +591,7 @@ pub struct PullRequest {
 }
 
 /// Metadata of a Secure Source Manager repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Repository {
     /// Output only. Create timestamp.
     #[serde(default, rename = "createTime")]
@@ -622,7 +623,7 @@ pub struct Repository {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -639,7 +640,7 @@ pub struct Policy {
 }
 
 /// PullRequestComment represents a comment on a pull request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PullRequestComment {
     /// Optional. The comment on a code line.
     #[serde(default)]
@@ -662,7 +663,7 @@ pub struct PullRequestComment {
 }
 
 /// Check is a type for status check.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Check {
     /// Required. The context of the check.
     #[serde(default)]
@@ -670,7 +671,7 @@ pub struct Check {
 }
 
 /// PushOption resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PushOption {
     /// Optional. Trigger hook for matching branches only. Specified as glob pattern. If empty or *, events for all branches are reported. Examples: main, {main,release*}. See https://pkg.go.dev/github.com/gobwas/glob documentation.
     #[serde(default, rename = "branchFilter")]
@@ -678,7 +679,7 @@ pub struct PushOption {
 }
 
 /// HostConfig has different instance endpoints.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HostConfig {
     /// Output only. API hostname.
     #[serde(default)]
@@ -695,7 +696,7 @@ pub struct HostConfig {
 }
 
 /// PrivateConfig includes settings for private instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrivateConfig {
     /// Optional. Immutable. CA pool resource, resource must in the format of projects/{project}/locations/{location}/caPools/{ca_pool}.
     #[serde(default, rename = "caPool")]
@@ -718,7 +719,7 @@ pub struct PrivateConfig {
 }
 
 /// WorkforceIdentityFederationConfig allows this instance to support users from external identity providers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkforceIdentityFederationConfig {
     /// Optional. Immutable. Whether Workforce Identity Federation is enabled.
     #[serde(default)]
@@ -726,7 +727,7 @@ pub struct WorkforceIdentityFederationConfig {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -740,7 +741,7 @@ pub struct Status {
 }
 
 /// Branch represents a branch involved in a pull request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Branch {
     /// Required. Name of the branch.
     #[serde(default, rename = "ref")]
@@ -751,7 +752,7 @@ pub struct Branch {
 }
 
 /// Repository initialization configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InitialConfig {
     /// Default branch name of the repository.
     #[serde(default, rename = "defaultBranch")]
@@ -768,7 +769,7 @@ pub struct InitialConfig {
 }
 
 /// URIs for the repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct URIs {
     /// Output only. API is the URI for API access.
     #[serde(default)]
@@ -782,7 +783,7 @@ pub struct URIs {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -793,7 +794,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -807,7 +808,7 @@ pub struct Binding {
 }
 
 /// The comment on a code line.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Code {
     /// Required. The comment body.
     #[serde(default)]
@@ -830,7 +831,7 @@ pub struct Code {
 }
 
 /// The general pull request comment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Comment {
     /// Required. The comment body.
     #[serde(default)]
@@ -838,7 +839,7 @@ pub struct Comment {
 }
 
 /// The review summary comment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Review {
     /// Required. The review action type. // TODO: enum values: ["ACTION_TYPE_UNSPECIFIED", "COMMENT", "CHANGE_REQUESTED", "APPROVED"]
     #[serde(default, rename = "actionType")]
@@ -852,7 +853,7 @@ pub struct Review {
 }
 
 /// Custom host config for the instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomHostConfig {
     /// Required. The custom API hostname for the instance, e.g., "api.source.internal.mycompany.com"
     #[serde(default)]
@@ -869,7 +870,7 @@ pub struct CustomHostConfig {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -880,7 +881,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -897,7 +898,7 @@ pub struct Expr {
 }
 
 /// The position of the code comment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Position {
     /// Required. The line number of the comment. Positive value means it''s on the new side of the diff, negative value means it''s on the old side.
     #[serde(default)]

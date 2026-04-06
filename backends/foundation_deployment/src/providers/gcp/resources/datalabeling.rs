@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Metadata of a CreateInstruction operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1alpha1CreateInstructionMetadata {
     /// Timestamp when create instruction request was created.
     #[serde(default, rename = "createTime")]
@@ -25,7 +26,7 @@ pub struct GoogleCloudDatalabelingV1alpha1CreateInstructionMetadata {
 }
 
 /// Metadata of an ExportData operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1alpha1ExportDataOperationMetadata {
     /// Output only. The name of annotated dataset in format "projects/*/datasets/*/annotatedDatasets/*".
     #[serde(default, rename = "annotatedDataset")]
@@ -42,7 +43,7 @@ pub struct GoogleCloudDatalabelingV1alpha1ExportDataOperationMetadata {
 }
 
 /// Response used for ExportDataset longrunning operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1alpha1ExportDataOperationResponse {
     /// Output only. The name of annotated dataset in format "projects/*/datasets/*/annotatedDatasets/*".
     #[serde(default, rename = "annotatedDataset")]
@@ -65,7 +66,7 @@ pub struct GoogleCloudDatalabelingV1alpha1ExportDataOperationResponse {
 }
 
 /// Metadata of an ImportData operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1alpha1ImportDataOperationMetadata {
     /// Output only. Timestamp when import dataset request was created.
     #[serde(default, rename = "createTime")]
@@ -79,7 +80,7 @@ pub struct GoogleCloudDatalabelingV1alpha1ImportDataOperationMetadata {
 }
 
 /// Response used for ImportData longrunning operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1alpha1ImportDataOperationResponse {
     /// Ouptut only. The name of imported dataset.
     #[serde(default)]
@@ -93,7 +94,7 @@ pub struct GoogleCloudDatalabelingV1alpha1ImportDataOperationResponse {
 }
 
 /// Metadata of a labeling operation, such as LabelImage or LabelVideo. Next tag: 23
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1alpha1LabelOperationMetadata {
     /// Output only. The name of annotated dataset in format "projects/*/datasets/*/annotatedDatasets/*".
     #[serde(default, rename = "annotatedDataset")]
@@ -171,7 +172,7 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelOperationMetadata {
 }
 
 /// Request message for CreateAnnotationSpecSet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1CreateAnnotationSpecSetRequest {
     /// Required. Annotation spec set to create. Annotation specs must be included. Only one annotation spec will be accepted for annotation specs with same display_name.
     #[serde(default, rename = "annotationSpecSet")]
@@ -180,7 +181,7 @@ pub struct GoogleCloudDatalabelingV1beta1CreateAnnotationSpecSetRequest {
 }
 
 /// Request message for CreateDataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1CreateDatasetRequest {
     /// Required. The dataset to be created.
     #[serde(default)]
@@ -188,7 +189,7 @@ pub struct GoogleCloudDatalabelingV1beta1CreateDatasetRequest {
 }
 
 ///  Request message for CreateEvaluationJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1CreateEvaluationJobRequest {
     /// Required. The evaluation job to create.
     #[serde(default)]
@@ -196,7 +197,7 @@ pub struct GoogleCloudDatalabelingV1beta1CreateEvaluationJobRequest {
 }
 
 /// Metadata of a CreateInstruction operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1CreateInstructionMetadata {
     /// Timestamp when create instruction request was created.
     #[serde(default, rename = "createTime")]
@@ -210,7 +211,7 @@ pub struct GoogleCloudDatalabelingV1beta1CreateInstructionMetadata {
 }
 
 /// Request message for CreateInstruction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1CreateInstructionRequest {
     /// Required. Instruction of how to perform the labeling task.
     #[serde(default)]
@@ -218,7 +219,7 @@ pub struct GoogleCloudDatalabelingV1beta1CreateInstructionRequest {
 }
 
 /// Metadata of an ExportData operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ExportDataOperationMetadata {
     /// Output only. The name of annotated dataset in format "projects/*/datasets/*/annotatedDatasets/*".
     #[serde(default, rename = "annotatedDataset")]
@@ -235,7 +236,7 @@ pub struct GoogleCloudDatalabelingV1beta1ExportDataOperationMetadata {
 }
 
 /// Response used for ExportDataset longrunning operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ExportDataOperationResponse {
     /// Output only. The name of annotated dataset in format "projects/*/datasets/*/annotatedDatasets/*".
     #[serde(default, rename = "annotatedDataset")]
@@ -258,7 +259,7 @@ pub struct GoogleCloudDatalabelingV1beta1ExportDataOperationResponse {
 }
 
 /// Request message for ExportData API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ExportDataRequest {
     /// Required. Annotated dataset resource name. DataItem in Dataset and their annotations in specified annotated dataset will be exported. It''s in format of projects/{project_id}/datasets/{dataset_id}/annotatedDatasets/ {annotated_dataset_id}
     #[serde(default, rename = "annotatedDataset")]
@@ -275,7 +276,7 @@ pub struct GoogleCloudDatalabelingV1beta1ExportDataRequest {
 }
 
 /// Metadata of an ImportData operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ImportDataOperationMetadata {
     /// Output only. Timestamp when import dataset request was created.
     #[serde(default, rename = "createTime")]
@@ -289,7 +290,7 @@ pub struct GoogleCloudDatalabelingV1beta1ImportDataOperationMetadata {
 }
 
 /// Response used for ImportData longrunning operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ImportDataOperationResponse {
     /// Ouptut only. The name of imported dataset.
     #[serde(default)]
@@ -303,7 +304,7 @@ pub struct GoogleCloudDatalabelingV1beta1ImportDataOperationResponse {
 }
 
 /// Request message for ImportData API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ImportDataRequest {
     /// Required. Specify the input source of the data.
     #[serde(default, rename = "inputConfig")]
@@ -314,7 +315,7 @@ pub struct GoogleCloudDatalabelingV1beta1ImportDataRequest {
 }
 
 ///  Request message for starting an image labeling task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1LabelImageRequest {
     /// Required. Basic human annotation config.
     #[serde(default, rename = "basicConfig")]
@@ -340,7 +341,7 @@ pub struct GoogleCloudDatalabelingV1beta1LabelImageRequest {
 }
 
 /// Metadata of a labeling operation, such as LabelImage or LabelVideo. Next tag: 23
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1LabelOperationMetadata {
     /// Output only. The name of annotated dataset in format "projects/*/datasets/*/annotatedDatasets/*".
     #[serde(default, rename = "annotatedDataset")]
@@ -418,7 +419,7 @@ pub struct GoogleCloudDatalabelingV1beta1LabelOperationMetadata {
 }
 
 /// Request message for LabelText.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1LabelTextRequest {
     /// Required. Basic human annotation config.
     #[serde(default, rename = "basicConfig")]
@@ -437,7 +438,7 @@ pub struct GoogleCloudDatalabelingV1beta1LabelTextRequest {
 }
 
 ///  Request message for LabelVideo.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1LabelVideoRequest {
     /// Required. Basic human annotation config.
     #[serde(default, rename = "basicConfig")]
@@ -463,7 +464,7 @@ pub struct GoogleCloudDatalabelingV1beta1LabelVideoRequest {
 }
 
 /// Results of listing annotated datasets for a dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ListAnnotatedDatasetsResponse {
     /// The list of annotated datasets to return.
     #[serde(default, rename = "annotatedDatasets")]
@@ -475,7 +476,7 @@ pub struct GoogleCloudDatalabelingV1beta1ListAnnotatedDatasetsResponse {
 }
 
 /// Results of listing annotation spec set under a project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ListAnnotationSpecSetsResponse {
     /// The list of annotation spec sets.
     #[serde(default, rename = "annotationSpecSets")]
@@ -487,7 +488,7 @@ pub struct GoogleCloudDatalabelingV1beta1ListAnnotationSpecSetsResponse {
 }
 
 /// Results of listing data items in a dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ListDataItemsResponse {
     /// The list of data items to return.
     #[serde(default, rename = "dataItems")]
@@ -498,7 +499,7 @@ pub struct GoogleCloudDatalabelingV1beta1ListDataItemsResponse {
 }
 
 /// Results of listing datasets within a project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ListDatasetsResponse {
     /// The list of datasets to return.
     #[serde(default)]
@@ -509,7 +510,7 @@ pub struct GoogleCloudDatalabelingV1beta1ListDatasetsResponse {
 }
 
 /// Results for listing evaluation jobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ListEvaluationJobsResponse {
     /// The list of evaluation jobs to return.
     #[serde(default, rename = "evaluationJobs")]
@@ -521,7 +522,7 @@ pub struct GoogleCloudDatalabelingV1beta1ListEvaluationJobsResponse {
 }
 
 /// Results of listing Examples in and annotated dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ListExamplesResponse {
     /// The list of examples to return.
     #[serde(default)]
@@ -532,7 +533,7 @@ pub struct GoogleCloudDatalabelingV1beta1ListExamplesResponse {
 }
 
 /// Results for listing FeedbackMessages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ListFeedbackMessagesResponse {
     /// The list of feedback messages to return.
     #[serde(default, rename = "feedbackMessages")]
@@ -544,7 +545,7 @@ pub struct GoogleCloudDatalabelingV1beta1ListFeedbackMessagesResponse {
 }
 
 /// Results for listing FeedbackThreads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ListFeedbackThreadsResponse {
     /// The list of feedback threads to return.
     #[serde(default, rename = "feedbackThreads")]
@@ -556,7 +557,7 @@ pub struct GoogleCloudDatalabelingV1beta1ListFeedbackThreadsResponse {
 }
 
 /// Results of listing instructions under a project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ListInstructionsResponse {
     /// The list of Instructions to return.
     #[serde(default)]
@@ -568,23 +569,23 @@ pub struct GoogleCloudDatalabelingV1beta1ListInstructionsResponse {
 }
 
 /// Metadata describing the feedback from the operator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1OperatorFeedbackMetadata {}
 
 /// Request message for PauseEvaluationJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1PauseEvaluationJobRequest {}
 
 /// Metadata describing the feedback from the labeling task requester.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1RequesterFeedbackMetadata {}
 
 /// Request message ResumeEvaluationJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ResumeEvaluationJobRequest {}
 
 /// Results of searching evaluations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1SearchEvaluationsResponse {
     /// The list of evaluations matching the search.
     #[serde(default)]
@@ -596,7 +597,7 @@ pub struct GoogleCloudDatalabelingV1beta1SearchEvaluationsResponse {
 }
 
 /// Request message of SearchExampleComparisons.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1SearchExampleComparisonsRequest {
     /// Optional. Requested page size. Server may return fewer results than requested. Default value is 100.
     #[serde(default, rename = "pageSize")]
@@ -607,7 +608,7 @@ pub struct GoogleCloudDatalabelingV1beta1SearchExampleComparisonsRequest {
 }
 
 /// Results of searching example comparisons.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1SearchExampleComparisonsResponse {
     /// A list of example comparisons matching the search criteria.
     #[serde(default, rename = "exampleComparisons")]
@@ -619,7 +620,7 @@ pub struct GoogleCloudDatalabelingV1beta1SearchExampleComparisonsResponse {
 }
 
 /// Metadata of a CreateInstruction operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p1alpha1CreateInstructionMetadata {
     /// Timestamp when create instruction request was created.
     #[serde(default, rename = "createTime")]
@@ -633,7 +634,7 @@ pub struct GoogleCloudDatalabelingV1p1alpha1CreateInstructionMetadata {
 }
 
 /// Metadata of an ExportData operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p1alpha1ExportDataOperationMetadata {
     /// Output only. The name of annotated dataset in format "projects/*/datasets/*/annotatedDatasets/*".
     #[serde(default, rename = "annotatedDataset")]
@@ -650,7 +651,7 @@ pub struct GoogleCloudDatalabelingV1p1alpha1ExportDataOperationMetadata {
 }
 
 /// Response used for ExportDataset longrunning operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p1alpha1ExportDataOperationResponse {
     /// Output only. The name of annotated dataset in format "projects/*/datasets/*/annotatedDatasets/*".
     #[serde(default, rename = "annotatedDataset")]
@@ -673,7 +674,7 @@ pub struct GoogleCloudDatalabelingV1p1alpha1ExportDataOperationResponse {
 }
 
 /// Metadata of an GenerateAnalysisReport operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p1alpha1GenerateAnalysisReportOperationMetadata {
     /// Timestamp when generate report request was created.
     #[serde(default, rename = "createTime")]
@@ -684,7 +685,7 @@ pub struct GoogleCloudDatalabelingV1p1alpha1GenerateAnalysisReportOperationMetad
 }
 
 /// Metadata of an ImportData operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p1alpha1ImportDataOperationMetadata {
     /// Output only. Timestamp when import dataset request was created.
     #[serde(default, rename = "createTime")]
@@ -698,7 +699,7 @@ pub struct GoogleCloudDatalabelingV1p1alpha1ImportDataOperationMetadata {
 }
 
 /// Response used for ImportData longrunning operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p1alpha1ImportDataOperationResponse {
     /// Ouptut only. The name of imported dataset.
     #[serde(default)]
@@ -712,7 +713,7 @@ pub struct GoogleCloudDatalabelingV1p1alpha1ImportDataOperationResponse {
 }
 
 /// Metadata of a labeling operation, such as LabelImage or LabelVideo. Next tag: 23
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelOperationMetadata {
     /// Output only. The name of annotated dataset in format "projects/*/datasets/*/annotatedDatasets/*".
     #[serde(default, rename = "annotatedDataset")]
@@ -791,7 +792,7 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelOperationMetadata {
 }
 
 /// Metadata of a CreateInstruction operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p2alpha1CreateInstructionMetadata {
     /// Timestamp when create instruction request was created.
     #[serde(default, rename = "createTime")]
@@ -805,7 +806,7 @@ pub struct GoogleCloudDatalabelingV1p2alpha1CreateInstructionMetadata {
 }
 
 /// Metadata of an ExportData operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p2alpha1ExportDataOperationMetadata {
     /// Output only. The name of annotated dataset in format "projects/*/datasets/*/annotatedDatasets/*".
     #[serde(default, rename = "annotatedDataset")]
@@ -822,7 +823,7 @@ pub struct GoogleCloudDatalabelingV1p2alpha1ExportDataOperationMetadata {
 }
 
 /// Response used for ExportDataset longrunning operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p2alpha1ExportDataOperationResponse {
     /// Output only. The name of annotated dataset in format "projects/*/datasets/*/annotatedDatasets/*".
     #[serde(default, rename = "annotatedDataset")]
@@ -845,7 +846,7 @@ pub struct GoogleCloudDatalabelingV1p2alpha1ExportDataOperationResponse {
 }
 
 /// Metadata of an ImportData operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p2alpha1ImportDataOperationMetadata {
     /// Output only. Timestamp when import dataset request was created.
     #[serde(default, rename = "createTime")]
@@ -859,7 +860,7 @@ pub struct GoogleCloudDatalabelingV1p2alpha1ImportDataOperationMetadata {
 }
 
 /// Response used for ImportData longrunning operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p2alpha1ImportDataOperationResponse {
     /// Ouptut only. The name of imported dataset.
     #[serde(default)]
@@ -873,7 +874,7 @@ pub struct GoogleCloudDatalabelingV1p2alpha1ImportDataOperationResponse {
 }
 
 /// Metadata of a labeling operation, such as LabelImage or LabelVideo. Next tag: 23
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelOperationMetadata {
     /// Output only. The name of annotated dataset in format "projects/*/datasets/*/annotatedDatasets/*".
     #[serde(default, rename = "annotatedDataset")]
@@ -952,7 +953,7 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelOperationMetadata {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -966,11 +967,11 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// Statistics about annotation specs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1alpha1LabelStats {
     /// Map of each annotation spec''s example count. Key is the annotation spec name and value is the number of examples for that annotation spec. If the annotated dataset does not have annotation spec, the map will return a pair where the key is empty string and value is the total number of annotations.
     #[serde(default, rename = "exampleCount")]
@@ -978,7 +979,7 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelStats {
 }
 
 /// The configuration of output data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1alpha1OutputConfig {
     /// Output to a file in Cloud Storage. Should be used for labeling output other than image segmentation.
     #[serde(default, rename = "gcsDestination")]
@@ -990,7 +991,7 @@ pub struct GoogleCloudDatalabelingV1alpha1OutputConfig {
 }
 
 /// Details of a LabelImageBoundingBox operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1alpha1LabelImageBoundingBoxOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -998,7 +999,7 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelImageBoundingBoxOperationMetadata
 }
 
 /// Details of LabelImageBoundingPoly operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1alpha1LabelImageBoundingPolyOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1006,7 +1007,7 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelImageBoundingPolyOperationMetadat
 }
 
 /// Metadata of a LabelImageClassification operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1alpha1LabelImageClassificationOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1014,7 +1015,7 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelImageClassificationOperationMetad
 }
 
 /// Details of a LabelImageOrientedBoundingBox operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1alpha1LabelImageOrientedBoundingBoxOperationMetadata {
     /// Basic human annotation config.
     #[serde(default, rename = "basicConfig")]
@@ -1022,7 +1023,7 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelImageOrientedBoundingBoxOperation
 }
 
 /// Details of LabelImagePolyline operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1alpha1LabelImagePolylineOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1030,7 +1031,7 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelImagePolylineOperationMetadata {
 }
 
 /// Details of a LabelImageSegmentation operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1alpha1LabelImageSegmentationOperationMetadata {
     /// Basic human annotation config.
     #[serde(default, rename = "basicConfig")]
@@ -1038,7 +1039,7 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelImageSegmentationOperationMetadat
 }
 
 /// Details of a LabelTextClassification operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1alpha1LabelTextClassificationOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1046,7 +1047,7 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelTextClassificationOperationMetada
 }
 
 /// Details of a LabelTextEntityExtraction operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1alpha1LabelTextEntityExtractionOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1054,7 +1055,7 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelTextEntityExtractionOperationMeta
 }
 
 /// Details of a LabelVideoClassification operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1alpha1LabelVideoClassificationOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1062,7 +1063,7 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelVideoClassificationOperationMetad
 }
 
 /// Details of a LabelVideoEvent operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1alpha1LabelVideoEventOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1070,7 +1071,7 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelVideoEventOperationMetadata {
 }
 
 /// Details of a LabelVideoObjectDetection operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1alpha1LabelVideoObjectDetectionOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1078,7 +1079,7 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelVideoObjectDetectionOperationMeta
 }
 
 /// Details of a LabelVideoObjectTracking operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1alpha1LabelVideoObjectTrackingOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1086,7 +1087,7 @@ pub struct GoogleCloudDatalabelingV1alpha1LabelVideoObjectTrackingOperationMetad
 }
 
 /// The configuration of output data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1OutputConfig {
     /// Output to a file in Cloud Storage. Should be used for labeling output other than image segmentation.
     #[serde(default, rename = "gcsDestination")]
@@ -1098,7 +1099,7 @@ pub struct GoogleCloudDatalabelingV1beta1OutputConfig {
 }
 
 /// Details of a LabelImageBoundingBox operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1LabelImageBoundingBoxOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1106,7 +1107,7 @@ pub struct GoogleCloudDatalabelingV1beta1LabelImageBoundingBoxOperationMetadata 
 }
 
 /// Details of LabelImageBoundingPoly operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1LabelImageBoundingPolyOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1114,7 +1115,7 @@ pub struct GoogleCloudDatalabelingV1beta1LabelImageBoundingPolyOperationMetadata
 }
 
 /// Metadata of a LabelImageClassification operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1LabelImageClassificationOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1122,7 +1123,7 @@ pub struct GoogleCloudDatalabelingV1beta1LabelImageClassificationOperationMetada
 }
 
 /// Details of a LabelImageOrientedBoundingBox operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1LabelImageOrientedBoundingBoxOperationMetadata {
     /// Basic human annotation config.
     #[serde(default, rename = "basicConfig")]
@@ -1130,7 +1131,7 @@ pub struct GoogleCloudDatalabelingV1beta1LabelImageOrientedBoundingBoxOperationM
 }
 
 /// Details of LabelImagePolyline operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1LabelImagePolylineOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1138,7 +1139,7 @@ pub struct GoogleCloudDatalabelingV1beta1LabelImagePolylineOperationMetadata {
 }
 
 /// Details of a LabelImageSegmentation operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1LabelImageSegmentationOperationMetadata {
     /// Basic human annotation config.
     #[serde(default, rename = "basicConfig")]
@@ -1146,7 +1147,7 @@ pub struct GoogleCloudDatalabelingV1beta1LabelImageSegmentationOperationMetadata
 }
 
 /// Details of a LabelTextClassification operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1LabelTextClassificationOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1154,7 +1155,7 @@ pub struct GoogleCloudDatalabelingV1beta1LabelTextClassificationOperationMetadat
 }
 
 /// Details of a LabelTextEntityExtraction operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1LabelTextEntityExtractionOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1162,7 +1163,7 @@ pub struct GoogleCloudDatalabelingV1beta1LabelTextEntityExtractionOperationMetad
 }
 
 /// Details of a LabelVideoClassification operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1LabelVideoClassificationOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1170,7 +1171,7 @@ pub struct GoogleCloudDatalabelingV1beta1LabelVideoClassificationOperationMetada
 }
 
 /// Details of a LabelVideoEvent operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1LabelVideoEventOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1178,7 +1179,7 @@ pub struct GoogleCloudDatalabelingV1beta1LabelVideoEventOperationMetadata {
 }
 
 /// Details of a LabelVideoObjectDetection operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1LabelVideoObjectDetectionOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1186,7 +1187,7 @@ pub struct GoogleCloudDatalabelingV1beta1LabelVideoObjectDetectionOperationMetad
 }
 
 /// Details of a LabelVideoObjectTracking operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1LabelVideoObjectTrackingOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1194,7 +1195,7 @@ pub struct GoogleCloudDatalabelingV1beta1LabelVideoObjectTrackingOperationMetada
 }
 
 /// AnnotatedDataset is a set holding annotations for data in a Dataset. Each labeling task will generate an AnnotatedDataset under the Dataset that the task is requested for.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1AnnotatedDataset {
     /// Output only. Source of the annotation. // TODO: enum values: ["ANNOTATION_SOURCE_UNSPECIFIED", "OPERATOR"]
     #[serde(default, rename = "annotationSource")]
@@ -1232,7 +1233,7 @@ pub struct GoogleCloudDatalabelingV1beta1AnnotatedDataset {
 }
 
 /// An AnnotationSpecSet is a collection of label definitions. For example, in image classification tasks, you define a set of possible labels for images as an AnnotationSpecSet. An AnnotationSpecSet is immutable upon creation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1AnnotationSpecSet {
     /// Required. The array of AnnotationSpecs that you define when you create the AnnotationSpecSet. These are the possible labels for the labeling task.
     #[serde(default, rename = "annotationSpecs")]
@@ -1253,7 +1254,7 @@ pub struct GoogleCloudDatalabelingV1beta1AnnotationSpecSet {
 }
 
 /// DataItem is a piece of data, without annotation. For example, an image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1DataItem {
     /// The image payload, a container of the image bytes/uri.
     #[serde(default, rename = "imagePayload")]
@@ -1270,7 +1271,7 @@ pub struct GoogleCloudDatalabelingV1beta1DataItem {
 }
 
 /// Dataset is the resource to hold your data. You can request multiple labeling tasks for a dataset while each one will generate an AnnotatedDataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1Dataset {
     /// Output only. The names of any related resources that are blocking changes to the dataset.
     #[serde(default, rename = "blockingResources")]
@@ -1300,7 +1301,7 @@ pub struct GoogleCloudDatalabelingV1beta1Dataset {
 }
 
 /// Defines an evaluation job that runs periodically to generate Evaluations. [Creating an evaluation job](/ml-engine/docs/continuous-evaluation/create-job) is the starting point for using continuous evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1EvaluationJob {
     /// Required. Name of the AnnotationSpecSet describing all the labels that your machine learning model outputs. You must create this resource before you create an evaluation job and provide its name in the following format: "projects/{project_id}/annotationSpecSets/{annotation_spec_set_id}"
     #[serde(default, rename = "annotationSpecSet")]
@@ -1336,7 +1337,7 @@ pub struct GoogleCloudDatalabelingV1beta1EvaluationJob {
 }
 
 /// A feedback message inside a feedback thread.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1FeedbackMessage {
     /// String content of the feedback. Maximum of 10000 characters.
     #[serde(default)]
@@ -1357,7 +1358,7 @@ pub struct GoogleCloudDatalabelingV1beta1FeedbackMessage {
 }
 
 /// A feedback thread of a certain labeling task on a certain annotated dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1FeedbackThread {
     /// Metadata regarding the feedback thread.
     #[serde(default, rename = "feedbackThreadMetadata")]
@@ -1369,7 +1370,7 @@ pub struct GoogleCloudDatalabelingV1beta1FeedbackThread {
 }
 
 /// Instruction of how to perform the labeling task for human operators. Currently only PDF instruction is supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1Instruction {
     /// Output only. The names of any related resources that are blocking changes to the instruction.
     #[serde(default, rename = "blockingResources")]
@@ -1401,7 +1402,7 @@ pub struct GoogleCloudDatalabelingV1beta1Instruction {
 }
 
 /// Describes an evaluation between a machine learning model''s predictions and ground truth labels. Created when an EvaluationJob runs successfully.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1Evaluation {
     /// Output only. Type of task that the model version being evaluated performs, as defined in the evaluationJobConfig.inputConfig.annotationType field of the evaluation job that created this evaluation. // TODO: enum values: ["ANNOTATION_TYPE_UNSPECIFIED", "IMAGE_CLASSIFICATION_ANNOTATION", "IMAGE_BOUNDING_BOX_ANNOTATION", "IMAGE_ORIENTED_BOUNDING_BOX_ANNOTATION", "IMAGE_BOUNDING_POLY_ANNOTATION", "IMAGE_POLYLINE_ANNOTATION", "IMAGE_SEGMENTATION_ANNOTATION", "VIDEO_SHOTS_CLASSIFICATION_ANNOTATION", "VIDEO_OBJECT_TRACKING_ANNOTATION", "VIDEO_OBJECT_DETECTION_ANNOTATION", "VIDEO_EVENT_ANNOTATION", "TEXT_CLASSIFICATION_ANNOTATION", "TEXT_ENTITY_EXTRACTION_ANNOTATION", "GENERAL_CLASSIFICATION_ANNOTATION"]
     #[serde(default, rename = "annotationType")]
@@ -1427,7 +1428,7 @@ pub struct GoogleCloudDatalabelingV1beta1Evaluation {
 }
 
 /// Example comparisons comparing ground truth output and predictions for a specific input.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ExampleComparison {
     /// The ground truth output for the input.
     #[serde(default, rename = "groundTruthExample")]
@@ -1439,7 +1440,7 @@ pub struct GoogleCloudDatalabelingV1beta1ExampleComparison {
 }
 
 /// Statistics about annotation specs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelStats {
     /// Map of each annotation spec''s example count. Key is the annotation spec name and value is the number of examples for that annotation spec. If the annotated dataset does not have annotation spec, the map will return a pair where the key is empty string and value is the total number of annotations.
     #[serde(default, rename = "exampleCount")]
@@ -1447,7 +1448,7 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelStats {
 }
 
 /// The configuration of output data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p1alpha1OutputConfig {
     /// Output to a file in Cloud Storage. Should be used for labeling output other than image segmentation.
     #[serde(default, rename = "gcsDestination")]
@@ -1459,7 +1460,7 @@ pub struct GoogleCloudDatalabelingV1p1alpha1OutputConfig {
 }
 
 /// Details of a LabelImageBoundingBox operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelImageBoundingBoxOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1468,7 +1469,7 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelImageBoundingBoxOperationMetada
 }
 
 /// Details of LabelImageBoundingPoly operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelImageBoundingPolyOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1477,7 +1478,7 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelImageBoundingPolyOperationMetad
 }
 
 /// Metadata of a LabelImageClassification operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelImageClassificationOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1486,7 +1487,7 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelImageClassificationOperationMet
 }
 
 /// Details of a LabelImageOrientedBoundingBox operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelImageOrientedBoundingBoxOperationMetadata {
     /// Basic human annotation config.
     #[serde(default, rename = "basicConfig")]
@@ -1495,7 +1496,7 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelImageOrientedBoundingBoxOperati
 }
 
 /// Details of LabelImagePolyline operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelImagePolylineOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1504,7 +1505,7 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelImagePolylineOperationMetadata 
 }
 
 /// Details of a LabelImageSegmentation operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelImageSegmentationOperationMetadata {
     /// Basic human annotation config.
     #[serde(default, rename = "basicConfig")]
@@ -1513,7 +1514,7 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelImageSegmentationOperationMetad
 }
 
 /// Details of a LabelTextClassification operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelTextClassificationOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1522,7 +1523,7 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelTextClassificationOperationMeta
 }
 
 /// Details of a LabelTextEntityExtraction operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelTextEntityExtractionOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1531,7 +1532,7 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelTextEntityExtractionOperationMe
 }
 
 /// Details of a LabelVideoClassification operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelVideoClassificationOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1540,7 +1541,7 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelVideoClassificationOperationMet
 }
 
 /// Details of a LabelVideoEvent operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelVideoEventOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1549,7 +1550,7 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelVideoEventOperationMetadata {
 }
 
 /// Details of a LabelVideoObjectDetection operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelVideoObjectDetectionOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1558,7 +1559,7 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelVideoObjectDetectionOperationMe
 }
 
 /// Details of a LabelVideoObjectTracking operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p1alpha1LabelVideoObjectTrackingOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1567,7 +1568,7 @@ pub struct GoogleCloudDatalabelingV1p1alpha1LabelVideoObjectTrackingOperationMet
 }
 
 /// Statistics about annotation specs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelStats {
     /// Map of each annotation spec''s example count. Key is the annotation spec name and value is the number of examples for that annotation spec. If the annotated dataset does not have annotation spec, the map will return a pair where the key is empty string and value is the total number of annotations.
     #[serde(default, rename = "exampleCount")]
@@ -1575,7 +1576,7 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelStats {
 }
 
 /// The configuration of output data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p2alpha1OutputConfig {
     /// Output to a file in Cloud Storage. Should be used for labeling output other than image segmentation.
     #[serde(default, rename = "gcsDestination")]
@@ -1587,7 +1588,7 @@ pub struct GoogleCloudDatalabelingV1p2alpha1OutputConfig {
 }
 
 /// Details of a LabelImageBoundingBox operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelImageBoundingBoxOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1596,7 +1597,7 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelImageBoundingBoxOperationMetada
 }
 
 /// Details of LabelImageBoundingPoly operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelImageBoundingPolyOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1605,7 +1606,7 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelImageBoundingPolyOperationMetad
 }
 
 /// Metadata of a LabelImageClassification operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelImageClassificationOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1614,7 +1615,7 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelImageClassificationOperationMet
 }
 
 /// Details of a LabelImageOrientedBoundingBox operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelImageOrientedBoundingBoxOperationMetadata {
     /// Basic human annotation config.
     #[serde(default, rename = "basicConfig")]
@@ -1623,7 +1624,7 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelImageOrientedBoundingBoxOperati
 }
 
 /// Details of LabelImagePolyline operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelImagePolylineOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1632,7 +1633,7 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelImagePolylineOperationMetadata 
 }
 
 /// Details of a LabelImageSegmentation operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelImageSegmentationOperationMetadata {
     /// Basic human annotation config.
     #[serde(default, rename = "basicConfig")]
@@ -1641,7 +1642,7 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelImageSegmentationOperationMetad
 }
 
 /// Details of a LabelTextClassification operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelTextClassificationOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1650,7 +1651,7 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelTextClassificationOperationMeta
 }
 
 /// Details of a LabelTextEntityExtraction operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelTextEntityExtractionOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1659,7 +1660,7 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelTextEntityExtractionOperationMe
 }
 
 /// Details of a LabelVideoClassification operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelVideoClassificationOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1668,7 +1669,7 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelVideoClassificationOperationMet
 }
 
 /// Details of a LabelVideoEvent operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelVideoEventOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1677,7 +1678,7 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelVideoEventOperationMetadata {
 }
 
 /// Details of a LabelVideoObjectDetection operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelVideoObjectDetectionOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1686,7 +1687,7 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelVideoObjectDetectionOperationMe
 }
 
 /// Details of a LabelVideoObjectTracking operation metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p2alpha1LabelVideoObjectTrackingOperationMetadata {
     /// Basic human annotation config used in labeling request.
     #[serde(default, rename = "basicConfig")]
@@ -1695,7 +1696,7 @@ pub struct GoogleCloudDatalabelingV1p2alpha1LabelVideoObjectTrackingOperationMet
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -1715,7 +1716,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// Export destination of the data.Only gcs path is allowed in output_uri.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1alpha1GcsDestination {
     /// Required. The format of the gcs destination. Only "text/csv" and "application/json" are supported.
     #[serde(default, rename = "mimeType")]
@@ -1726,7 +1727,7 @@ pub struct GoogleCloudDatalabelingV1alpha1GcsDestination {
 }
 
 /// Export folder destination of the data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1alpha1GcsFolderDestination {
     /// Required. Cloud Storage directory to export data to.
     #[serde(default, rename = "outputFolderUri")]
@@ -1734,7 +1735,7 @@ pub struct GoogleCloudDatalabelingV1alpha1GcsFolderDestination {
 }
 
 /// Configuration for how human labeling task should be done.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig {
     /// Optional. A human-readable description for AnnotatedDataset. The description can be up to 10000 characters long.
     #[serde(default, rename = "annotatedDatasetDescription")]
@@ -1766,7 +1767,7 @@ pub struct GoogleCloudDatalabelingV1alpha1HumanAnnotationConfig {
 }
 
 /// Export destination of the data.Only gcs path is allowed in output_uri.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1GcsDestination {
     /// Required. The format of the gcs destination. Only "text/csv" and "application/json" are supported.
     #[serde(default, rename = "mimeType")]
@@ -1777,7 +1778,7 @@ pub struct GoogleCloudDatalabelingV1beta1GcsDestination {
 }
 
 /// Export folder destination of the data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1GcsFolderDestination {
     /// Required. Cloud Storage directory to export data to.
     #[serde(default, rename = "outputFolderUri")]
@@ -1785,7 +1786,7 @@ pub struct GoogleCloudDatalabelingV1beta1GcsFolderDestination {
 }
 
 /// Statistics about annotation specs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1LabelStats {
     /// Map of each annotation spec''s example count. Key is the annotation spec name and value is the number of examples for that annotation spec. If the annotated dataset does not have annotation spec, the map will return a pair where the key is empty string and value is the total number of annotations.
     #[serde(default, rename = "exampleCount")]
@@ -1793,7 +1794,7 @@ pub struct GoogleCloudDatalabelingV1beta1LabelStats {
 }
 
 /// Metadata on AnnotatedDataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1AnnotatedDatasetMetadata {
     /// Configuration for image bounding box and bounding poly task.
     #[serde(default, rename = "boundingPolyConfig")]
@@ -1840,7 +1841,7 @@ pub struct GoogleCloudDatalabelingV1beta1AnnotatedDatasetMetadata {
 }
 
 /// Records a failed evaluation job run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1Attempt {
     #[serde(default, rename = "attemptTime")]
     pub attempt_time: ::core::option::Option<String>,
@@ -1850,7 +1851,7 @@ pub struct GoogleCloudDatalabelingV1beta1Attempt {
 }
 
 /// Configures specific details of how a continuous evaluation job works. Provide this configuration when you create an EvaluationJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1EvaluationJobConfig {
     /// Required. Prediction keys that tell Data Labeling Service where to find the data for evaluation in your BigQuery table. When the service samples prediction input and output from your model version and saves it to BigQuery, the data gets stored as JSON strings in the BigQuery table. These keys tell Data Labeling Service how to parse the JSON. You can provide the following entries in this field: * data_json_key: the data key for prediction input. You must provide either this key or reference_json_key. * reference_json_key: the data reference key for prediction input. You must provide either this key or data_json_key. * label_json_key: the label key for prediction output. Required. * label_score_json_key: the score key for prediction output. Required. * bounding_box_json_key: the bounding box key for prediction output. Required if your model version perform image object detection. Learn [how to configure prediction keys](/ml-engine/docs/continuous-evaluation/create-job#prediction-keys).
     #[serde(default, rename = "bigqueryImportKeys")]
@@ -1890,7 +1891,7 @@ pub struct GoogleCloudDatalabelingV1beta1EvaluationJobConfig {
 }
 
 /// GoogleCloudDatalabelingV1beta1FeedbackThreadMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1FeedbackThreadMetadata {
     /// When the thread is created
     #[serde(default, rename = "createTime")]
@@ -1907,7 +1908,7 @@ pub struct GoogleCloudDatalabelingV1beta1FeedbackThreadMetadata {
 }
 
 /// Deprecated: this instruction format is not supported any more. Instruction from a CSV file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1CsvInstruction {
     /// CSV file for the instruction. Only gcs path is allowed.
     #[serde(default, rename = "gcsFileUri")]
@@ -1915,7 +1916,7 @@ pub struct GoogleCloudDatalabelingV1beta1CsvInstruction {
 }
 
 /// Instruction from a PDF file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1PdfInstruction {
     /// PDF file for the instruction. Only gcs path is allowed.
     #[serde(default, rename = "gcsFileUri")]
@@ -1923,7 +1924,7 @@ pub struct GoogleCloudDatalabelingV1beta1PdfInstruction {
 }
 
 /// GoogleCloudDatalabelingV1beta1EvaluationMetrics resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1EvaluationMetrics {
     #[serde(default, rename = "classificationMetrics")]
     pub classification_metrics:
@@ -1934,7 +1935,7 @@ pub struct GoogleCloudDatalabelingV1beta1EvaluationMetrics {
 }
 
 /// An Example is a piece of data and its annotation. For example, an image with label "house".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1Example {
     /// Output only. Annotations for the piece of data in Example. One piece of data can have multiple annotations.
     #[serde(default)]
@@ -1955,7 +1956,7 @@ pub struct GoogleCloudDatalabelingV1beta1Example {
 }
 
 /// Export destination of the data.Only gcs path is allowed in output_uri.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p1alpha1GcsDestination {
     /// Required. The format of the gcs destination. Only "text/csv" and "application/json" are supported.
     #[serde(default, rename = "mimeType")]
@@ -1966,7 +1967,7 @@ pub struct GoogleCloudDatalabelingV1p1alpha1GcsDestination {
 }
 
 /// Export folder destination of the data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p1alpha1GcsFolderDestination {
     /// Required. Cloud Storage directory to export data to.
     #[serde(default, rename = "outputFolderUri")]
@@ -1974,7 +1975,7 @@ pub struct GoogleCloudDatalabelingV1p1alpha1GcsFolderDestination {
 }
 
 /// Configuration for how human labeling task should be done.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig {
     /// Optional. A human-readable description for AnnotatedDataset. The description can be up to 10000 characters long.
     #[serde(default, rename = "annotatedDatasetDescription")]
@@ -2006,7 +2007,7 @@ pub struct GoogleCloudDatalabelingV1p1alpha1HumanAnnotationConfig {
 }
 
 /// Export destination of the data.Only gcs path is allowed in output_uri.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p2alpha1GcsDestination {
     /// Required. The format of the gcs destination. Only "text/csv" and "application/json" are supported.
     #[serde(default, rename = "mimeType")]
@@ -2017,7 +2018,7 @@ pub struct GoogleCloudDatalabelingV1p2alpha1GcsDestination {
 }
 
 /// Export folder destination of the data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p2alpha1GcsFolderDestination {
     /// Required. Cloud Storage directory to export data to.
     #[serde(default, rename = "outputFolderUri")]
@@ -2025,7 +2026,7 @@ pub struct GoogleCloudDatalabelingV1p2alpha1GcsFolderDestination {
 }
 
 /// Configuration for how human labeling task should be done.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig {
     /// Optional. A human-readable description for AnnotatedDataset. The description can be up to 10000 characters long.
     #[serde(default, rename = "annotatedDatasetDescription")]
@@ -2057,7 +2058,7 @@ pub struct GoogleCloudDatalabelingV1p2alpha1HumanAnnotationConfig {
 }
 
 /// Config for video event human labeling task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1EventConfig {
     /// Required. The list of annotation spec set resource name. Similar to video classification, we support selecting event from multiple AnnotationSpecSet at the same time.
     #[serde(default, rename = "annotationSpecSets")]
@@ -2071,7 +2072,7 @@ pub struct GoogleCloudDatalabelingV1beta1EventConfig {
 }
 
 /// Config for video object detection human labeling task. Object detection will be conducted on the images extracted from the video, and those objects will be labeled with bounding boxes. User need to specify the number of images to be extracted per second as the extraction frame rate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ObjectDetectionConfig {
     /// Required. Annotation spec set resource name.
     #[serde(default, rename = "annotationSpecSet")]
@@ -2082,7 +2083,7 @@ pub struct GoogleCloudDatalabelingV1beta1ObjectDetectionConfig {
 }
 
 /// Config for video object tracking human labeling task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ObjectTrackingConfig {
     /// Required. Annotation spec set resource name.
     #[serde(default, rename = "annotationSpecSet")]
@@ -2096,7 +2097,7 @@ pub struct GoogleCloudDatalabelingV1beta1ObjectTrackingConfig {
 }
 
 /// Config for image polyline human labeling task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1PolylineConfig {
     /// Required. Annotation spec set resource name.
     #[serde(default, rename = "annotationSpecSet")]
@@ -2107,7 +2108,7 @@ pub struct GoogleCloudDatalabelingV1beta1PolylineConfig {
 }
 
 /// Config for image segmentation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1SegmentationConfig {
     /// Required. Annotation spec set resource name. format: projects/{project_id}/annotationSpecSets/{annotation_spec_set_id}
     #[serde(default, rename = "annotationSpecSet")]
@@ -2118,7 +2119,7 @@ pub struct GoogleCloudDatalabelingV1beta1SegmentationConfig {
 }
 
 /// Config for text entity extraction human labeling task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1TextEntityExtractionConfig {
     /// Required. Annotation spec set resource name.
     #[serde(default, rename = "annotationSpecSet")]
@@ -2126,7 +2127,7 @@ pub struct GoogleCloudDatalabelingV1beta1TextEntityExtractionConfig {
 }
 
 /// Config for video classification human labeling task. Currently two types of video classification are supported: 1. Assign labels on the entire video. 2. Split the video into multiple video clips based on camera shot, and assign labels on each video clip.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1VideoClassificationConfig {
     /// Required. The list of annotation spec set configs. Since watching a video clip takes much longer time than an image, we support label with multiple AnnotationSpecSet at the same time. Labels in each AnnotationSpecSet will be shown in a group to contributors. Contributors can select one or more (depending on whether to allow multi label) from each group.
     #[serde(default, rename = "annotationSpecSetConfigs")]
@@ -2139,7 +2140,7 @@ pub struct GoogleCloudDatalabelingV1beta1VideoClassificationConfig {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -2153,7 +2154,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// Config for image bounding poly (and bounding box) human labeling task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1BoundingPolyConfig {
     /// Required. Annotation spec set resource name.
     #[serde(default, rename = "annotationSpecSet")]
@@ -2164,7 +2165,7 @@ pub struct GoogleCloudDatalabelingV1beta1BoundingPolyConfig {
 }
 
 /// Configuration details used for calculating evaluation metrics and creating an Evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1EvaluationConfig {
     /// Only specify this field if the related model performs image object detection (IMAGE_BOUNDING_BOX_ANNOTATION). Describes how to evaluate bounding boxes.
     #[serde(default, rename = "boundingBoxEvaluationOptions")]
@@ -2173,7 +2174,7 @@ pub struct GoogleCloudDatalabelingV1beta1EvaluationConfig {
 }
 
 /// Provides details for how an evaluation job sends email alerts based on the results of a run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1EvaluationJobAlertConfig {
     /// Required. An email address to send alerts to.
     #[serde(default)]
@@ -2184,7 +2185,7 @@ pub struct GoogleCloudDatalabelingV1beta1EvaluationJobAlertConfig {
 }
 
 /// Configuration for how human labeling task should be done.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1HumanAnnotationConfig {
     /// Optional. A human-readable description for AnnotatedDataset. The description can be up to 10000 characters long.
     #[serde(default, rename = "annotatedDatasetDescription")]
@@ -2216,7 +2217,7 @@ pub struct GoogleCloudDatalabelingV1beta1HumanAnnotationConfig {
 }
 
 /// Config for image classification human labeling task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ImageClassificationConfig {
     /// Optional. If allow_multi_label is true, contributors are able to choose multiple labels for one image.
     #[serde(default, rename = "allowMultiLabel")]
@@ -2230,7 +2231,7 @@ pub struct GoogleCloudDatalabelingV1beta1ImageClassificationConfig {
 }
 
 /// The configuration of input data, including data type, location, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1InputConfig {
     /// Optional. The type of annotation to be performed on this data. You must specify this field if you are using this InputConfig in an EvaluationJob. // TODO: enum values: ["ANNOTATION_TYPE_UNSPECIFIED", "IMAGE_CLASSIFICATION_ANNOTATION", "IMAGE_BOUNDING_BOX_ANNOTATION", "IMAGE_ORIENTED_BOUNDING_BOX_ANNOTATION", "IMAGE_BOUNDING_POLY_ANNOTATION", "IMAGE_POLYLINE_ANNOTATION", "IMAGE_SEGMENTATION_ANNOTATION", "VIDEO_SHOTS_CLASSIFICATION_ANNOTATION", "VIDEO_OBJECT_TRACKING_ANNOTATION", "VIDEO_OBJECT_DETECTION_ANNOTATION", "VIDEO_EVENT_ANNOTATION", "TEXT_CLASSIFICATION_ANNOTATION", "TEXT_ENTITY_EXTRACTION_ANNOTATION", "GENERAL_CLASSIFICATION_ANNOTATION"]
     #[serde(default, rename = "annotationType")]
@@ -2254,7 +2255,7 @@ pub struct GoogleCloudDatalabelingV1beta1InputConfig {
 }
 
 /// Config for text classification human labeling task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1TextClassificationConfig {
     /// Optional. If allow_multi_label is true, contributors are able to choose multiple labels for one text segment.
     #[serde(default, rename = "allowMultiLabel")]
@@ -2268,7 +2269,7 @@ pub struct GoogleCloudDatalabelingV1beta1TextClassificationConfig {
 }
 
 /// Metrics calculated for a classification model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ClassificationMetrics {
     /// Confusion matrix of predicted labels vs. ground truth labels.
     #[serde(default, rename = "confusionMatrix")]
@@ -2279,7 +2280,7 @@ pub struct GoogleCloudDatalabelingV1beta1ClassificationMetrics {
 }
 
 /// Metrics calculated for an image object detection (bounding box) model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ObjectDetectionMetrics {
     /// Precision-recall curve.
     #[serde(default, rename = "prCurve")]
@@ -2287,7 +2288,7 @@ pub struct GoogleCloudDatalabelingV1beta1ObjectDetectionMetrics {
 }
 
 /// Annotation for Example. Each example may have one or more annotations. For example in image classification problem, each image might have one or more labels. We call labels binded with this image an Annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1Annotation {
     /// Output only. Annotation metadata, including information like votes for labels.
     #[serde(default, rename = "annotationMetadata")]
@@ -2308,7 +2309,7 @@ pub struct GoogleCloudDatalabelingV1beta1Annotation {
 }
 
 /// Container of information about an image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ImagePayload {
     /// A byte string of a thumbnail image.
     #[serde(default, rename = "imageThumbnail")]
@@ -2325,7 +2326,7 @@ pub struct GoogleCloudDatalabelingV1beta1ImagePayload {
 }
 
 /// Container of information about a piece of text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1TextPayload {
     /// Text content.
     #[serde(default, rename = "textContent")]
@@ -2333,7 +2334,7 @@ pub struct GoogleCloudDatalabelingV1beta1TextPayload {
 }
 
 /// Container of information of a video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1VideoPayload {
     /// FPS of the video.
     #[serde(default, rename = "frameRate")]
@@ -2354,7 +2355,7 @@ pub struct GoogleCloudDatalabelingV1beta1VideoPayload {
 }
 
 /// Annotation spec set with the setting of allowing multi labels or not.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1AnnotationSpecSetConfig {
     /// Optional. If allow_multi_label is true, contributors are able to choose multiple labels from one annotation spec set.
     #[serde(default, rename = "allowMultiLabel")]
@@ -2365,7 +2366,7 @@ pub struct GoogleCloudDatalabelingV1beta1AnnotationSpecSetConfig {
 }
 
 /// Options regarding evaluation between bounding boxes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1BoundingBoxEvaluationOptions {
     /// Minimum [intersection-over-union (IOU)](/vision/automl/object-detection/docs/evaluate#intersection-over-union) required for 2 bounding boxes to be considered a match. This must be a number between 0 and 1.
     #[serde(default, rename = "iouThreshold")]
@@ -2373,7 +2374,7 @@ pub struct GoogleCloudDatalabelingV1beta1BoundingBoxEvaluationOptions {
 }
 
 /// The BigQuery location for input data. If used in an EvaluationJob, this is where the service saves the prediction input and output sampled from the model version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1BigQuerySource {
     /// Required. BigQuery URI to a table, up to 2,000 characters long. If you specify the URI of a table that does not exist, Data Labeling Service creates a table at the URI with the correct schema when you create your EvaluationJob. If you specify the URI of a table that already exists, it must have the [correct schema](/ml-engine/docs/continuous-evaluation/create-job#table-schema). Provide the table URI in the following format: "bq://{your_project_id}/ {your_dataset_name}/{your_table_name}" [Learn more](/ml-engine/docs/continuous-evaluation/create-job#table-schema).
     #[serde(default, rename = "inputUri")]
@@ -2381,7 +2382,7 @@ pub struct GoogleCloudDatalabelingV1beta1BigQuerySource {
 }
 
 /// Metadata for classification annotations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ClassificationMetadata {
     /// Whether the classification task is multi-label or not.
     #[serde(default, rename = "isMultiLabel")]
@@ -2389,7 +2390,7 @@ pub struct GoogleCloudDatalabelingV1beta1ClassificationMetadata {
 }
 
 /// Source of the Cloud Storage file to be imported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1GcsSource {
     /// Required. The input URI of source file. This must be a Cloud Storage path (gs://...).
     #[serde(default, rename = "inputUri")]
@@ -2400,7 +2401,7 @@ pub struct GoogleCloudDatalabelingV1beta1GcsSource {
 }
 
 /// Metadata for the text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1TextMetadata {
     /// The language of this text, as a [BCP-47](https://www.rfc-editor.org/rfc/bcp/bcp47.txt). Default value is en-US.
     #[serde(default, rename = "languageCode")]
@@ -2408,7 +2409,7 @@ pub struct GoogleCloudDatalabelingV1beta1TextMetadata {
 }
 
 /// Config for setting up sentiments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1SentimentConfig {
     /// If set to true, contributors will have the option to select sentiment of the label they selected, to mark it as negative or positive label. Default is false.
     #[serde(default, rename = "enableLabelSentimentSelection")]
@@ -2416,14 +2417,14 @@ pub struct GoogleCloudDatalabelingV1beta1SentimentConfig {
 }
 
 /// Confusion matrix of the model running the classification. Only applicable when the metrics entry aggregates multiple labels. Not applicable when the entry is for a single label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ConfusionMatrix {
     #[serde(default)]
     pub row: ::core::option::Option<::std::vec::Vec<GoogleCloudDatalabelingV1beta1Row>>,
 }
 
 /// GoogleCloudDatalabelingV1beta1PrCurve resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1PrCurve {
     /// The annotation spec of the label for which the precision-recall curve calculated. If this field is empty, that means the precision-recall curve is an aggregate curve for all labels.
     #[serde(default, rename = "annotationSpec")]
@@ -2442,7 +2443,7 @@ pub struct GoogleCloudDatalabelingV1beta1PrCurve {
 }
 
 /// Additional information associated with the annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1AnnotationMetadata {
     /// Metadata related to human labeling.
     #[serde(default, rename = "operatorMetadata")]
@@ -2450,7 +2451,7 @@ pub struct GoogleCloudDatalabelingV1beta1AnnotationMetadata {
 }
 
 /// Annotation value for an example.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1AnnotationValue {
     /// Annotation value for image bounding box, oriented bounding box and polygon cases.
     #[serde(default, rename = "imageBoundingPolyAnnotation")]
@@ -2491,7 +2492,7 @@ pub struct GoogleCloudDatalabelingV1beta1AnnotationValue {
 }
 
 /// Container of information of a video thumbnail.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1VideoThumbnail {
     /// A byte string of the video frame.
     #[serde(default)]
@@ -2502,7 +2503,7 @@ pub struct GoogleCloudDatalabelingV1beta1VideoThumbnail {
 }
 
 /// A row in the confusion matrix. Each entry in this row has the same ground truth label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1Row {
     /// The annotation spec of the ground truth label for this row.
     #[serde(default, rename = "annotationSpec")]
@@ -2514,7 +2515,7 @@ pub struct GoogleCloudDatalabelingV1beta1Row {
 }
 
 /// GoogleCloudDatalabelingV1beta1ConfidenceMetricsEntry resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ConfidenceMetricsEntry {
     /// Threshold used for this entry. For classification tasks, this is a classification threshold: a predicted label is categorized as positive or negative (in the context of this point on the PR curve) based on whether the label''s score meets this threshold. For image object detection (bounding box) tasks, this is the [intersection-over-union (IOU)](/vision/automl/object-detection/docs/evaluate#intersection-over-union) threshold for the context of this point on the PR curve.
     #[serde(default, rename = "confidenceThreshold")]
@@ -2549,7 +2550,7 @@ pub struct GoogleCloudDatalabelingV1beta1ConfidenceMetricsEntry {
 }
 
 /// General information useful for labels coming from contributors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1OperatorMetadata {
     /// Comments from contributors.
     #[serde(default)]
@@ -2566,7 +2567,7 @@ pub struct GoogleCloudDatalabelingV1beta1OperatorMetadata {
 }
 
 /// Image bounding poly annotation. It represents a polygon including bounding box in the image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ImageBoundingPolyAnnotation {
     /// Label of object in this bounding polygon.
     #[serde(default, rename = "annotationSpec")]
@@ -2579,7 +2580,7 @@ pub struct GoogleCloudDatalabelingV1beta1ImageBoundingPolyAnnotation {
 }
 
 /// Image classification annotation definition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ImageClassificationAnnotation {
     /// Label of image.
     #[serde(default, rename = "annotationSpec")]
@@ -2587,7 +2588,7 @@ pub struct GoogleCloudDatalabelingV1beta1ImageClassificationAnnotation {
 }
 
 /// A polyline for the image annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ImagePolylineAnnotation {
     /// Label of this polyline.
     #[serde(default, rename = "annotationSpec")]
@@ -2600,7 +2601,7 @@ pub struct GoogleCloudDatalabelingV1beta1ImagePolylineAnnotation {
 }
 
 /// Image segmentation annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ImageSegmentationAnnotation {
     /// The mapping between rgb color and annotation spec. The key is the rgb color represented in format of rgb(0, 0, 0). The value is the AnnotationSpec.
     #[serde(default, rename = "annotationColors")]
@@ -2614,7 +2615,7 @@ pub struct GoogleCloudDatalabelingV1beta1ImageSegmentationAnnotation {
 }
 
 /// Text classification annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1TextClassificationAnnotation {
     /// Label of the text.
     #[serde(default, rename = "annotationSpec")]
@@ -2622,7 +2623,7 @@ pub struct GoogleCloudDatalabelingV1beta1TextClassificationAnnotation {
 }
 
 /// Text entity extraction annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1TextEntityExtractionAnnotation {
     /// Label of the text entities.
     #[serde(default, rename = "annotationSpec")]
@@ -2633,7 +2634,7 @@ pub struct GoogleCloudDatalabelingV1beta1TextEntityExtractionAnnotation {
 }
 
 /// Video classification annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1VideoClassificationAnnotation {
     /// Label of the segment specified by time_segment.
     #[serde(default, rename = "annotationSpec")]
@@ -2644,7 +2645,7 @@ pub struct GoogleCloudDatalabelingV1beta1VideoClassificationAnnotation {
 }
 
 /// Video event annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1VideoEventAnnotation {
     /// Label of the event in this annotation.
     #[serde(default, rename = "annotationSpec")]
@@ -2655,7 +2656,7 @@ pub struct GoogleCloudDatalabelingV1beta1VideoEventAnnotation {
 }
 
 /// Video object tracking annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1VideoObjectTrackingAnnotation {
     /// Label of the object tracked in this annotation.
     #[serde(default, rename = "annotationSpec")]
@@ -2670,7 +2671,7 @@ pub struct GoogleCloudDatalabelingV1beta1VideoObjectTrackingAnnotation {
 }
 
 /// GoogleCloudDatalabelingV1beta1ConfusionMatrixEntry resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ConfusionMatrixEntry {
     /// The annotation spec of a predicted label.
     #[serde(default, rename = "annotationSpec")]
@@ -2681,7 +2682,7 @@ pub struct GoogleCloudDatalabelingV1beta1ConfusionMatrixEntry {
 }
 
 /// Normalized polyline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1NormalizedPolyline {
     /// The normalized polyline vertices.
     #[serde(default, rename = "normalizedVertices")]
@@ -2690,7 +2691,7 @@ pub struct GoogleCloudDatalabelingV1beta1NormalizedPolyline {
 }
 
 /// A line with multiple line segments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1Polyline {
     /// The polyline vertices.
     #[serde(default)]
@@ -2698,7 +2699,7 @@ pub struct GoogleCloudDatalabelingV1beta1Polyline {
 }
 
 /// Start and end position in a sequence (e.g. text segment).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1SequentialSegment {
     /// End position (exclusive).
     #[serde(default)]
@@ -2709,7 +2710,7 @@ pub struct GoogleCloudDatalabelingV1beta1SequentialSegment {
 }
 
 /// Video frame level annotation for object detection and tracking.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1ObjectTrackingFrame {
     #[serde(default, rename = "boundingPoly")]
     pub bounding_poly: ::core::option::Option<GoogleCloudDatalabelingV1beta1BoundingPoly>,
@@ -2722,7 +2723,7 @@ pub struct GoogleCloudDatalabelingV1beta1ObjectTrackingFrame {
 }
 
 /// A time period inside of an example that has a time dimension (e.g. video).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1TimeSegment {
     /// End of the time segment (exclusive), represented as the duration since the example start.
     #[serde(default, rename = "endTimeOffset")]
@@ -2733,7 +2734,7 @@ pub struct GoogleCloudDatalabelingV1beta1TimeSegment {
 }
 
 /// Container of information related to one possible annotation that can be used in a labeling task. For example, an image classification task where images are labeled as dog or cat must reference an AnnotationSpec for dog and an AnnotationSpec for cat.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1AnnotationSpec {
     /// Optional. User-provided description of the annotation specification. The description can be up to 10,000 characters long.
     #[serde(default)]
@@ -2747,7 +2748,7 @@ pub struct GoogleCloudDatalabelingV1beta1AnnotationSpec {
 }
 
 /// A bounding polygon in the image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1BoundingPoly {
     /// The bounding polygon vertices.
     #[serde(default)]
@@ -2755,7 +2756,7 @@ pub struct GoogleCloudDatalabelingV1beta1BoundingPoly {
 }
 
 /// Normalized bounding polygon.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1NormalizedBoundingPoly {
     /// The bounding polygon normalized vertices.
     #[serde(default, rename = "normalizedVertices")]
@@ -2764,7 +2765,7 @@ pub struct GoogleCloudDatalabelingV1beta1NormalizedBoundingPoly {
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the vertex coordinates are in the same scale as the original image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1Vertex {
     /// X coordinate.
     #[serde(default)]
@@ -2775,7 +2776,7 @@ pub struct GoogleCloudDatalabelingV1beta1Vertex {
 }
 
 /// A vertex represents a 2D point in the image. NOTE: the normalized vertex coordinates are relative to the original image and range from 0 to 1.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatalabelingV1beta1NormalizedVertex {
     /// X coordinate.
     #[serde(default)]

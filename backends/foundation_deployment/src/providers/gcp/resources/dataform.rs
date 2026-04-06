@@ -8,26 +8,27 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Simple load definition
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActionSimpleLoadMode {}
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// CancelWorkflowInvocation request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelWorkflowInvocationRequest {}
 
 /// CancelWorkflowInvocation response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelWorkflowInvocationResponse {}
 
 /// CommitRepositoryChanges request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitRepositoryChangesRequest {
     /// Required. The changes to commit to the repository.
     #[serde(default, rename = "commitMetadata")]
@@ -41,7 +42,7 @@ pub struct CommitRepositoryChangesRequest {
 }
 
 /// CommitRepositoryChanges response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitRepositoryChangesResponse {
     /// The commit SHA of the current commit.
     #[serde(default, rename = "commitSha")]
@@ -49,7 +50,7 @@ pub struct CommitRepositoryChangesResponse {
 }
 
 /// CommitWorkspaceChanges request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitWorkspaceChangesRequest {
     /// Required. The commit''s author.
     #[serde(default)]
@@ -63,11 +64,11 @@ pub struct CommitWorkspaceChangesRequest {
 }
 
 /// CommitWorkspaceChanges response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitWorkspaceChangesResponse {}
 
 /// ComputeRepositoryAccessTokenStatus response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeRepositoryAccessTokenStatusResponse {
     /// Indicates the status of the Git access token. // TODO: enum values: ["TOKEN_STATUS_UNSPECIFIED", "NOT_FOUND", "INVALID", "VALID", "PERMISSION_DENIED"]
     #[serde(default, rename = "tokenStatus")]
@@ -75,7 +76,7 @@ pub struct ComputeRepositoryAccessTokenStatusResponse {
 }
 
 /// Config for all repositories in a given project and location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Config {
     /// Optional. The default KMS key that is used if no encryption key is provided when a repository is created.
     #[serde(default, rename = "defaultKmsKeyName")]
@@ -89,11 +90,11 @@ pub struct Config {
 }
 
 /// Represents the delete file operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteFile {}
 
 /// DeleteFolderTree request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteFolderTreeRequest {
     /// Optional. If false (default): The operation will fail if any Repository within the folder hierarchy has associated Release Configs or Workflow Configs. If true: The operation will attempt to delete everything, including any Release Configs and Workflow Configs linked to Repositories within the folder hierarchy. This permanently removes schedules and resources.
     #[serde(default)]
@@ -101,7 +102,7 @@ pub struct DeleteFolderTreeRequest {
 }
 
 /// DeleteTeamFolderTree request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteTeamFolderTreeRequest {
     /// Optional. If false (default): The operation will fail if any Repository within the folder hierarchy has associated Release Configs or Workflow Configs. If true: The operation will attempt to delete everything, including any Release Configs and Workflow Configs linked to Repositories within the folder hierarchy. This permanently removes schedules and resources.
     #[serde(default)]
@@ -109,11 +110,11 @@ pub struct DeleteTeamFolderTreeRequest {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// FetchFileDiff response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchFileDiffResponse {
     /// The raw formatted Git diff for the file.
     #[serde(default, rename = "formattedDiff")]
@@ -121,7 +122,7 @@ pub struct FetchFileDiffResponse {
 }
 
 /// FetchFileGitStatuses response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchFileGitStatusesResponse {
     /// A list of all files which have uncommitted Git changes. There will only be a single entry for any given file.
     #[serde(default, rename = "uncommittedFileChanges")]
@@ -129,7 +130,7 @@ pub struct FetchFileGitStatusesResponse {
 }
 
 /// FetchGitAheadBehind response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchGitAheadBehindResponse {
     /// The number of commits in the remote branch that are not in the workspace.
     #[serde(default, rename = "commitsAhead")]
@@ -140,7 +141,7 @@ pub struct FetchGitAheadBehindResponse {
 }
 
 /// FetchRemoteBranches response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchRemoteBranchesResponse {
     /// The remote repository''s branch names.
     #[serde(default)]
@@ -148,7 +149,7 @@ pub struct FetchRemoteBranchesResponse {
 }
 
 /// FetchRepositoryHistory response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchRepositoryHistoryResponse {
     /// A list of commit logs, ordered by ''git log'' default order.
     #[serde(default)]
@@ -159,7 +160,7 @@ pub struct FetchRepositoryHistoryResponse {
 }
 
 /// Represents a single file operation to the repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FileOperation {
     /// Represents the delete operation.
     #[serde(default, rename = "deleteFile")]
@@ -170,7 +171,7 @@ pub struct FileOperation {
 }
 
 /// Contains metadata about the IAM policy override for a given Dataform resource. If is_active is true, this the policy encoded in iam_policy_name is the source of truth for this resource. Will be provided in internal ESV2 views for: Workspaces, Repositories, Folders, TeamFolders.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IamPolicyOverrideView {
     /// The IAM policy name for the resource.
     #[serde(default, rename = "iamPolicyName")]
@@ -181,15 +182,15 @@ pub struct IamPolicyOverrideView {
 }
 
 /// InstallNpmPackages request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstallNpmPackagesRequest {}
 
 /// InstallNpmPackages response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstallNpmPackagesResponse {}
 
 /// ListCompilationResults response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCompilationResultsResponse {
     /// List of compilation results.
     #[serde(default, rename = "compilationResults")]
@@ -203,7 +204,7 @@ pub struct ListCompilationResultsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -214,7 +215,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -228,7 +229,7 @@ pub struct ListOperationsResponse {
 }
 
 /// ListReleaseConfigs response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListReleaseConfigsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -242,7 +243,7 @@ pub struct ListReleaseConfigsResponse {
 }
 
 /// ListRepositories response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListRepositoriesResponse {
     /// A token which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -256,7 +257,7 @@ pub struct ListRepositoriesResponse {
 }
 
 /// ListWorkflowConfigs response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListWorkflowConfigsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -270,7 +271,7 @@ pub struct ListWorkflowConfigsResponse {
 }
 
 /// ListWorkflowInvocations response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListWorkflowInvocationsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -284,7 +285,7 @@ pub struct ListWorkflowInvocationsResponse {
 }
 
 /// ListWorkspaces response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListWorkspacesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -298,7 +299,7 @@ pub struct ListWorkspacesResponse {
 }
 
 /// MakeDirectory request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MakeDirectoryRequest {
     /// Required. The directory''s full path including directory name, relative to the workspace root.
     #[serde(default)]
@@ -306,11 +307,11 @@ pub struct MakeDirectoryRequest {
 }
 
 /// MakeDirectory response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MakeDirectoryResponse {}
 
 /// MoveDirectory request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoveDirectoryRequest {
     /// Required. The new path for the directory including directory name, rooted at workspace root.
     #[serde(default, rename = "newPath")]
@@ -321,11 +322,11 @@ pub struct MoveDirectoryRequest {
 }
 
 /// MoveDirectory response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoveDirectoryResponse {}
 
 /// MoveFile request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoveFileRequest {
     /// Required. The file''s new path including filename, relative to the workspace root.
     #[serde(default, rename = "newPath")]
@@ -336,11 +337,11 @@ pub struct MoveFileRequest {
 }
 
 /// MoveFile response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoveFileResponse {}
 
 /// MoveFolder request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoveFolderRequest {
     /// Optional. The name of the Folder, TeamFolder, or root location to move the Folder to. Can be in the format of: "" to move into the root User folder, projects/*/locations/*/folders/*, projects/*/locations/*/teamFolders/*
     #[serde(default, rename = "destinationContainingFolder")]
@@ -348,7 +349,7 @@ pub struct MoveFolderRequest {
 }
 
 /// MoveRepository request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoveRepositoryRequest {
     /// Optional. The name of the Folder, TeamFolder, or root location to move the repository to. Can be in the format of: "" to move into the root User folder, projects/*/locations/*/folders/*, projects/*/locations/*/teamFolders/*
     #[serde(default, rename = "destinationContainingFolder")]
@@ -356,7 +357,7 @@ pub struct MoveRepositoryRequest {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -382,7 +383,7 @@ pub struct OperationMetadata {
 }
 
 /// PullGitCommits request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PullGitCommitsRequest {
     /// Required. The author of any merge commit which may be created as a result of merging fetched Git commits into this workspace.
     #[serde(default)]
@@ -393,11 +394,11 @@ pub struct PullGitCommitsRequest {
 }
 
 /// PullGitCommits response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PullGitCommitsResponse {}
 
 /// PushGitCommits request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PushGitCommitsRequest {
     /// Optional. The name of the branch in the Git remote to which commits should be pushed. If left unset, the repository''s default branch name will be used.
     #[serde(default, rename = "remoteBranch")]
@@ -405,11 +406,11 @@ pub struct PushGitCommitsRequest {
 }
 
 /// PushGitCommits response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PushGitCommitsResponse {}
 
 /// QueryCompilationResultActions response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryCompilationResultActionsResponse {
     /// List of compilation result actions.
     #[serde(default, rename = "compilationResultActions")]
@@ -421,7 +422,7 @@ pub struct QueryCompilationResultActionsResponse {
 }
 
 /// QueryDirectoryContents response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryDirectoryContentsResponse {
     /// List of entries in the directory.
     #[serde(default, rename = "directoryEntries")]
@@ -432,7 +433,7 @@ pub struct QueryDirectoryContentsResponse {
 }
 
 /// QueryFolderContents response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryFolderContentsResponse {
     /// List of entries in the folder.
     #[serde(default)]
@@ -443,7 +444,7 @@ pub struct QueryFolderContentsResponse {
 }
 
 /// QueryRepositoryDirectoryContents response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryRepositoryDirectoryContentsResponse {
     /// List of entries in the directory.
     #[serde(default, rename = "directoryEntries")]
@@ -454,7 +455,7 @@ pub struct QueryRepositoryDirectoryContentsResponse {
 }
 
 /// QueryTeamFolderContents response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryTeamFolderContentsResponse {
     /// List of entries in the TeamFolder.
     #[serde(default)]
@@ -465,7 +466,7 @@ pub struct QueryTeamFolderContentsResponse {
 }
 
 /// QueryUserRootContents response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryUserRootContentsResponse {
     /// List of entries in the folder.
     #[serde(default)]
@@ -476,7 +477,7 @@ pub struct QueryUserRootContentsResponse {
 }
 
 /// QueryWorkflowInvocationActions response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryWorkflowInvocationActionsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -488,7 +489,7 @@ pub struct QueryWorkflowInvocationActionsResponse {
 }
 
 /// ReadFile response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReadFileResponse {
     /// The file''s contents.
     #[serde(default, rename = "fileContents")]
@@ -496,7 +497,7 @@ pub struct ReadFileResponse {
 }
 
 /// ReadRepositoryFile response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReadRepositoryFileResponse {
     /// The file''s contents.
     #[serde(default)]
@@ -504,7 +505,7 @@ pub struct ReadRepositoryFileResponse {
 }
 
 /// RemoveDirectory request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveDirectoryRequest {
     /// Required. The directory''s full path including directory name, relative to the workspace root.
     #[serde(default)]
@@ -512,11 +513,11 @@ pub struct RemoveDirectoryRequest {
 }
 
 /// RemoveDirectory response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveDirectoryResponse {}
 
 /// RemoveFile request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveFileRequest {
     /// Required. The file''s full path including filename, relative to the workspace root.
     #[serde(default)]
@@ -524,11 +525,11 @@ pub struct RemoveFileRequest {
 }
 
 /// RemoveFile response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveFileResponse {}
 
 /// ResetWorkspaceChanges request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResetWorkspaceChangesRequest {
     /// Optional. If set to true, untracked files will be deleted.
     #[serde(default)]
@@ -539,11 +540,11 @@ pub struct ResetWorkspaceChangesRequest {
 }
 
 /// ResetWorkspaceChanges response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResetWorkspaceChangesResponse {}
 
 /// Client-facing representation of a file search response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchFilesResponse {
     /// Optional. A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -554,7 +555,7 @@ pub struct SearchFilesResponse {
 }
 
 /// SearchTeamFolders response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchTeamFoldersResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -565,7 +566,7 @@ pub struct SearchTeamFoldersResponse {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -573,11 +574,11 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Simple load definition
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SimpleLoadMode {}
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -585,7 +586,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -593,7 +594,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// WriteFile request message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WriteFileRequest {
     /// Required. The file''s contents.
     #[serde(default)]
@@ -604,11 +605,11 @@ pub struct WriteFileRequest {
 }
 
 /// WriteFile response message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WriteFileResponse {}
 
 /// Represents a Dataform Git commit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitMetadata {
     /// Required. The commit''s author.
     #[serde(default)]
@@ -619,7 +620,7 @@ pub struct CommitMetadata {
 }
 
 /// Represents the Git state of a file with uncommitted changes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UncommittedFileChange {
     /// The file''s full path including filename, relative to the workspace root.
     #[serde(default)]
@@ -630,7 +631,7 @@ pub struct UncommittedFileChange {
 }
 
 /// Represents a single commit log.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitLogEntry {
     /// The commit author for this commit log entry.
     #[serde(default)]
@@ -647,7 +648,7 @@ pub struct CommitLogEntry {
 }
 
 /// Represents the write file operation (for files added or modified).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WriteFile {
     /// The file''s contents.
     #[serde(default)]
@@ -655,7 +656,7 @@ pub struct WriteFile {
 }
 
 /// An internal name for an IAM policy, based on the resource to which the policy applies. Not to be confused with a resource''s external full resource name. For more information on this distinction, see go/iam-full-resource-names.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyName {
     /// Identifies an instance of the type. ID format varies by type. The ID format is defined in the IAM .service file that defines the type, either in path_mapping or in a comment.
     #[serde(default)]
@@ -669,7 +670,7 @@ pub struct PolicyName {
 }
 
 /// Represents the result of compiling a Dataform project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompilationResult {
     /// Immutable. If set, fields of code_compilation_config override the default compilation settings that are specified in dataform.json.
     #[serde(default, rename = "codeCompilationConfig")]
@@ -710,7 +711,7 @@ pub struct CompilationResult {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -730,7 +731,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -750,7 +751,7 @@ pub struct Operation {
 }
 
 /// Represents a Dataform release configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReleaseConfig {
     /// Optional. If set, fields of code_compilation_config override the default compilation settings that are specified in dataform.json.
     #[serde(default, rename = "codeCompilationConfig")]
@@ -783,7 +784,7 @@ pub struct ReleaseConfig {
 }
 
 /// Represents a Dataform workflow configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkflowConfig {
     /// Output only. The timestamp of when the WorkflowConfig was created.
     #[serde(default, rename = "createTime")]
@@ -819,7 +820,7 @@ pub struct WorkflowConfig {
 }
 
 /// Represents a single invocation of a compilation result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkflowInvocation {
     /// Immutable. The name of the compilation result to use for this invocation. Must be in the format projects/*/locations/*/repositories/*/compilationResults/*.
     #[serde(default, rename = "compilationResult")]
@@ -854,7 +855,7 @@ pub struct WorkflowInvocation {
 }
 
 /// Represents a Dataform Git workspace.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Workspace {
     /// Output only. The timestamp of when the workspace was created.
     #[serde(default, rename = "createTime")]
@@ -877,7 +878,7 @@ pub struct Workspace {
 }
 
 /// Represents a single Dataform action in a compilation result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompilationResultAction {
     /// The assertion executed by this action.
     #[serde(default)]
@@ -912,7 +913,7 @@ pub struct CompilationResultAction {
 }
 
 /// Represents a single content entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FolderContentsEntry {
     /// A subfolder.
     #[serde(default)]
@@ -923,7 +924,7 @@ pub struct FolderContentsEntry {
 }
 
 /// Represents a single entry in a directory.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DirectoryEntry {
     /// A child directory in the directory.
     #[serde(default)]
@@ -937,7 +938,7 @@ pub struct DirectoryEntry {
 }
 
 /// Represents a single content entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamFolderContentsEntry {
     /// A subfolder.
     #[serde(default)]
@@ -948,7 +949,7 @@ pub struct TeamFolderContentsEntry {
 }
 
 /// Represents a single content entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RootContentsEntry {
     /// A subfolder.
     #[serde(default)]
@@ -959,7 +960,7 @@ pub struct RootContentsEntry {
 }
 
 /// Represents a single action in a workflow invocation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkflowInvocationAction {
     /// Output only. The workflow action''s bigquery action details.
     #[serde(default, rename = "bigqueryAction")]
@@ -991,7 +992,7 @@ pub struct WorkflowInvocationAction {
 }
 
 /// Client-facing representation of a search result entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchResult {
     /// Details when search result is a directory.
     #[serde(default)]
@@ -1002,7 +1003,7 @@ pub struct SearchResult {
 }
 
 /// Represents a single content entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamFolderSearchResult {
     /// A TeamFolder resource that is in the project / location.
     #[serde(default, rename = "teamFolder")]
@@ -1010,7 +1011,7 @@ pub struct TeamFolderSearchResult {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
@@ -1024,7 +1025,7 @@ pub struct Policy {
 }
 
 /// Represents the author of a Git commit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitAuthor {
     /// Required. The commit author''s email address.
     #[serde(default, rename = "emailAddress")]
@@ -1035,7 +1036,7 @@ pub struct CommitAuthor {
 }
 
 /// An error encountered when attempting to compile a Dataform project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompilationError {
     /// Output only. The identifier of the action where this error occurred, if available.
     #[serde(default, rename = "actionTarget")]
@@ -1052,7 +1053,7 @@ pub struct CompilationError {
 }
 
 /// Configures various aspects of Dataform code compilation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CodeCompilationConfig {
     /// Optional. The default schema (BigQuery dataset ID) for assertions.
     #[serde(default, rename = "assertionSchema")]
@@ -1087,7 +1088,7 @@ pub struct CodeCompilationConfig {
 }
 
 /// A record of an attempt to create a compilation result for this release config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScheduledReleaseRecord {
     /// The name of the created compilation result, if one was successfully created. Must be in the format projects/*/locations/*/repositories/*/compilationResults/*.
     #[serde(default, rename = "compilationResult")]
@@ -1101,7 +1102,7 @@ pub struct ScheduledReleaseRecord {
 }
 
 /// A record of an attempt to create a workflow invocation for this workflow config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScheduledExecutionRecord {
     /// The error status encountered upon this attempt to create the workflow invocation, if the attempt was unsuccessful.
     #[serde(default, rename = "errorStatus")]
@@ -1115,7 +1116,7 @@ pub struct ScheduledExecutionRecord {
 }
 
 /// Includes various configuration options for a workflow invocation. If both included_targets and included_tags are unset, all actions will be included.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InvocationConfig {
     /// Optional. When set to true, any incremental tables will be fully refreshed.
     #[serde(default, rename = "fullyRefreshIncrementalTablesEnabled")]
@@ -1141,7 +1142,7 @@ pub struct InvocationConfig {
 }
 
 /// Metadata used to identify if a resource is user scoped.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrivateResourceMetadata {
     /// Output only. If true, this resource is user-scoped, meaning it is either a workspace or sourced from a workspace.
     #[serde(default, rename = "userScoped")]
@@ -1149,7 +1150,7 @@ pub struct PrivateResourceMetadata {
 }
 
 /// Represents an assertion upon a SQL query which is required return zero rows.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Assertion {
     /// A list of actions that this action depends on.
     #[serde(default, rename = "dependencyTargets")]
@@ -1172,7 +1173,7 @@ pub struct Assertion {
 }
 
 /// Defines a compiled Data Preparation entity
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataPreparation {
     /// SQL definition for a Data Preparation. Contains a SQL query and additional context information.
     #[serde(default, rename = "contentsSql")]
@@ -1192,7 +1193,7 @@ pub struct DataPreparation {
 }
 
 /// Represents a relation which is not managed by Dataform but which may be referenced by Dataform actions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Declaration {
     /// Descriptor for the relation and its columns. Used as documentation only, i.e. values here will result in no changes to the relation''s metadata.
     #[serde(default, rename = "relationDescriptor")]
@@ -1200,7 +1201,7 @@ pub struct Declaration {
 }
 
 /// Represents a notebook.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Notebook {
     /// The contents of the notebook.
     #[serde(default)]
@@ -1217,7 +1218,7 @@ pub struct Notebook {
 }
 
 /// Represents a list of arbitrary database operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operations {
     /// A list of actions that this action depends on.
     #[serde(default, rename = "dependencyTargets")]
@@ -1240,7 +1241,7 @@ pub struct Operations {
 }
 
 /// Represents a database relation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Relation {
     /// Additional options that will be provided as key/value pairs into the options clause of a create table/view statement. See https://cloud.google.com/bigquery/docs/reference/standard-sql/data-definition-language for more information on which options are supported.
     #[serde(default, rename = "additionalOptions")]
@@ -1299,7 +1300,7 @@ pub struct Relation {
 }
 
 /// Represents metadata for a single entry in a filesystem.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FilesystemEntryMetadata {
     /// Output only. Provides the size of the entry in bytes. For directories, this will be 0.
     #[serde(default, rename = "sizeBytes")]
@@ -1310,7 +1311,7 @@ pub struct FilesystemEntryMetadata {
 }
 
 /// Represents a Dataform Folder. This is a resource that is used to organize Files and other Folders and provide hierarchical access controls.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Folder {
     /// Optional. The containing Folder resource name. This should take the format: projects/{project}/locations/{location}/folders/{folder}, projects/{project}/locations/{location}/teamFolders/{teamFolder}, or just projects/{project}/locations/{location} if this is a root Folder. This field can only be updated through MoveFolder.
     #[serde(default, rename = "containingFolder")]
@@ -1339,7 +1340,7 @@ pub struct Folder {
 }
 
 /// Represents a Dataform Git repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Repository {
     /// Optional. The name of the containing folder of the repository. The field is immutable and it can be modified via a MoveRepository operation. Format: projects/*/locations/*/folders/*. or projects/*/locations/*/teamFolders/*.
     #[serde(default, rename = "containingFolder")]
@@ -1386,7 +1387,7 @@ pub struct Repository {
 }
 
 /// Represents a workflow action that will run against BigQuery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BigQueryAction {
     /// Output only. The ID of the BigQuery job that executed the SQL in sql_script. Only set once the job has started to run.
     #[serde(default, rename = "jobId")]
@@ -1397,7 +1398,7 @@ pub struct BigQueryAction {
 }
 
 /// Represents a workflow action that will run a Data Preparation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataPreparationAction {
     /// SQL definition for a Data Preparation. Contains a SQL query and additional context information.
     #[serde(default, rename = "contentsSql")]
@@ -1414,7 +1415,7 @@ pub struct DataPreparationAction {
 }
 
 /// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Interval {
     /// Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.
     #[serde(default, rename = "endTime")]
@@ -1425,7 +1426,7 @@ pub struct Interval {
 }
 
 /// Represents a workflow action that will run against a Notebook runtime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NotebookAction {
     /// Output only. The code contents of a Notebook to be run.
     #[serde(default)]
@@ -1436,7 +1437,7 @@ pub struct NotebookAction {
 }
 
 /// Client-facing representation of a directory entry in search results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DirectorySearchResult {
     /// File system path relative to the workspace root.
     #[serde(default)]
@@ -1444,7 +1445,7 @@ pub struct DirectorySearchResult {
 }
 
 /// Client-facing representation of a file entry in search results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FileSearchResult {
     /// File system path relative to the workspace root.
     #[serde(default)]
@@ -1452,7 +1453,7 @@ pub struct FileSearchResult {
 }
 
 /// Represents a Dataform TeamFolder. This is a resource that sits at the project level and is used to organize Repositories and Folders with hierarchical access controls. They provide a team context and stricter access controls.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamFolder {
     /// Output only. The timestamp of when the TeamFolder was created.
     #[serde(default, rename = "createTime")]
@@ -1475,7 +1476,7 @@ pub struct TeamFolder {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -1489,7 +1490,7 @@ pub struct Binding {
 }
 
 /// Configures various aspects of Dataform notebook runtime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NotebookRuntimeOptions {
     /// Optional. The resource name of the [Colab runtime template] (https://cloud.google.com/colab/docs/runtimes), from which a runtime is created for notebook executions. If not specified, a runtime is created with Colab''s default specifications.
     #[serde(default, rename = "aiPlatformNotebookRuntimeTemplate")]
@@ -1500,7 +1501,7 @@ pub struct NotebookRuntimeOptions {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1514,7 +1515,7 @@ pub struct Status {
 }
 
 /// Definition of a SQL Data Preparation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlDefinition {
     /// Error table configuration,
     #[serde(default, rename = "errorTable")]
@@ -1528,7 +1529,7 @@ pub struct SqlDefinition {
 }
 
 /// Contains settings for relations of type INCREMENTAL_TABLE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IncrementalTableConfig {
     /// SQL statements to be executed after inserting new rows into the relation.
     #[serde(default, rename = "incrementalPostOperations")]
@@ -1551,7 +1552,7 @@ pub struct IncrementalTableConfig {
 }
 
 /// Describes a relation and its columns.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RelationDescriptor {
     /// A set of BigQuery labels that should be applied to the relation.
     #[serde(default, rename = "bigqueryLabels")]
@@ -1565,7 +1566,7 @@ pub struct RelationDescriptor {
 }
 
 /// Describes encryption state of a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataEncryptionState {
     /// Required. The KMS key version name with which data of a resource is encrypted.
     #[serde(default, rename = "kmsKeyVersionName")]
@@ -1573,7 +1574,7 @@ pub struct DataEncryptionState {
 }
 
 /// Controls Git remote configuration for a repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GitRemoteSettings {
     /// Optional. The name of the Secret Manager secret version to use as an authentication token for Git operations. Must be in the format projects/*/secrets/*/versions/*.
     #[serde(default, rename = "authenticationTokenSecretVersion")]
@@ -1593,7 +1594,7 @@ pub struct GitRemoteSettings {
 }
 
 /// Configures workspace compilation overrides for a repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkspaceCompilationOverrides {
     /// Optional. The default database (Google Cloud project ID).
     #[serde(default, rename = "defaultDatabase")]
@@ -1607,7 +1608,7 @@ pub struct WorkspaceCompilationOverrides {
 }
 
 /// Definition of a SQL Data Preparation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActionSqlDefinition {
     /// Error table configuration,
     #[serde(default, rename = "errorTable")]
@@ -1621,7 +1622,7 @@ pub struct ActionSqlDefinition {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -1638,7 +1639,7 @@ pub struct Expr {
 }
 
 /// Error table information, used to write error data into a BigQuery table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorTable {
     /// Error table partition expiration in days. Only positive values are allowed.
     #[serde(default, rename = "retentionDays")]
@@ -1649,7 +1650,7 @@ pub struct ErrorTable {
 }
 
 /// Simplified load configuration for actions
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoadConfig {
     /// Append into destination table
     #[serde(default)]
@@ -1666,7 +1667,7 @@ pub struct LoadConfig {
 }
 
 /// Describes a column.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ColumnDescriptor {
     /// A list of BigQuery policy tags that will be applied to the column.
     #[serde(default, rename = "bigqueryPolicyTags")]
@@ -1680,7 +1681,7 @@ pub struct ColumnDescriptor {
 }
 
 /// Configures fields for performing SSH authentication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SshAuthenticationConfig {
     /// Required. Content of a public SSH key to verify an identity of a remote Git host.
     #[serde(default, rename = "hostPublicKey")]
@@ -1691,7 +1692,7 @@ pub struct SshAuthenticationConfig {
 }
 
 /// Error table information, used to write error data into a BigQuery table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActionErrorTable {
     /// Error table partition expiration in days. Only positive values are allowed.
     #[serde(default, rename = "retentionDays")]
@@ -1702,7 +1703,7 @@ pub struct ActionErrorTable {
 }
 
 /// Simplified load configuration for actions
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActionLoadConfig {
     /// Append into destination table
     #[serde(default)]
@@ -1719,7 +1720,7 @@ pub struct ActionLoadConfig {
 }
 
 /// Load definition for incremental load modes
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IncrementalLoadMode {
     /// Column name for incremental load modes
     #[serde(default)]
@@ -1727,7 +1728,7 @@ pub struct IncrementalLoadMode {
 }
 
 /// Represents an action identifier. If the action writes output, the output will be written to the referenced database object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Target {
     /// Optional. The action''s database (Google Cloud project ID) .
     #[serde(default)]
@@ -1741,7 +1742,7 @@ pub struct Target {
 }
 
 /// Load definition for incremental load modes
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActionIncrementalLoadMode {
     /// Column name for incremental load modes
     #[serde(default)]

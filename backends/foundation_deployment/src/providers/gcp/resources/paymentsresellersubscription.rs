@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request to cancel a subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelSubscriptionRequest {
     /// Optional. If true, Google will cancel the subscription immediately, and may or may not (based on the contract) issue a prorated refund for the remainder of the billing cycle. Otherwise, Google defers the cancellation at renewal_time, and will not issue a refund. - YouTube subscriptions must use this option currently. However, the user will still have access to the subscription until the end of the billing cycle.
     #[serde(default, rename = "cancelImmediately")]
@@ -22,7 +23,7 @@ pub struct CancelSubscriptionRequest {
 }
 
 /// Response that contains the cancelled subscription resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelSubscriptionResponse {
     /// The cancelled subscription resource.
     #[serde(default)]
@@ -30,7 +31,7 @@ pub struct CancelSubscriptionResponse {
 }
 
 /// Partner request for entitling the previously provisioned subscription to an end user. The end user identity is inferred from the request OAuth context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EntitleSubscriptionRequest {
     /// Optional. The line items to be entitled. If unspecified, all line items will be entitled.
     #[serde(default, rename = "lineItemEntitlementDetails")]
@@ -40,7 +41,7 @@ pub struct EntitleSubscriptionRequest {
 }
 
 /// Response that contains the entitled subscription resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EntitleSubscriptionResponse {
     /// The subscription that has user linked to it.
     #[serde(default)]
@@ -48,7 +49,7 @@ pub struct EntitleSubscriptionResponse {
 }
 
 /// Request message for extending a Subscription resource. A new recurrence will be made based on the subscription schedule defined by the original product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExtendSubscriptionRequest {
     /// Required. Specifies details of the extension. Currently, the duration of the extension must be exactly one billing cycle of the original subscription.
     #[serde(default)]
@@ -59,7 +60,7 @@ pub struct ExtendSubscriptionRequest {
 }
 
 /// Response that contains the timestamps after the extension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExtendSubscriptionResponse {
     /// The time at which the subscription is expected to be extended, in ISO 8061 format. UTC timezone. Example, "cycleEndTime":"2019-08-31T17:28:54.564Z"
     #[serde(default, rename = "cycleEndTime")]
@@ -73,7 +74,7 @@ pub struct ExtendSubscriptionResponse {
 }
 
 /// Request to find eligible promotions for the current user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FindEligiblePromotionsRequest {
     /// Optional. Specifies the filters for the promotion results. The syntax is defined in https://google.aip.dev/160 with the following caveats: 1. Only the following features are supported: - Logical operator AND - Comparison operator = (no wildcards *) - Traversal operator . - Has operator : (no wildcards *) 2. Only the following fields are supported: - applicableProducts - regionCodes - youtubePayload.partnerEligibilityId - youtubePayload.postalCode 3. Unless explicitly mentioned above, other features are not supported. Example: applicableProducts:partners/partner1/products/product1 AND regionCodes:US AND youtubePayload.postalCode=94043 AND youtubePayload.partnerEligibilityId=eligibility-id
     #[serde(default)]
@@ -87,7 +88,7 @@ pub struct FindEligiblePromotionsRequest {
 }
 
 /// Response containing the found promotions for the current user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FindEligiblePromotionsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is empty, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -98,7 +99,7 @@ pub struct FindEligiblePromotionsResponse {
 }
 
 /// Request to generate a user session.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateUserSessionRequest {
     /// The user intent to generate the user session.
     #[serde(default, rename = "intentPayload")]
@@ -106,7 +107,7 @@ pub struct GenerateUserSessionRequest {
 }
 
 /// Response that contains the details for generated user session.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateUserSessionResponse {
     /// The generated user session. The token size is proportional to the size of the intent payload.
     #[serde(default, rename = "userSession")]
@@ -114,7 +115,7 @@ pub struct GenerateUserSessionResponse {
 }
 
 /// Response that contains the products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListProductsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is empty, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -125,7 +126,7 @@ pub struct ListProductsResponse {
 }
 
 /// Response that contains the promotions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPromotionsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is empty, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -136,7 +137,7 @@ pub struct ListPromotionsResponse {
 }
 
 /// Request to resume a suspended subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResumeSubscriptionRequest {
     /// Optional. The cycle options for the subscription.
     #[serde(default, rename = "cycleOptions")]
@@ -147,7 +148,7 @@ pub struct ResumeSubscriptionRequest {
 }
 
 /// Response that contains the resumed subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResumeSubscriptionResponse {
     /// The resumed subscription resource.
     #[serde(default)]
@@ -155,11 +156,11 @@ pub struct ResumeSubscriptionResponse {
 }
 
 /// Request to suspend a subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuspendSubscriptionRequest {}
 
 /// Response that contains the suspended subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SuspendSubscriptionResponse {
     /// The suspended subscription resource.
     #[serde(default)]
@@ -167,11 +168,11 @@ pub struct SuspendSubscriptionResponse {
 }
 
 /// Request to revoke a cancellation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UndoCancelSubscriptionRequest {}
 
 /// Response that contains the updated subscription resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UndoCancelSubscriptionResponse {
     /// The updated subscription resource.
     #[serde(default)]
@@ -179,7 +180,7 @@ pub struct UndoCancelSubscriptionResponse {
 }
 
 /// The details of the line item to be entitled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EntitleSubscriptionRequestLineItemEntitlementDetails {
     /// Required. The index of the line item to be entitled.
     #[serde(default, rename = "lineItemIndex")]
@@ -190,7 +191,7 @@ pub struct EntitleSubscriptionRequestLineItemEntitlementDetails {
 }
 
 /// Describes the details of an extension request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Extension {
     /// Required. Specifies the period of access the subscription should grant.
     #[serde(default)]
@@ -201,7 +202,7 @@ pub struct Extension {
 }
 
 /// The payload that describes the user intent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntentPayload {
     /// The request to create a subscription.
     #[serde(default, rename = "createIntent")]
@@ -215,7 +216,7 @@ pub struct IntentPayload {
 }
 
 /// Contains a short-lived token containing information required to interact with the Google Payments Reseller Platform via web endpoints. - Generate a user session token dynamically for an authenticated user. Do not share a token directly with a user in an unauthenticated context, such as SMS or email. - You can regenerate new session tokens repeatedly for the same generate request if necessary, regardless of whether previous tokens have expired. Multiple sessions will not result in duplicate fulfillments because the subscription ID guarantees uniqueness. For more integration details, see the [Google Managed Signup](/payments/reseller/subscription/reference/index/User.Signup.Integration/Google.Managed.Signup) documentation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserSession {
     /// Output only. The time at which the user session expires.
     #[serde(default, rename = "expireTime")]
@@ -226,7 +227,7 @@ pub struct UserSession {
 }
 
 /// A Product resource that defines a subscription service that can be resold.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Product {
     /// Output only. Specifies the details for a bundle product.
     #[serde(default, rename = "bundleDetails")]
@@ -255,7 +256,7 @@ pub struct Product {
 }
 
 /// A Promotion resource that defines a promotion for a subscription that can be resold.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Promotion {
     /// Output only. The product ids this promotion can be applied to.
     #[serde(default, rename = "applicableProducts")]
@@ -287,7 +288,7 @@ pub struct Promotion {
 }
 
 /// Intent message for creating a Subscription resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateSubscriptionIntent {
     /// Optional. The cycle options for the subscription.
     #[serde(default, rename = "cycleOptions")]
@@ -304,7 +305,7 @@ pub struct CreateSubscriptionIntent {
 }
 
 /// Intent for entitling the previously provisioned subscription to an end user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EntitleSubscriptionIntent {
     /// Required. The name of the subscription resource that is entitled to the current end user. It is in the format of "partners/{partner_id}/subscriptions/{subscriptionId}".
     #[serde(default)]
@@ -312,7 +313,7 @@ pub struct EntitleSubscriptionIntent {
 }
 
 /// The options for the intent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntentPayloadIntentOptions {
     /// Optional. If true, Google may use a different product and promotion id from the ones in the create_intent based on the user''s eligibility. Only applicable for certain YouTube free trial offers.
     #[serde(default, rename = "enableOfferOverride")]
@@ -320,7 +321,7 @@ pub struct IntentPayloadIntentOptions {
 }
 
 /// Details for a bundle product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductBundleDetails {
     /// The individual products that are included in the bundle.
     #[serde(default, rename = "bundleElements")]
@@ -331,7 +332,7 @@ pub struct ProductBundleDetails {
 }
 
 /// Configs the prices in an available region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductPriceConfig {
     /// Output only. The price in the region.
     #[serde(default)]
@@ -342,7 +343,7 @@ pub struct ProductPriceConfig {
 }
 
 /// Localized variant of a text in a particular language.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeLocalizedText {
     /// The text''s BCP-47 language code, such as "en-US" or "sr-Latn". For more information, see http://www.unicode.org/reports/tr35/#Unicode_locale_identifier.
     #[serde(default, rename = "languageCode")]
@@ -353,7 +354,7 @@ pub struct GoogleTypeLocalizedText {
 }
 
 /// The cycle options when starting and resuming a subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CycleOptions {
     /// Optional. The duration of the initial cycle. Only DAY is supported. If set, Google will start the subscription with this initial cycle duration starting at the request time (see available methods below). A prorated charge will be applied. This option is available to the following methods: - partners.subscriptions.provision - partners.subscriptions.resume - partners.userSessions.generate
     #[serde(default, rename = "initialCycleDuration")]
@@ -361,7 +362,7 @@ pub struct CycleOptions {
 }
 
 /// Acts as a central billing entity between an external partner and Google. Google services use the subscription state to grant or revoke the user''s service entitlement. Note: The subscription state might not perfectly align with the user''s service entitlement. Some services might continue providing access until the current cycle ends, even if the subscription is immediately canceled. Consult the relevant contract or product policy for specific details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Subscription {
     /// Output only. Describes the details of a cancelled subscription. Only applicable to subscription of state STATE_CANCELLED.
     #[serde(default, rename = "cancellationDetails")]
@@ -426,7 +427,7 @@ pub struct Subscription {
 }
 
 /// The individual product that is included in the bundle.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductBundleDetailsBundleElement {
     /// Required. Output only. Product resource name that identifies the bundle element. The format is ''partners/{partner_id}/products/{product_id}''.
     #[serde(default)]
@@ -434,7 +435,7 @@ pub struct ProductBundleDetailsBundleElement {
 }
 
 /// Describes the details of a cancelled or cancelling subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionCancellationDetails {
     /// Output only. The reason of the cancellation. // TODO: enum values: ["CANCELLATION_REASON_UNSPECIFIED", "CANCELLATION_REASON_FRAUD", "CANCELLATION_REASON_REMORSE", "CANCELLATION_REASON_ACCIDENTAL_PURCHASE", "CANCELLATION_REASON_PAST_DUE", "CANCELLATION_REASON_ACCOUNT_CLOSED", "CANCELLATION_REASON_UPGRADE_DOWNGRADE", "CANCELLATION_REASON_USER_DELINQUENCY", "CANCELLATION_REASON_SYSTEM_ERROR", "CANCELLATION_REASON_SYSTEM_CANCEL", "CANCELLATION_REASON_BILLING_SYSTEM_SWITCH", "CANCELLATION_REASON_OTHER"]
     #[serde(default)]
@@ -442,7 +443,7 @@ pub struct SubscriptionCancellationDetails {
 }
 
 /// Individual line item definition of a subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionLineItem {
     /// Output only. The price of the product/service in this line item. The amount could be the wholesale price, or it can include a cost of sale based on the contract.
     #[serde(default)]
@@ -488,7 +489,7 @@ pub struct SubscriptionLineItem {
 }
 
 /// Describes the details of the migrated subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionMigrationDetails {
     /// Output only. The migrated subscription id in the legacy system.
     #[serde(default, rename = "migratedSubscriptionId")]
@@ -496,7 +497,7 @@ pub struct SubscriptionMigrationDetails {
 }
 
 /// Describes a location of an end user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The postal code this location refers to. Ex. "94043"
     #[serde(default, rename = "postalCode")]
@@ -507,7 +508,7 @@ pub struct Location {
 }
 
 /// Details about the previous subscription that this new subscription upgrades/downgrades from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionUpgradeDowngradeDetails {
     /// Required. Specifies the billing cycle spec for the new upgraded/downgraded subscription. // TODO: enum values: ["BILLING_CYCLE_SPEC_UNSPECIFIED", "BILLING_CYCLE_SPEC_ALIGN_WITH_PREVIOUS_SUBSCRIPTION", "BILLING_CYCLE_SPEC_START_IMMEDIATELY", "BILLING_CYCLE_SPEC_DEFERRED_TO_NEXT_RECURRENCE"]
     #[serde(default, rename = "billingCycleSpec")]
@@ -518,7 +519,7 @@ pub struct SubscriptionUpgradeDowngradeDetails {
 }
 
 /// The bundle details for a line item corresponding to a hard bundle.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionLineItemBundleDetails {
     /// Output only. The details for each element in the hard bundle.
     #[serde(default, rename = "bundleElementDetails")]
@@ -528,7 +529,7 @@ pub struct SubscriptionLineItemBundleDetails {
 }
 
 /// Details for a subscription line item with finite billing cycles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FiniteBillingCycleDetails {
     /// The number of a subscription line item billing cycles after which billing will stop automatically.
     #[serde(default, rename = "billingCycleCountLimit")]
@@ -536,7 +537,7 @@ pub struct FiniteBillingCycleDetails {
 }
 
 /// Describes the spec for one promotion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionPromotionSpec {
     /// Output only. The duration of the free trial if the promotion is of type FREE_TRIAL.
     #[serde(default, rename = "freeTrialDuration")]
@@ -553,7 +554,7 @@ pub struct SubscriptionPromotionSpec {
 }
 
 /// Details for a ONE_TIME recurrence line item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionLineItemOneTimeRecurrenceDetails {
     /// Output only. The service period of the ONE_TIME line item.
     #[serde(default, rename = "servicePeriod")]
@@ -561,7 +562,7 @@ pub struct SubscriptionLineItemOneTimeRecurrenceDetails {
 }
 
 /// Specifies product specific payload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductPayload {
     /// Payload specific to Google Home products.
     #[serde(default, rename = "googleHomePayload")]
@@ -575,7 +576,7 @@ pub struct ProductPayload {
 }
 
 /// The details for an element in the hard bundle.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscriptionLineItemBundleDetailsBundleElementDetails {
     /// Output only. Product resource name that identifies the bundle element. The format is ''partners/{partner_id}/products/{product_id}''.
     #[serde(default)]
@@ -586,7 +587,7 @@ pub struct SubscriptionLineItemBundleDetailsBundleElementDetails {
 }
 
 /// Describes the length of a period of a time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Duration {
     /// number of duration units to be included.
     #[serde(default)]
@@ -597,7 +598,7 @@ pub struct Duration {
 }
 
 /// The details of a introductory pricing promotion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PromotionIntroductoryPricingDetails {
     /// Output only. Specifies the introductory pricing periods.
     #[serde(default, rename = "introductoryPricingSpecs")]
@@ -607,7 +608,7 @@ pub struct PromotionIntroductoryPricingDetails {
 }
 
 /// A description of what time period or moment in time the product or service is being delivered over.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServicePeriod {
     /// Optional. The end time of the service period. Time is exclusive.
     #[serde(default, rename = "endTime")]
@@ -618,7 +619,7 @@ pub struct ServicePeriod {
 }
 
 /// Payload specific for Google Home products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleHomePayload {
     /// Output only. This identifies whether the subscription is attached to a Google Home structure.
     #[serde(default, rename = "attachedToGoogleStructure")]
@@ -632,7 +633,7 @@ pub struct GoogleHomePayload {
 }
 
 /// Payload specific to Google One products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleOnePayload {
     /// Campaign attributed to sales of this subscription.
     #[serde(default)]
@@ -649,7 +650,7 @@ pub struct GoogleOnePayload {
 }
 
 /// Payload specific to Youtube products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YoutubePayload {
     /// Output only. The access expiration time for this line item.
     #[serde(default, rename = "accessEndTime")]
@@ -663,7 +664,7 @@ pub struct YoutubePayload {
 }
 
 /// The duration of an introductory pricing promotion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PromotionIntroductoryPricingDetailsIntroductoryPricingSpec {
     /// Output only. The discount amount. The value is positive.
     #[serde(default, rename = "discountAmount")]
@@ -680,7 +681,7 @@ pub struct PromotionIntroductoryPricingDetailsIntroductoryPricingSpec {
 }
 
 /// Describes the amount unit including the currency code.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Amount {
     /// Required. Amount in micros (1_000_000 micros = 1 currency unit)
     #[serde(default, rename = "amountMicros")]

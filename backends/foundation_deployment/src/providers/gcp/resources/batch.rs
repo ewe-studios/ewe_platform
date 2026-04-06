@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// CancelJob Request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelJobRequest {
     /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes after the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
@@ -19,15 +20,15 @@ pub struct CancelJobRequest {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// ListJob Response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListJobsResponse {
     /// Jobs.
     #[serde(default)]
@@ -41,7 +42,7 @@ pub struct ListJobsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -52,7 +53,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -66,7 +67,7 @@ pub struct ListOperationsResponse {
 }
 
 /// ListTasks Response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTasksResponse {
     /// Next page token.
     #[serde(default, rename = "nextPageToken")]
@@ -80,7 +81,7 @@ pub struct ListTasksResponse {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -106,7 +107,7 @@ pub struct OperationMetadata {
 }
 
 /// Request to report agent''s state. The Request itself implies the agent is healthy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportAgentStateRequest {
     /// Agent info.
     #[serde(default, rename = "agentInfo")]
@@ -120,7 +121,7 @@ pub struct ReportAgentStateRequest {
 }
 
 /// Response to ReportAgentStateRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportAgentStateResponse {
     /// Default report interval override
     #[serde(default, rename = "defaultReportInterval")]
@@ -137,7 +138,7 @@ pub struct ReportAgentStateResponse {
 }
 
 /// Aggregated task status for a TaskGroup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaskGroupStatus {
     /// Count of task in each state in the TaskGroup. The map key is task state name.
     #[serde(default)]
@@ -148,7 +149,7 @@ pub struct TaskGroupStatus {
 }
 
 /// The Cloud Batch Job description.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Job {
     /// Compute resource allocation for all TaskGroups in the Job.
     #[serde(default, rename = "allocationPolicy")]
@@ -186,7 +187,7 @@ pub struct Job {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -206,7 +207,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -226,7 +227,7 @@ pub struct Operation {
 }
 
 /// A Cloud Batch task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Task {
     /// Task name. The name is generated from the parent TaskGroup name and ''id'' field. For example: "projects/123456/locations/us-west1/jobs/job01/taskGroups/group01/tasks/task01".
     #[serde(default)]
@@ -237,7 +238,7 @@ pub struct Task {
 }
 
 /// VM Agent Info.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentInfo {
     /// Optional. The assigned Job ID
     #[serde(default, rename = "jobId")]
@@ -257,7 +258,7 @@ pub struct AgentInfo {
 }
 
 /// VM timing information
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentTimingInfo {
     /// Agent startup time
     #[serde(default, rename = "agentStartupTime")]
@@ -271,7 +272,7 @@ pub struct AgentTimingInfo {
 }
 
 /// VM Agent Metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentMetadata {
     /// When the VM agent started. Use agent_startup_time instead.
     #[serde(default, rename = "creationTime")]
@@ -306,7 +307,7 @@ pub struct AgentMetadata {
 }
 
 /// TODO(b/182501497) The message needs to be redefined when the Agent API server updates data in storage per the backend design.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentTask {
     /// AgentTaskSpec is the taskSpec representation between Agent and CLH communication. This field will replace the TaskSpec field above in future to have a better separation between user-facaing API and internal API.
     #[serde(default, rename = "agentTaskSpec")]
@@ -332,7 +333,7 @@ pub struct AgentTask {
 }
 
 /// VM instance status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceStatus {
     /// The VM boot disk.
     #[serde(default, rename = "bootDisk")]
@@ -349,7 +350,7 @@ pub struct InstanceStatus {
 }
 
 /// A Job''s resource allocation policy describes when, where, and how compute resources should be allocated for the Job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllocationPolicy {
     /// Describe instances that can be created by this AllocationPolicy. Only instances[0] is supported now.
     #[serde(default)]
@@ -375,7 +376,7 @@ pub struct AllocationPolicy {
 }
 
 /// LogsPolicy describes if and how a job''s logs are preserved. Logs include information that is automatically written by the Batch service agent and any information that you configured the job''s runnables to write to the stdout or stderr streams.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogsPolicy {
     /// Optional. When destination is set to CLOUD_LOGGING, you can optionally set this field to configure additional settings for Cloud Logging.
     #[serde(default, rename = "cloudLoggingOption")]
@@ -389,7 +390,7 @@ pub struct LogsPolicy {
 }
 
 /// Notification configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobNotification {
     /// The attribute requirements of messages to be sent to this Pub/Sub topic. Without this field, no message will be sent.
     #[serde(default)]
@@ -400,7 +401,7 @@ pub struct JobNotification {
 }
 
 /// Job status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobStatus {
     /// The duration of time that the Job spent in status RUNNING.
     #[serde(default, rename = "runDuration")]
@@ -417,7 +418,7 @@ pub struct JobStatus {
 }
 
 /// A TaskGroup defines one or more Tasks that all share the same TaskSpec.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaskGroup {
     /// Output only. TaskGroup name. The system generates this field based on parent Job name. For example: "projects/123456/locations/us-west1/jobs/job01/taskGroups/group01".
     #[serde(default)]
@@ -452,7 +453,7 @@ pub struct TaskGroup {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -466,7 +467,7 @@ pub struct Status {
 }
 
 /// Task Info
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentTaskInfo {
     /// The highest index of a runnable started by the agent for this task. The runnables are indexed from 1. Value 0 is undefined.
     #[serde(default)]
@@ -480,7 +481,7 @@ pub struct AgentTaskInfo {
 }
 
 /// AgentTaskSpec is the user''s TaskSpec representation between Agent and CLH communication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentTaskSpec {
     /// Environment variables to set before running the Task.
     #[serde(default)]
@@ -500,7 +501,7 @@ pub struct AgentTaskSpec {
 }
 
 /// InstancePolicyOrTemplate lets you define the type of resources to use for this job either with an InstancePolicy or an instance template. If undefined, Batch picks the type of VM to use and doesn''t include optional VM resources such as GPUs and extra disks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancePolicyOrTemplate {
     /// Optional. Set this field to true if you want Batch to block project-level SSH keys from accessing this job''s VMs. Alternatively, you can configure the job to specify a VM instance template that blocks project-level SSH keys. In either case, Batch blocks project-level SSH keys while creating the VMs for this job. Batch allows project-level SSH keys for a job''s VMs only if all the following are true: + This field is undefined or set to false. + The job''s VM instance template (if any) doesn''t block project-level SSH keys. Notably, you can override this behavior by manually updating a VM to block or allow project-level SSH keys. For more information about blocking project-level SSH keys, see the Compute Engine documentation: https://cloud.google.com/compute/docs/connect/restrict-ssh-keys#block-keys
     #[serde(default, rename = "blockProjectSshKeys")]
@@ -520,7 +521,7 @@ pub struct InstancePolicyOrTemplate {
 }
 
 /// LocationPolicy resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocationPolicy {
     /// A list of allowed location names represented by internal URLs. Each location can be a region or a zone. Only one region or multiple zones in one region is supported now. For example, ["regions/us-central1"] allow VMs in any zones in region us-central1. ["zones/us-central1-a", "zones/us-central1-c"] only allow VMs in zones us-central1-a and us-central1-c. Mixing locations from different regions would cause errors. For example, ["regions/us-central1", "zones/us-central1-a", "zones/us-central1-b", "zones/us-west1-a"] contains locations from two distinct regions: us-central1 and us-west1. This combination will trigger an error.
     #[serde(default, rename = "allowedLocations")]
@@ -528,7 +529,7 @@ pub struct LocationPolicy {
 }
 
 /// NetworkPolicy describes VM instance network configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkPolicy {
     /// Network configurations.
     #[serde(default, rename = "networkInterfaces")]
@@ -536,7 +537,7 @@ pub struct NetworkPolicy {
 }
 
 /// PlacementPolicy describes a group placement policy for the VMs controlled by this AllocationPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlacementPolicy {
     /// UNSPECIFIED vs. COLLOCATED (default UNSPECIFIED). Use COLLOCATED when you want VMs to be located close to each other for low network latency between the VMs. No placement policy will be generated when collocation is UNSPECIFIED.
     #[serde(default)]
@@ -547,7 +548,7 @@ pub struct PlacementPolicy {
 }
 
 /// Carries information about a Google Cloud service account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceAccount {
     /// Email address of the service account.
     #[serde(default)]
@@ -558,7 +559,7 @@ pub struct ServiceAccount {
 }
 
 /// CloudLoggingOption contains additional settings for Cloud Logging logs generated by Batch job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudLoggingOption {
     /// Optional. Set this field to true to change the [monitored resource type](https://cloud.google.com/monitoring/api/resources) for Cloud Logging logs generated by this Batch job from the [batch.googleapis.com/Job](https://cloud.google.com/monitoring/api/resources#tag_batch.googleapis.com/Job) type to the formerly used [generic_task](https://cloud.google.com/monitoring/api/resources#tag_generic_task) type.
     #[serde(default, rename = "useGenericTaskMonitoredResource")]
@@ -566,7 +567,7 @@ pub struct CloudLoggingOption {
 }
 
 /// Message details. Describe the conditions under which messages will be sent. If no attribute is defined, no message will be sent by default. One message should specify either the job or the task level attributes, but not both. For example, job level: JOB_STATE_CHANGED and/or a specified new_job_state; task level: TASK_STATE_CHANGED and/or a specified new_task_state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Message {
     /// The new job state. // TODO: enum values: ["STATE_UNSPECIFIED", "QUEUED", "SCHEDULED", "RUNNING", "SUCCEEDED", "FAILED", "DELETION_IN_PROGRESS", "CANCELLATION_IN_PROGRESS", "CANCELLED"]
     #[serde(default, rename = "newJobState")]
@@ -580,7 +581,7 @@ pub struct Message {
 }
 
 /// Spec of a task
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaskSpec {
     /// ComputeResource requirements.
     #[serde(default, rename = "computeResource")]
@@ -609,7 +610,7 @@ pub struct TaskSpec {
 }
 
 /// Status of a task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaskStatus {
     /// Task state. // TODO: enum values: ["STATE_UNSPECIFIED", "PENDING", "ASSIGNED", "RUNNING", "FAILED", "SUCCEEDED", "UNEXECUTED"]
     #[serde(default)]
@@ -620,7 +621,7 @@ pub struct TaskStatus {
 }
 
 /// AgentTaskLoggingOption contains the options for the logging of the task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentTaskLoggingOption {
     /// Labels to be added to the log entry. Now only cloud logging is supported.
     #[serde(default)]
@@ -628,7 +629,7 @@ pub struct AgentTaskLoggingOption {
 }
 
 /// AgentTaskRunnable is the Runnable representation between Agent and CLH communication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentTaskRunnable {
     /// By default, after a Runnable fails, no further Runnable are executed. This flag indicates that this Runnable must be run even if the Task has already failed. This is useful for Runnables that copy output files off of the VM or for debugging. The always_run flag does not override the Task''s overall max_run_duration. If the max_run_duration has expired then no further Runnables will execute, not even always_run Runnables.
     #[serde(default, rename = "alwaysRun")]
@@ -654,7 +655,7 @@ pub struct AgentTaskRunnable {
 }
 
 /// AgentTaskUserAccount contains the information of a POSIX account on the guest os which is used to execute the runnables.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentTaskUserAccount {
     /// gid id an unique identifier of the POSIX account group corresponding to the user account.
     #[serde(default)]
@@ -665,7 +666,7 @@ pub struct AgentTaskUserAccount {
 }
 
 /// InstancePolicy describes an instance type and resources attached to each VM created by this InstancePolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstancePolicy {
     /// The accelerators attached to each VM instance.
     #[serde(default)]
@@ -691,7 +692,7 @@ pub struct InstancePolicy {
 }
 
 /// A network interface.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkInterface {
     /// The URL of an existing network resource. You can specify the network as a full or partial URL. For example, the following are all valid URLs: * https://www.googleapis.com/compute/v1/projects/{project}/global/networks/{network} * projects/{project}/global/networks/{network} * global/networks/{network}
     #[serde(default)]
@@ -705,7 +706,7 @@ pub struct NetworkInterface {
 }
 
 /// Compute resource requirements. ComputeResource defines the amount of resources required for each task. Make sure your tasks have enough resources to successfully run. If you also define the types of resources for a job to use with the [InstancePolicyOrTemplate](https://cloud.google.com/batch/docs/reference/rest/v1/projects.locations.jobs#instancepolicyortemplate) field, make sure both fields are compatible with each other.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeResource {
     /// Extra boot disk size in MiB for each task.
     #[serde(default, rename = "bootDiskMib")]
@@ -719,7 +720,7 @@ pub struct ComputeResource {
 }
 
 /// LifecyclePolicy describes how to deal with task failures based on different conditions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LifecyclePolicy {
     /// Action to execute when ActionCondition is true. When RETRY_TASK is specified, we will retry failed tasks if we notice any exit code match and fail tasks if no match is found. Likewise, when FAIL_TASK is specified, we will fail tasks if we notice any exit code match and retry tasks if no match is found. // TODO: enum values: ["ACTION_UNSPECIFIED", "RETRY_TASK", "FAIL_TASK"]
     #[serde(default)]
@@ -730,7 +731,7 @@ pub struct LifecyclePolicy {
 }
 
 /// Runnable describes instructions for executing a specific script or container as part of a Task.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Runnable {
     /// By default, after a Runnable fails, no further Runnable are executed. This flag indicates that this Runnable must be run even if the Task has already failed. This is useful for Runnables that copy output files off of the VM or for debugging. The always_run flag does not override the Task''s overall max_run_duration. If the max_run_duration has expired then no further Runnables will execute, not even always_run Runnables.
     #[serde(default, rename = "alwaysRun")]
@@ -765,7 +766,7 @@ pub struct Runnable {
 }
 
 /// Volume describes a volume and parameters for it to be mounted to a VM.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Volume {
     /// Device name of an attached disk volume, which should align with a device_name specified by job.allocation_policy.instances[0].policy.disks[i].device_name or defined by the given instance template in job.allocation_policy.instances[0].instance_template.
     #[serde(default, rename = "deviceName")]
@@ -785,7 +786,7 @@ pub struct Volume {
 }
 
 /// Status event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StatusEvent {
     /// Description of the event.
     #[serde(default)]
@@ -805,7 +806,7 @@ pub struct StatusEvent {
 }
 
 /// Container runnable representation on the agent side.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentContainer {
     /// Overrides the CMD specified in the container. If there is an ENTRYPOINT (either in the container image or with the entrypoint field below) then commands are appended as arguments to the ENTRYPOINT.
     #[serde(default)]
@@ -825,7 +826,7 @@ pub struct AgentContainer {
 }
 
 /// AgentEnvironment is the Environment representation between Agent and CLH communication. The environment is used in both task level and agent level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentEnvironment {
     /// An encrypted JSON dictionary where the key/value pairs correspond to environment variable names and their values.
     #[serde(default, rename = "encryptedVariables")]
@@ -839,7 +840,7 @@ pub struct AgentEnvironment {
 }
 
 /// Script runnable representation on the agent side.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentScript {
     /// Script file path on the host VM. To specify an interpreter, please add a #!(also known as [shebang line](https://en.wikipedia.org/wiki/Shebang_(Unix))) as the first line of the file.(For example, to execute the script using bash, #!/bin/bash should be the first line of the file. To execute the script usingPython3, #!/usr/bin/env python3 should be the first line of the file.) Otherwise, the file will by default be executed by /bin/sh.
     #[serde(default)]
@@ -850,7 +851,7 @@ pub struct AgentScript {
 }
 
 /// Accelerator describes Compute Engine accelerators to be attached to the VM.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Accelerator {
     /// The number of accelerators of this type.
     #[serde(default)]
@@ -867,7 +868,7 @@ pub struct Accelerator {
 }
 
 /// A new or an existing persistent disk (PD) or a local ssd attached to a VM instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttachedDisk {
     /// Device name that the guest operating system will see. It is used by Runnable.volumes field to mount disks. So please specify the device_name if you want Batch to help mount the disk, and it should match the device_name field in volumes.
     #[serde(default, rename = "deviceName")]
@@ -880,7 +881,7 @@ pub struct AttachedDisk {
 }
 
 /// Conditions for actions to deal with task failures.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActionCondition {
     /// Exit codes of a task execution. If there are more than 1 exit codes, when task executes with any of the exit code in the list, the condition is met and the action will be executed.
     #[serde(default, rename = "exitCodes")]
@@ -888,7 +889,7 @@ pub struct ActionCondition {
 }
 
 /// A barrier runnable automatically blocks the execution of subsequent runnables until all the tasks in the task group reach the barrier.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Barrier {
     /// Barriers are identified by their index in runnable list. Names are not required, but if present should be an identifier.
     #[serde(default)]
@@ -896,7 +897,7 @@ pub struct Barrier {
 }
 
 /// Container runnable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Container {
     /// If set to true, external network access to and from container will be blocked, containers that are with block_external_network as true can still communicate with each other, network cannot be specified in the container.options field.
     #[serde(default, rename = "blockExternalNetwork")]
@@ -928,7 +929,7 @@ pub struct Container {
 }
 
 /// An Environment describes a collection of environment variables to set when executing Tasks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Environment {
     /// An encrypted JSON dictionary where the key/value pairs correspond to environment variable names and their values.
     #[serde(default, rename = "encryptedVariables")]
@@ -942,7 +943,7 @@ pub struct Environment {
 }
 
 /// Script runnable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Script {
     /// The path to a script file that is accessible from the host VM(s). Unless the script file supports the default #!/bin/sh shell interpreter, you must specify an interpreter by including a [shebang line](https://en.wikipedia.org/wiki/Shebang_(Unix) as the first line of the file. For example, to execute the script using bash, include #!/bin/bash as the first line of the file. Alternatively, to execute the script using Python3, include #!/usr/bin/env python3 as the first line of the file.
     #[serde(default)]
@@ -953,7 +954,7 @@ pub struct Script {
 }
 
 /// Represents a Google Cloud Storage volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GCS {
     /// Remote path, either a bucket name or a subdirectory of a bucket, e.g.: bucket_name, bucket_name/subdirectory/
     #[serde(default, rename = "remotePath")]
@@ -961,7 +962,7 @@ pub struct GCS {
 }
 
 /// Represents an NFS volume.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NFS {
     /// Remote source path exported from the NFS, e.g., "/share".
     #[serde(default, rename = "remotePath")]
@@ -972,7 +973,7 @@ pub struct NFS {
 }
 
 /// This Task Execution field includes detail information for task execution procedures, based on StatusEvent types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaskExecution {
     /// The exit code of a finished task. If the task succeeded, the exit code will be 0. If the task failed but not due to the following reasons, the exit code will be 50000. Otherwise, it can be from different sources: * Batch known failures: https://cloud.google.com/batch/docs/troubleshooting#reserved-exit-codes. * Batch runnable execution failures; you can rely on Batch logs to further diagnose: https://cloud.google.com/batch/docs/analyze-job-using-logs. If there are multiple runnables failures, Batch only exposes the first error.
     #[serde(default, rename = "exitCode")]
@@ -980,7 +981,7 @@ pub struct TaskExecution {
 }
 
 /// AgentKMSEnvMap contains the encrypted key/value pair to be used in the environment on the Agent side.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentKMSEnvMap {
     /// The value of the cipherText response from the encrypt method.
     #[serde(default, rename = "cipherText")]
@@ -991,7 +992,7 @@ pub struct AgentKMSEnvMap {
 }
 
 /// A new persistent disk or a local ssd. A VM can only have one local SSD setting but multiple local SSD partitions. See https://cloud.google.com/compute/docs/disks#pdspecs and https://cloud.google.com/compute/docs/disks#localssds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Disk {
     /// Local SSDs are available through both "SCSI" and "NVMe" interfaces. If not indicated, "NVMe" will be the default one for local ssds. This field is ignored for persistent disks as the interface is chosen automatically. See https://cloud.google.com/compute/docs/disks/persistent-disks#choose_an_interface.
     #[serde(default, rename = "diskInterface")]
@@ -1011,7 +1012,7 @@ pub struct Disk {
 }
 
 /// KMSEnvMap resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KMSEnvMap {
     /// The value of the cipherText response from the encrypt method.
     #[serde(default, rename = "cipherText")]

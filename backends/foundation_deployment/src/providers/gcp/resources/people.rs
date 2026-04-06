@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A request to create a batch of contacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchCreateContactsRequest {
     /// Required. The contact to create. Allows up to 200 contacts in a single request.
     #[serde(default)]
@@ -25,7 +26,7 @@ pub struct BatchCreateContactsRequest {
 }
 
 /// If not successful, returns BatchCreateContactsErrorDetails which contains a list of errors for each invalid contact. The response to a request to create a batch of contacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchCreateContactsResponse {
     /// The contacts that were created, unless the request read_mask is empty.
     #[serde(default, rename = "createdPeople")]
@@ -33,7 +34,7 @@ pub struct BatchCreateContactsResponse {
 }
 
 /// A request to delete a batch of existing contacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchDeleteContactsRequest {
     /// Required. The resource names of the contact to delete. It''s repeatable. Allows up to 500 resource names in a single request.
     #[serde(default, rename = "resourceNames")]
@@ -41,7 +42,7 @@ pub struct BatchDeleteContactsRequest {
 }
 
 /// The response to a batch get contact groups request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchGetContactGroupsResponse {
     /// The list of responses for each requested contact group resource.
     #[serde(default)]
@@ -49,7 +50,7 @@ pub struct BatchGetContactGroupsResponse {
 }
 
 /// A request to update a batch of contacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateContactsRequest {
     /// Required. A map of resource names to the person data to be updated. Allows up to 200 contacts in a single request.
     #[serde(default)]
@@ -66,7 +67,7 @@ pub struct BatchUpdateContactsRequest {
 }
 
 /// If not successful, returns BatchUpdateContactsErrorDetails, a list of errors corresponding to each contact. The response to a request to update a batch of contacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateContactsResponse {
     /// A map of resource names to the contacts that were updated, unless the request read_mask is empty.
     #[serde(default, rename = "updateResult")]
@@ -74,7 +75,7 @@ pub struct BatchUpdateContactsResponse {
 }
 
 /// A request to copy an "Other contact" to my contacts group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CopyOtherContactToMyContactsGroupRequest {
     /// Required. A field mask to restrict which fields are copied into the new contact. Valid values are: * emailAddresses * names * phoneNumbers
     #[serde(default, rename = "copyMask")]
@@ -88,7 +89,7 @@ pub struct CopyOtherContactToMyContactsGroupRequest {
 }
 
 /// A request to create a new contact group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateContactGroupRequest {
     /// Required. The contact group to create.
     #[serde(default, rename = "contactGroup")]
@@ -99,7 +100,7 @@ pub struct CreateContactGroupRequest {
 }
 
 /// The response for deleting a contact''s photo.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteContactPhotoResponse {
     /// The updated person, if person_fields is set in the DeleteContactPhotoRequest; otherwise this will be unset.
     #[serde(default)]
@@ -107,11 +108,11 @@ pub struct DeleteContactPhotoResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// The response to a get request for a list of people by resource name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetPeopleResponse {
     /// The response for each requested resource name.
     #[serde(default)]
@@ -119,7 +120,7 @@ pub struct GetPeopleResponse {
 }
 
 /// The response to a request for the authenticated user''s connections.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListConnectionsResponse {
     /// The list of people that the requestor is connected to.
     #[serde(default)]
@@ -139,7 +140,7 @@ pub struct ListConnectionsResponse {
 }
 
 /// The response to a list contact groups request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListContactGroupsResponse {
     /// The list of contact groups. Members of the contact groups are not populated.
     #[serde(default, rename = "contactGroups")]
@@ -156,7 +157,7 @@ pub struct ListContactGroupsResponse {
 }
 
 /// The response to a request for the authenticated user''s domain directory.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDirectoryPeopleResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -170,7 +171,7 @@ pub struct ListDirectoryPeopleResponse {
 }
 
 /// The response to a request for the authenticated user''s "Other contacts".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOtherContactsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -187,7 +188,7 @@ pub struct ListOtherContactsResponse {
 }
 
 /// A request to modify an existing contact group''s members. Contacts can be removed from any group but they can only be added to a user group or "myContacts" or "starred" system groups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModifyContactGroupMembersRequest {
     /// Optional. The resource names of the contact people to add in the form of people/{person_id}. The total number of resource names in resource_names_to_add and resource_names_to_remove must be less than or equal to 1000.
     #[serde(default, rename = "resourceNamesToAdd")]
@@ -198,7 +199,7 @@ pub struct ModifyContactGroupMembersRequest {
 }
 
 /// The response to a modify contact group members request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModifyContactGroupMembersResponse {
     /// The contact people resource names that cannot be removed from their last contact group.
     #[serde(default, rename = "canNotRemoveLastContactGroupResourceNames")]
@@ -210,7 +211,7 @@ pub struct ModifyContactGroupMembersResponse {
 }
 
 /// The response to a request for people in the authenticated user''s domain directory that match the specified query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchDirectoryPeopleResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -224,7 +225,7 @@ pub struct SearchDirectoryPeopleResponse {
 }
 
 /// The response to a search request for the authenticated user, given a query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchResponse {
     /// The results of the request.
     #[serde(default)]
@@ -232,7 +233,7 @@ pub struct SearchResponse {
 }
 
 /// A request to update an existing user contact group. All updated fields will be replaced.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateContactGroupRequest {
     /// Required. The contact group to update.
     #[serde(default, rename = "contactGroup")]
@@ -246,7 +247,7 @@ pub struct UpdateContactGroupRequest {
 }
 
 /// A request to update an existing contact''s photo. All requests must have a valid photo format: JPEG or PNG.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateContactPhotoRequest {
     /// Optional. A field mask to restrict which fields on the person are returned. Multiple fields can be specified by separating them with commas. Defaults to empty if not set, which will skip the post mutate get. Valid values are: * addresses * ageRanges * biographies * birthdays * calendarUrls * clientData * coverPhotos * emailAddresses * events * externalIds * genders * imClients * interests * locales * locations * memberships * metadata * miscKeywords * names * nicknames * occupations * organizations * phoneNumbers * photos * relations * sipAddresses * skills * urls * userDefined
     #[serde(default, rename = "personFields")]
@@ -260,7 +261,7 @@ pub struct UpdateContactPhotoRequest {
 }
 
 /// The response for updating a contact''s photo.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateContactPhotoResponse {
     /// The updated person, if person_fields is set in the UpdateContactPhotoRequest; otherwise this will be unset.
     #[serde(default)]
@@ -268,7 +269,7 @@ pub struct UpdateContactPhotoResponse {
 }
 
 /// A wrapper that contains the person data to populate a newly created source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContactToCreate {
     /// Required. The person data to populate a newly created source.
     #[serde(default, rename = "contactPerson")]
@@ -276,7 +277,7 @@ pub struct ContactToCreate {
 }
 
 /// The response for a specific contact group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContactGroupResponse {
     /// The contact group.
     #[serde(default, rename = "contactGroup")]
@@ -290,7 +291,7 @@ pub struct ContactGroupResponse {
 }
 
 /// The response for a single person
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PersonResponse {
     /// **DEPRECATED** (Please use status instead) [HTTP 1.1 status code] (http://www.w3.org/Protocols/rfc2616/rfc2616-sec10.html).
     #[serde(default, rename = "httpStatusCode")]
@@ -307,7 +308,7 @@ pub struct PersonResponse {
 }
 
 /// A result of a search query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchResult {
     /// The matched Person.
     #[serde(default)]
@@ -315,7 +316,7 @@ pub struct SearchResult {
 }
 
 /// A contact group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContactGroup {
     /// The group''s client data.
     #[serde(default, rename = "clientData")]
@@ -347,7 +348,7 @@ pub struct ContactGroup {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -361,7 +362,7 @@ pub struct Status {
 }
 
 /// Information about a person merged from various data sources such as the authenticated user''s contacts and profile data. Most fields can have multiple items. The items in a field have no guaranteed order, but each non-empty field is guaranteed to have exactly one field with metadata.primary set to true.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Person {
     /// The person''s street addresses.
     #[serde(default)]
@@ -480,7 +481,7 @@ pub struct Person {
 }
 
 /// Arbitrary client data that is populated by clients. Duplicate keys and values are allowed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GroupClientData {
     /// The client specified key of the client data.
     #[serde(default)]
@@ -491,7 +492,7 @@ pub struct GroupClientData {
 }
 
 /// The metadata about a contact group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContactGroupMetadata {
     /// Output only. True if the contact group resource has been deleted. Populated only for [ListContactGroups](/people/api/rest/v1/contactgroups/list) requests that include a sync token.
     #[serde(default)]
@@ -502,7 +503,7 @@ pub struct ContactGroupMetadata {
 }
 
 /// A person''s physical address. May be a P.O. box or street address. All fields are optional.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Address {
     /// The city of the address.
     #[serde(default)]
@@ -543,7 +544,7 @@ pub struct Address {
 }
 
 /// A person''s age range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgeRangeType {
     /// The age range. // TODO: enum values: ["AGE_RANGE_UNSPECIFIED", "LESS_THAN_EIGHTEEN", "EIGHTEEN_TO_TWENTY", "TWENTY_ONE_OR_OLDER"]
     #[serde(default, rename = "ageRange")]
@@ -554,7 +555,7 @@ pub struct AgeRangeType {
 }
 
 /// A person''s short biography.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Biography {
     /// The content type of the biography. // TODO: enum values: ["CONTENT_TYPE_UNSPECIFIED", "TEXT_PLAIN", "TEXT_HTML"]
     #[serde(default, rename = "contentType")]
@@ -568,7 +569,7 @@ pub struct Biography {
 }
 
 /// A person''s birthday. At least one of the date and text fields are specified. The date and text fields typically represent the same date, but are not guaranteed to. Clients should always set the date field when mutating birthdays.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Birthday {
     /// The structured date of the birthday.
     #[serde(default)]
@@ -582,7 +583,7 @@ pub struct Birthday {
 }
 
 /// **DEPRECATED**: No data will be returned A person''s bragging rights.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BraggingRights {
     /// Metadata about the bragging rights.
     #[serde(default)]
@@ -593,7 +594,7 @@ pub struct BraggingRights {
 }
 
 /// A person''s calendar URL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CalendarUrl {
     /// Output only. The type of the calendar URL translated and formatted in the viewer''s account locale or the Accept-Language HTTP header locale.
     #[serde(default, rename = "formattedType")]
@@ -610,7 +611,7 @@ pub struct CalendarUrl {
 }
 
 /// Arbitrary client data that is populated by clients. Duplicate keys and values are allowed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClientData {
     /// The client specified key of the client data.
     #[serde(default)]
@@ -624,7 +625,7 @@ pub struct ClientData {
 }
 
 /// A person''s cover photo. A large image shown on the person''s profile page that represents who they are or what they care about.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CoverPhoto {
     /// True if the cover photo is the default cover photo; false if the cover photo is a user-provided cover photo.
     #[serde(default)]
@@ -638,7 +639,7 @@ pub struct CoverPhoto {
 }
 
 /// A person''s email address.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailAddress {
     /// The display name of the email.
     #[serde(default, rename = "displayName")]
@@ -658,7 +659,7 @@ pub struct EmailAddress {
 }
 
 /// An event related to the person.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Event {
     /// The date of the event.
     #[serde(default)]
@@ -675,7 +676,7 @@ pub struct Event {
 }
 
 /// An identifier from an external entity related to the person.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalId {
     /// Output only. The type of the event translated and formatted in the viewer''s account locale or the Accept-Language HTTP header locale.
     #[serde(default, rename = "formattedType")]
@@ -692,7 +693,7 @@ pub struct ExternalId {
 }
 
 /// The name that should be used to sort the person in a list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FileAs {
     /// Metadata about the file-as.
     #[serde(default)]
@@ -703,7 +704,7 @@ pub struct FileAs {
 }
 
 /// A person''s gender.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Gender {
     /// Free form text field for pronouns that should be used to address the person. Common values are: * he/him * she/her * they/them
     #[serde(default, rename = "addressMeAs")]
@@ -720,7 +721,7 @@ pub struct Gender {
 }
 
 /// A person''s instant messaging client.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImClient {
     /// Output only. The protocol of the IM client formatted in the viewer''s account locale or the Accept-Language HTTP header locale.
     #[serde(default, rename = "formattedProtocol")]
@@ -743,7 +744,7 @@ pub struct ImClient {
 }
 
 /// One of the person''s interests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Interest {
     /// Metadata about the interest.
     #[serde(default)]
@@ -754,7 +755,7 @@ pub struct Interest {
 }
 
 /// A person''s locale preference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Locale {
     /// Metadata about the locale.
     #[serde(default)]
@@ -765,7 +766,7 @@ pub struct Locale {
 }
 
 /// A person''s location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The building identifier.
     #[serde(default, rename = "buildingId")]
@@ -794,7 +795,7 @@ pub struct Location {
 }
 
 /// A person''s membership in a group. Only contact group memberships can be modified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Membership {
     /// The contact group membership.
     #[serde(default, rename = "contactGroupMembership")]
@@ -808,7 +809,7 @@ pub struct Membership {
 }
 
 /// The metadata about a person.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PersonMetadata {
     /// Output only. True if the person resource has been deleted. Populated only for people.connections.list and otherContacts.list sync requests.
     #[serde(default)]
@@ -828,7 +829,7 @@ pub struct PersonMetadata {
 }
 
 /// A person''s miscellaneous keyword.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MiscKeyword {
     /// Output only. The type of the miscellaneous keyword translated and formatted in the viewer''s account locale or the Accept-Language HTTP header locale.
     #[serde(default, rename = "formattedType")]
@@ -845,7 +846,7 @@ pub struct MiscKeyword {
 }
 
 /// A person''s name. If the name is a mononym, the family name is empty.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Name {
     /// Output only. The display name formatted according to the locale specified by the viewer''s account or the Accept-Language HTTP header.
     #[serde(default, rename = "displayName")]
@@ -895,7 +896,7 @@ pub struct Name {
 }
 
 /// A person''s nickname.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Nickname {
     /// Metadata about the nickname.
     #[serde(default)]
@@ -909,7 +910,7 @@ pub struct Nickname {
 }
 
 /// A person''s occupation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Occupation {
     /// Metadata about the occupation.
     #[serde(default)]
@@ -920,7 +921,7 @@ pub struct Occupation {
 }
 
 /// A person''s past or current organization. Overlapping date ranges are permitted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Organization {
     /// The person''s cost center at the organization.
     #[serde(default, rename = "costCenter")]
@@ -973,7 +974,7 @@ pub struct Organization {
 }
 
 /// A person''s phone number.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PhoneNumber {
     /// Output only. The canonicalized [ITU-T E.164](https://law.resource.org/pub/us/cfr/ibr/004/itu-t.E.164.1.2008.pdf) form of the phone number.
     #[serde(default, rename = "canonicalForm")]
@@ -993,7 +994,7 @@ pub struct PhoneNumber {
 }
 
 /// A person''s photo. A picture shown next to the person''s name to help others recognize the person.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Photo {
     /// True if the photo is a default photo; false if the photo is a user-provided photo.
     #[serde(default)]
@@ -1007,7 +1008,7 @@ pub struct Photo {
 }
 
 /// A person''s relation to another person.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Relation {
     /// Output only. The type of the relation translated and formatted in the viewer''s account locale or the locale specified in the Accept-Language HTTP header.
     #[serde(default, rename = "formattedType")]
@@ -1024,7 +1025,7 @@ pub struct Relation {
 }
 
 /// **DEPRECATED**: No data will be returned A person''s relationship interest .
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RelationshipInterest {
     /// Output only. The value of the relationship interest translated and formatted in the viewer''s account locale or the locale specified in the Accept-Language HTTP header.
     #[serde(default, rename = "formattedValue")]
@@ -1038,7 +1039,7 @@ pub struct RelationshipInterest {
 }
 
 /// **DEPRECATED**: No data will be returned A person''s relationship status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RelationshipStatus {
     /// Output only. The value of the relationship status translated and formatted in the viewer''s account locale or the Accept-Language HTTP header locale.
     #[serde(default, rename = "formattedValue")]
@@ -1052,7 +1053,7 @@ pub struct RelationshipStatus {
 }
 
 /// **DEPRECATED**: Please use person.locations instead. A person''s past or current residence.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Residence {
     /// True if the residence is the person''s current residence; false if the residence is a past residence.
     #[serde(default)]
@@ -1066,7 +1067,7 @@ pub struct Residence {
 }
 
 /// A person''s SIP address. Session Initial Protocol addresses are used for VoIP communications to make voice or video calls over the internet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SipAddress {
     /// Output only. The type of the SIP address translated and formatted in the viewer''s account locale or the Accept-Language HTTP header locale.
     #[serde(default, rename = "formattedType")]
@@ -1083,7 +1084,7 @@ pub struct SipAddress {
 }
 
 /// A skill that the person has.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Skill {
     /// Metadata about the skill.
     #[serde(default)]
@@ -1094,7 +1095,7 @@ pub struct Skill {
 }
 
 /// **DEPRECATED**: No data will be returned A brief one-line description of the person.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Tagline {
     /// Metadata about the tagline.
     #[serde(default)]
@@ -1105,7 +1106,7 @@ pub struct Tagline {
 }
 
 /// A person''s associated URLs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Url {
     /// Output only. The type of the URL translated and formatted in the viewer''s account locale or the Accept-Language HTTP header locale.
     #[serde(default, rename = "formattedType")]
@@ -1122,7 +1123,7 @@ pub struct Url {
 }
 
 /// Arbitrary user data that is populated by the end users.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserDefined {
     /// The end user specified key of the user defined data.
     #[serde(default)]
@@ -1136,7 +1137,7 @@ pub struct UserDefined {
 }
 
 /// A Google contact group membership.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContactGroupMembership {
     /// Output only. The contact group ID for the contact group membership.
     #[serde(default, rename = "contactGroupId")]
@@ -1147,7 +1148,7 @@ pub struct ContactGroupMembership {
 }
 
 /// A Google Workspace Domain membership.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DomainMembership {
     /// True if the person is in the viewer''s Google Workspace domain.
     #[serde(default, rename = "inViewerDomain")]
@@ -1155,7 +1156,7 @@ pub struct DomainMembership {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -1169,7 +1170,7 @@ pub struct Date {
 }
 
 /// Metadata about a field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FieldMetadata {
     /// Output only. True if the field is the primary field for all sources in the person. Each person will have at most one field with primary set to true.
     #[serde(default)]
@@ -1186,7 +1187,7 @@ pub struct FieldMetadata {
 }
 
 /// The source of a field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Source {
     /// **Only populated in person.metadata.sources.** The [HTTP entity tag](https://en.wikipedia.org/wiki/HTTP_ETag) of the source. Used for web cache validation.
     #[serde(default)]
@@ -1206,7 +1207,7 @@ pub struct Source {
 }
 
 /// The metadata about a profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProfileMetadata {
     /// Output only. The profile object type. // TODO: enum values: ["OBJECT_TYPE_UNSPECIFIED", "PERSON", "PAGE"]
     #[serde(default, rename = "objectType")]

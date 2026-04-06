@@ -8,18 +8,19 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// The ExecuteMutation request to Firebase Data Connect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecuteMutationRequest {
     /// Required. The name of the GraphQL operation name. Required because all Connector operations must be named. See https://graphql.org/learn/queries/#operation-name.
     #[serde(default, rename = "operationName")]
@@ -30,7 +31,7 @@ pub struct ExecuteMutationRequest {
 }
 
 /// The ExecuteMutation response from Firebase Data Connect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecuteMutationResponse {
     /// The result of executing the requested operation.
     #[serde(default)]
@@ -44,7 +45,7 @@ pub struct ExecuteMutationResponse {
 }
 
 /// The ExecuteQuery request to Firebase Data Connect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecuteQueryRequest {
     /// Required. The name of the GraphQL operation name. Required because all Connector operations must be named. See https://graphql.org/learn/queries/#operation-name.
     #[serde(default, rename = "operationName")]
@@ -55,7 +56,7 @@ pub struct ExecuteQueryRequest {
 }
 
 /// The ExecuteQuery response from Firebase Data Connect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecuteQueryResponse {
     /// The result of executing the requested operation.
     #[serde(default)]
@@ -69,7 +70,7 @@ pub struct ExecuteQueryResponse {
 }
 
 /// The GraphQL request to Firebase Data Connect. It strives to match the GraphQL over HTTP spec. https://github.com/graphql/graphql-over-http/blob/main/spec/GraphQLOverHTTP.md#post
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GraphqlRequest {
     /// Optional. Additional GraphQL request information.
     #[serde(default)]
@@ -86,7 +87,7 @@ pub struct GraphqlRequest {
 }
 
 /// The GraphQL response from Firebase Data Connect. It strives to match the GraphQL over HTTP spec. Note: Firebase Data Connect always responds with Content-Type: application/json. https://github.com/graphql/graphql-over-http/blob/main/spec/GraphQLOverHTTP.md#body
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GraphqlResponse {
     /// The result of the execution of the requested operation. If an error was raised before execution begins, the data entry should not be present in the result. (a request error: https://spec.graphql.org/draft/#sec-Errors.Request-Errors) If an error was raised during the execution that prevented a valid response, the data entry in the response should be null. (a field error: https://spec.graphql.org/draft/#sec-Errors.Error-Result-Format)
     #[serde(default)]
@@ -100,7 +101,7 @@ pub struct GraphqlResponse {
 }
 
 /// The Impersonate request to Firebase Data Connect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImpersonateRequest {
     /// Optional. Additional GraphQL request information.
     #[serde(default)]
@@ -114,7 +115,7 @@ pub struct ImpersonateRequest {
 }
 
 /// Message for response to listing Connectors. By default, connectors.source will not be included in the response. To specify the fields included in the response, the response field mask can be provided by using the query parameter $fields or the header X-Goog-FieldMask.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListConnectorsResponse {
     /// The list of Connectors.
     #[serde(default)]
@@ -128,7 +129,7 @@ pub struct ListConnectorsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -139,7 +140,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -153,7 +154,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Message for response to listing Schemas. By default, schemas.source will not be included in the response. To specify the fields included in the response, the response field mask can be provided by using the query parameter $fields or the header X-Goog-FieldMask.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSchemasResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -167,7 +168,7 @@ pub struct ListSchemasResponse {
 }
 
 /// Message for response to listing Services.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListServicesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -181,7 +182,7 @@ pub struct ListServicesResponse {
 }
 
 /// Represents the metadata of the long-running operation. Note: This message is auto-generated by CCFE. CCFE''s storage, called Resource Metadata Store (RMS), holds metadata about long-running operations (i.e. OperationMetadata) and resources (i.e. ResourceMetadata). OperationMetadata documents the status of the operation. See [CCFE documentation for sidechannel data](https://g3doc.corp.google.com/cloud/control2/g3doc/dev/codelab_extras/sidechannel.md?cl=head#sidechannel-data) and yaqs/4289526912465764352.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -207,7 +208,7 @@ pub struct OperationMetadata {
 }
 
 /// GraphqlError conforms to the GraphQL error spec. https://spec.graphql.org/draft/#sec-Errors Firebase Data Connect API surfaces GraphqlError in various APIs: - Upon compile error, UpdateSchema and UpdateConnector return Code.Invalid_Argument with a list of GraphqlError in error details. - Upon query compile error, ExecuteGraphql, ExecuteGraphqlRead and IntrospectGraphql return Code.OK with a list of GraphqlError in response body. - Upon query execution error, ExecuteGraphql, ExecuteGraphqlRead, ExecuteMutation, ExecuteQuery, IntrospectGraphql, ImpersonateQuery and ImpersonateMutation all return Code.OK with a list of GraphqlError in response body.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GraphqlError {
     /// Additional error information.
     #[serde(default)]
@@ -224,7 +225,7 @@ pub struct GraphqlError {
 }
 
 /// GraphqlResponseExtensions contains additional information of GraphqlResponse or ExecuteQueryResponse.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GraphqlResponseExtensions {
     /// Data Connect specific GraphQL extension, a list of paths and properties.
     #[serde(default, rename = "dataConnect")]
@@ -232,7 +233,7 @@ pub struct GraphqlResponseExtensions {
 }
 
 /// GraphqlRequestExtensions contains additional information of GraphqlRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GraphqlRequestExtensions {
     /// Optional. If set, impersonate a request with given Firebase Auth context and evaluate the auth policies on the operation. If omitted, bypass any defined auth policies.
     #[serde(default)]
@@ -240,7 +241,7 @@ pub struct GraphqlRequestExtensions {
 }
 
 /// Connector consists of a set of operations, i.e. queries and mutations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Connector {
     /// Optional. Stores small amounts of arbitrary data.
     #[serde(default)]
@@ -278,7 +279,7 @@ pub struct Connector {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -298,7 +299,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -318,7 +319,7 @@ pub struct Operation {
 }
 
 /// The application schema of a Firebase Data Connect service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Schema {
     /// Optional. Stores small amounts of arbitrary data.
     #[serde(default)]
@@ -356,7 +357,7 @@ pub struct Schema {
 }
 
 /// A Firebase Data Connect service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Service {
     /// Optional. Stores small amounts of arbitrary data.
     #[serde(default)]
@@ -388,7 +389,7 @@ pub struct Service {
 }
 
 /// GraphqlErrorExtensions contains additional information of GraphqlError.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GraphqlErrorExtensions {
     /// Maps to canonical gRPC codes. If not specified, it represents Code.INTERNAL. // TODO: enum values: ["OK", "CANCELLED", "UNKNOWN", "INVALID_ARGUMENT", "DEADLINE_EXCEEDED", "NOT_FOUND", "ALREADY_EXISTS", "PERMISSION_DENIED", "UNAUTHENTICATED", "RESOURCE_EXHAUSTED", "FAILED_PRECONDITION", "ABORTED", "OUT_OF_RANGE", "UNIMPLEMENTED", "INTERNAL", "UNAVAILABLE", "DATA_LOSS"]
     #[serde(default)]
@@ -408,7 +409,7 @@ pub struct GraphqlErrorExtensions {
 }
 
 /// SourceLocation references a location in a GraphQL source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceLocation {
     /// Column number starting at 1.
     #[serde(default)]
@@ -419,7 +420,7 @@ pub struct SourceLocation {
 }
 
 /// Data Connect specific properties for a path under response.data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataConnectProperties {
     /// A single Entity ID. Set if the path points to a single entity.
     #[serde(default, rename = "entityId")]
@@ -436,7 +437,7 @@ pub struct DataConnectProperties {
 }
 
 /// Impersonation configures the Firebase Auth context to impersonate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Impersonation {
     /// Evaluate the auth policy with a customized JWT auth token. Should follow the Firebase Auth token format. https://firebase.google.com/docs/rules/rules-and-auth For example: a verified user may have auth_claims of {"sub": , "email_verified": true}
     #[serde(default, rename = "authClaims")]
@@ -450,7 +451,7 @@ pub struct Impersonation {
 }
 
 /// Client caching settings of a connector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClientCache {
     /// Optional. A field that, if true, means that responses served by this connector will include entityIds in GraphQL response extensions. This helps the client SDK cache responses in an improved way, known as "normalized caching", if caching is enabled on the client. Each entityId is a stable key based on primary key values. Therefore, this field should only be set to true if the primary keys of accessed tables do not contain sensitive information.
     #[serde(default, rename = "entityIdIncluded")]
@@ -461,7 +462,7 @@ pub struct ClientCache {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -475,7 +476,7 @@ pub struct Status {
 }
 
 /// A data source that backs Firebase Data Connect services.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Datasource {
     /// HTTP GraphQL server webhook configurations.
     #[serde(default, rename = "httpGraphql")]
@@ -486,7 +487,7 @@ pub struct Datasource {
 }
 
 /// Used to represent a set of source files.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Source {
     /// Required. The files that comprise the source set.
     #[serde(default)]
@@ -494,7 +495,7 @@ pub struct Source {
 }
 
 /// Workaround provides suggestions to address errors and warnings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Workaround {
     /// Description of this workaround.
     #[serde(default)]
@@ -508,7 +509,7 @@ pub struct Workaround {
 }
 
 /// Settings for HTTP GraphQL server webhook.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpGraphql {
     /// Optional. Timeout duration for the HTTP request.
     #[serde(default)]
@@ -519,7 +520,7 @@ pub struct HttpGraphql {
 }
 
 /// Settings for PostgreSQL data source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostgreSql {
     /// Cloud SQL configurations.
     #[serde(default, rename = "cloudSql")]
@@ -545,7 +546,7 @@ pub struct PostgreSql {
 }
 
 /// Individual files.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct File {
     /// Required. The file''s textual content.
     #[serde(default)]
@@ -556,7 +557,7 @@ pub struct File {
 }
 
 /// Settings for CloudSQL instance configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudSqlInstance {
     /// Required. Name of the CloudSQL instance, in the format:  projects/{project}/locations/{location}/instances/{instance}
     #[serde(default)]

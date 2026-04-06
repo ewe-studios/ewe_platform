@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request message to claim a device on behalf of a customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClaimDeviceRequest {
     /// Optional. The ID of the configuration applied to the device section.
     #[serde(default, rename = "configurationId")]
@@ -40,7 +41,7 @@ pub struct ClaimDeviceRequest {
 }
 
 /// Response message containing device id of the claim.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClaimDeviceResponse {
     /// The device ID of the claimed device.
     #[serde(default, rename = "deviceId")]
@@ -51,7 +52,7 @@ pub struct ClaimDeviceResponse {
 }
 
 /// Request to claim devices asynchronously in batch. Claiming a device adds the device to zero-touch enrollment and shows the device in the customer''s view of the portal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClaimDevicesRequest {
     /// Required. A list of device claims.
     #[serde(default)]
@@ -59,7 +60,7 @@ pub struct ClaimDevicesRequest {
 }
 
 /// Request message to create a customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateCustomerRequest {
     /// Required. The company data to populate the new customer. Must contain a value for companyName and at least one owner_email that''s associated with a Google Account. The values for companyId and name must be empty.
     #[serde(default)]
@@ -67,7 +68,7 @@ pub struct CreateCustomerRequest {
 }
 
 /// Request message for customer to assign a configuration to device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerApplyConfigurationRequest {
     /// Required. The configuration applied to the device in the format customers/[CUSTOMER_ID]/configurations/[CONFIGURATION_ID].
     #[serde(default)]
@@ -78,7 +79,7 @@ pub struct CustomerApplyConfigurationRequest {
 }
 
 /// Response message of customer''s listing configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerListConfigurationsResponse {
     /// The configurations.
     #[serde(default)]
@@ -86,7 +87,7 @@ pub struct CustomerListConfigurationsResponse {
 }
 
 /// Response message for listing my customers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerListCustomersResponse {
     /// The customer accounts the calling user is a member of.
     #[serde(default)]
@@ -97,7 +98,7 @@ pub struct CustomerListCustomersResponse {
 }
 
 /// Response message of customer''s liting devices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerListDevicesResponse {
     /// The customer''s devices.
     #[serde(default)]
@@ -108,7 +109,7 @@ pub struct CustomerListDevicesResponse {
 }
 
 /// Response message of customer''s listing DPCs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerListDpcsResponse {
     /// The list of DPCs available to the customer that support zero-touch enrollment.
     #[serde(default)]
@@ -116,7 +117,7 @@ pub struct CustomerListDpcsResponse {
 }
 
 /// Request message for customer to remove the configuration from device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerRemoveConfigurationRequest {
     /// Required. The device to remove the configuration from. There are custom validations in RemoveConfigurationRequestValidator
     #[serde(default)]
@@ -124,7 +125,7 @@ pub struct CustomerRemoveConfigurationRequest {
 }
 
 /// Request message for customer to unclaim a device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerUnclaimDeviceRequest {
     /// Required. The device to unclaim. There are custom validations in UnclaimDeviceRequestValidator.
     #[serde(default)]
@@ -132,7 +133,7 @@ pub struct CustomerUnclaimDeviceRequest {
 }
 
 /// Tracks the status of a long-running operation to asynchronously update a batch of reseller metadata attached to devices. To learn more, read [Long‑running batch operations](/zero-touch/guides/how-it-works#operations).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DevicesLongRunningOperationMetadata {
     /// The number of metadata updates in the operation. This might be different from the number of updates in the request if the API can''t parse some of the updates.
     #[serde(default, rename = "devicesCount")]
@@ -146,7 +147,7 @@ pub struct DevicesLongRunningOperationMetadata {
 }
 
 /// Tracks the status of a long-running operation to claim, unclaim, or attach metadata to devices. To learn more, read [Long‑running batch operations](/zero-touch/guides/how-it-works#operations).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DevicesLongRunningOperationResponse {
     /// The processing status for each device in the operation. One PerDeviceStatus per device. The list order matches the items in the original request.
     #[serde(default, rename = "perDeviceStatus")]
@@ -157,11 +158,11 @@ pub struct DevicesLongRunningOperationResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Request to find devices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FindDevicesByDeviceIdentifierRequest {
     /// Required. Required. The device identifier to search for. If serial number is provided then case insensitive serial number matches are allowed.
     #[serde(default, rename = "deviceIdentifier")]
@@ -175,7 +176,7 @@ pub struct FindDevicesByDeviceIdentifierRequest {
 }
 
 /// Response containing found devices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FindDevicesByDeviceIdentifierResponse {
     /// Found devices.
     #[serde(default)]
@@ -189,7 +190,7 @@ pub struct FindDevicesByDeviceIdentifierResponse {
 }
 
 /// Request to find devices by customers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FindDevicesByOwnerRequest {
     /// The list of customer IDs to search for.
     #[serde(default, rename = "customerId")]
@@ -209,7 +210,7 @@ pub struct FindDevicesByOwnerRequest {
 }
 
 /// Response containing found devices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FindDevicesByOwnerResponse {
     /// The customer''s devices.
     #[serde(default)]
@@ -223,7 +224,7 @@ pub struct FindDevicesByOwnerResponse {
 }
 
 /// Request to get a device''s SIM lock status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetDeviceSimLockStateRequest {
     /// Required. Required. The device identifier to search for.
     #[serde(default, rename = "deviceIdentifier")]
@@ -231,7 +232,7 @@ pub struct GetDeviceSimLockStateRequest {
 }
 
 /// Response containing a device''s SimLock state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetDeviceSimLockStateResponse {
     /// TODO: enum values: ["SIM_LOCK_STATE_UNSPECIFIED", "UNLOCKED", "LOCKED_TO_PARTNER", "LOCKED_TO_OTHER_PARTNER"]
     #[serde(default, rename = "simLockState")]
@@ -239,7 +240,7 @@ pub struct GetDeviceSimLockStateResponse {
 }
 
 /// Response message of all customers related to this partner.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCustomersResponse {
     /// List of customers related to this reseller partner.
     #[serde(default)]
@@ -253,7 +254,7 @@ pub struct ListCustomersResponse {
 }
 
 /// Response message to list customers of the vendor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListVendorCustomersResponse {
     /// List of customers of the vendor.
     #[serde(default)]
@@ -267,7 +268,7 @@ pub struct ListVendorCustomersResponse {
 }
 
 /// Response message to list vendors of the partner.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListVendorsResponse {
     /// A token to retrieve the next page of results. Omitted if no further results are available.
     #[serde(default, rename = "nextPageToken")]
@@ -281,7 +282,7 @@ pub struct ListVendorsResponse {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -301,7 +302,7 @@ pub struct Operation {
 }
 
 /// Request message to unclaim a device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnclaimDeviceRequest {
     /// Required. The device ID returned by ClaimDevice.
     #[serde(default, rename = "deviceId")]
@@ -321,7 +322,7 @@ pub struct UnclaimDeviceRequest {
 }
 
 /// Request to unclaim devices asynchronously in batch.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnclaimDevicesRequest {
     /// Required. The list of devices to unclaim.
     #[serde(default)]
@@ -329,7 +330,7 @@ pub struct UnclaimDevicesRequest {
 }
 
 /// Request to update device metadata in batch.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateDeviceMetadataInBatchRequest {
     /// Required. The list of metadata updates.
     #[serde(default)]
@@ -337,7 +338,7 @@ pub struct UpdateDeviceMetadataInBatchRequest {
 }
 
 /// Request to set metadata for a device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateDeviceMetadataRequest {
     /// Required. The metadata to attach to the device.
     #[serde(default, rename = "deviceMetadata")]
@@ -345,7 +346,7 @@ pub struct UpdateDeviceMetadataRequest {
 }
 
 /// A configuration collects the provisioning options for Android devices. Each configuration combines the following: * The EMM device policy controller (DPC) installed on the devices. * EMM policies enforced on the devices. * Metadata displayed on the device to help users during setup. Customers can add as many configurations as they need. However, zero-touch enrollment works best when a customer sets a default configuration that''s applied to any new devices the organization purchases.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Configuration {
     /// Required. The name of the organization. Zero-touch enrollment shows this organization name to device users during device provisioning.
     #[serde(default, rename = "companyName")]
@@ -383,7 +384,7 @@ pub struct Configuration {
 }
 
 /// An EMM''s DPC ([device policy controller](http://developer.android.com/work/dpc/build-dpc.html)). Zero-touch enrollment installs a DPC (listed in the Configuration) on a device to maintain the customer''s mobile policies. All the DPCs listed by the API support zero-touch enrollment and are available in Google Play.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Dpc {
     /// Output only. The title of the DPC app in Google Play. For example, _Google Apps Device Policy_. Useful in an application''s user interface.
     #[serde(default, rename = "dpcName")]
@@ -397,7 +398,7 @@ pub struct Dpc {
 }
 
 /// A DeviceReference is an API abstraction that lets you supply a _device_ argument to a method using one of the following identifier types: * A numeric API resource ID. * Real-world hardware IDs, such as IMEI number, belonging to the manufactured device. Methods that operate on devices take a DeviceReference as a parameter type because it''s more flexible for the caller. To learn more about device identifiers, read [Identifiers](https://developers.google.com/zero-touch/guides/identifiers).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceReference {
     /// The ID of the device.
     #[serde(default, rename = "deviceId")]
@@ -408,7 +409,7 @@ pub struct DeviceReference {
 }
 
 /// A task for each device in the operation. Corresponds to each device change in the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationPerDevice {
     /// A copy of the original device-claim request received by the server.
     #[serde(default)]
@@ -425,7 +426,7 @@ pub struct OperationPerDevice {
 }
 
 /// An Android or Chrome OS device registered for zero-touch enrollment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Device {
     /// Output only. The provisioning claims for a device. Devices claimed for zero-touch enrollment have a claim with the type SECTION_TYPE_ZERO_TOUCH. Call partners.devices.unclaim or partners.devices.unclaimAsync to remove the device from zero-touch enrollment.
     #[serde(default)]
@@ -448,7 +449,7 @@ pub struct Device {
 }
 
 /// A reseller, vendor, or customer in the zero-touch reseller and customer APIs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Company {
     /// Optional. Email address of customer''s users in the admin role. Each email address must be associated with a Google Account.
     #[serde(default, rename = "adminEmails")]
@@ -480,7 +481,7 @@ pub struct Company {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -494,7 +495,7 @@ pub struct Status {
 }
 
 /// Identifies one claim request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartnerClaim {
     /// Optional. The ID of the configuration applied to the device section.
     #[serde(default, rename = "configurationId")]
@@ -523,7 +524,7 @@ pub struct PartnerClaim {
 }
 
 /// Captures the processing status for each device in the operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PerDeviceStatusInBatch {
     /// If processing succeeds, the device ID of the device.
     #[serde(default, rename = "deviceId")]
@@ -540,7 +541,7 @@ pub struct PerDeviceStatusInBatch {
 }
 
 /// Identifies one unclaim request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartnerUnclaim {
     /// Required. Device ID of the device.
     #[serde(default, rename = "deviceId")]
@@ -560,7 +561,7 @@ pub struct PartnerUnclaim {
 }
 
 /// Identifies metadata updates to one device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateMetadataArguments {
     /// Required. Device ID of the device.
     #[serde(default, rename = "deviceId")]
@@ -574,7 +575,7 @@ pub struct UpdateMetadataArguments {
 }
 
 /// A record of a device claimed by a reseller for a customer. Devices claimed for zero-touch enrollment have a claim with the type SECTION_TYPE_ZERO_TOUCH. To learn more, read [Claim devices for customers](/zero-touch/guides/how-it-works#claim).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceClaim {
     /// The Additional service registered for the device. // TODO: enum values: ["ADDITIONAL_SERVICE_UNSPECIFIED", "DEVICE_PROTECTION"]
     #[serde(default, rename = "additionalService")]
@@ -600,7 +601,7 @@ pub struct DeviceClaim {
 }
 
 /// A Google Workspace customer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleWorkspaceAccount {
     /// Required. The customer ID.
     #[serde(default, rename = "customerId")]
@@ -611,7 +612,7 @@ pub struct GoogleWorkspaceAccount {
 }
 
 /// Encapsulates hardware and product IDs to identify a manufactured device. To understand requirements on identifier sets, read [Identifiers](https://developers.google.com/zero-touch/guides/identifiers).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceIdentifier {
     /// An identifier provided by OEMs, carried through the production and sales process. Only applicable to Chrome OS devices.
     #[serde(default, rename = "chromeOsAttestedDeviceId")]
@@ -643,7 +644,7 @@ pub struct DeviceIdentifier {
 }
 
 /// Metadata entries that can be attached to a Device. To learn more, read [Device metadata](https://developers.google.com/zero-touch/guides/metadata).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceMetadata {
     /// Metadata entries recorded as key-value pairs.
     #[serde(default)]

@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request for acknowledging the violation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1AcknowledgeViolationRequest {
     /// Optional. Acknowledge type of specified violation. // TODO: enum values: ["ACKNOWLEDGE_TYPE_UNSPECIFIED", "SINGLE_VIOLATION", "EXISTING_CHILD_RESOURCE_VIOLATIONS"]
     #[serde(default, rename = "acknowledgeType")]
@@ -25,11 +26,11 @@ pub struct GoogleCloudAssuredworkloadsV1AcknowledgeViolationRequest {
 }
 
 /// Response for violation acknowledgement
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1AcknowledgeViolationResponse {}
 
 /// Response containing the analysis results for the hypothetical resource move.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1AnalyzeWorkloadMoveResponse {
     /// List of analysis results for each asset in scope.
     #[serde(default, rename = "assetMoveAnalyses")]
@@ -41,7 +42,7 @@ pub struct GoogleCloudAssuredworkloadsV1AnalyzeWorkloadMoveResponse {
 }
 
 /// Operation metadata to give request details of ApplyWorkloadUpdate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1ApplyWorkloadUpdateOperationMetadata {
     /// Optional. The time the operation was created. // TODO: enum values: ["WORKLOAD_UPDATE_ACTION_UNSPECIFIED", "APPLY"]
     #[serde(default)]
@@ -55,7 +56,7 @@ pub struct GoogleCloudAssuredworkloadsV1ApplyWorkloadUpdateOperationMetadata {
 }
 
 /// Request to apply update to a workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1ApplyWorkloadUpdateRequest {
     /// The action to be performed on the update. // TODO: enum values: ["WORKLOAD_UPDATE_ACTION_UNSPECIFIED", "APPLY"]
     #[serde(default)]
@@ -63,7 +64,7 @@ pub struct GoogleCloudAssuredworkloadsV1ApplyWorkloadUpdateRequest {
 }
 
 /// Response for ApplyWorkloadUpdate endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1ApplyWorkloadUpdateResponse {
     /// The update that was applied.
     #[serde(default, rename = "appliedUpdate")]
@@ -71,7 +72,7 @@ pub struct GoogleCloudAssuredworkloadsV1ApplyWorkloadUpdateResponse {
 }
 
 /// Operation metadata to give request details of CreateWorkload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1CreateWorkloadOperationMetadata {
     /// Optional. Compliance controls that should be applied to the resources managed by the workload. // TODO: enum values: ["COMPLIANCE_REGIME_UNSPECIFIED", "ASSURED_WORKLOADS_FOR_PARTNERS", "AUSTRALIA_DATA_BOUNDARY_AND_SUPPORT", "CANADA_DATA_BOUNDARY_AND_SUPPORT", "DATA_BOUNDARY_FOR_CANADA_CONTROLLED_GOODS", "DATA_BOUNDARY_FOR_CANADA_PROTECTED_B", "DATA_BOUNDARY_FOR_CJIS", "DATA_BOUNDARY_FOR_FEDRAMP_HIGH", "DATA_BOUNDARY_FOR_FEDRAMP_MODERATE", "DATA_BOUNDARY_FOR_IL2", "DATA_BOUNDARY_FOR_IL4", "DATA_BOUNDARY_FOR_IL5", "DATA_BOUNDARY_FOR_IRS_PUBLICATION_1075", "DATA_BOUNDARY_FOR_ITAR", "EU_DATA_BOUNDARY_AND_SUPPORT", "ISRAEL_DATA_BOUNDARY_AND_SUPPORT", "JAPAN_DATA_BOUNDARY", "KSA_DATA_BOUNDARY_WITH_ACCESS_JUSTIFICATIONS", "REGIONAL_DATA_BOUNDARY", "US_DATA_BOUNDARY_AND_SUPPORT", "US_DATA_BOUNDARY_FOR_HEALTHCARE_AND_LIFE_SCIENCES", "US_DATA_BOUNDARY_FOR_HEALTHCARE_AND_LIFE_SCIENCES_WITH_SUPPORT", "AU_REGIONS_AND_US_SUPPORT", "CA_PROTECTED_B", "CA_REGIONS_AND_SUPPORT", "CANADA_CONTROLLED_GOODS", "CJIS", "EU_REGIONS_AND_SUPPORT", "FEDRAMP_HIGH", "FEDRAMP_MODERATE", "HEALTHCARE_AND_LIFE_SCIENCES_CONTROLS", "HEALTHCARE_AND_LIFE_SCIENCES_CONTROLS_US_SUPPORT", "HIPAA", "HITRUST", "IL2", "IL4", "IL5", "IRS_1075", "ISR_REGIONS", "ISR_REGIONS_AND_SUPPORT", "ITAR", "JP_REGIONS_AND_SUPPORT", "KSA_REGIONS_AND_SUPPORT_WITH_SOVEREIGNTY_CONTROLS", "REGIONAL_CONTROLS", "US_REGIONAL_ACCESS"]
     #[serde(default, rename = "complianceRegime")]
@@ -88,15 +89,15 @@ pub struct GoogleCloudAssuredworkloadsV1CreateWorkloadOperationMetadata {
 }
 
 /// Response for EnableComplianceUpdates endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1EnableComplianceUpdatesResponse {}
 
 /// Response for EnableResourceMonitoring endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1EnableResourceMonitoringResponse {}
 
 /// Response of ListViolations endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1ListViolationsResponse {
     /// The next page token. Returns empty if reached the last page.
     #[serde(default, rename = "nextPageToken")]
@@ -107,7 +108,7 @@ pub struct GoogleCloudAssuredworkloadsV1ListViolationsResponse {
 }
 
 /// Response of listing the compliance updates per workload with pagination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1ListWorkloadUpdatesResponse {
     /// The next page token. Return empty if reached the last page.
     #[serde(default, rename = "nextPageToken")]
@@ -119,7 +120,7 @@ pub struct GoogleCloudAssuredworkloadsV1ListWorkloadUpdatesResponse {
 }
 
 /// Response of ListWorkloads endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1ListWorkloadsResponse {
     /// The next page token. Return empty if reached the last page.
     #[serde(default, rename = "nextPageToken")]
@@ -130,7 +131,7 @@ pub struct GoogleCloudAssuredworkloadsV1ListWorkloadsResponse {
 }
 
 /// Request for updating permission settings for a partner workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1MutatePartnerPermissionsRequest {
     /// Optional. The etag of the workload. If this is provided, it must match the server''s etag.
     #[serde(default)]
@@ -145,7 +146,7 @@ pub struct GoogleCloudAssuredworkloadsV1MutatePartnerPermissionsRequest {
 }
 
 /// The values allowed for a ListPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRuleStringValues {
     /// List of values allowed at this resource.
     #[serde(default, rename = "allowedValues")]
@@ -156,7 +157,7 @@ pub struct GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRuleStringValues {
 }
 
 /// Request for restricting list of available resources in Workload environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1RestrictAllowedResourcesRequest {
     /// Required. The type of restriction for using gcp products in the Workload environment. // TODO: enum values: ["RESTRICTION_TYPE_UNSPECIFIED", "ALLOW_ALL_GCP_RESOURCES", "ALLOW_COMPLIANT_RESOURCES", "APPEND_COMPLIANT_RESOURCES"]
     #[serde(default, rename = "restrictionType")]
@@ -164,11 +165,11 @@ pub struct GoogleCloudAssuredworkloadsV1RestrictAllowedResourcesRequest {
 }
 
 /// Response for restricting the list of allowed resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1RestrictAllowedResourcesResponse {}
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -182,11 +183,11 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// Represents move analysis results for an asset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1AssetMoveAnalysis {
     /// List of eligible analyses performed for the asset.
     #[serde(default, rename = "analysisGroups")]
@@ -201,7 +202,7 @@ pub struct GoogleCloudAssuredworkloadsV1AssetMoveAnalysis {
 }
 
 /// Workload monitoring Violation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1Violation {
     /// A boolean that indicates if the violation is acknowledged
     #[serde(default)]
@@ -268,7 +269,7 @@ pub struct GoogleCloudAssuredworkloadsV1Violation {
 }
 
 /// A workload update is a change to the workload''s compliance configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1WorkloadUpdate {
     /// The time the update was created.
     #[serde(default, rename = "createTime")]
@@ -288,7 +289,7 @@ pub struct GoogleCloudAssuredworkloadsV1WorkloadUpdate {
 }
 
 /// A Workload object for managing highly regulated workloads of cloud customers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1Workload {
     /// Optional. The billing account used for the resources which are direct children of workload. This billing account is initially associated with the resources created as part of Workload creation. After the initial creation of these resources, the customer can change the assigned billing account. The resource name has the form billingAccounts/{billing_account_id}. For example, billingAccounts/012345-567890-ABCDEF.
     #[serde(default, rename = "billingAccount")]
@@ -370,7 +371,7 @@ pub struct GoogleCloudAssuredworkloadsV1Workload {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -390,7 +391,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// Represents a logical group of checks performed for an asset. If successful, the group contains the analysis result, otherwise it contains an error with the failure reason.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1MoveAnalysisGroup {
     /// Result of a successful analysis.
     #[serde(default, rename = "analysisResult")]
@@ -404,7 +405,7 @@ pub struct GoogleCloudAssuredworkloadsV1MoveAnalysisGroup {
 }
 
 /// Violation exception detail.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1ViolationExceptionContext {
     /// Timestamp when the violation was acknowledged.
     #[serde(default, rename = "acknowledgementTime")]
@@ -418,7 +419,7 @@ pub struct GoogleCloudAssuredworkloadsV1ViolationExceptionContext {
 }
 
 /// Represents remediation guidance to resolve compliance violation for AssuredWorkload
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1ViolationRemediation {
     /// Values that can resolve the violation For example: for list org policy violations, this will either be the list of allowed or denied values
     #[serde(default, rename = "compliantValues")]
@@ -433,7 +434,7 @@ pub struct GoogleCloudAssuredworkloadsV1ViolationRemediation {
 }
 
 /// The details of the update.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1UpdateDetails {
     /// Update to one org policy, e.g. gcp.resourceLocation.
     #[serde(default, rename = "orgPolicyUpdate")]
@@ -441,7 +442,7 @@ pub struct GoogleCloudAssuredworkloadsV1UpdateDetails {
 }
 
 /// Represents the Compliance Status of this workload
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1WorkloadComplianceStatus {
     /// Number of current resource violations which are not acknowledged.
     #[serde(default, rename = "acknowledgedResourceViolationCount")]
@@ -458,7 +459,7 @@ pub struct GoogleCloudAssuredworkloadsV1WorkloadComplianceStatus {
 }
 
 /// External key management systems(EKM) Provisioning response
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1WorkloadEkmProvisioningResponse {
     /// Indicates Ekm provisioning error if any. // TODO: enum values: ["EKM_PROVISIONING_ERROR_DOMAIN_UNSPECIFIED", "UNSPECIFIED_ERROR", "GOOGLE_SERVER_ERROR", "EXTERNAL_USER_ERROR", "EXTERNAL_PARTNER_ERROR", "TIMEOUT_ERROR"]
     #[serde(default, rename = "ekmProvisioningErrorDomain")]
@@ -472,7 +473,7 @@ pub struct GoogleCloudAssuredworkloadsV1WorkloadEkmProvisioningResponse {
 }
 
 /// Settings specific to the Key Management Service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1WorkloadKMSSettings {
     /// Required. Input only. Immutable. The time at which the Key Management Service will automatically create a new version of the crypto key and mark it as the primary.
     #[serde(default, rename = "nextRotationTime")]
@@ -483,7 +484,7 @@ pub struct GoogleCloudAssuredworkloadsV1WorkloadKMSSettings {
 }
 
 /// Permissions granted to the AW Partner SA account for the customer workload
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1WorkloadPartnerPermissions {
     /// Optional. Allow partner to view support case details for an AXT log
     #[serde(default, rename = "accessTransparencyLogsSupportCaseViewer")]
@@ -500,7 +501,7 @@ pub struct GoogleCloudAssuredworkloadsV1WorkloadPartnerPermissions {
 }
 
 /// Represent the custom settings for the resources to be created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1WorkloadResourceSettings {
     /// User-assigned resource display name. If not empty it will be used to create a resource with the specified name.
     #[serde(default, rename = "displayName")]
@@ -514,7 +515,7 @@ pub struct GoogleCloudAssuredworkloadsV1WorkloadResourceSettings {
 }
 
 /// Represent the resources that are children of this Workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1WorkloadResourceInfo {
     /// Output only. Resource identifier. For a project this represents project_number.
     #[serde(default, rename = "resourceId")]
@@ -525,7 +526,7 @@ pub struct GoogleCloudAssuredworkloadsV1WorkloadResourceInfo {
 }
 
 /// Signed Access Approvals (SAA) enrollment response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1WorkloadSaaEnrollmentResponse {
     /// Indicates SAA enrollment setup error if any.
     #[serde(default, rename = "setupErrors")]
@@ -536,7 +537,7 @@ pub struct GoogleCloudAssuredworkloadsV1WorkloadSaaEnrollmentResponse {
 }
 
 /// Options to be set for the given created workload.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1WorkloadWorkloadOptions {
     /// Optional. Specifies type of KAJ Enrollment if provided. // TODO: enum values: ["KAJ_ENROLLMENT_TYPE_UNSPECIFIED", "KEY_ACCESS_TRANSPARENCY_OFF"]
     #[serde(default, rename = "kajEnrollmentType")]
@@ -544,7 +545,7 @@ pub struct GoogleCloudAssuredworkloadsV1WorkloadWorkloadOptions {
 }
 
 /// Represents the successful move analysis results for a group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1MoveAnalysisResult {
     /// List of blockers. If not resolved, these will result in compliance violations in the target.
     #[serde(default)]
@@ -555,7 +556,7 @@ pub struct GoogleCloudAssuredworkloadsV1MoveAnalysisResult {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -569,7 +570,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// Instructions to remediate violation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1ViolationRemediationInstructions {
     /// Remediation instructions to resolve violation via cloud console
     #[serde(default, rename = "consoleInstructions")]
@@ -583,7 +584,7 @@ pub struct GoogleCloudAssuredworkloadsV1ViolationRemediationInstructions {
 }
 
 /// Represents an update for an org policy control applied on an Assured Workload resource. The inherited org policy is not considered.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1OrgPolicyUpdate {
     /// The org policy currently applied on the assured workload resource.
     #[serde(default, rename = "appliedPolicy")]
@@ -594,7 +595,7 @@ pub struct GoogleCloudAssuredworkloadsV1OrgPolicyUpdate {
 }
 
 /// Represents the impact of moving the asset to the target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1MoveImpact {
     /// Explanation of the impact.
     #[serde(default)]
@@ -602,7 +603,7 @@ pub struct GoogleCloudAssuredworkloadsV1MoveImpact {
 }
 
 /// Remediation instructions to resolve violation via cloud console
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1ViolationRemediationInstructionsConsole {
     /// Additional urls for more information about steps
     #[serde(default, rename = "additionalLinks")]
@@ -616,7 +617,7 @@ pub struct GoogleCloudAssuredworkloadsV1ViolationRemediationInstructionsConsole 
 }
 
 /// Remediation instructions to resolve violation via gcloud cli
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1ViolationRemediationInstructionsGcloud {
     /// Additional urls for more information about steps
     #[serde(default, rename = "additionalLinks")]
@@ -630,7 +631,7 @@ pub struct GoogleCloudAssuredworkloadsV1ViolationRemediationInstructionsGcloud {
 }
 
 /// This assured workload service object is used to represent the org policy attached to a resource. It servces the same purpose as the orgpolicy.v2.Policy object but with functionality that is limited to what is supported by Assured Workloads(e.g. only one rule under one OrgPolicy object, no conditions, etc).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1OrgPolicy {
     /// The constraint name of the OrgPolicy. e.g. "constraints/gcp.resourceLocations".
     #[serde(default)]
@@ -650,7 +651,7 @@ pub struct GoogleCloudAssuredworkloadsV1OrgPolicy {
 }
 
 /// A rule used to express this policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAssuredworkloadsV1OrgPolicyPolicyRule {
     /// ListPolicy only when all values are allowed.
     #[serde(default, rename = "allowAll")]

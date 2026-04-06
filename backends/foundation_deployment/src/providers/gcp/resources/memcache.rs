@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request for ApplyParameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplyParametersRequest {
     /// Whether to apply instance-level parameter group to all nodes. If set to true, users are restricted from specifying individual nodes, and ApplyParameters updates all nodes within the instance.
     #[serde(default, rename = "applyAll")]
@@ -22,15 +23,15 @@ pub struct ApplyParametersRequest {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Request message for GetTags.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetTagsRequest {
     /// Required. The full resource name of the service resource.
     #[serde(default)]
@@ -38,7 +39,7 @@ pub struct GetTagsRequest {
 }
 
 /// Response message for GetTags.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetTagsResponse {
     /// A checksum based on the current bindings. This field is always set in server responses.
     #[serde(default)]
@@ -52,7 +53,7 @@ pub struct GetTagsResponse {
 }
 
 /// Metadata for the given google.cloud.location.Location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMemcacheV1LocationMetadata {
     /// Output only. The set of available zones in the location. The map is keyed by the lowercase ID of each zone, as defined by GCE. These keys can be specified in the zones field when creating a Memcached instance.
     #[serde(default, rename = "availableZones")]
@@ -60,7 +61,7 @@ pub struct GoogleCloudMemcacheV1LocationMetadata {
 }
 
 /// Represents the metadata of a long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMemcacheV1OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -86,7 +87,7 @@ pub struct GoogleCloudMemcacheV1OperationMetadata {
 }
 
 /// Request for UpgradeInstance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMemcacheV1UpgradeInstanceRequest {
     /// Required. Specifies the target version of memcached engine to upgrade to. // TODO: enum values: ["MEMCACHE_VERSION_UNSPECIFIED", "MEMCACHE_1_5", "MEMCACHE_1_6_15"]
     #[serde(default, rename = "memcacheVersion")]
@@ -94,11 +95,11 @@ pub struct GoogleCloudMemcacheV1UpgradeInstanceRequest {
 }
 
 /// GoogleCloudMemcacheV1ZoneMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMemcacheV1ZoneMetadata {}
 
 /// Instance represents the interface for SLM services to actuate the state of control plane resources. Example Instance in JSON, where consumer-project-number=123456, producer-project-id=cloud-sql: json Instance: { "name": "projects/123456/locations/us-east1/instances/prod-instance", "create_time": { "seconds": 1526406431, }, "labels": { "env": "prod", "foo": "bar" }, "state": READY, "software_versions": { "software_update": "cloud-sql-09-28-2018", }, "maintenance_policy_names": { "UpdatePolicy": "projects/123456/locations/us-east1/maintenancePolicies/prod-update-policy", } "tenant_project_id": "cloud-sql-test-tenant", "producer_metadata": { "cloud-sql-tier": "basic", "cloud-sql-instance-size": "1G", }, "provisioned_resources": [ { "resource-type": "compute-instance", "resource-url": "https://www.googleapis.com/compute/v1/projects/cloud-sql/zones/us-east1-b/instances/vm-1", } ], "maintenance_schedules": { "csa_rollout": { "start_time": { "seconds": 1526406431, }, "end_time": { "seconds": 1535406431, }, }, "ncsa_rollout": { "start_time": { "seconds": 1526406431, }, "end_time": { "seconds": 1535406431, }, } }, "consumer_defined_name": "my-sql-instance1", }  LINT.IfChange
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1Instance {
     /// consumer_defined_name is the name of the instance set by the service consumers. Generally this is different from the name field which reperesents the system-assigned id of the instance which the service consumers do not recognize. This is a required field for tenants onboarding to Maintenance Window notifications (go/slm-rollout-maintenance-policies#prerequisites).
     #[serde(default, rename = "consumerDefinedName")]
@@ -161,7 +162,7 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1Instance {
 }
 
 /// Maintenance schedule which is exposed to customer and potentially end user, indicating published upcoming future maintenance schedule
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1MaintenanceSchedule {
     /// This field is deprecated, and will be always set to true since reschedule can happen multiple times now. This field should not be removed until all service producers remove this for their customers.
     #[serde(default, rename = "canReschedule")]
@@ -181,7 +182,7 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1MaintenanceSchedule {
 }
 
 /// Contains notification related data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1NotificationParameter {
     /// Optional. Array of string values. e.g. instance''s replica information.
     #[serde(default)]
@@ -189,7 +190,7 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1NotificationParameter 
 }
 
 /// SloEligibility is a tuple containing eligibility value: true if an instance is eligible for SLO calculation or false if it should be excluded from all SLO-related calculations along with a user-defined reason.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1SloEligibility {
     /// Whether an instance is eligible or ineligible.
     #[serde(default)]
@@ -200,7 +201,7 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1SloEligibility {
 }
 
 /// Response for ListInstances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInstancesResponse {
     /// A list of Memcached instances in the project in the specified location, or across all locations. If the location_id in the parent field of the request is "-", all regions available to the project are queried, and the results aggregated.
     #[serde(default)]
@@ -214,7 +215,7 @@ pub struct ListInstancesResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -225,7 +226,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -239,7 +240,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Metadata for the given google.cloud.location.Location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocationMetadata {
     /// Output only. The set of available zones in the location. The map is keyed by the lowercase ID of each zone, as defined by GCE. These keys can be specified in the zones field when creating a Memcached instance.
     #[serde(default, rename = "availableZones")]
@@ -247,7 +248,7 @@ pub struct LocationMetadata {
 }
 
 /// Defines policies to service maintenance events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaintenancePolicy {
     /// Output only. The time when the resource was created.
     #[serde(default, rename = "createTime")]
@@ -273,7 +274,7 @@ pub struct MaintenancePolicy {
 }
 
 /// Represents the metadata of a long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -299,7 +300,7 @@ pub struct OperationMetadata {
 }
 
 /// Request for RescheduleMaintenance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RescheduleMaintenanceRequest {
     /// Required. If reschedule type is SPECIFIC_TIME, must set up schedule_time as well. // TODO: enum values: ["RESCHEDULE_TYPE_UNSPECIFIED", "IMMEDIATE", "NEXT_AVAILABLE_WINDOW", "SPECIFIC_TIME"]
     #[serde(default, rename = "rescheduleType")]
@@ -310,7 +311,7 @@ pub struct RescheduleMaintenanceRequest {
 }
 
 /// Request message for SetTags.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetTagsRequest {
     /// Optional. A checksum based on the current bindings which can be passed to prevent race conditions. If not passed, etag check would be skipped.
     #[serde(default)]
@@ -327,7 +328,7 @@ pub struct SetTagsRequest {
 }
 
 /// Response message for SetTags.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetTagsResponse {
     /// A checksum based on the current bindings. This field is always set in server responses.
     #[serde(default)]
@@ -341,7 +342,7 @@ pub struct SetTagsResponse {
 }
 
 /// Request for UpdateParameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateParametersRequest {
     /// The parameters to apply to the instance.
     #[serde(default)]
@@ -352,11 +353,11 @@ pub struct UpdateParametersRequest {
 }
 
 /// ZoneMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ZoneMetadata {}
 
 /// Maintenance settings associated with instance. Allows service producers and end users to assign settings that controls maintenance on this instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1MaintenanceSettings {
     /// Optional. Exclude instance from maintenance. When true, rollout service will not attempt maintenance on the instance. Rollout service will include the instance in reported rollout progress as not attempted.
     #[serde(default)]
@@ -370,7 +371,7 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1MaintenanceSettings {
 }
 
 /// Describes provisioned dataplane resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1ProvisionedResource {
     /// Type of the resource. This can be either a GCP resource or a custom one (e.g. another cloud provider''s VM). For GCP compute resources use singular form of the names listed in GCP compute API documentation (https://cloud.google.com/compute/docs/reference/rest/v1/), prefixed with ''compute-'', for example: ''compute-instance'', ''compute-disk'', ''compute-autoscaler''.
     #[serde(default, rename = "resourceType")]
@@ -381,7 +382,7 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1ProvisionedResource {
 }
 
 /// SloMetadata contains resources required for proper SLO classification of the instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1SloMetadata {
     /// Optional. List of nodes. Some producers need to use per-node metadata to calculate SLO. This field allows such producers to publish per-node SLO meta data, which will be consumed by SSA Eligibility Exporter and published in the form of per node metric to Monarch.
     #[serde(default)]
@@ -398,7 +399,7 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1SloMetadata {
 }
 
 /// A Memorystore for Memcached instance
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Instance {
     /// The full name of the Google Compute Engine [network](/compute/docs/networks-and-firewalls#networks) to which the instance is connected. If left unspecified, the default network will be used.
     #[serde(default, rename = "authorizedNetwork")]
@@ -475,7 +476,7 @@ pub struct Instance {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -495,7 +496,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -515,7 +516,7 @@ pub struct Operation {
 }
 
 /// Maintenance policy applicable to instance updates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdatePolicy {
     /// Optional. Relative scheduling channel applied to resource. // TODO: enum values: ["UPDATE_CHANNEL_UNSPECIFIED", "EARLIER", "LATER", "WEEK1", "WEEK2", "WEEK5"]
     #[serde(default)]
@@ -529,7 +530,7 @@ pub struct UpdatePolicy {
 }
 
 /// Node information for custom per-node SLO implementations. SSA does not support per-node SLO, but producers can populate per-node information in SloMetadata for custom precomputations. SSA Eligibility Exporter will emit per-node metric based on this information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1NodeSloMetadata {
     /// The location of the node, if different from instance location.
     #[serde(default)]
@@ -544,7 +545,7 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1NodeSloMetadata {
 }
 
 /// InstanceMessage resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceMessage {
     /// A code that correspond to one type of user-facing message. // TODO: enum values: ["CODE_UNSPECIFIED", "ZONE_DISTRIBUTION_UNBALANCED"]
     #[serde(default)]
@@ -555,7 +556,7 @@ pub struct InstanceMessage {
 }
 
 /// Maintenance policy per instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudMemcacheV1MaintenancePolicy {
     /// Output only. The time when the policy was created.
     #[serde(default, rename = "createTime")]
@@ -572,7 +573,7 @@ pub struct GoogleCloudMemcacheV1MaintenancePolicy {
 }
 
 /// Upcoming maintenance schedule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaintenanceSchedule {
     /// Output only. The end time of any upcoming scheduled maintenance for this instance.
     #[serde(default, rename = "endTime")]
@@ -586,7 +587,7 @@ pub struct MaintenanceSchedule {
 }
 
 /// Node resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Node {
     /// Output only. Hostname or IP address of the Memcached node used by the clients to connect to the Memcached server on this node.
     #[serde(default)]
@@ -615,7 +616,7 @@ pub struct Node {
 }
 
 /// Configuration for a Memcached Node.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeConfig {
     /// Required. Number of cpus per Memcached node.
     #[serde(default, rename = "cpuCount")]
@@ -626,7 +627,7 @@ pub struct NodeConfig {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -640,7 +641,7 @@ pub struct Status {
 }
 
 /// DenyMaintenancePeriod definition. Maintenance is forbidden within the deny period. The start_date must be less than the end_date.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DenyMaintenancePeriod {
     /// Deny period end date. This can be: * A full date, with non-zero year, month and day values. * A month and day value, with a zero year. Allows recurring deny periods each year. Date matching this period will have to be before the end.
     #[serde(default, rename = "endDate")]
@@ -654,7 +655,7 @@ pub struct DenyMaintenancePeriod {
 }
 
 /// MaintenanceWindow definition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaintenanceWindow {
     /// Daily cycle.
     #[serde(default, rename = "dailyCycle")]
@@ -665,7 +666,7 @@ pub struct MaintenanceWindow {
 }
 
 /// PerSliSloEligibility is a mapping from an SLI name to eligibility.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1PerSliSloEligibility {
     /// An entry in the eligibilities map specifies an eligibility for a particular SLI for the given instance. The SLI key in the name must be a valid SLI name specified in the Eligibility Exporter binary flags otherwise an error will be emitted by Eligibility Exporter and the oncaller will be alerted. If an SLI has been defined in the binary flags but the eligibilities map does not contain it, the corresponding SLI time series will not be emitted by the Eligibility Exporter. This ensures a smooth rollout and compatibility between the data produced by different versions of the Eligibility Exporters. If eligibilities map contains a key for an SLI which has not been declared in the binary flags, there will be an error message emitted in the Eligibility Exporter log and the metric for the SLI in question will not be emitted.
     #[serde(default)]
@@ -673,7 +674,7 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1PerSliSloEligibility {
 }
 
 /// Time window specified for weekly operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WeeklyMaintenanceWindow {
     /// Required. Allows to define schedule that runs specified day of the week. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default)]
@@ -687,7 +688,7 @@ pub struct WeeklyMaintenanceWindow {
 }
 
 /// MemcacheParameters resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MemcacheParameters {
     /// Output only. The unique ID associated with this set of parameters. Users can use this id to determine if the parameters associated with the instance differ from the parameters associated with the nodes. A discrepancy between parameter ids can inform users that they may need to take action to apply parameters on nodes.
     #[serde(default)]
@@ -698,7 +699,7 @@ pub struct MemcacheParameters {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -712,7 +713,7 @@ pub struct Date {
 }
 
 /// Time window specified for daily operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DailyCycle {
     /// Output only. Duration of the time window, set by service producer.
     #[serde(default)]
@@ -723,7 +724,7 @@ pub struct DailyCycle {
 }
 
 /// Time window specified for weekly operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WeeklyCycle {
     /// User can specify multiple windows in a week. Minimum of 1 window.
     #[serde(default)]
@@ -731,7 +732,7 @@ pub struct WeeklyCycle {
 }
 
 /// Configure the schedule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Schedule {
     /// Allows to define schedule that runs specified day of the week. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default)]
@@ -745,7 +746,7 @@ pub struct Schedule {
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]

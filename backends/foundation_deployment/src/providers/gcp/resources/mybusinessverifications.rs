@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request message for Verifications.CompleteVerificationAction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompleteVerificationRequest {
     /// Required. PIN code received by the merchant to complete the verification.
     #[serde(default)]
@@ -19,7 +20,7 @@ pub struct CompleteVerificationRequest {
 }
 
 /// Response message for Verifications.CompleteVerificationAction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompleteVerificationResponse {
     /// The completed verification.
     #[serde(default)]
@@ -27,7 +28,7 @@ pub struct CompleteVerificationResponse {
 }
 
 /// Request message for Verifications.FetchVerificationOptions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchVerificationOptionsRequest {
     /// Optional. Extra context information for the verification of service businesses. Can only be applied to the locations whose business type is CUSTOMER_LOCATION_ONLY. Specifying an accurate address could enable more options. INVALID_ARGUMENT will be thrown if it is set for other business types of locations.
     #[serde(default)]
@@ -38,7 +39,7 @@ pub struct FetchVerificationOptionsRequest {
 }
 
 /// Response message for Verifications.FetchVerificationOptions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchVerificationOptionsResponse {
     /// The available verification options.
     #[serde(default)]
@@ -46,7 +47,7 @@ pub struct FetchVerificationOptionsResponse {
 }
 
 /// Request message for Verifications.GenerateInstantVerificationToken.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateInstantVerificationTokenRequest {
     /// Immutable. The address and other details of the location to generate an instant verification token for.
     #[serde(default, rename = "locationData")]
@@ -57,7 +58,7 @@ pub struct GenerateInstantVerificationTokenRequest {
 }
 
 /// Response message for Verifications.GenerateInstantVerificationToken.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateInstantVerificationTokenResponse {
     /// The generated instant verification token.
     #[serde(default, rename = "instantVerificationToken")]
@@ -68,7 +69,7 @@ pub struct GenerateInstantVerificationTokenResponse {
 }
 
 /// Response message for Verifications.ListVerifications.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListVerificationsResponse {
     /// If the number of verifications exceeded the requested page size, this field will be populated with a token to fetch the next page of verification on a subsequent call. If there are no more attributes, this field will not be present in the response.
     #[serde(default, rename = "nextPageToken")]
@@ -79,11 +80,11 @@ pub struct ListVerificationsResponse {
 }
 
 /// Indicates that the location duplicates another location that is in good standing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResolveOwnershipConflict {}
 
 /// Request message for Verifications.VerifyLocation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerifyLocationRequest {
     /// Optional. Extra context information for the verification of service businesses. It is only required for the locations whose business type is CUSTOMER_LOCATION_ONLY. For ADDRESS verification, the address will be used to send out postcard. For other methods, it should be the same as the one that is passed to GetVerificationOptions. INVALID_ARGUMENT will be thrown if it is set for other types of business locations.
     #[serde(default)]
@@ -112,7 +113,7 @@ pub struct VerifyLocationRequest {
 }
 
 /// Response message for Verifications.VerifyLocation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerifyLocationResponse {
     /// The created verification request.
     #[serde(default)]
@@ -120,7 +121,7 @@ pub struct VerifyLocationResponse {
 }
 
 /// Response message for VoiceOfMerchant.GetVoiceOfMerchantState.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VoiceOfMerchantState {
     /// The location fails to comply with our [guidelines](https://support.google.com/business/answer/3038177) and requires additional steps for reinstatement. To fix this issue, consult the [Help Center Article](https://support.google.com/business/answer/4569145).
     #[serde(default, rename = "complyWithGuidelines")]
@@ -143,11 +144,11 @@ pub struct VoiceOfMerchantState {
 }
 
 /// Indicates that the location will gain voice of merchant after passing review.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WaitForVoiceOfMerchant {}
 
 /// The verification option represents how to verify the location (indicated by verification method) and where the verification will be sent to (indicated by display data).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerificationOption {
     /// Set only if the method is MAIL.
     #[serde(default, rename = "addressData")]
@@ -167,7 +168,7 @@ pub struct VerificationOption {
 }
 
 /// The address and other details of the location to generate an instant verification token for.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocationData {
     /// Immutable. A precise, accurate address to describe your business location. PO boxes or mailboxes located at remote locations are not acceptable. At this time, you can specify a maximum of five address_lines values in the address.
     #[serde(default)]
@@ -178,7 +179,7 @@ pub struct LocationData {
 }
 
 /// Additional data for service business verification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceBusinessContext {
     /// The verification address of the location. It is used to either enable more verification options or send a postcard.
     #[serde(default)]
@@ -186,7 +187,7 @@ pub struct ServiceBusinessContext {
 }
 
 /// Token generated by a vetted [partner](https://support.google.com/business/answer/7674102).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerificationToken {
     /// The token string.
     #[serde(default, rename = "tokenString")]
@@ -194,7 +195,7 @@ pub struct VerificationToken {
 }
 
 /// A verification represents a verification attempt on a location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Verification {
     /// Optional. Response announcement set only if the method is VETTED_PARTNER.
     #[serde(default)]
@@ -214,7 +215,7 @@ pub struct Verification {
 }
 
 /// Indicates that the location fails to comply with our [guidelines](https://support.google.com/business/answer/3038177).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComplyWithGuidelines {
     /// The reason why the location is being recommended to comply with guidelines. // TODO: enum values: ["RECOMMENDATION_REASON_UNSPECIFIED", "BUSINESS_LOCATION_SUSPENDED", "BUSINESS_LOCATION_DISABLED"]
     #[serde(default, rename = "recommendationReason")]
@@ -222,7 +223,7 @@ pub struct ComplyWithGuidelines {
 }
 
 /// Indicates that the location requires verification. Contains information about the current verification actions performed on the location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Verify {
     /// Indicates whether a verification process has already started, and can be completed by the location.
     #[serde(default, rename = "hasPendingVerification")]
@@ -230,7 +231,7 @@ pub struct Verify {
 }
 
 /// Display data for verifications through postcard.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddressVerificationData {
     /// Address that a postcard can be sent to.
     #[serde(default)]
@@ -244,7 +245,7 @@ pub struct AddressVerificationData {
 }
 
 /// Display data for verifications through email.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailVerificationData {
     /// Domain name in the email address. e.g. "gmail.com" in foo@gmail.com
     #[serde(default)]
@@ -258,7 +259,7 @@ pub struct EmailVerificationData {
 }
 
 /// Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostalAddress {
     /// Unstructured address lines describing the lower levels of an address. Because values in address_lines do not have type information and may sometimes contain multiple values in a single field (for example, "Austin, TX"), it is important that the line order is clear. The order of address lines should be "envelope order" for the country or region of the address. In places where this can vary (for example, Japan), address_language is used to make it explicit (for example, "ja" for large-to-small ordering and "ja-Latn" or "en" for small-to-large). In this way, the most specific line of an address can be selected based on the language. The minimum permitted structural representation of an address consists of a region_code with all remaining information placed in the address_lines. It would be possible to format such an address very approximately without geocoding, but no semantic reasoning could be made about any of the address components until it was at least partially resolved. Creating an address only containing a region_code and address_lines and then geocoding is the recommended way to handle completely unstructured addresses (as opposed to guessing which parts of the address should be localities or administrative areas).
     #[serde(default, rename = "addressLines")]

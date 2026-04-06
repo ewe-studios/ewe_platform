@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// JSON template for a collection of activities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Activities {
     /// ETag of the resource.
     #[serde(default)]
@@ -28,7 +29,7 @@ pub struct Activities {
 }
 
 /// Status of the event. Note: Not all events have status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivityEventsStatus {
     /// Error code of the event. Note: Field can be empty.
     #[serde(default, rename = "errorCode")]
@@ -45,7 +46,7 @@ pub struct ActivityEventsStatus {
 }
 
 /// A notification channel used to watch for resource changes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Channel {
     /// The address where notifications are delivered for this channel.
     #[serde(default)]
@@ -80,7 +81,7 @@ pub struct Channel {
 }
 
 /// JSON template for a parameter used in various reports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NestedParameter {
     /// Boolean value of the parameter.
     #[serde(default, rename = "boolValue")]
@@ -106,7 +107,7 @@ pub struct NestedParameter {
 }
 
 /// UsageReports resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UsageReports {
     /// ETag of the resource.
     #[serde(default)]
@@ -126,7 +127,7 @@ pub struct UsageReports {
 }
 
 /// JSON template for the activity resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Activity {
     /// User doing the action.
     #[serde(default)]
@@ -158,7 +159,7 @@ pub struct Activity {
 }
 
 /// JSON template for a usage report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UsageReport {
     /// Output only. The date of the report request.
     #[serde(default)]
@@ -178,7 +179,7 @@ pub struct UsageReport {
 }
 
 /// Network information of the user doing the action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivityNetworkInfo {
     /// IP Address of the user doing the action.
     #[serde(default, rename = "ipAsn")]
@@ -192,7 +193,7 @@ pub struct ActivityNetworkInfo {
 }
 
 /// Details of the resource on which the action was performed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceDetails {
     /// List of labels applied on the resource
     #[serde(default, rename = "appliedLabels")]
@@ -215,7 +216,7 @@ pub struct ResourceDetails {
 }
 
 /// Details of the label applied on the resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppliedLabel {
     /// List of fields which are part of the label and have been set by the user. If label has a field which was not set by the user, it would not be present in this list.
     #[serde(default, rename = "fieldValues")]
@@ -232,7 +233,7 @@ pub struct AppliedLabel {
 }
 
 /// Details of the owner of the resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OwnerDetails {
     /// Identity details of the owner(s) of the resource.
     #[serde(default, rename = "ownerIdentity")]
@@ -243,7 +244,7 @@ pub struct OwnerDetails {
 }
 
 /// Details of the field value set by the user for the particular label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FieldValue {
     /// Setting a date value.
     #[serde(default, rename = "dateValue")]
@@ -290,7 +291,7 @@ pub struct FieldValue {
 }
 
 /// Identity details of the owner of the resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OwnerIdentity {
     /// Identity of the Google Workspace customer who owns the resource.
     #[serde(default, rename = "customerIdentity")]
@@ -304,7 +305,7 @@ pub struct OwnerIdentity {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -318,7 +319,7 @@ pub struct Date {
 }
 
 /// The reason why the label/field was applied.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Reason {
     /// The type of the reason.
     #[serde(default, rename = "reasonType")]
@@ -326,7 +327,7 @@ pub struct Reason {
 }
 
 /// Setting a selection list value by selecting multiple values from a dropdown.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FieldValueSelectionListValue {
     /// List of selections.
     #[serde(default)]
@@ -334,7 +335,7 @@ pub struct FieldValueSelectionListValue {
 }
 
 /// Setting a text list value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FieldValueTextListValue {
     /// List of text values.
     #[serde(default)]
@@ -342,7 +343,7 @@ pub struct FieldValueTextListValue {
 }
 
 /// Setting a user list value by selecting multiple users.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FieldValueUserListValue {
     /// List of users.
     #[serde(default)]
@@ -350,7 +351,7 @@ pub struct FieldValueUserListValue {
 }
 
 /// Identity of the Google Workspace customer who owns the resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerIdentity {
     /// Customer id.
     #[serde(default)]
@@ -358,7 +359,7 @@ pub struct CustomerIdentity {
 }
 
 /// Identity of the group who owns the resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GroupIdentity {
     /// Group email.
     #[serde(default, rename = "groupEmail")]
@@ -369,7 +370,7 @@ pub struct GroupIdentity {
 }
 
 /// Identity of the user who owns the resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserIdentity {
     /// User gaia id.
     #[serde(default)]
@@ -380,7 +381,7 @@ pub struct UserIdentity {
 }
 
 /// Setting a selection value by selecting a single value from a dropdown.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FieldValueSelectionValue {
     /// Whether the selection is badged.
     #[serde(default)]
@@ -394,7 +395,7 @@ pub struct FieldValueSelectionValue {
 }
 
 /// Setting a user value by selecting a single user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FieldValueUserValue {
     /// Email of the user.
     #[serde(default)]

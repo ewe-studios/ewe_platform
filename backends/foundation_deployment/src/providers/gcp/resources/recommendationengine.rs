@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Message that represents an arbitrary HTTP body. It should only be used for payload formats that can''t be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleApiHttpBody {
     /// The HTTP Content-Type header value specifying the content type of the body.
     #[serde(default, rename = "contentType")]
@@ -25,11 +26,11 @@ pub struct GoogleApiHttpBody {
 }
 
 /// Metadata for TriggerCatalogRejoin method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1alphaRejoinCatalogMetadata {}
 
 /// Response message for TriggerCatalogRejoin method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1alphaRejoinCatalogResponse {
     /// Number of user events that were joined with latest catalog items.
     #[serde(default, rename = "rejoinedUserEventsCount")]
@@ -37,7 +38,7 @@ pub struct GoogleCloudRecommendationengineV1alphaRejoinCatalogResponse {
 }
 
 /// Metadata associated with a tune operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1alphaTuningMetadata {
     /// The resource name of the recommendation model that this tune applies to. Format: projects/{project_number}/locations/{location_id}/catalogs/{catalog_id}/eventStores/{event_store_id}/recommendationModels/{recommendation_model_id}
     #[serde(default, rename = "recommendationModel")]
@@ -45,11 +46,11 @@ pub struct GoogleCloudRecommendationengineV1alphaTuningMetadata {
 }
 
 /// Response associated with a tune operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1alphaTuningResponse {}
 
 /// Request message for the CreatePredictionApiKeyRegistration method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1CreatePredictionApiKeyRegistrationRequest {
     /// Required. The prediction API key registration.
     #[serde(default, rename = "predictionApiKeyRegistration")]
@@ -58,7 +59,7 @@ pub struct GoogleCloudRecommendationengineV1beta1CreatePredictionApiKeyRegistrat
 }
 
 /// A list of float features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1FeatureMapFloatList {
     /// Float feature value.
     #[serde(default)]
@@ -66,7 +67,7 @@ pub struct GoogleCloudRecommendationengineV1beta1FeatureMapFloatList {
 }
 
 /// A list of string features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1FeatureMapStringList {
     /// String feature value with a length limit of 128 bytes.
     #[serde(default)]
@@ -74,7 +75,7 @@ pub struct GoogleCloudRecommendationengineV1beta1FeatureMapStringList {
 }
 
 /// Request message for Import methods.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1ImportCatalogItemsRequest {
     /// Optional. The desired location of errors incurred during the Import.
     #[serde(default, rename = "errorsConfig")]
@@ -92,7 +93,7 @@ pub struct GoogleCloudRecommendationengineV1beta1ImportCatalogItemsRequest {
 }
 
 /// Response of the ImportCatalogItemsRequest. If the long running operation is done, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1ImportCatalogItemsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -104,7 +105,7 @@ pub struct GoogleCloudRecommendationengineV1beta1ImportCatalogItemsResponse {
 }
 
 /// Metadata related to the progress of the Import operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1ImportMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -127,7 +128,7 @@ pub struct GoogleCloudRecommendationengineV1beta1ImportMetadata {
 }
 
 /// Request message for the ImportUserEvents request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1ImportUserEventsRequest {
     /// Optional. The desired location of errors incurred during the Import.
     #[serde(default, rename = "errorsConfig")]
@@ -142,7 +143,7 @@ pub struct GoogleCloudRecommendationengineV1beta1ImportUserEventsRequest {
 }
 
 /// Response of the ImportUserEventsRequest. If the long running operation was successful, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1ImportUserEventsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -158,7 +159,7 @@ pub struct GoogleCloudRecommendationengineV1beta1ImportUserEventsResponse {
 }
 
 /// Response message for ListCatalogItems method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1ListCatalogItemsResponse {
     /// The catalog items.
     #[serde(default, rename = "catalogItems")]
@@ -170,7 +171,7 @@ pub struct GoogleCloudRecommendationengineV1beta1ListCatalogItemsResponse {
 }
 
 /// Response for ListCatalogs method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1ListCatalogsResponse {
     /// Output only. All the customer''s catalogs.
     #[serde(default)]
@@ -182,7 +183,7 @@ pub struct GoogleCloudRecommendationengineV1beta1ListCatalogsResponse {
 }
 
 /// Response message for the ListPredictionApiKeyRegistrations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1ListPredictionApiKeyRegistrationsResponse {
     /// If empty, the list is complete. If nonempty, pass the token to the next request''s ListPredictionApiKeysRegistrationsRequest.pageToken.
     #[serde(default, rename = "nextPageToken")]
@@ -195,7 +196,7 @@ pub struct GoogleCloudRecommendationengineV1beta1ListPredictionApiKeyRegistratio
 }
 
 /// Response message for ListUserEvents method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1ListUserEventsResponse {
     /// If empty, the list is complete. If nonempty, the token to pass to the next request''s ListUserEvents.page_token.
     #[serde(default, rename = "nextPageToken")]
@@ -207,7 +208,7 @@ pub struct GoogleCloudRecommendationengineV1beta1ListUserEventsResponse {
 }
 
 /// Request message for Predict method. Full resource name of the format: {name=projects/*/locations/global/catalogs/default_catalog/eventStores/default_event_store/placements/*} The id of the recommendation engine placement. This id is used to identify the set of models that will be used to make the prediction. We currently support three placements with the following IDs by default: // * shopping_cart: Predicts items frequently bought together with one or more catalog items in the same shopping session. Commonly displayed after add-to-cart event, on product detail pages, or on the shopping cart page. * home_page: Predicts the next product that a user will most likely engage with or purchase based on the shopping or viewing history of the specified userId or visitorId. For example - Recommendations for you. * product_detail: Predicts the next product that a user will most likely engage with or purchase. The prediction is based on the shopping or viewing history of the specified userId or visitorId and its relevance to a specified CatalogItem. Typically used on product detail pages. For example - More items like this. * recently_viewed_default: Returns up to 75 items recently viewed by the specified userId or visitorId, most recent ones first. Returns nothing if neither of them has viewed any items yet. For example - Recently viewed. The full list of available placements can be seen at https://console.cloud.google.com/recommendation/catalogs/default_catalog/placements
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1PredictRequest {
     /// Optional. Use dryRun mode for this prediction query. If set to true, a fake model will be used that returns arbitrary catalog items. Note that the dryRun mode should only be used for testing the API, or if the model is not ready.
     #[serde(default, rename = "dryRun")]
@@ -233,7 +234,7 @@ pub struct GoogleCloudRecommendationengineV1beta1PredictRequest {
 }
 
 /// Response message for predict method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1PredictResponse {
     /// True if the dryRun property was set in the request.
     #[serde(default, rename = "dryRun")]
@@ -258,7 +259,7 @@ pub struct GoogleCloudRecommendationengineV1beta1PredictResponse {
 }
 
 /// Metadata related to the progress of the PurgeUserEvents operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1PurgeUserEventsMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -269,7 +270,7 @@ pub struct GoogleCloudRecommendationengineV1beta1PurgeUserEventsMetadata {
 }
 
 /// Request message for PurgeUserEvents method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1PurgeUserEventsRequest {
     /// Required. The filter string to specify the events to be deleted. Empty string filter is not allowed. The eligible fields for filtering are: * eventType: UserEvent.eventType field of type string. * eventTime: in ISO 8601 "zulu" format. * visitorId: field of type string. Specifying this will delete all events associated with a visitor. * userId: field of type string. Specifying this will delete all events associated with a user. Examples: * Deleting all events in a time range: eventTime &gt; "2012-04-23T18:25:43.511Z" eventTime &lt; "2012-04-23T18:30:43.511Z" * Deleting specific eventType in time range: eventTime &gt; "2012-04-23T18:25:43.511Z" eventType = "detail-page-view" * Deleting all events for a specific visitor: visitorId = "visitor1024" The filtering fields are assumed to have an implicit AND.
     #[serde(default)]
@@ -280,7 +281,7 @@ pub struct GoogleCloudRecommendationengineV1beta1PurgeUserEventsRequest {
 }
 
 /// Response of the PurgeUserEventsRequest. If the long running operation is successfully done, then this message is returned by the google.longrunning.Operations.response field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1PurgeUserEventsResponse {
     /// The total count of events purged as a result of the operation.
     #[serde(default, rename = "purgedEventsCount")]
@@ -292,11 +293,11 @@ pub struct GoogleCloudRecommendationengineV1beta1PurgeUserEventsResponse {
 }
 
 /// Metadata for RejoinUserEvents method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1RejoinUserEventsMetadata {}
 
 /// Request message for CatalogRejoin method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1RejoinUserEventsRequest {
     /// Required. The type of the catalog rejoin to define the scope and range of the user events to be rejoined with catalog items. // TODO: enum values: ["USER_EVENT_REJOIN_SCOPE_UNSPECIFIED", "JOINED_EVENTS", "UNJOINED_EVENTS"]
     #[serde(default, rename = "userEventRejoinScope")]
@@ -304,7 +305,7 @@ pub struct GoogleCloudRecommendationengineV1beta1RejoinUserEventsRequest {
 }
 
 /// Response message for RejoinUserEvents method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1RejoinUserEventsResponse {
     /// Number of user events that were joined with latest catalog items.
     #[serde(default, rename = "rejoinedUserEventsCount")]
@@ -312,7 +313,7 @@ pub struct GoogleCloudRecommendationengineV1beta1RejoinUserEventsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -326,11 +327,11 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// The input config source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1InputConfig {
     /// BigQuery input source.
     #[serde(default, rename = "bigQuerySource")]
@@ -350,7 +351,7 @@ pub struct GoogleCloudRecommendationengineV1beta1InputConfig {
 }
 
 /// Configuration of destination for Import related errors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1ImportErrorsConfig {
     /// Google Cloud Storage path for import errors. This must be an empty, existing Cloud Storage bucket. Import errors will be written to a file in this bucket, one per line, as a JSON-encoded google.rpc.Status message.
     #[serde(default, rename = "gcsPrefix")]
@@ -358,7 +359,7 @@ pub struct GoogleCloudRecommendationengineV1beta1ImportErrorsConfig {
 }
 
 /// A summary of import result. The UserEventImportSummary summarizes the import status for user events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1UserEventImportSummary {
     /// Count of user events imported with complete existing catalog information.
     #[serde(default, rename = "joinedEventsCount")]
@@ -369,7 +370,7 @@ pub struct GoogleCloudRecommendationengineV1beta1UserEventImportSummary {
 }
 
 /// The catalog configuration. Next ID: 5.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1Catalog {
     /// Required. The catalog item level configuration.
     #[serde(default, rename = "catalogItemLevelConfig")]
@@ -387,7 +388,7 @@ pub struct GoogleCloudRecommendationengineV1beta1Catalog {
 }
 
 /// Registered Api Key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1PredictionApiKeyRegistration {
     /// The API key.
     #[serde(default, rename = "apiKey")]
@@ -395,7 +396,7 @@ pub struct GoogleCloudRecommendationengineV1beta1PredictionApiKeyRegistration {
 }
 
 /// PredictionResult represents the recommendation prediction results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1PredictResponsePredictionResult {
     /// ID of the recommended catalog item
     #[serde(default)]
@@ -406,7 +407,7 @@ pub struct GoogleCloudRecommendationengineV1beta1PredictResponsePredictionResult
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -426,7 +427,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// BigQuery source import data from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1BigQuerySource {
     /// Optional. The schema to use when parsing the data from the source. Supported values for catalog imports: 1: "catalog_recommendations_ai" using https://cloud.google.com/recommendations-ai/docs/upload-catalog#json (Default for catalogItems.import) 2: "catalog_merchant_center" using https://cloud.google.com/recommendations-ai/docs/upload-catalog#mc Supported values for user event imports: 1: "user_events_recommendations_ai" using https://cloud.google.com/recommendations-ai/docs/manage-user-events#import (Default for userEvents.import) 2. "user_events_ga360" using https://support.google.com/analytics/answer/3437719?hl=en
     #[serde(default, rename = "dataSchema")]
@@ -446,7 +447,7 @@ pub struct GoogleCloudRecommendationengineV1beta1BigQuerySource {
 }
 
 /// The inline source for the input config for ImportCatalogItems method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1CatalogInlineSource {
     /// Optional. A list of catalog items to update/create. Recommended max of 10k items.
     #[serde(default, rename = "catalogItems")]
@@ -455,7 +456,7 @@ pub struct GoogleCloudRecommendationengineV1beta1CatalogInlineSource {
 }
 
 /// Google Cloud Storage location for input content. format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1GcsSource {
     /// Required. Google Cloud Storage URIs to input files. URI can be up to 2000 characters long. URIs can match the full object path (for example, gs://bucket/directory/object.json) or a pattern matching one or more files, such as gs://bucket/directory/*.json. A request can contain at most 100 files, and each file can be up to 2 GB. See [Importing catalog information](/recommendations-ai/docs/upload-catalog) for the expected file format and setup instructions.
     #[serde(default, rename = "inputUris")]
@@ -466,7 +467,7 @@ pub struct GoogleCloudRecommendationengineV1beta1GcsSource {
 }
 
 /// The inline source for the input config for ImportUserEvents method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1UserEventInlineSource {
     /// Optional. A list of user events to import. Recommended max of 10k items.
     #[serde(default, rename = "userEvents")]
@@ -475,7 +476,7 @@ pub struct GoogleCloudRecommendationengineV1beta1UserEventInlineSource {
 }
 
 /// Configures the catalog level that users send events to, and the level at which predictions are made.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1CatalogItemLevelConfig {
     /// Optional. Level of the catalog at which events are uploaded. See https://cloud.google.com/recommendations-ai/docs/catalog#catalog-levels for more details. // TODO: enum values: ["CATALOG_ITEM_LEVEL_UNSPECIFIED", "VARIANT", "MASTER"]
     #[serde(default, rename = "eventItemLevel")]
@@ -486,7 +487,7 @@ pub struct GoogleCloudRecommendationengineV1beta1CatalogItemLevelConfig {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -500,7 +501,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// CatalogItem captures all metadata information of items to be recommended.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1CatalogItem {
     /// Required. Catalog item categories. This field is repeated for supporting one catalog item belonging to several parallel category hierarchies. For example, if a shoes product belongs to both ["Shoes & Accessories" -&gt; "Shoes"] and ["Sports & Fitness" -&gt; "Athletic Clothing" -&gt; "Shoes"], it could be represented as: "categoryHierarchies": [ { "categories": ["Shoes & Accessories", "Shoes"]}, { "categories": ["Sports & Fitness", "Athletic Clothing", "Shoes"] } ]
     #[serde(default, rename = "categoryHierarchies")]
@@ -535,7 +536,7 @@ pub struct GoogleCloudRecommendationengineV1beta1CatalogItem {
 }
 
 /// UserEvent captures all metadata information recommendation engine needs to know about how end users interact with customers'' website.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1UserEvent {
     /// Optional. User event detailed information common across different recommendation types.
     #[serde(default, rename = "eventDetail")]
@@ -559,7 +560,7 @@ pub struct GoogleCloudRecommendationengineV1beta1UserEvent {
 }
 
 /// ProductCatalogItem captures item metadata specific to retail products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1ProductCatalogItem {
     /// Optional. The available quantity of the item.
     #[serde(default, rename = "availableQuantity")]
@@ -591,7 +592,7 @@ pub struct GoogleCloudRecommendationengineV1beta1ProductCatalogItem {
 }
 
 /// User event details shared by all recommendation types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1EventDetail {
     /// Optional. Extra user event features to include in the recommendation model. For product recommendation, an example of extra user information is traffic_channel, i.e. how user arrives at the site. Users can arrive at the site by coming to the site directly, or coming through Google search, and etc.
     #[serde(default, rename = "eventAttributes")]
@@ -614,7 +615,7 @@ pub struct GoogleCloudRecommendationengineV1beta1EventDetail {
 }
 
 /// ProductEventDetail captures user event information specific to retail products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1ProductEventDetail {
     /// Optional. The id or name of the associated shopping cart. This id is used to associate multiple items added or present in the cart before purchase. This can only be set for add-to-cart, remove-from-cart, checkout-start, purchase-complete, or shopping-cart-page-view events.
     #[serde(default, rename = "cartId")]
@@ -642,7 +643,7 @@ pub struct GoogleCloudRecommendationengineV1beta1ProductEventDetail {
 }
 
 /// Information of end users.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1UserInfo {
     /// Optional. Indicates if the request is made directly from the end user in which case the user_agent and ip_address fields can be populated from the HTTP request. This should *not* be set when using the javascript pixel. This flag should be set only if the API request is made directly from the end user such as a mobile app (and not if a gateway or a server is processing and pushing the user events).
     #[serde(default, rename = "directUserRequest")]
@@ -662,7 +663,7 @@ pub struct GoogleCloudRecommendationengineV1beta1UserInfo {
 }
 
 /// Exact product price.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1ProductCatalogItemExactPrice {
     /// Optional. Display price of the product.
     #[serde(default, rename = "displayPrice")]
@@ -673,7 +674,7 @@ pub struct GoogleCloudRecommendationengineV1beta1ProductCatalogItemExactPrice {
 }
 
 /// Catalog item thumbnail/detail image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1Image {
     /// Optional. Height of the image in number of pixels.
     #[serde(default)]
@@ -687,7 +688,7 @@ pub struct GoogleCloudRecommendationengineV1beta1Image {
 }
 
 /// Product price range when there are a range of prices for different variations of the same product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1ProductCatalogItemPriceRange {
     /// Required. The maximum product price.
     #[serde(default)]
@@ -698,7 +699,7 @@ pub struct GoogleCloudRecommendationengineV1beta1ProductCatalogItemPriceRange {
 }
 
 /// Category represents catalog item category hierarchy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1CatalogItemCategoryHierarchy {
     /// Required. Catalog item categories. Each category should be a UTF-8 encoded string with a length limit of 2 KiB. Note that the order in the list denotes the specificity (from least to most specific).
     #[serde(default)]
@@ -706,7 +707,7 @@ pub struct GoogleCloudRecommendationengineV1beta1CatalogItemCategoryHierarchy {
 }
 
 /// Detailed product information associated with a user event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1ProductDetail {
     /// Optional. Quantity of the products in stock when a user event happens. Optional. If provided, this overrides the available quantity in Catalog for this event. and can only be set if stock_status is set to IN_STOCK. Note that if an item is out of stock, you must set the stock_state field to be OUT_OF_STOCK. Leaving this field unspecified / as zero is not sufficient to mark the item out of stock.
     #[serde(default, rename = "availableQuantity")]
@@ -735,7 +736,7 @@ pub struct GoogleCloudRecommendationengineV1beta1ProductDetail {
 }
 
 /// A transaction represents the entire purchase transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1PurchaseTransaction {
     /// Optional. All the costs associated with the product. These can be manufacturing costs, shipping expenses not borne by the end user, or any other costs. Total product cost such that profit = revenue - (sum(taxes) + sum(costs)) If product_cost is not set, then profit = revenue - tax - shipping - sum(CatalogItem.costs). If CatalogItem.cost is not specified for one of the items, CatalogItem.cost based profit *cannot* be calculated for this Transaction.
     #[serde(default)]
@@ -755,7 +756,7 @@ pub struct GoogleCloudRecommendationengineV1beta1PurchaseTransaction {
 }
 
 /// FeatureMap represents extra features that customers want to include in the recommendation model for catalogs/user events as categorical/numerical features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRecommendationengineV1beta1FeatureMap {
     /// Categorical features that can take on one of a limited number of possible values. Some examples would be the brand/maker of a product, or country of a customer. Feature names and values must be UTF-8 encoded strings. For example: { "colors": {"value": ["yellow", "green"]}, "sizes": {"value":["S", "M"]}
     #[serde(default, rename = "categoricalFeatures")]

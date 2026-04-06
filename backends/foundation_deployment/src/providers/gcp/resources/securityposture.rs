@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// Request message for CreateIaCValidationReport.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateIaCValidationReportRequest {
     /// Required. The infrastructure-as-code (IaC) configuration to validate.
     #[serde(default)]
@@ -23,11 +24,11 @@ pub struct CreateIaCValidationReportRequest {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Request message for ExtractPosture.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExtractPostureRequest {
     /// Required. An identifier for the posture.
     #[serde(default, rename = "postureId")]
@@ -38,7 +39,7 @@ pub struct ExtractPostureRequest {
 }
 
 /// The allowed and denied values for a list constraint. For all constraints, these fields can contain literal values. Optionally, you can add the is: prefix to these values. If the value contains a colon (:), then the is: prefix is required. Some constraints allow you to specify a portion of the resource hierarchy, known as a [_hierarchy subtree_](https://cloud.google.com/resource-manager/help/organization-policy/hierarchy-subtree), that the constraint applies to. To specify a hierarchy subtree, use the under: prefix, followed by a value with one of these formats: - projects/{project_id} (for example, projects/tokyo-rain-123) - folders/{folder_id} (for example, folders/1234567890123) - organizations/{organization_id} (for example, organizations/123456789012) A constraint''s supports_under field indicates whether you can specify a hierarchy subtree. To learn which predefined constraints let you specify a hierarchy subtree, see the [constraints reference](https://cloud.google.com/resource-manager/help/organization-policy/constraints/reference).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritypostureV1PolicyRuleStringValues {
     /// The allowed values for the constraint.
     #[serde(default, rename = "allowedValues")]
@@ -49,7 +50,7 @@ pub struct GoogleCloudSecuritypostureV1PolicyRuleStringValues {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -60,7 +61,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -74,7 +75,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response message for ListPostureDeployments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPostureDeploymentsResponse {
     /// A pagination token. To retrieve the next page of results, call the method again with this token.
     #[serde(default, rename = "nextPageToken")]
@@ -88,7 +89,7 @@ pub struct ListPostureDeploymentsResponse {
 }
 
 /// Response message for ListPostureRevisions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPostureRevisionsResponse {
     /// A pagination token. To retrieve the next page of results, call the method again with this token.
     #[serde(default, rename = "nextPageToken")]
@@ -99,7 +100,7 @@ pub struct ListPostureRevisionsResponse {
 }
 
 /// Response message for ListPostureTemplates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPostureTemplatesResponse {
     /// A pagination token. To retrieve the next page of results, call the method again with this token.
     #[serde(default, rename = "nextPageToken")]
@@ -110,7 +111,7 @@ pub struct ListPostureTemplatesResponse {
 }
 
 /// Response message for ListPostures.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPosturesResponse {
     /// A pagination token. To retrieve the next page of results, call the method again with this token.
     #[serde(default, rename = "nextPageToken")]
@@ -124,7 +125,7 @@ pub struct ListPosturesResponse {
 }
 
 /// Response message for ListReports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListReportsResponse {
     /// A pagination token. To retrieve the next page of results, call the method again with this token.
     #[serde(default, rename = "nextPageToken")]
@@ -138,7 +139,7 @@ pub struct ListReportsResponse {
 }
 
 /// Metadata for an Operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. The API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -167,7 +168,7 @@ pub struct OperationMetadata {
 }
 
 /// Details of an infrastructure-as-code (IaC) configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IaC {
     /// Optional. A Terraform plan file, formatted as a stringified JSON object. To learn how to generate a Terraform plan file in JSON format, see [JSON output format](https://developer.hashicorp.com/terraform/internals/json-format) in the Terraform documentation.
     #[serde(default, rename = "tfPlan")]
@@ -175,7 +176,7 @@ pub struct IaC {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -195,7 +196,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -215,7 +216,7 @@ pub struct Operation {
 }
 
 /// Details for a Posture deployment on an organization, folder, or project. You can deploy at most one posture to each organization, folder, or project. The parent resource for a posture deployment is always the organization, even if the deployment applies to a folder or project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostureDeployment {
     /// Optional. The user-specified annotations for the posture deployment. For details about the values you can use in an annotation, see [AIP-148: Standard fields](https://google.aip.dev/148#annotations).
     #[serde(default)]
@@ -265,7 +266,7 @@ pub struct PostureDeployment {
 }
 
 /// The details of a posture template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostureTemplate {
     /// Output only. The categories that the posture template belongs to, as determined by the Security Posture API.
     #[serde(default)]
@@ -288,7 +289,7 @@ pub struct PostureTemplate {
 }
 
 /// The details of a posture.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Posture {
     /// Optional. The user-specified annotations for the posture. For details about the values you can use in an annotation, see [AIP-148: Standard fields](https://google.aip.dev/148#annotations).
     #[serde(default)]
@@ -326,7 +327,7 @@ pub struct Posture {
 }
 
 /// Details of a report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Report {
     /// Output only. The time at which the report was created.
     #[serde(default, rename = "createTime")]
@@ -343,7 +344,7 @@ pub struct Report {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -357,7 +358,7 @@ pub struct Status {
 }
 
 /// A group of one or more Policy resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicySet {
     /// Optional. A description of the policy set.
     #[serde(default)]
@@ -371,7 +372,7 @@ pub struct PolicySet {
 }
 
 /// Details of an infrastructure-as-code (IaC) validation report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IaCValidationReport {
     /// Additional information about the report.
     #[serde(default)]
@@ -382,7 +383,7 @@ pub struct IaCValidationReport {
 }
 
 /// The details of a policy, including the constraints that it includes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Optional. The compliance standards that the policy helps enforce.
     #[serde(default, rename = "complianceStandards")]
@@ -399,7 +400,7 @@ pub struct Policy {
 }
 
 /// Details of a violation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Violation {
     /// The full resource name of the asset that caused the violation. For details about the format of the full resource name for each asset type, see [Resource name format](https://cloud.google.com/asset-inventory/docs/resource-name-format).
     #[serde(default, rename = "assetId")]
@@ -425,7 +426,7 @@ pub struct Violation {
 }
 
 /// Information about a compliance standard that the policy helps enforce.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComplianceStandard {
     /// Optional. The control in the compliance standard that the policy helps enforce. For example, AC-3.
     #[serde(default)]
@@ -436,7 +437,7 @@ pub struct ComplianceStandard {
 }
 
 /// Metadata for a constraint in a Policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Constraint {
     /// Optional. A predefined organization policy constraint.
     #[serde(default, rename = "orgPolicyConstraint")]
@@ -454,7 +455,7 @@ pub struct Constraint {
 }
 
 /// Details of a Cloud Asset Inventory asset that caused a violation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssetDetails {
     /// Information about the Cloud Asset Inventory asset that violated a policy. The format of this information can change at any time without prior notice. Your application must not depend on this information in any way.
     #[serde(default)]
@@ -465,7 +466,7 @@ pub struct AssetDetails {
 }
 
 /// Details of a policy that was violated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyDetails {
     /// The compliance standards that the policy maps to. For example, CIS-2.0 1.15.
     #[serde(default, rename = "complianceStandards")]
@@ -482,7 +483,7 @@ pub struct PolicyDetails {
 }
 
 /// Details of a posture deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostureDetails {
     /// The identifier for the PolicySet that the relevant policy belongs to.
     #[serde(default, rename = "policySet")]
@@ -502,7 +503,7 @@ pub struct PostureDetails {
 }
 
 /// A predefined organization policy constraint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrgPolicyConstraint {
     /// Required. A unique identifier for the constraint.
     #[serde(default, rename = "cannedConstraintId")]
@@ -514,7 +515,7 @@ pub struct OrgPolicyConstraint {
 }
 
 /// A custom organization policy constraint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrgPolicyConstraintCustom {
     /// Required. Metadata for the constraint.
     #[serde(default, rename = "customConstraint")]
@@ -526,7 +527,7 @@ pub struct OrgPolicyConstraintCustom {
 }
 
 /// A custom module for Security Health Analytics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityHealthAnalyticsCustomModule {
     /// Required. Configuration settings for the custom module.
     #[serde(default)]
@@ -543,7 +544,7 @@ pub struct SecurityHealthAnalyticsCustomModule {
 }
 
 /// A built-in detector for Security Health Analytics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityHealthAnalyticsModule {
     /// Whether the detector is enabled at a specified level of the resource hierarchy. // TODO: enum values: ["ENABLEMENT_STATE_UNSPECIFIED", "ENABLED", "DISABLED"]
     #[serde(default, rename = "moduleEnablementState")]
@@ -554,7 +555,7 @@ pub struct SecurityHealthAnalyticsModule {
 }
 
 /// A custom, user-defined constraint. You can apply the constraint only to the resource types specified in the constraint, and only within the organization where the constraint is defined. _When you create a custom constraint, it is not enforced automatically._ You must use an organization policy to [enforce the constraint](https://cloud.google.com/resource-manager/help/organization-policy/constraints/enforce).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritypostureV1CustomConstraint {
     /// Whether to allow or deny the action. // TODO: enum values: ["ACTION_TYPE_UNSPECIFIED", "ALLOW", "DENY"]
     #[serde(default, rename = "actionType")]
@@ -583,7 +584,7 @@ pub struct GoogleCloudSecuritypostureV1CustomConstraint {
 }
 
 /// A rule that defines the allowed and denied values for an organization policy constraint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritypostureV1PolicyRule {
     /// Whether to allow any value for a list constraint. Valid only for list constraints.
     #[serde(default, rename = "allowAll")]
@@ -609,7 +610,7 @@ pub struct GoogleCloudSecuritypostureV1PolicyRule {
 }
 
 /// A custom module configuration for Security Health Analytics. Use CustomConfig to create custom detectors that generate custom findings for resources that you specify.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomConfig {
     /// Optional. Definitions of custom source properties to include in findings.
     #[serde(default, rename = "customOutput")]
@@ -632,7 +633,7 @@ pub struct CustomConfig {
 }
 
 /// Set multiple resource types for one policy, for example:  resourceTypes: included: - compute.googleapis.com/Instance - compute.googleapis.com/Disk  Constraint definition contains an empty resource type in order to support multiple resource types in the policy. Only supports managed constraints. Method type is GOVERN_TAGS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceTypes {
     /// Optional. The resource types we currently support.
     #[serde(default)]
@@ -640,7 +641,7 @@ pub struct ResourceTypes {
 }
 
 /// Definitions of custom source properties that can appear in findings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomOutputSpec {
     /// Optional. The custom source properties that can appear in findings.
     #[serde(default)]
@@ -648,7 +649,7 @@ pub struct CustomOutputSpec {
 }
 
 /// A selector for the resource types to run the detector on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceSelector {
     /// Required. The resource types to run the detector on. Each custom module can specify up to 5 resource types.
     #[serde(default, rename = "resourceTypes")]
@@ -656,7 +657,7 @@ pub struct ResourceSelector {
 }
 
 /// A name-value pair used as a custom source property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Property {
     /// Required. The name of the custom source property.
     #[serde(default)]
@@ -667,7 +668,7 @@ pub struct Property {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]

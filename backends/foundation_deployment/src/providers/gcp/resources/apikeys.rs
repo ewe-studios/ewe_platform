@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -31,7 +32,7 @@ pub struct Operation {
 }
 
 /// Response message for GetKeyString method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V2GetKeyStringResponse {
     /// An encrypted and signed value of the key.
     #[serde(default, rename = "keyString")]
@@ -39,7 +40,7 @@ pub struct V2GetKeyStringResponse {
 }
 
 /// Response message for ListKeys method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V2ListKeysResponse {
     /// A list of API keys.
     #[serde(default)]
@@ -50,7 +51,7 @@ pub struct V2ListKeysResponse {
 }
 
 /// Response message for LookupKey method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V2LookupKeyResponse {
     /// The resource name of the API key. If the API key has been purged, resource name is empty.
     #[serde(default)]
@@ -61,11 +62,11 @@ pub struct V2LookupKeyResponse {
 }
 
 /// Request message for UndeleteKey method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V2UndeleteKeyRequest {}
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -79,7 +80,7 @@ pub struct Status {
 }
 
 /// The representation of a key managed by the API Keys API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V2Key {
     /// Annotations is an unstructured key-value map stored with a policy that may be set by external tools to store and retrieve arbitrary metadata. They are not queryable and should be preserved when modifying objects.
     #[serde(default)]
@@ -117,7 +118,7 @@ pub struct V2Key {
 }
 
 /// Describes the restrictions on the key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V2Restrictions {
     /// The Android apps that are allowed to use the key.
     #[serde(default, rename = "androidKeyRestrictions")]
@@ -137,7 +138,7 @@ pub struct V2Restrictions {
 }
 
 /// The Android apps that are allowed to use the key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V2AndroidKeyRestrictions {
     /// A list of Android applications that are allowed to make API calls with this key.
     #[serde(default, rename = "allowedApplications")]
@@ -145,7 +146,7 @@ pub struct V2AndroidKeyRestrictions {
 }
 
 /// A restriction for a specific service and optionally one or multiple specific methods. Both fields are case insensitive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V2ApiTarget {
     /// Optional. List of one or more methods that can be called. If empty, all methods for the service are allowed. A wildcard (*) can be used as the last symbol. Valid examples: google.cloud.translate.v2.TranslateService.GetSupportedLanguage TranslateText Get* translate.googleapis.com.Get*
     #[serde(default)]
@@ -156,7 +157,7 @@ pub struct V2ApiTarget {
 }
 
 /// The HTTP referrers (websites) that are allowed to use the key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V2BrowserKeyRestrictions {
     /// A list of regular expressions for the referrer URLs that are allowed to make API calls with this key.
     #[serde(default, rename = "allowedReferrers")]
@@ -164,7 +165,7 @@ pub struct V2BrowserKeyRestrictions {
 }
 
 /// The iOS apps that are allowed to use the key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V2IosKeyRestrictions {
     /// A list of bundle IDs that are allowed when making API calls with this key.
     #[serde(default, rename = "allowedBundleIds")]
@@ -172,7 +173,7 @@ pub struct V2IosKeyRestrictions {
 }
 
 /// The IP addresses of callers that are allowed to use the key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V2ServerKeyRestrictions {
     /// A list of the caller IP addresses that are allowed to make API calls with this key.
     #[serde(default, rename = "allowedIps")]
@@ -180,7 +181,7 @@ pub struct V2ServerKeyRestrictions {
 }
 
 /// Identifier of an Android application for key use.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct V2AndroidApplication {
     /// The package name of the application.
     #[serde(default, rename = "packageName")]

@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request message for BatchQueryDomainStats.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchQueryDomainStatsRequest {
     /// Required. A list of individual query requests. Each request can be for a different domain. A maximum of 100 requests can be included in a single batch.
     #[serde(default)]
@@ -19,7 +20,7 @@ pub struct BatchQueryDomainStatsRequest {
 }
 
 /// Response message for BatchQueryDomainStats.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchQueryDomainStatsResponse {
     /// A list of responses, one for each query in the BatchQueryDomainStatsRequest. The order of responses will correspond to the order of requests.
     #[serde(default)]
@@ -27,7 +28,7 @@ pub struct BatchQueryDomainStatsResponse {
 }
 
 /// Compliance status for a domain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DomainComplianceStatus {
     /// Compliance data for the registrable domain part of the domain in name. For example, if name is domains/example.com/complianceStatus, this field contains compliance data for example.com.
     #[serde(default, rename = "complianceData")]
@@ -41,7 +42,7 @@ pub struct DomainComplianceStatus {
 }
 
 /// Response message for ListDomains.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDomainsResponse {
     /// The domains that have been registered by the user.
     #[serde(default)]
@@ -52,7 +53,7 @@ pub struct ListDomainsResponse {
 }
 
 /// Represents a list of strings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StringList {
     /// The string values.
     #[serde(default)]
@@ -60,7 +61,7 @@ pub struct StringList {
 }
 
 /// Request message for QueryDomainStats.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryDomainStatsRequest {
     /// Optional. The granularity at which to aggregate the statistics. If unspecified, defaults to DAILY. // TODO: enum values: ["AGGREGATION_GRANULARITY_UNSPECIFIED", "DAILY", "OVERALL"]
     #[serde(default, rename = "aggregationGranularity")]
@@ -83,7 +84,7 @@ pub struct QueryDomainStatsRequest {
 }
 
 /// Represents the result of a single QueryDomainStatsRequest within a batch.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchQueryDomainStatsResult {
     /// The error status if the individual query failed.
     #[serde(default)]
@@ -94,7 +95,7 @@ pub struct BatchQueryDomainStatsResult {
 }
 
 /// Compliance data for a given domain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DomainComplianceData {
     /// Domain that this data is for.
     #[serde(default, rename = "domainId")]
@@ -111,7 +112,7 @@ pub struct DomainComplianceData {
 }
 
 /// Information about a domain registered by the user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Domain {
     /// Output only. Immutable. The timestamp at which the domain was added to the user''s account.
     #[serde(default, rename = "createTime")]
@@ -131,7 +132,7 @@ pub struct Domain {
 }
 
 /// Defines a specific metric to query, including a user-defined name, the base metric type, and optional filters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricDefinition {
     /// Required. The underlying metric to query.
     #[serde(default, rename = "baseMetric")]
@@ -145,7 +146,7 @@ pub struct MetricDefinition {
 }
 
 /// The date ranges or specific dates for which you want to retrieve data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeQuery {
     /// A list of specific dates.
     #[serde(default, rename = "dateList")]
@@ -156,7 +157,7 @@ pub struct TimeQuery {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -170,7 +171,7 @@ pub struct Status {
 }
 
 /// Response message for QueryDomainStats.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryDomainStatsResponse {
     /// The list of domain statistics. Each DomainStat object contains the value for a metric requested in the QueryDomainStatsRequest.
     #[serde(default, rename = "domainStats")]
@@ -181,7 +182,7 @@ pub struct QueryDomainStatsResponse {
 }
 
 /// Compliance verdict for whether a sender meets the unsubscribe honoring compliance requirement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HonorUnsubscribeVerdict {
     /// The specific reason for the compliance verdict. Must be empty if the status is compliant. // TODO: enum values: ["REASON_UNSPECIFIED", "NOT_HONORING", "NOT_HONORING_TOO_FEW_CAMPAIGNS", "NOT_HONORING_TOO_MANY_CAMPAIGNS"]
     #[serde(default)]
@@ -192,7 +193,7 @@ pub struct HonorUnsubscribeVerdict {
 }
 
 /// Compliance verdict for whether a sender meets the one-click unsubscribe compliance requirement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OneClickUnsubscribeVerdict {
     /// The specific reason for the compliance verdict. Must be empty if the status is compliant. // TODO: enum values: ["REASON_UNSPECIFIED", "NO_UNSUB_GENERAL", "NO_UNSUB_SPAM_REPORTS", "NO_UNSUB_PROMO_SPAM_REPORTS"]
     #[serde(default)]
@@ -203,7 +204,7 @@ pub struct OneClickUnsubscribeVerdict {
 }
 
 /// Data for a single row of the compliance status table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComplianceRowData {
     /// The compliance requirement. // TODO: enum values: ["COMPLIANCE_REQUIREMENT_UNSPECIFIED", "SPF", "DKIM", "SPF_AND_DKIM", "DMARC_POLICY", "DMARC_ALIGNMENT", "MESSAGE_FORMATTING", "DNS_RECORDS", "ENCRYPTION", "USER_REPORTED_SPAM_RATE", "ONE_CLICK_UNSUBSCRIBE", "HONOR_UNSUBSCRIBE"]
     #[serde(default)]
@@ -214,7 +215,7 @@ pub struct ComplianceRowData {
 }
 
 /// Specifies the base metric to query, which can be a predefined standard metric or a user-defined custom metric (if supported in the future).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BaseMetric {
     /// A predefined standard metric. // TODO: enum values: ["STANDARD_METRIC_UNSPECIFIED", "FEEDBACK_LOOP_ID", "FEEDBACK_LOOP_SPAM_RATE", "SPAM_RATE", "AUTH_SUCCESS_RATE", "TLS_ENCRYPTION_MESSAGE_COUNT", "TLS_ENCRYPTION_RATE", "DELIVERY_ERROR_COUNT", "DELIVERY_ERROR_RATE"]
     #[serde(default, rename = "standardMetric")]
@@ -222,7 +223,7 @@ pub struct BaseMetric {
 }
 
 /// A set of specific dates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DateList {
     /// Required. The list of specific dates for which to retrieve data.
     #[serde(default)]
@@ -230,7 +231,7 @@ pub struct DateList {
 }
 
 /// A set of date ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DateRanges {
     /// Required. The list of date ranges for which to retrieve data.
     #[serde(default, rename = "dateRanges")]
@@ -238,7 +239,7 @@ pub struct DateRanges {
 }
 
 /// Email statistics for a domain for a specified time period or date.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DomainStat {
     /// Optional. The specific date for these stats, if granularity is DAILY. This field is populated if the QueryDomainStatsRequest specified a DAILY aggregation granularity.
     #[serde(default)]
@@ -255,7 +256,7 @@ pub struct DomainStat {
 }
 
 /// The status of a sender compliance requirement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComplianceStatus {
     /// Output only. The compliance status. // TODO: enum values: ["STATE_UNSPECIFIED", "COMPLIANT", "NEEDS_WORK"]
     #[serde(default)]
@@ -263,7 +264,7 @@ pub struct ComplianceStatus {
 }
 
 /// A single date range defined by a start and end date.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DateRange {
     /// Required. The inclusive end date of the date range.
     #[serde(default)]
@@ -274,7 +275,7 @@ pub struct DateRange {
 }
 
 /// The actual value of a statistic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StatisticValue {
     /// Double value.
     #[serde(default, rename = "doubleValue")]
@@ -294,7 +295,7 @@ pub struct StatisticValue {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]

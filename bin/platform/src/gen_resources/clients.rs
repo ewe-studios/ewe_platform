@@ -52,6 +52,9 @@ pub enum GenClientError {
 
     #[display("fmt error: {_0}")]
     FmtError(std::fmt::Error),
+
+    #[display("parse failed: {_0}")]
+    ParseFailed(String),
 }
 
 impl std::error::Error for GenClientError {}
@@ -97,6 +100,24 @@ struct OpenApiSpec {
     resources: Option<BTreeMap<String, Resource>>,
     #[serde(default, rename = "baseUrl")]
     base_url: Option<String>,
+    // Standard OpenAPI 3.x servers
+    #[serde(default)]
+    servers: Option<Vec<Server>>,
+    // GCP Discovery Document basePath (alternative to baseUrl)
+    #[serde(default, rename = "basePath")]
+    base_path: Option<String>,
+    // GCP Discovery Document rootUrl
+    #[serde(default, rename = "rootUrl")]
+    root_url: Option<String>,
+    // GCP Discovery Document servicePath
+    #[serde(default, rename = "servicePath")]
+    service_path: Option<String>,
+}
+
+#[derive(Debug, Deserialize)]
+struct Server {
+    #[serde(default)]
+    url: String,
 }
 
 #[derive(Debug, Deserialize)]
@@ -122,10 +143,14 @@ struct GcpMethod {
     description: Option<String>,
     #[serde(default)]
     path: Option<String>,
+    #[serde(default, rename = "flatPath")]
+    flat_path: Option<String>,
     #[serde(default)]
     http_method: Option<String>,
     #[serde(default)]
     parameters: Option<BTreeMap<String, GcpParameter>>,
+    #[serde(default, rename = "parameterOrder")]
+    parameter_order: Option<Vec<String>>,
     #[serde(default, rename = "request")]
     request_body: Option<GcpRequestBody>,
     #[serde(default)]
@@ -254,6 +279,11 @@ struct ApiEndpoint {
     request_body_type: Option<String>,
     /// Response body type name (e.g., `ListServicesResponse`)
     response_type: Option<String>,
+    /// Base URL from OpenAPI spec (servers[0].url or baseUrl)
+    base_url: Option<String>,
+    /// For GCP: list of placeholder names in flatPath order (e.g., ["sitesId"])
+    /// Used to map path template placeholders to parameter names
+    path_placeholders: Vec<String>,
 }
 
 #[derive(Debug, Clone)]
@@ -311,22 +341,26 @@ impl ClientGenerator {
             // Single spec: provider/openapi.json -> clients/mod.rs
             let spec_path = provider_dir.join("openapi.json");
             if spec_path.exists() {
-                self.generate_clients_for_spec(
+                if let Err(e) = self.generate_clients_for_spec(
                     provider,
                     &spec_path,
                     &provider_output_dir.join("mod.rs"),
-                )?;
+                ) {
+                    tracing::warn!("    Failed to generate client for {}: {}", provider, e);
+                }
             }
         } else {
             // Multi-API: generate one file per API, then mod.rs
             for api_name in &sub_apis {
                 let spec_path = provider_dir.join(api_name).join("openapi.json");
                 let output_path = provider_output_dir.join(format!("{api_name}.rs"));
-                self.generate_clients_for_spec(
+                if let Err(e) = self.generate_clients_for_spec(
                     &format!("{}/{}", provider, api_name),
                     &spec_path,
                     &output_path,
-                )?;
+                ) {
+                    tracing::warn!("    Failed to generate client for {}/{}: {}", provider, api_name, e);
+                }
             }
             // Generate mod.rs
             self.generate_mod_rs(provider, &sub_apis, &provider_output_dir.join("mod.rs"))?;
@@ -383,6 +417,67 @@ impl ClientGenerator {
 
         let content = std::fs::read_to_string(spec_path)?;
 
+        // Check if this is an error response (not a valid spec)
+        // Error responses have ONLY an "error" field with no other spec content
+        if let Ok(json) = serde_json::from_str::<serde_json::Value>(&content) {
+            if let Some(obj) = json.as_object() {
+                // If the only key is "error" and it has no baseUrl, resources, paths, or servers, it's an error response
+                if obj.len() == 1
+                    && obj.contains_key("error")
+                    && !obj.contains_key("baseUrl")
+                    && !obj.contains_key("resources")
+                    && !obj.contains_key("paths")
+                    && !obj.contains_key("servers")
+                {
+                    // Extract error details for logging
+                    let error_msg = obj.get("error")
+                        .and_then(|e| e.as_object())
+                        .and_then(|e| e.get("message"))
+                        .and_then(|m| m.as_str())
+                        .unwrap_or("Unknown error");
+                    let error_status = obj.get("error")
+                        .and_then(|e| e.as_object())
+                        .and_then(|e| e.get("status"))
+                        .and_then(|s| s.as_str())
+                        .unwrap_or("UNKNOWN");
+                    tracing::warn!("    Spec returned error: {} - {}", error_status, error_msg);
+                    // Write empty module with a note - error types are in types.rs
+                    let mut out = String::new();
+                    writeln!(out, "//! Auto-generated API clients for {}.", label)?;
+                    writeln!(out, "//! Generated by `cargo run --bin ewe_platform gen_provider_clients`.")?;
+                    writeln!(out, "//! DO NOT EDIT MANUALLY.")?;
+                    writeln!(out, "//!")?;
+                    writeln!(out, "//! Feature flag: `{}`", label)?;
+                    writeln!(out, "//! NOTE: API spec unavailable - only error types are available in types.rs")?;
+                    writeln!(out)?;
+                    writeln!(out, "#![cfg(feature = \"{}\")]", label)?;
+                    std::fs::write(output_path, out)?;
+                    return Ok(());
+                }
+
+                // Check if spec has paths/resources but is missing base URL
+                let has_paths = obj.contains_key("paths") || obj.contains_key("resources");
+                let has_base_url = obj.contains_key("baseUrl")
+                    || obj.contains_key("servers")
+                    || (obj.contains_key("rootUrl") && obj.contains_key("servicePath"));
+                if has_paths && !has_base_url {
+                    tracing::warn!("    Spec missing base URL (no 'servers', 'baseUrl', or 'rootUrl'+'servicePath') - skipping");
+                    // Write empty module with a note
+                    let mut out = String::new();
+                    writeln!(out, "//! Auto-generated API clients for {}.", label)?;
+                    writeln!(out, "//! Generated by `cargo run --bin ewe_platform gen_provider_clients`.")?;
+                    writeln!(out, "//! DO NOT EDIT MANUALLY.")?;
+                    writeln!(out, "//!")?;
+                    writeln!(out, "//! Feature flag: `{}`", label)?;
+                    writeln!(out, "//! NOTE: Spec missing base URL - add 'servers' or 'baseUrl' to the OpenAPI spec")?;
+                    writeln!(out)?;
+                    writeln!(out, "#![cfg(feature = \"{}\")]", label)?;
+                    std::fs::write(output_path, out)?;
+                    return Ok(());
+                }
+            }
+        }
+
         // Try parsing as OpenAPI spec directly first
         let spec: OpenApiSpec = serde_json::from_str(&content)
             .or_else(|parse_err| {
@@ -404,7 +499,7 @@ impl ClientGenerator {
             })?;
 
         // Extract endpoints
-        let endpoints = self.extract_endpoints(&spec);
+        let endpoints = self.extract_endpoints(&spec)?;
         tracing::info!("    Found {} endpoints", endpoints.len());
 
         if endpoints.is_empty() {
@@ -444,6 +539,8 @@ impl ClientGenerator {
         writeln!(out, "use foundation_core::wire::simple_http::client::{{")?;
         writeln!(out, "    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,")?;
         writeln!(out, "}};")?;
+        writeln!(out, "use foundation_macros::JsonHash;")?;
+        writeln!(out, "use serde::Serialize;")?;
         writeln!(out, "use crate::providers::{}::clients::types::*;", provider_module)?;
         writeln!(out, "use crate::providers::{}::resources::*;", provider_module)?;
         writeln!(out)?;
@@ -462,8 +559,34 @@ impl ClientGenerator {
         Ok(())
     }
 
-    fn extract_endpoints(&self, spec: &OpenApiSpec) -> Vec<ApiEndpoint> {
+    fn extract_endpoints(&self, spec: &OpenApiSpec) -> Result<Vec<ApiEndpoint>, GenClientError> {
         let mut endpoints = Vec::new();
+
+        // Regex to extract placeholders like {sitesId} or {+name} from paths
+        let placeholder_re = Regex::new(r"\{(\+)?([^}]+)\}").unwrap();
+
+        // Extract base URL from multiple possible sources:
+        // 1. OpenAPI 3.x: servers[0].url
+        // 2. GCP Discovery: baseUrl
+        // 3. GCP Discovery: rootUrl + servicePath
+        let base_url: String = spec
+            .servers
+            .as_ref()
+            .and_then(|servers| servers.first())
+            .map(|s| s.url.clone())
+            .or(spec.base_url.clone())
+            .or_else(|| {
+                // Combine rootUrl and servicePath for GCP
+                match (&spec.root_url, &spec.service_path) {
+                    (Some(root), Some(service)) => Some(format!("{}{}", root, service)),
+                    (Some(root), None) => Some(root.clone()),
+                    (None, Some(service)) => Some(service.clone()),
+                    (None, None) => None,
+                }
+            })
+            .ok_or_else(|| GenClientError::ParseFailed(
+                "No base URL found in spec - missing 'servers' (OpenAPI 3.x), 'baseUrl', or 'rootUrl'+'servicePath' (GCP Discovery)".to_string()
+            ))?;
 
         // Extract from standard OpenAPI paths
         for (path, path_item) in &spec.paths {
@@ -519,6 +642,12 @@ impl ClientGenerator {
                     // Extract response type
                     let response_type = self.extract_response_type(&operation.responses);
 
+                    // Extract placeholder names from path in order (e.g., ["project"] from "/projects/{project}")
+                    let path_placeholders: Vec<String> = placeholder_re
+                        .captures_iter(path)
+                        .map(|cap| cap[2].to_string())
+                        .collect();
+
                     endpoints.push(ApiEndpoint {
                         path: path.clone(),
                         method: method_name.to_uppercase(),
@@ -528,6 +657,8 @@ impl ClientGenerator {
                         query_params,
                         request_body_type,
                         response_type,
+                        base_url: Some(base_url.clone()),
+                        path_placeholders,
                     });
                 }
             }
@@ -535,10 +666,10 @@ impl ClientGenerator {
 
         // Extract from GCP Discovery Document format (resources -> methods)
         if let Some(resources) = &spec.resources {
-            self.extract_gcp_endpoints(resources, "", &mut endpoints, spec.base_url.as_deref());
+            self.extract_gcp_endpoints(resources, "", &mut endpoints, Some(&base_url));
         }
 
-        endpoints
+        Ok(endpoints)
     }
 
     /// Extract endpoints from GCP Discovery Document resources recursively.
@@ -549,15 +680,24 @@ impl ClientGenerator {
         endpoints: &mut Vec<ApiEndpoint>,
         base_url: Option<&str>,
     ) {
+        // Regex to extract placeholders like {sitesId} or {+name} from paths
+        let placeholder_re = Regex::new(r"\{(\+)?([^}]+)\}").unwrap();
+
         for (_resource_name, resource) in resources {
             // Extract methods from this resource
             if let Some(methods) = &resource.methods {
                 for (_method_name, method) in methods {
-                    let path = method.path.as_deref().unwrap_or("");
+                    // Use flatPath for the actual request URL (path is a template like "v1/{+name}")
+                    let path = method.flat_path.as_deref().unwrap_or_else(|| method.path.as_deref().unwrap_or(""));
 
-                    // Extract path parameters
-                    let mut path_params = Vec::new();
-                    let mut query_params = Vec::new();
+                    // Extract placeholder names from flatPath in order (e.g., ["sitesId"] from "v1/sites/{sitesId}")
+                    let path_placeholders: Vec<String> = placeholder_re
+                        .captures_iter(path)
+                        .map(|cap| cap[2].to_string())
+                        .collect();
+
+                    // Extract all parameters first
+                    let mut all_params: BTreeMap<String, ParameterInfo> = BTreeMap::new();
 
                     if let Some(parameters) = &method.parameters {
                         for (param_name, param) in parameters {
@@ -569,12 +709,36 @@ impl ClientGenerator {
                                 required: param.required,
                                 description: param.description.clone(),
                             };
+                            all_params.insert(param_name.clone(), param_info);
+                        }
+                    }
 
-                            match param.location.as_deref() {
-                                Some("path") => path_params.push(param_info),
-                                Some("query") => query_params.push(param_info),
-                                _ => {}
+                    // Now build path_params and query_params in the correct order
+                    // For path params, use parameterOrder if available to get correct ordering
+                    let mut path_params = Vec::new();
+                    let mut query_params = Vec::new();
+
+                    // First, add path parameters in parameterOrder sequence (for GCP, this maps placeholders to param names)
+                    if let Some(param_order) = &method.parameter_order {
+                        for param_name in param_order {
+                            if let Some(param_info) = all_params.get(param_name) {
+                                path_params.push(param_info.clone());
                             }
+                        }
+                    } else {
+                        // Fallback: extract path params from their location
+                        for (param_name, param_info) in &all_params {
+                            // Check if this param is in path_placeholders (indicates it's a path param)
+                            if path_placeholders.contains(param_name) {
+                                path_params.push(param_info.clone());
+                            }
+                        }
+                    }
+
+                    // Then add remaining params as query params
+                    for (param_name, param_info) in &all_params {
+                        if !path_params.iter().any(|p| p.name == param_info.name) {
+                            query_params.push(param_info.clone());
                         }
                     }
 
@@ -601,6 +765,8 @@ impl ClientGenerator {
                         query_params,
                         request_body_type,
                         response_type,
+                        base_url: base_url.map(String::from),
+                        path_placeholders,
                     });
                 }
             }
@@ -765,12 +931,23 @@ impl ClientGenerator {
         // Build URL
         writeln!(out)?;
         writeln!(out, "    // Build URL")?;
+
+        // Build URL format string by replacing placeholders with {}
+        // For GCP: path_placeholders = ["sitesId"] from flatPath, path_params ordered by parameterOrder
+        // We replace placeholders positionally: first placeholder gets first path_param
         let mut url_format = endpoint.path.clone();
-        for param in &endpoint.path_params {
-            url_format = url_format.replace(&format!("{{{}}}", param.name), "{}");
+
+        // Replace each placeholder with {} in order of appearance in the path
+        if !endpoint.path_placeholders.is_empty() {
+            for placeholder in endpoint.path_placeholders.iter() {
+                url_format = url_format.replace(&format!("{{{}}}", placeholder), "{}");
+            }
         }
+
+        let base_url = endpoint.base_url.as_deref().unwrap_or("https://api.example.com");
         writeln!(out, "    let url = format!(")?;
-        writeln!(out, "        \"https://api.example.com{}\",", url_format)?;
+        writeln!(out, "        \"{}{}\",", base_url, url_format)?;
+        // Pass path parameters in order (already ordered by parameterOrder for GCP)
         for param in &endpoint.path_params {
             writeln!(out, "        {},", self.escape_keyword(&param.name))?;
         }
@@ -864,9 +1041,17 @@ impl ClientGenerator {
         writeln!(out, "                let status_code: usize = intro.0.into();")?;
         writeln!(out)?;
         writeln!(out, "                if status_code < 200 || status_code >= 300 {{")?;
+        writeln!(out, "                    // Capture body for error parsing")?;
+        writeln!(out, "                    let body = body_reader::collect_string(stream);")?;
+        writeln!(out, "                    // Try to parse as structured API error")?;
+        writeln!(out, "                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {{")?;
+        writeln!(out, "                        return Err(ApiError::ApiError(error_body.error));")?;
+        writeln!(out, "                    }}")?;
+        writeln!(out, "                    // Fall back to raw HTTP status error")?;
         writeln!(out, "                    return Err(ApiError::HttpStatus {{")?;
         writeln!(out, "                        code: status_code as u16,")?;
         writeln!(out, "                        headers: headers.clone(),")?;
+        writeln!(out, "                        body: Some(body),")?;
         writeln!(out, "                    }});")?;
         writeln!(out, "                }}")?;
         writeln!(out)?;
@@ -906,6 +1091,41 @@ impl ClientGenerator {
     fn generate_convenience_fn(&self, out: &mut String, endpoint: &ApiEndpoint) -> Result<(), GenClientError> {
         let fn_name = self.endpoint_to_fn_name(endpoint);
         let return_type = endpoint.response_type.as_deref().unwrap_or("()");
+        let struct_name = format!("{}Args", self.to_pascal_case(&fn_name));
+
+        // Generate argument struct with JsonHash
+        let has_params = !endpoint.path_params.is_empty()
+            || !endpoint.query_params.is_empty()
+            || endpoint.request_body_type.is_some();
+
+        if has_params {
+            writeln!(out, "/// Arguments for [`{}`].", fn_name)?;
+            writeln!(out, "#[derive(Debug, Clone, Serialize, JsonHash)]")?;
+            writeln!(out, "pub struct {} {{", struct_name)?;
+
+            for param in &endpoint.path_params {
+                writeln!(out, "    /// Path parameter: {}", param.name)?;
+                writeln!(out, "    pub {}: String,", self.escape_keyword(&param.name))?;
+            }
+
+            for param in &endpoint.query_params {
+                let rust_type = if param.rust_type == "String" {
+                    "String".to_string()
+                } else {
+                    param.rust_type.clone()
+                };
+                writeln!(out, "    /// Query parameter: {}", param.name)?;
+                writeln!(out, "    pub {}: Option<{}>,", self.escape_keyword(&param.name), rust_type)?;
+            }
+
+            if let Some(body_type) = &endpoint.request_body_type {
+                writeln!(out, "    /// Request body.")?;
+                writeln!(out, "    pub body: {},", body_type)?;
+            }
+
+            writeln!(out, "}}")?;
+            writeln!(out)?;
+        }
 
         // Doc comment
         writeln!(out, "/// {} {}", endpoint.method, endpoint.path)?;
@@ -922,33 +1142,17 @@ impl ClientGenerator {
         writeln!(out)?;
 
         // Function signature
-        write!(out, "pub fn {}(\n    client: &SimpleHttpClient,", fn_name)?;
-
-        // Path parameters
-        for param in &endpoint.path_params {
-            writeln!(out)?;
-            write!(out, "    {}: &str,", self.escape_keyword(&param.name))?;
+        if has_params {
+            writeln!(out, "pub fn {}(", fn_name)?;
+            writeln!(out, "    client: &SimpleHttpClient,")?;
+            writeln!(out, "    args: &{},", struct_name)?;
+            writeln!(out, ") -> Result<")?;
+        } else {
+            writeln!(out, "pub fn {}(", fn_name)?;
+            writeln!(out, "    client: &SimpleHttpClient,")?;
+            writeln!(out, ") -> Result<")?;
         }
 
-        // Query parameters (optional)
-        for param in &endpoint.query_params {
-            let rust_type = if param.rust_type == "String" {
-                "&str".to_string()
-            } else {
-                param.rust_type.clone()
-            };
-            writeln!(out)?;
-            write!(out, "    {}: Option<{}>,", self.escape_keyword(&param.name), rust_type)?;
-        }
-
-        // Request body
-        if let Some(body_type) = &endpoint.request_body_type {
-            writeln!(out)?;
-            write!(out, "    body: &{},", body_type)?;
-        }
-
-        writeln!(out)?;
-        writeln!(out, ") -> Result<")?;
         writeln!(out, "    impl StreamIterator<")?;
         writeln!(out, "        D = Result<ApiResponse<{}>, ApiError>,", return_type)?;
         writeln!(out, "        P = ApiPending")?;
@@ -960,13 +1164,17 @@ impl ClientGenerator {
         writeln!(out)?;
         write!(out, "    let builder = {}_builder(client", fn_name)?;
         for param in &endpoint.path_params {
-            write!(out, ", {}", self.escape_keyword(&param.name))?;
+            write!(out, ", &args.{}", self.escape_keyword(&param.name))?;
         }
         for param in &endpoint.query_params {
-            write!(out, ", {}", self.escape_keyword(&param.name))?;
+            if param.rust_type == "String" {
+                write!(out, ", args.{}.as_deref()", self.escape_keyword(&param.name))?;
+            } else {
+                write!(out, ", args.{}", self.escape_keyword(&param.name))?;
+            }
         }
         if endpoint.request_body_type.is_some() {
-            write!(out, ", body")?;
+            write!(out, ", &args.body")?;
         }
         writeln!(out, ")?;")?;
         writeln!(out, "    {}_execute(builder)", fn_name)?;
@@ -991,6 +1199,37 @@ impl ClientGenerator {
         writeln!(out)?;
         writeln!(out, "use foundation_core::wire::simple_http::SimpleHeaders;")?;
         writeln!(out)?;
+        writeln!(out, "use serde::{{Deserialize, Serialize}};")?;
+        writeln!(out)?;
+
+        // ApiErrorDetails - represents structured API error responses
+        writeln!(out, "/// Structured error response from cloud provider APIs.")?;
+        writeln!(out, "/// Matches Google Cloud Error format: https://cloud.google.com/apis/design/errors")?;
+        writeln!(out, "#[derive(Debug, Clone, Deserialize, Serialize)]")?;
+        writeln!(out, "pub struct ApiErrorDetails {{")?;
+        writeln!(out, "    /// HTTP status code")?;
+        writeln!(out, "    pub code: i32,")?;
+        writeln!(out, "    /// Human-readable error message")?;
+        writeln!(out, "    pub message: String,")?;
+        writeln!(out, "    /// Error status string (e.g., \"INVALID_ARGUMENT\", \"NOT_FOUND\")")?;
+        writeln!(out, "    pub status: String,")?;
+        writeln!(out, "    /// Additional error details (provider-specific)")?;
+        writeln!(out, "    #[serde(skip_serializing_if = \"Option::is_none\")]")?;
+        writeln!(out, "    pub details: Option<serde_json::Value>,")?;
+        writeln!(out, "}}")?;
+        writeln!(out)?;
+        writeln!(out, "impl std::fmt::Display for ApiErrorDetails {{")?;
+        writeln!(out, "    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {{")?;
+        writeln!(out, "        write!(f, \"{{}}: {{}}\", self.status, self.message)")?;
+        writeln!(out, "    }}")?;
+        writeln!(out, "}}")?;
+        writeln!(out)?;
+        writeln!(out, "/// Wrapper for API error responses matching Google Cloud format.")?;
+        writeln!(out, "#[derive(Debug, Clone, Deserialize, Serialize)]")?;
+        writeln!(out, "pub struct ApiErrorBody {{")?;
+        writeln!(out, "    pub error: ApiErrorDetails,")?;
+        writeln!(out, "}}")?;
+        writeln!(out)?;
 
         // ApiResponse
         writeln!(out, "/// Generic API response with status, headers, and parsed body.")?;
@@ -1008,7 +1247,8 @@ impl ClientGenerator {
         writeln!(out, "pub enum ApiError {{")?;
         writeln!(out, "    RequestBuildFailed(String),")?;
         writeln!(out, "    RequestSendFailed(String),")?;
-        writeln!(out, "    HttpStatus {{ code: u16, headers: SimpleHeaders }},")?;
+        writeln!(out, "    HttpStatus {{ code: u16, headers: SimpleHeaders, body: Option<String> }},")?;
+        writeln!(out, "    ApiError(ApiErrorDetails),")?;
         writeln!(out, "    ParseFailed(String),")?;
         writeln!(out, "}}")?;
         writeln!(out)?;
@@ -1017,7 +1257,14 @@ impl ClientGenerator {
         writeln!(out, "        match self {{")?;
         writeln!(out, "            ApiError::RequestBuildFailed(e) => write!(f, \"request build failed: {{}}\", e),")?;
         writeln!(out, "            ApiError::RequestSendFailed(e) => write!(f, \"request send failed: {{}}\", e),")?;
-        writeln!(out, "            ApiError::HttpStatus {{ code, .. }} => write!(f, \"HTTP status {{}}\", code),")?;
+        writeln!(out, "            ApiError::HttpStatus {{ code, body, .. }} => {{")?;
+        writeln!(out, "                write!(f, \"HTTP status {{}}\", code)?;")?;
+        writeln!(out, "                if let Some(b) = body {{")?;
+        writeln!(out, "                    write!(f, \": {{}}\", b)?;")?;
+        writeln!(out, "                }}")?;
+        writeln!(out, "                Ok(())")?;
+        writeln!(out, "            }}")?;
+        writeln!(out, "            ApiError::ApiError(e) => write!(f, \"API error: {{}}\", e),")?;
         writeln!(out, "            ApiError::ParseFailed(e) => write!(f, \"parse failed: {{}}\", e),")?;
         writeln!(out, "        }}")?;
         writeln!(out, "    }}")?;
@@ -1104,6 +1351,23 @@ impl ClientGenerator {
         }
 
         result
+    }
+
+    fn to_pascal_case(&self, s: &str) -> String {
+        s.split('_')
+            .filter(|part| !part.is_empty())
+            .map(|part| {
+                let mut chars = part.chars();
+                match chars.next() {
+                    Some(c) => {
+                        let mut result = c.to_uppercase().to_string();
+                        result.extend(chars);
+                        result
+                    }
+                    None => String::new(),
+                }
+            })
+            .collect()
     }
 
     fn escape_keyword(&self, name: &str) -> String {

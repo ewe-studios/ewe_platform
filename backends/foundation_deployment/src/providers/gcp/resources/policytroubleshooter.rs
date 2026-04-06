@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request for TroubleshootIamPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyRequest {
     /// The information to use for checking whether a principal has a permission for a resource.
     #[serde(default, rename = "accessTuple")]
@@ -19,7 +20,7 @@ pub struct GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyRequest {
 }
 
 /// Response for TroubleshootIamPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse {
     /// The access tuple from the request, including any provided context used to evaluate the condition.
     #[serde(default, rename = "accessTuple")]
@@ -38,7 +39,7 @@ pub struct GoogleCloudPolicytroubleshooterIamV3TroubleshootIamPolicyResponse {
 }
 
 /// Information about the principal, resource, and permission to check.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicytroubleshooterIamV3AccessTuple {
     /// Optional. Additional context for the request, such as the request time or IP address. This context allows Policy Troubleshooter to troubleshoot conditional role bindings and deny rules.
     #[serde(default, rename = "conditionContext")]
@@ -59,7 +60,7 @@ pub struct GoogleCloudPolicytroubleshooterIamV3AccessTuple {
 }
 
 /// Details about how the relevant IAM allow policies affect the final access state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicytroubleshooterIamV3AllowPolicyExplanation {
     /// Indicates whether the principal has the specified permission for the specified resource, based on evaluating all applicable IAM allow policies. // TODO: enum values: ["ALLOW_ACCESS_STATE_UNSPECIFIED", "ALLOW_ACCESS_STATE_GRANTED", "ALLOW_ACCESS_STATE_NOT_GRANTED", "ALLOW_ACCESS_STATE_UNKNOWN_CONDITIONAL", "ALLOW_ACCESS_STATE_UNKNOWN_INFO"]
     #[serde(default, rename = "allowAccessState")]
@@ -75,7 +76,7 @@ pub struct GoogleCloudPolicytroubleshooterIamV3AllowPolicyExplanation {
 }
 
 /// Details about how the relevant IAM deny policies affect the final access state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicytroubleshooterIamV3DenyPolicyExplanation {
     /// Indicates whether the principal is denied the specified permission for the specified resource, based on evaluating all applicable IAM deny policies. // TODO: enum values: ["DENY_ACCESS_STATE_UNSPECIFIED", "DENY_ACCESS_STATE_DENIED", "DENY_ACCESS_STATE_NOT_DENIED", "DENY_ACCESS_STATE_UNKNOWN_CONDITIONAL", "DENY_ACCESS_STATE_UNKNOWN_INFO"]
     #[serde(default, rename = "denyAccessState")]
@@ -94,7 +95,7 @@ pub struct GoogleCloudPolicytroubleshooterIamV3DenyPolicyExplanation {
 }
 
 /// Additional context for troubleshooting conditional role bindings and deny rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContext {
     /// The destination of a network activity, such as accepting a TCP connection. In a multi-hop network activity, the destination represents the receiver of the last hop.
     #[serde(default)]
@@ -116,7 +117,7 @@ pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContext {
 }
 
 /// Details about how a specific IAM allow policy contributed to the final access state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicytroubleshooterIamV3ExplainedAllowPolicy {
     /// Required. Indicates whether _this policy_ provides the specified permission to the specified principal for the specified resource. This field does _not_ indicate whether the principal actually has the permission for the resource. There might be another policy that overrides this policy. To determine whether the principal actually has the permission, use the overall_access_state field in the TroubleshootIamPolicyResponse. // TODO: enum values: ["ALLOW_ACCESS_STATE_UNSPECIFIED", "ALLOW_ACCESS_STATE_GRANTED", "ALLOW_ACCESS_STATE_NOT_GRANTED", "ALLOW_ACCESS_STATE_UNKNOWN_CONDITIONAL", "ALLOW_ACCESS_STATE_UNKNOWN_INFO"]
     #[serde(default, rename = "allowAccessState")]
@@ -138,7 +139,7 @@ pub struct GoogleCloudPolicytroubleshooterIamV3ExplainedAllowPolicy {
 }
 
 /// Details about how a specific resource contributed to the deny policy evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicytroubleshooterIamV3ExplainedDenyResource {
     /// Required. Indicates whether any policies attached to _this resource_ deny the specific permission to the specified principal for the specified resource. This field does _not_ indicate whether the principal actually has the permission for the resource. There might be another policy that overrides this policy. To determine whether the principal actually has the permission, use the overall_access_state field in the TroubleshootIamPolicyResponse. // TODO: enum values: ["DENY_ACCESS_STATE_UNSPECIFIED", "DENY_ACCESS_STATE_DENIED", "DENY_ACCESS_STATE_NOT_DENIED", "DENY_ACCESS_STATE_UNKNOWN_CONDITIONAL", "DENY_ACCESS_STATE_UNKNOWN_INFO"]
     #[serde(default, rename = "denyAccessState")]
@@ -157,7 +158,7 @@ pub struct GoogleCloudPolicytroubleshooterIamV3ExplainedDenyResource {
 }
 
 /// This message defines attributes for a node that handles a network request. The node can be either a service or an application that sends, forwards, or receives the request. Service peers should fill in principal and labels as appropriate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContextPeer {
     /// The IPv4 or IPv6 address of the peer.
     #[serde(default)]
@@ -168,7 +169,7 @@ pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContextPeer {
 }
 
 /// A tag that applies to a resource during policy evaluation. Tags can be either directly bound to a resource or inherited from its ancestor. EffectiveTag contains the name and namespaced_name of the tag value and tag key, with additional fields of inherited to indicate the inheritance status of the effective tag.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContextEffectiveTag {
     /// Output only. Indicates the inheritance status of a tag value attached to the given resource. If the tag value is inherited from one of the resource''s ancestors, inherited will be true. If false, then the tag value is directly attached to the resource, inherited will be false.
     #[serde(default)]
@@ -191,7 +192,7 @@ pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContextEffectiveTag {
 }
 
 /// This message defines attributes for an HTTP request. If the actual request is not an HTTP request, the runtime system should try to map the actual request to an equivalent HTTP request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContextRequest {
     /// Optional. The timestamp when the destination service receives the first byte of the request.
     #[serde(default, rename = "receiveTime")]
@@ -199,7 +200,7 @@ pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContextRequest {
 }
 
 /// Core attributes for a resource. A resource is an addressable (named) entity provided by the destination service. For example, a Compute Engine instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContextResource {
     /// The stable identifier (name) of a resource on the service. A resource can be logically identified as //{resource.service}/{resource.name}. Unlike the resource URI, the resource name doesn''t contain any protocol and version information. For a list of full resource name formats, see https://cloud.google.com/iam/help/troubleshooter/full-resource-names
     #[serde(default)]
@@ -213,7 +214,7 @@ pub struct GoogleCloudPolicytroubleshooterIamV3ConditionContextResource {
 }
 
 /// Details about how a role binding in an allow policy affects a principal''s ability to use a permission.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicytroubleshooterIamV3AllowBindingExplanation {
     /// Required. Indicates whether _this role binding_ gives the specified permission to the specified principal on the specified resource. This field does _not_ indicate whether the principal actually has the permission on the resource. There might be another role binding that overrides this role binding. To determine whether the principal actually has the permission, use the overall_access_state field in the TroubleshootIamPolicyResponse. // TODO: enum values: ["ALLOW_ACCESS_STATE_UNSPECIFIED", "ALLOW_ACCESS_STATE_GRANTED", "ALLOW_ACCESS_STATE_NOT_GRANTED", "ALLOW_ACCESS_STATE_UNKNOWN_CONDITIONAL", "ALLOW_ACCESS_STATE_UNKNOWN_INFO"]
     #[serde(default, rename = "allowAccessState")]
@@ -248,7 +249,7 @@ pub struct GoogleCloudPolicytroubleshooterIamV3AllowBindingExplanation {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -265,7 +266,7 @@ pub struct GoogleIamV1Policy {
 }
 
 /// Details about how a specific IAM deny policy Policy contributed to the access check.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicytroubleshooterIamV3ExplainedDenyPolicy {
     /// Required. Indicates whether _this policy_ denies the specified permission to the specified principal for the specified resource. This field does _not_ indicate whether the principal actually has the permission for the resource. There might be another policy that overrides this policy. To determine whether the principal actually has the permission, use the overall_access_state field in the TroubleshootIamPolicyResponse. // TODO: enum values: ["DENY_ACCESS_STATE_UNSPECIFIED", "DENY_ACCESS_STATE_DENIED", "DENY_ACCESS_STATE_NOT_DENIED", "DENY_ACCESS_STATE_UNKNOWN_CONDITIONAL", "DENY_ACCESS_STATE_UNKNOWN_INFO"]
     #[serde(default, rename = "denyAccessState")]
@@ -284,7 +285,7 @@ pub struct GoogleCloudPolicytroubleshooterIamV3ExplainedDenyPolicy {
 }
 
 /// Details about whether the role binding includes the principal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicytroubleshooterIamV3AllowBindingExplanationAnnotatedAllowMembership {
     /// Indicates whether the role binding includes the principal. // TODO: enum values: ["MEMBERSHIP_MATCHING_STATE_UNSPECIFIED", "MEMBERSHIP_MATCHED", "MEMBERSHIP_NOT_MATCHED", "MEMBERSHIP_UNKNOWN_INFO", "MEMBERSHIP_UNKNOWN_UNSUPPORTED"]
     #[serde(default)]
@@ -295,7 +296,7 @@ pub struct GoogleCloudPolicytroubleshooterIamV3AllowBindingExplanationAnnotatedA
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -306,7 +307,7 @@ pub struct GoogleIamV1AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -320,7 +321,7 @@ pub struct GoogleIamV1Binding {
 }
 
 /// Data for an IAM policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV2Policy {
     /// A key-value map to store arbitrary metadata for the Policy. Keys can be up to 63 characters. Values can be up to 255 characters.
     #[serde(default)]
@@ -355,7 +356,7 @@ pub struct GoogleIamV2Policy {
 }
 
 /// Details about how a deny rule in a deny policy affects a principal''s ability to use a permission.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicytroubleshooterIamV3DenyRuleExplanation {
     /// Indicates whether the permission in the request is listed as a denied permission in the deny rule.
     #[serde(default, rename = "combinedDeniedPermission")]
@@ -405,7 +406,7 @@ pub struct GoogleCloudPolicytroubleshooterIamV3DenyRuleExplanation {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -416,7 +417,7 @@ pub struct GoogleIamV1AuditLogConfig {
 }
 
 /// A single rule in a Policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV2PolicyRule {
     /// A rule for a deny policy.
     #[serde(default, rename = "denyRule")]
@@ -427,7 +428,7 @@ pub struct GoogleIamV2PolicyRule {
 }
 
 /// Details about whether the permission in the request is denied by the deny rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicytroubleshooterIamV3DenyRuleExplanationAnnotatedPermissionMatching {
     /// Indicates whether the permission in the request is denied by the deny rule. // TODO: enum values: ["PERMISSION_PATTERN_MATCHING_STATE_UNSPECIFIED", "PERMISSION_PATTERN_MATCHED", "PERMISSION_PATTERN_NOT_MATCHED"]
     #[serde(default, rename = "permissionMatchingState")]
@@ -438,7 +439,7 @@ pub struct GoogleCloudPolicytroubleshooterIamV3DenyRuleExplanationAnnotatedPermi
 }
 
 /// Details about whether the principal in the request is listed as a denied principal in the deny rule, either directly or through membership in a principal set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicytroubleshooterIamV3DenyRuleExplanationAnnotatedDenyPrincipalMatching {
     /// Indicates whether the principal is listed as a denied principal in the deny rule, either directly or through membership in a principal set. // TODO: enum values: ["MEMBERSHIP_MATCHING_STATE_UNSPECIFIED", "MEMBERSHIP_MATCHED", "MEMBERSHIP_NOT_MATCHED", "MEMBERSHIP_UNKNOWN_INFO", "MEMBERSHIP_UNKNOWN_UNSUPPORTED"]
     #[serde(default)]
@@ -449,7 +450,7 @@ pub struct GoogleCloudPolicytroubleshooterIamV3DenyRuleExplanationAnnotatedDenyP
 }
 
 /// Explanation for how a condition affects a principal''s access
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicytroubleshooterIamV3ConditionExplanation {
     /// Any errors that prevented complete evaluation of the condition expression.
     #[serde(default)]
@@ -465,7 +466,7 @@ pub struct GoogleCloudPolicytroubleshooterIamV3ConditionExplanation {
 }
 
 /// A deny rule in an IAM deny policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV2DenyRule {
     /// The condition that determines whether this deny rule applies to a request. If the condition expression evaluates to true, then the deny rule is applied; otherwise, the deny rule is not applied. Each deny rule is evaluated independently. If this deny rule does not apply to a request, other deny rules might still apply. The condition can use CEL functions that evaluate [resource tags](https://cloud.google.com/iam/help/conditions/resource-tags). Other functions and operators are not supported.
     #[serde(default, rename = "denialCondition")]
@@ -485,7 +486,7 @@ pub struct GoogleIamV2DenyRule {
 }
 
 /// Evaluated state of a condition expression.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicytroubleshooterIamV3ConditionExplanationEvaluationState {
     /// End position of an expression in the condition, by character, end included, for example: the end position of the first part of a==b || c==d would be 4.
     #[serde(default)]
@@ -502,7 +503,7 @@ pub struct GoogleCloudPolicytroubleshooterIamV3ConditionExplanationEvaluationSta
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeExpr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -519,7 +520,7 @@ pub struct GoogleTypeExpr {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]

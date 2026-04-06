@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The submitted answer for a question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Answer {
     /// Output only. The answers to a file upload question.
     #[serde(default, rename = "fileUploadAnswers")]
@@ -28,7 +29,7 @@ pub struct Answer {
 }
 
 /// A batch of updates to perform on a form. All the specified updates are made or none of them are.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateFormRequest {
     /// Whether to return an updated version of the model in the response.
     #[serde(default, rename = "includeFormInResponse")]
@@ -42,7 +43,7 @@ pub struct BatchUpdateFormRequest {
 }
 
 /// Response to a BatchUpdateFormRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchUpdateFormResponse {
     /// Based on the bool request field include_form_in_response, a form with all applied mutations/updates is returned or not. This may be later than the revision ID created by these changes.
     #[serde(default)]
@@ -56,7 +57,7 @@ pub struct BatchUpdateFormResponse {
 }
 
 /// Create a new watch.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateWatchRequest {
     /// Required. The watch object. No ID should be set on this object; use watch_id instead.
     #[serde(default)]
@@ -67,11 +68,11 @@ pub struct CreateWatchRequest {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Response to a ListFormResponsesRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListFormResponsesResponse {
     /// If set, there are more responses. To get the next page of responses, provide this as page_token in a future request.
     #[serde(default, rename = "nextPageToken")]
@@ -82,7 +83,7 @@ pub struct ListFormResponsesResponse {
 }
 
 /// The response of a ListWatchesRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListWatchesResponse {
     /// The returned watches.
     #[serde(default)]
@@ -90,15 +91,15 @@ pub struct ListWatchesResponse {
 }
 
 /// A page break. The title and description of this item are shown at the top of the new page.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PageBreakItem {}
 
 /// Renew an existing Watch for seven days.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RenewWatchRequest {}
 
 /// Updates the publish settings of a Form.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetPublishSettingsRequest {
     /// Required. The desired publish settings to apply to the form.
     #[serde(default, rename = "publishSettings")]
@@ -109,7 +110,7 @@ pub struct SetPublishSettingsRequest {
 }
 
 /// The response of a SetPublishSettings request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetPublishSettingsResponse {
     /// Required. The ID of the Form. This is same as the Form.form_id field.
     #[serde(default, rename = "formId")]
@@ -120,11 +121,11 @@ pub struct SetPublishSettingsResponse {
 }
 
 /// A text item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextItem {}
 
 /// All submitted files for a FileUpload question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FileUploadAnswers {
     /// Output only. All submitted files for a FileUpload question.
     #[serde(default)]
@@ -132,7 +133,7 @@ pub struct FileUploadAnswers {
 }
 
 /// Grade information associated with a respondent''s answer to a question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Grade {
     /// Output only. Whether the question was answered correctly or not. A zero-point score is not enough to infer incorrectness, since a correctly answered question could be worth zero points.
     #[serde(default)]
@@ -146,7 +147,7 @@ pub struct Grade {
 }
 
 /// A question''s answers as text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextAnswers {
     /// Output only. Answers to a question. For multiple-value ChoiceQuestions, each answer is a separate value.
     #[serde(default)]
@@ -154,7 +155,7 @@ pub struct TextAnswers {
 }
 
 /// The kinds of update requests that can be made.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Request {
     /// Create a new item.
     #[serde(default, rename = "createItem")]
@@ -177,7 +178,7 @@ pub struct Request {
 }
 
 /// A Google Forms document. A form is created in Drive, and deleting a form or changing its access protections is done via the [Drive API](https://developers.google.com/drive/api/v3/about-sdk).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Form {
     /// Output only. The form ID.
     #[serde(default, rename = "formId")]
@@ -206,7 +207,7 @@ pub struct Form {
 }
 
 /// A single response from an update.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Response {
     /// The result of creating an item.
     #[serde(default, rename = "createItem")]
@@ -214,7 +215,7 @@ pub struct Response {
 }
 
 /// Provides control over how write requests are executed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WriteControl {
     /// The revision ID of the form that the write request is applied to. If this is not the latest revision of the form, the request is not processed and returns a 400 bad request error.
     #[serde(default, rename = "requiredRevisionId")]
@@ -225,7 +226,7 @@ pub struct WriteControl {
 }
 
 /// A form response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FormResponse {
     /// Output only. The actual answers to the questions, keyed by question_id.
     #[serde(default)]
@@ -251,7 +252,7 @@ pub struct FormResponse {
 }
 
 /// A watch for events for a form. When the designated event happens, a notification will be published to the specified target. The notification''s attributes will include a formId key that has the ID of the watched form and an eventType key that has the string of the type. Messages are sent with at-least-once delivery and are only dropped in extraordinary circumstances. Typically all notifications should be reliably delivered within a few seconds; however, in some situations notifications may be delayed. A watch expires seven days after it is created unless it is renewed with watches.renew
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Watch {
     /// Output only. Timestamp of when this was created.
     #[serde(default, rename = "createTime")]
@@ -277,7 +278,7 @@ pub struct Watch {
 }
 
 /// Info for a single file submitted to a file upload question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FileUploadAnswer {
     /// Output only. The ID of the Google Drive file.
     #[serde(default, rename = "fileId")]
@@ -291,7 +292,7 @@ pub struct FileUploadAnswer {
 }
 
 /// An answer to a question represented as text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextAnswer {
     /// Output only. The answer value. Formatting used for different kinds of question: * ChoiceQuestion * RADIO or DROP_DOWN: A single string corresponding to the option that was selected. * CHECKBOX: Multiple strings corresponding to each option that was selected. * TextQuestion: The text that the user entered. * ScaleQuestion: A string containing the number that was selected. * DateQuestion * Without time or year: MM-DD e.g. "05-19" * With year: YYYY-MM-DD e.g. "1986-05-19" * With time: MM-DD HH:MM e.g. "05-19 14:51" * With year and time: YYYY-MM-DD HH:MM e.g. "1986-05-19 14:51" * TimeQuestion: String with time or duration in HH:MM format e.g. "14:51" * RowQuestion within QuestionGroupItem: The answer for each row of a QuestionGroupItem is represented as a separate Answer. Each will contain one string for RADIO-type choices or multiple strings for CHECKBOX choices.
     #[serde(default)]
@@ -299,7 +300,7 @@ pub struct TextAnswer {
 }
 
 /// Create an item in a form.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateItemRequest {
     /// Required. The item to create.
     #[serde(default)]
@@ -310,7 +311,7 @@ pub struct CreateItemRequest {
 }
 
 /// Delete an item in a form.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteItemRequest {
     /// Required. The location of the item to delete.
     #[serde(default)]
@@ -318,7 +319,7 @@ pub struct DeleteItemRequest {
 }
 
 /// Move an item in a form.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoveItemRequest {
     /// Required. The new location for the item.
     #[serde(default, rename = "newLocation")]
@@ -329,7 +330,7 @@ pub struct MoveItemRequest {
 }
 
 /// Update Form''s Info.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateFormInfoRequest {
     /// The info to update.
     #[serde(default)]
@@ -340,7 +341,7 @@ pub struct UpdateFormInfoRequest {
 }
 
 /// Update an item in a form.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateItemRequest {
     /// Required. New values for the item. Note that item and question IDs are used if they are provided (and are in the field mask). If an ID is blank (and in the field mask) a new ID is generated. This means you can modify an item by getting the form via forms.get, modifying your local copy of that item to be how you want it, and using UpdateItemRequest to write it back, with the IDs being the same (or not in the field mask).
     #[serde(default)]
@@ -354,7 +355,7 @@ pub struct UpdateItemRequest {
 }
 
 /// Update Form''s FormSettings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateSettingsRequest {
     /// Required. The settings to update with.
     #[serde(default)]
@@ -365,7 +366,7 @@ pub struct UpdateSettingsRequest {
 }
 
 /// The publishing settings of a form.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublishSettings {
     /// Optional. The publishing state of a form. When updating publish_state, both is_published and is_accepting_responses must be set. However, setting is_accepting_responses to true and is_published to false isn''t supported and returns an error.
     #[serde(default, rename = "publishState")]
@@ -373,7 +374,7 @@ pub struct PublishSettings {
 }
 
 /// The result of creating an item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateItemResponse {
     /// The ID of the created item.
     #[serde(default, rename = "itemId")]
@@ -384,7 +385,7 @@ pub struct CreateItemResponse {
 }
 
 /// The target for notification delivery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WatchTarget {
     /// A Pub/Sub topic. To receive notifications, the topic must grant publish privileges to the Forms service account serviceAccount:forms-notifications@system.gserviceaccount.com. Only the project that owns a topic may create a watch with it. Pub/Sub delivery guarantees should be considered.
     #[serde(default)]
@@ -392,7 +393,7 @@ pub struct WatchTarget {
 }
 
 /// The general information for a form.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Info {
     /// The description of the form.
     #[serde(default)]
@@ -406,7 +407,7 @@ pub struct Info {
 }
 
 /// A single item of the form. kind defines which kind of item it is.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Item {
     /// The description of the item.
     #[serde(default)]
@@ -438,7 +439,7 @@ pub struct Item {
 }
 
 /// A specific location in a form.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The index of an item in the form. This must be in the range [0..*N*), where *N* is the number of items in the form.
     #[serde(default)]
@@ -446,7 +447,7 @@ pub struct Location {
 }
 
 /// A form''s settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FormSettings {
     /// Optional. The setting that determines whether the form collects email addresses from respondents. // TODO: enum values: ["EMAIL_COLLECTION_TYPE_UNSPECIFIED", "DO_NOT_COLLECT", "VERIFIED", "RESPONDER_INPUT"]
     #[serde(default, rename = "emailCollectionType")]
@@ -457,7 +458,7 @@ pub struct FormSettings {
 }
 
 /// The publishing state of a form.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublishState {
     /// Required. Whether the form accepts responses. If is_published is set to false, this field is forced to false.
     #[serde(default, rename = "isAcceptingResponses")]
@@ -468,7 +469,7 @@ pub struct PublishState {
 }
 
 /// A Pub/Sub topic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudPubsubTopic {
     /// Required. A fully qualified Pub/Sub topic name to publish the events to. This topic must be owned by the calling project and already exist in Pub/Sub.
     #[serde(default, rename = "topicName")]
@@ -476,7 +477,7 @@ pub struct CloudPubsubTopic {
 }
 
 /// An item containing an image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageItem {
     /// Required. The image displayed in the item.
     #[serde(default)]
@@ -484,7 +485,7 @@ pub struct ImageItem {
 }
 
 /// Defines a question that comprises multiple questions grouped together.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuestionGroupItem {
     /// The question group is a grid with rows of multiple choice questions that share the same options. When grid is set, all questions in the group must be of kind row.
     #[serde(default)]
@@ -498,7 +499,7 @@ pub struct QuestionGroupItem {
 }
 
 /// A form item containing a single question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuestionItem {
     /// The image displayed within the question.
     #[serde(default)]
@@ -509,7 +510,7 @@ pub struct QuestionItem {
 }
 
 /// An item containing a video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoItem {
     /// The text displayed below the video.
     #[serde(default)]
@@ -520,7 +521,7 @@ pub struct VideoItem {
 }
 
 /// Settings related to quiz forms and grading. These must be updated with the UpdateSettingsRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuizSettings {
     /// Whether this form is a quiz or not. When true, responses are graded based on question Grading. Upon setting to false, all question Grading is deleted.
     #[serde(default, rename = "isQuiz")]
@@ -528,7 +529,7 @@ pub struct QuizSettings {
 }
 
 /// A grid of choices (radio or check boxes) with each row constituting a separate question. Each row has the same choices, which are shown as the columns.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Grid {
     /// Required. The choices shared by each question in the grid. In other words, the values of the columns. Only CHECK_BOX and RADIO choices are allowed.
     #[serde(default)]
@@ -539,7 +540,7 @@ pub struct Grid {
 }
 
 /// Any question. The specific type of question is known by its kind.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Question {
     /// A respondent can choose from a pre-defined set of options.
     #[serde(default, rename = "choiceQuestion")]
@@ -577,7 +578,7 @@ pub struct Question {
 }
 
 /// Data representing a video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Video {
     /// Properties of a video.
     #[serde(default)]
@@ -588,7 +589,7 @@ pub struct Video {
 }
 
 /// A radio/checkbox/dropdown question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChoiceQuestion {
     /// Required. List of options that a respondent must choose from.
     #[serde(default)]
@@ -602,7 +603,7 @@ pub struct ChoiceQuestion {
 }
 
 /// A date question. Date questions default to just month + day.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DateQuestion {
     /// Whether to include the time as part of the question.
     #[serde(default, rename = "includeTime")]
@@ -613,7 +614,7 @@ pub struct DateQuestion {
 }
 
 /// A file upload question. The API currently does not support creating file upload questions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FileUploadQuestion {
     /// Required. The ID of the Drive folder where uploaded files are stored.
     #[serde(default, rename = "folderId")]
@@ -630,7 +631,7 @@ pub struct FileUploadQuestion {
 }
 
 /// Grading for a single question
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Grading {
     /// Required. The answer key for the question. Responses are automatically graded based on this field.
     #[serde(default, rename = "correctAnswers")]
@@ -650,7 +651,7 @@ pub struct Grading {
 }
 
 /// A rating question. The user has a range of icons to choose from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RatingQuestion {
     /// Required. The icon type to use for the rating. // TODO: enum values: ["RATING_ICON_TYPE_UNSPECIFIED", "STAR", "HEART", "THUMB_UP"]
     #[serde(default, rename = "iconType")]
@@ -661,7 +662,7 @@ pub struct RatingQuestion {
 }
 
 /// Configuration for a question that is part of a question group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RowQuestion {
     /// Required. The title for the single row in the QuestionGroupItem.
     #[serde(default)]
@@ -669,7 +670,7 @@ pub struct RowQuestion {
 }
 
 /// A scale question. The user has a range of numeric values to choose from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScaleQuestion {
     /// Required. The highest possible value for the scale.
     #[serde(default)]
@@ -686,7 +687,7 @@ pub struct ScaleQuestion {
 }
 
 /// A text-based question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextQuestion {
     /// Whether the question is a paragraph question or not. If not, the question is a short text question.
     #[serde(default)]
@@ -694,7 +695,7 @@ pub struct TextQuestion {
 }
 
 /// A time question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeQuestion {
     /// true if the question is about an elapsed time. Otherwise it is about a time of day.
     #[serde(default)]
@@ -702,7 +703,7 @@ pub struct TimeQuestion {
 }
 
 /// An option for a Choice question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiOption {
     /// Section navigation type. // TODO: enum values: ["GO_TO_ACTION_UNSPECIFIED", "NEXT_SECTION", "RESTART_FORM", "SUBMIT_FORM"]
     #[serde(default, rename = "goToAction")]
@@ -722,7 +723,7 @@ pub struct ApiOption {
 }
 
 /// The answer key for a question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CorrectAnswers {
     /// A list of correct answers. A quiz response can be automatically graded based on these answers. For single-valued questions, a response is marked correct if it matches any value in this list (in other words, multiple correct answers are possible). For multiple-valued (CHECKBOX) questions, a response is marked correct if it contains exactly the values in this list.
     #[serde(default)]
@@ -730,7 +731,7 @@ pub struct CorrectAnswers {
 }
 
 /// Feedback for a respondent about their response to a question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Feedback {
     /// Additional information provided as part of the feedback, often used to point the respondent to more reading and resources.
     #[serde(default)]
@@ -741,7 +742,7 @@ pub struct Feedback {
 }
 
 /// Data representing an image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Image {
     /// A description of the image that is shown on hover and read by screenreaders.
     #[serde(default, rename = "altText")]
@@ -758,7 +759,7 @@ pub struct Image {
 }
 
 /// A single correct answer for a question. For multiple-valued (CHECKBOX) questions, several CorrectAnswers may be needed to represent a single correct response option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CorrectAnswer {
     /// Required. The correct answer value. See the documentation for TextAnswer.value for details on how various value types are formatted.
     #[serde(default)]
@@ -766,7 +767,7 @@ pub struct CorrectAnswer {
 }
 
 /// Supplementary material to the feedback.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExtraMaterial {
     /// Text feedback.
     #[serde(default)]
@@ -777,7 +778,7 @@ pub struct ExtraMaterial {
 }
 
 /// Properties of the media.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MediaProperties {
     /// Position of the media. // TODO: enum values: ["ALIGNMENT_UNSPECIFIED", "LEFT", "RIGHT", "CENTER"]
     #[serde(default)]
@@ -788,7 +789,7 @@ pub struct MediaProperties {
 }
 
 /// Link for text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextLink {
     /// Required. Display text for the URI.
     #[serde(default, rename = "displayText")]
@@ -799,7 +800,7 @@ pub struct TextLink {
 }
 
 /// Link to a video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VideoLink {
     /// Required. The display text for the link.
     #[serde(default, rename = "displayText")]

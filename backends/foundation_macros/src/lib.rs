@@ -1,6 +1,7 @@
 use proc_macro::TokenStream;
 
 mod embedders;
+mod json_hash;
 mod wasm_entrypoint;
 
 /// [`embed_directory_as`] specifies a proc macro for embedding files into
@@ -139,4 +140,44 @@ pub fn embed_file_as(item: TokenStream) -> TokenStream {
 #[proc_macro_attribute]
 pub fn wasm_entrypoint(attr: TokenStream, item: TokenStream) -> TokenStream {
     wasm_entrypoint::expand(attr.into(), item.into()).into()
+}
+
+/// Derive macro that adds a `struct_hash()` method to structs.
+///
+/// # Requirements
+///
+/// The struct must also derive `serde::Serialize`. The generated
+/// `struct_hash()` method serializes the struct to JSON and computes
+/// a SHA-256 hash, encoded as base85.
+///
+/// # Example
+///
+/// ```rust
+/// use foundation_macros::JsonHash;
+/// use serde::Serialize;
+///
+/// #[derive(JsonHash, Serialize)]
+/// pub struct MyResource {
+///     pub name: String,
+///     pub value: i32,
+/// }
+///
+/// let resource = MyResource { name: "test".into(), value: 42 };
+/// let hash = resource.struct_hash();
+/// ```
+///
+/// # Hash Computation
+///
+/// The hash is computed as:
+/// 1. Concatenate struct name + JSON serialization: `"MyResource{...}"`
+/// 2. Compute SHA-256 of the concatenated string
+/// 3. Encode the hash as base85 string
+///
+/// This ensures:
+/// - Same struct + same values = same hash
+/// - Different struct names = different hashes (even with identical content)
+/// - Deterministic, reproducible results
+#[proc_macro_derive(JsonHash)]
+pub fn json_hash_derive(item: TokenStream) -> TokenStream {
+    json_hash::json_hash_derive(item)
 }

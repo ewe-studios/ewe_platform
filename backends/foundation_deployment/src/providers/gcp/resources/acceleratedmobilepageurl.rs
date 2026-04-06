@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// AMP URL request for a batch of URLs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchGetAmpUrlsRequest {
     /// The lookup_strategy being requested. // TODO: enum values: ["FETCH_LIVE_DOC", "IN_INDEX_DOC"]
     #[serde(default, rename = "lookupStrategy")]
@@ -22,7 +23,7 @@ pub struct BatchGetAmpUrlsRequest {
 }
 
 /// Batch AMP URL response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchGetAmpUrlsResponse {
     /// For each URL in BatchAmpUrlsRequest, the URL response. The response might not be in the same order as URLs in the batch request. If BatchAmpUrlsRequest contains duplicate URLs, AmpUrl is generated only once.
     #[serde(default, rename = "ampUrls")]
@@ -33,7 +34,7 @@ pub struct BatchGetAmpUrlsResponse {
 }
 
 /// AMP URL response for a requested URL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AmpUrl {
     /// The AMP URL pointing to the publisher''s web server.
     #[serde(default, rename = "ampUrl")]
@@ -47,7 +48,7 @@ pub struct AmpUrl {
 }
 
 /// AMP URL Error resource for a requested URL that couldn''t be found.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AmpUrlError {
     /// The error code of an API call. // TODO: enum values: ["ERROR_CODE_UNSPECIFIED", "INPUT_URL_NOT_FOUND", "NO_AMP_URL", "APPLICATION_ERROR", "URL_IS_VALID_AMP", "URL_IS_INVALID_AMP"]
     #[serde(default, rename = "errorCode")]

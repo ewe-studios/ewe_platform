@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A request to create a Cloud Dataflow job from a template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateJobFromTemplateRequest {
     /// The runtime environment for the job.
     #[serde(default)]
@@ -31,11 +32,11 @@ pub struct CreateJobFromTemplateRequest {
 }
 
 /// Response from deleting a snapshot.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeleteSnapshotResponse {}
 
 /// Request to get updated debug configuration for component.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetDebugConfigRequest {
     /// The internal component id for which debug configuration is requested.
     #[serde(default, rename = "componentId")]
@@ -49,7 +50,7 @@ pub struct GetDebugConfigRequest {
 }
 
 /// Response to a get debug configuration request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetDebugConfigResponse {
     /// The encoded debug configuration for the requested component.
     #[serde(default)]
@@ -57,7 +58,7 @@ pub struct GetDebugConfigResponse {
 }
 
 /// The response to a GetTemplate request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetTemplateResponse {
     /// The template metadata describing the template name, available parameters, etc.
     #[serde(default)]
@@ -74,7 +75,7 @@ pub struct GetTemplateResponse {
 }
 
 /// Request to get worker stacktraces from debug capture.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetWorkerStacktracesRequest {
     /// The end time for the stacktrace query. The returned stacktraces will be a recent stack trace at or shortly before this time.
     #[serde(default, rename = "endTime")]
@@ -85,7 +86,7 @@ pub struct GetWorkerStacktracesRequest {
 }
 
 /// Response to get worker stacktraces from debug capture.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetWorkerStacktracesResponse {
     /// Repeated as unified worker may have multiple SDK processes.
     #[serde(default)]
@@ -93,7 +94,7 @@ pub struct GetWorkerStacktracesResponse {
 }
 
 /// Information about a hot key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HotKeyInfo {
     /// The age of the hot key measured from when it was first detected.
     #[serde(default, rename = "hotKeyAge")]
@@ -107,7 +108,7 @@ pub struct HotKeyInfo {
 }
 
 /// Information about the execution of a job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobExecutionDetails {
     /// If present, this response does not contain all requested tasks. To obtain the next page of results, repeat the request with page_token set to this value.
     #[serde(default, rename = "nextPageToken")]
@@ -118,7 +119,7 @@ pub struct JobExecutionDetails {
 }
 
 /// Contains information about how a particular google.dataflow.v1beta3.Step will be executed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobExecutionStageInfo {
     /// The steps associated with the execution stage. Note that stages may have several steps, and that a given step might be run by more than one stage.
     #[serde(default, rename = "stepName")]
@@ -126,7 +127,7 @@ pub struct JobExecutionStageInfo {
 }
 
 /// JobMetrics contains a collection of metrics describing the detailed progress of a Dataflow job. Metrics correspond to user-defined and system-defined metrics in the job. For more information, see [Dataflow job metrics] (https://cloud.google.com/dataflow/docs/guides/using-monitoring-intf). This resource captures only the most recent values of each metric; time-series data can be queried for them (under the same metric names) from Cloud Monitoring.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobMetrics {
     /// Timestamp as of which metric values are current.
     #[serde(default, rename = "metricTime")]
@@ -137,7 +138,7 @@ pub struct JobMetrics {
 }
 
 /// A request to launch a Cloud Dataflow job from a FlexTemplate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LaunchFlexTemplateRequest {
     /// Required. Parameter to launch a job form Flex Template.
     #[serde(default, rename = "launchParameter")]
@@ -148,7 +149,7 @@ pub struct LaunchFlexTemplateRequest {
 }
 
 /// Response to the request to launch a job from Flex Template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LaunchFlexTemplateResponse {
     /// The job that was launched, if the request was not a dry run and the job was successfully launched.
     #[serde(default)]
@@ -156,7 +157,7 @@ pub struct LaunchFlexTemplateResponse {
 }
 
 /// Parameters to provide to the template being launched. Note that the [metadata in the pipeline code] (https://cloud.google.com/dataflow/docs/guides/templates/creating-templates#metadata) determines which runtime parameters are valid.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LaunchTemplateParameters {
     /// The runtime environment for the job.
     #[serde(default)]
@@ -176,7 +177,7 @@ pub struct LaunchTemplateParameters {
 }
 
 /// Response to the request to launch a template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LaunchTemplateResponse {
     /// The job that was launched, if the request was not a dry run and the job was successfully launched.
     #[serde(default)]
@@ -184,7 +185,7 @@ pub struct LaunchTemplateResponse {
 }
 
 /// Request to lease WorkItems.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LeaseWorkItemRequest {
     /// The current timestamp at the worker.
     #[serde(default, rename = "currentWorkerTime")]
@@ -213,7 +214,7 @@ pub struct LeaseWorkItemRequest {
 }
 
 /// Response to a request to lease WorkItems.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LeaseWorkItemResponse {
     /// Untranslated bag-of-bytes WorkResponse for UnifiedWorker.
     #[serde(default, rename = "unifiedWorkerResponse")]
@@ -224,7 +225,7 @@ pub struct LeaseWorkItemResponse {
 }
 
 /// Response to a request to list job messages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListJobMessagesResponse {
     /// Autoscaling events in ascending timestamp order.
     #[serde(default, rename = "autoscalingEvents")]
@@ -238,7 +239,7 @@ pub struct ListJobMessagesResponse {
 }
 
 /// Response to a request to list Cloud Dataflow jobs in a project. This might be a partial response, depending on the page size in the ListJobsRequest. However, if the project does not have any jobs, an instance of ListJobsResponse is not returned and the requests''s response body is empty {}.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListJobsResponse {
     /// Zero or more messages describing the [regional endpoints] (https://cloud.google.com/dataflow/docs/concepts/regional-endpoints) that failed to respond.
     #[serde(default, rename = "failedLocation")]
@@ -252,7 +253,7 @@ pub struct ListJobsResponse {
 }
 
 /// List of snapshots.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSnapshotsResponse {
     /// Returned snapshots.
     #[serde(default)]
@@ -260,7 +261,7 @@ pub struct ListSnapshotsResponse {
 }
 
 /// Request to report the status of WorkItems.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportWorkItemStatusRequest {
     /// The current timestamp at the worker.
     #[serde(default, rename = "currentWorkerTime")]
@@ -283,7 +284,7 @@ pub struct ReportWorkItemStatusRequest {
 }
 
 /// Response from a request to report the status of WorkItems.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportWorkItemStatusResponse {
     /// Untranslated bag-of-bytes WorkProgressUpdateResponse for UnifiedWorker.
     #[serde(default, rename = "unifiedWorkerResponse")]
@@ -294,11 +295,11 @@ pub struct ReportWorkItemStatusResponse {
 }
 
 /// Service-side response to WorkerMessage reporting resource utilization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceUtilizationReportResponse {}
 
 /// Request to send encoded debug information. Next ID: 8
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SendDebugCaptureRequest {
     /// The internal component id for which debug information is sent.
     #[serde(default, rename = "componentId")]
@@ -318,11 +319,11 @@ pub struct SendDebugCaptureRequest {
 }
 
 /// Response to a send capture request. nothing
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SendDebugCaptureResponse {}
 
 /// A request for sending worker messages to the service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SendWorkerMessagesRequest {
     /// The [regional endpoint] (https://cloud.google.com/dataflow/docs/concepts/regional-endpoints) that contains the job.
     #[serde(default)]
@@ -333,7 +334,7 @@ pub struct SendWorkerMessagesRequest {
 }
 
 /// The response to the worker messages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SendWorkerMessagesResponse {
     /// The servers response to the worker messages.
     #[serde(default, rename = "workerMessageResponses")]
@@ -341,7 +342,7 @@ pub struct SendWorkerMessagesResponse {
 }
 
 /// Request to create a snapshot of a job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SnapshotJobRequest {
     /// User specified description of the snapshot. Maybe empty.
     #[serde(default)]
@@ -358,7 +359,7 @@ pub struct SnapshotJobRequest {
 }
 
 /// Information about the workers and work items within a stage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StageExecutionDetails {
     /// If present, this response does not contain all requested tasks. To obtain the next page of results, repeat the request with page_token set to this value.
     #[serde(default, rename = "nextPageToken")]
@@ -369,7 +370,7 @@ pub struct StageExecutionDetails {
 }
 
 /// Information useful for debugging a straggler. Each type will provide specialized debugging information relevant for a particular cause. The StragglerDebuggingInfo will be 1:1 mapping to the StragglerCause enum.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StragglerDebuggingInfo {
     /// Hot key debugging details.
     #[serde(default, rename = "hotKey")]
@@ -377,7 +378,7 @@ pub struct StragglerDebuggingInfo {
 }
 
 /// A metric value representing a list of strings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StringList {
     /// Elements of the list.
     #[serde(default)]
@@ -385,11 +386,11 @@ pub struct StringList {
 }
 
 /// Service-side response to WorkerMessage issuing shutdown notice.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkerShutdownNoticeResponse {}
 
 /// RuntimeMetadata describing a runtime environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RuntimeMetadata {
     /// The parameters for the template.
     #[serde(default)]
@@ -400,7 +401,7 @@ pub struct RuntimeMetadata {
 }
 
 /// A structured representation of an SDK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Sdk {
     /// The SDK harness id.
     #[serde(default, rename = "sdkId")]
@@ -411,7 +412,7 @@ pub struct Sdk {
 }
 
 /// Information about a particular execution stage of a job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StageSummary {
     /// End time of this stage. If the work item is completed, this is the actual end time of the stage. Otherwise, it is the predicted end time.
     #[serde(default, rename = "endTime")]
@@ -437,7 +438,7 @@ pub struct StageSummary {
 }
 
 /// Launch FlexTemplate Parameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LaunchFlexTemplateParameter {
     /// Spec about the container image to launch.
     #[serde(default, rename = "containerSpec")]
@@ -466,7 +467,7 @@ pub struct LaunchFlexTemplateParameter {
 }
 
 /// The environment values to set at runtime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RuntimeEnvironment {
     /// Optional. Additional experiment flags for the job, specified with the --experiments option.
     #[serde(default, rename = "additionalExperiments")]
@@ -528,7 +529,7 @@ pub struct RuntimeEnvironment {
 }
 
 /// WorkItem represents basic information about a WorkItem to be executed in the cloud.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkItem {
     /// Work item-specific configuration as an opaque blob.
     #[serde(default)]
@@ -578,7 +579,7 @@ pub struct WorkItem {
 }
 
 /// A structured message reporting an autoscaling decision made by the Dataflow service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoscalingEvent {
     /// The current number of workers the job has.
     #[serde(default, rename = "currentNumWorkers")]
@@ -601,7 +602,7 @@ pub struct AutoscalingEvent {
 }
 
 /// A particular message pertaining to a Dataflow job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobMessage {
     /// Deprecated.
     #[serde(default)]
@@ -618,7 +619,7 @@ pub struct JobMessage {
 }
 
 /// Indicates which [regional endpoint] (https://cloud.google.com/dataflow/docs/concepts/regional-endpoints) failed to respond to a request for data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FailedLocation {
     /// The name of the [regional endpoint] (https://cloud.google.com/dataflow/docs/concepts/regional-endpoints) that failed to respond.
     #[serde(default)]
@@ -626,7 +627,7 @@ pub struct FailedLocation {
 }
 
 /// Defines a job to be run by the Cloud Dataflow service. Do not enter confidential information when you supply string values using the API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Job {
     /// The client''s unique identifier of the job, re-used across retried attempts. If this field is set, the service will ensure its uniqueness. The request to create a job will fail if the service has knowledge of a previously submitted job with the same client''s ID and job name. The caller may use this field to ensure idempotence of job creation across retried attempts to create a job. By default, the field is empty and, in that case, the service ignores it.
     #[serde(default, rename = "clientRequestId")]
@@ -718,7 +719,7 @@ pub struct Job {
 }
 
 /// Represents a snapshot of a job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Snapshot {
     /// The time this snapshot was created.
     #[serde(default, rename = "creationTime")]
@@ -753,7 +754,7 @@ pub struct Snapshot {
 }
 
 /// Conveys a worker''s progress through the work described by a WorkItem.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkItemStatus {
     /// True if the WorkItem was completed (successfully or unsuccessfully).
     #[serde(default)]
@@ -800,7 +801,7 @@ pub struct WorkItemStatus {
 }
 
 /// The Dataflow service''s idea of the current state of a WorkItem being processed by a worker.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkItemServiceState {
     /// If set, a request to complete the work item with the given status. This will not be set to OK, unless supported by the specific kind of WorkItem. It can be used for the backend to indicate a WorkItem must terminate, e.g., for aborting work.
     #[serde(default, rename = "completeWorkStatus")]
@@ -835,7 +836,7 @@ pub struct WorkItemServiceState {
 }
 
 /// WorkerMessage provides information to the backend about a worker.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkerMessage {
     /// Optional. Contains metrics related to go/dataflow-data-sampling-telemetry.
     #[serde(default, rename = "dataSamplingReport")]
@@ -873,7 +874,7 @@ pub struct WorkerMessage {
 }
 
 /// A worker_message response allows the server to pass information to the sender.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkerMessageResponse {
     /// Service''s streaming scaling response for workers.
     #[serde(default, rename = "streamingScalingReportResponse")]
@@ -894,7 +895,7 @@ pub struct WorkerMessageResponse {
 }
 
 /// Information about a worker
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkerDetails {
     /// Work items processed by this worker, sorted by time.
     #[serde(default, rename = "workItems")]
@@ -905,7 +906,7 @@ pub struct WorkerDetails {
 }
 
 /// Information useful for debugging a hot key detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HotKeyDebuggingInfo {
     /// Debugging information for each detected hot key. Keyed by a hash of the key.
     #[serde(default, rename = "detectedHotKeys")]
@@ -913,7 +914,7 @@ pub struct HotKeyDebuggingInfo {
 }
 
 /// A structuredstacktrace for a process running on the worker.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Stack {
     /// The raw stack trace.
     #[serde(default, rename = "stackContent")]
@@ -933,7 +934,7 @@ pub struct Stack {
 }
 
 /// Summarized straggler identification details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StragglerSummary {
     /// The most recent stragglers.
     #[serde(default, rename = "recentStragglers")]
@@ -947,7 +948,7 @@ pub struct StragglerSummary {
 }
 
 /// Container Spec.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContainerSpec {
     /// Default runtime environment for the job.
     #[serde(default, rename = "defaultEnvironment")]
@@ -973,7 +974,7 @@ pub struct ContainerSpec {
 }
 
 /// MapTask consists of an ordered set of instructions, each of which describes one particular low-level operation for the worker to perform in order to accomplish the MapTask''s WorkItem. Each instruction must appear in the list before any instructions which depends on its output.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MapTask {
     /// Counter prefix that can be used to prefix counters. Not currently used in Dataflow.
     #[serde(default, rename = "counterPrefix")]
@@ -990,7 +991,7 @@ pub struct MapTask {
 }
 
 /// Describes a particular function to invoke.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SeqMapTask {
     /// Information about each of the inputs.
     #[serde(default)]
@@ -1013,7 +1014,7 @@ pub struct SeqMapTask {
 }
 
 /// A task which consists of a shell command for the worker to execute.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShellTask {
     /// The shell command to run.
     #[serde(default)]
@@ -1024,7 +1025,7 @@ pub struct ShellTask {
 }
 
 /// A work item that represents the different operations that can be performed on a user-defined Source specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceOperationRequest {
     /// Information about a request to get metadata about a source.
     #[serde(default, rename = "getMetadata")]
@@ -1047,7 +1048,7 @@ pub struct SourceOperationRequest {
 }
 
 /// A task which describes what action should be performed for the specified streaming computation ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamingComputationTask {
     /// Contains ranges of a streaming computation this task should apply to.
     #[serde(default, rename = "computationRanges")]
@@ -1061,7 +1062,7 @@ pub struct StreamingComputationTask {
 }
 
 /// A task that carries configuration information for streaming computations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamingConfigTask {
     /// Chunk size for commit streams from the harness to windmill.
     #[serde(default, rename = "commitStreamChunkSizeBytes")]
@@ -1100,7 +1101,7 @@ pub struct StreamingConfigTask {
 }
 
 /// A task which initializes part of a streaming Dataflow job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamingSetupTask {
     /// The user has requested drain.
     #[serde(default)]
@@ -1120,7 +1121,7 @@ pub struct StreamingSetupTask {
 }
 
 /// A rich message format, including a human readable string, a key for identifying the message, and structured data associated with the message for programmatic consumption.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StructuredMessage {
     /// Identifier for this message type. Used by external systems to internationalize or personalize message.
     #[serde(default, rename = "messageKey")]
@@ -1134,7 +1135,7 @@ pub struct StructuredMessage {
 }
 
 /// Describes the environment in which a Dataflow Job runs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Environment {
     /// The type of cluster manager API to use. If unknown or unspecified, the service will attempt to choose a reasonable default. This should be in the form of the API service name, e.g. "compute.googleapis.com".
     #[serde(default, rename = "clusterManagerApiService")]
@@ -1199,7 +1200,7 @@ pub struct Environment {
 }
 
 /// Additional information about how a Cloud Dataflow job will be executed that isn''t contained in the submitted job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobExecutionInfo {
     /// A mapping from each stage to the information about that stage.
     #[serde(default)]
@@ -1207,7 +1208,7 @@ pub struct JobExecutionInfo {
 }
 
 /// Metadata available primarily for filtering jobs. Will be included in the ListJob response and Job SUMMARY view.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JobMetadata {
     /// Identification of a Cloud Bigtable source used in the Dataflow job.
     #[serde(default, rename = "bigTableDetails")]
@@ -1236,7 +1237,7 @@ pub struct JobMetadata {
 }
 
 /// A descriptive representation of submitted pipeline as well as the executed form. This data is provided by the Dataflow service for ease of visualizing the pipeline and interpreting Dataflow provided metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PipelineDescription {
     /// Pipeline level display data.
     #[serde(default, rename = "displayData")]
@@ -1253,7 +1254,7 @@ pub struct PipelineDescription {
 }
 
 /// Additional job parameters that can only be updated during runtime using the projects.jobs.update method. These fields have no effect when specified during job creation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RuntimeUpdatableParams {
     /// Optional. Deprecated: Use autoscaling_tier instead. The backlog threshold duration in seconds for autoscaling. Value must be non-negative.
     #[serde(default, rename = "acceptableBacklogDuration")]
@@ -1273,7 +1274,7 @@ pub struct RuntimeUpdatableParams {
 }
 
 /// Resources used by the Dataflow Service to run the job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceResources {
     /// Output only. List of Cloud Zones being used by the Dataflow Service for this job. Example: us-central1-c
     #[serde(default)]
@@ -1281,7 +1282,7 @@ pub struct ServiceResources {
 }
 
 /// A message describing the state of a particular execution stage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecutionStageState {
     /// The time at which the stage transitioned to this state.
     #[serde(default, rename = "currentStateTime")]
@@ -1295,7 +1296,7 @@ pub struct ExecutionStageState {
 }
 
 /// Defines a particular step within a Cloud Dataflow job. A job consists of multiple steps, each of which performs some specific operation as part of the overall job. Data is typically passed from one step to another as part of the job. **Note:** The properties of this object are not stable and might change. Here''s an example of a sequence of steps which together implement a Map-Reduce job: * Read a collection of data from some source, parsing the collection''s elements. * Validate the elements. * Apply a user-defined function to map each element to some value and extract an element-specific key value. * Group elements with the same key into a single element with that key, transforming a multiply-keyed collection into a uniquely-keyed collection. * Write the elements out to some data sink. Note that the Cloud Dataflow service may be used to run many different types of jobs, not just Map-Reduce.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Step {
     /// The kind of step in the Cloud Dataflow job.
     #[serde(default)]
@@ -1309,7 +1310,7 @@ pub struct Step {
 }
 
 /// Represents a Pubsub snapshot.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PubsubSnapshotMetadata {
     /// The expire time of the Pubsub snapshot.
     #[serde(default, rename = "expireTime")]
@@ -1323,7 +1324,7 @@ pub struct PubsubSnapshotMetadata {
 }
 
 /// An update to a Counter sent from a worker. Next ID: 17
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CounterUpdate {
     /// Boolean value for And, Or.
     #[serde(default)]
@@ -1376,7 +1377,7 @@ pub struct CounterUpdate {
 }
 
 /// When a task splits using WorkItemStatus.dynamic_source_split, this message describes the two parts of the split relative to the description of the current task''s input.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DynamicSourceSplit {
     /// Primary part (continued to be processed by worker). Specified relative to the previously-current source. Becomes current.
     #[serde(default)]
@@ -1387,7 +1388,7 @@ pub struct DynamicSourceSplit {
 }
 
 /// A progress measurement of a WorkItem by a worker.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApproximateReportedProgress {
     /// Total amount of parallelism in the portion of input of this task that has already been consumed and is no longer active. In the first two examples above (see remaining_parallelism), the value should be 29 or 2 respectively. The sum of remaining_parallelism and consumed_parallelism should equal the total amount of parallelism in this work item. If specified, must be finite.
     #[serde(default, rename = "consumedParallelism")]
@@ -1404,7 +1405,7 @@ pub struct ApproximateReportedProgress {
 }
 
 /// DEPRECATED in favor of DynamicSourceSplit.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceFork {
     /// DEPRECATED
     #[serde(default)]
@@ -1421,7 +1422,7 @@ pub struct SourceFork {
 }
 
 /// The result of a SourceOperationRequest, specified in ReportWorkItemStatusRequest.source_operation when the work item is completed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceOperationResponse {
     /// A response to a request to get metadata about a source.
     #[serde(default, rename = "getMetadata")]
@@ -1432,7 +1433,7 @@ pub struct SourceOperationResponse {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1446,7 +1447,7 @@ pub struct Status {
 }
 
 /// Proto describing a hot key detected on a given WorkItem.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HotKeyDetection {
     /// The age of the hot key measured from when it was first detected.
     #[serde(default, rename = "hotKeyAge")]
@@ -1460,7 +1461,7 @@ pub struct HotKeyDetection {
 }
 
 /// The metric short id is returned to the user alongside an offset into ReportWorkItemStatusRequest
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricShortId {
     /// The index of the corresponding metric in the ReportWorkItemStatusRequest. Required.
     #[serde(default, rename = "metricIndex")]
@@ -1471,7 +1472,7 @@ pub struct MetricShortId {
 }
 
 /// A suggestion by the service to the worker to dynamically split the WorkItem.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApproximateSplitRequest {
     /// A fraction at which to split the work item, from 0.0 (beginning of the input) to 1.0 (end of the input).
     #[serde(default, rename = "fractionConsumed")]
@@ -1485,7 +1486,7 @@ pub struct ApproximateSplitRequest {
 }
 
 /// Obsolete in favor of ApproximateReportedProgress and ApproximateSplitRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApproximateProgress {
     /// Obsolete.
     #[serde(default, rename = "percentComplete")]
@@ -1499,7 +1500,7 @@ pub struct ApproximateProgress {
 }
 
 /// Contains per-worker telemetry about the data sampling feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataSamplingReport {
     /// Optional. Delta of bytes written to file from previous report.
     #[serde(default, rename = "bytesWrittenDelta")]
@@ -1525,7 +1526,7 @@ pub struct DataSamplingReport {
 }
 
 /// Per worker metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PerWorkerMetrics {
     /// Optional. Metrics for a particular unfused step and namespace.
     #[serde(default, rename = "perStepNamespaceMetrics")]
@@ -1534,7 +1535,7 @@ pub struct PerWorkerMetrics {
 }
 
 /// Contains per-user worker telemetry used in streaming autoscaling.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamingScalingReport {
     #[serde(default, rename = "activeBundleCount")]
     pub active_bundle_count: ::core::option::Option<i32>,
@@ -1563,7 +1564,7 @@ pub struct StreamingScalingReport {
 }
 
 /// WorkerHealthReport contains information about the health of a worker. The VM should be identified by the labels attached to the WorkerMessage that this health ping belongs to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkerHealthReport {
     /// Message describing any unusual health reports.
     #[serde(default)]
@@ -1589,7 +1590,7 @@ pub struct WorkerHealthReport {
 }
 
 /// A report of an event in a worker''s lifecycle. The proto contains one event, because the worker is expected to asynchronously send each message immediately after the event. Due to this asynchrony, messages may arrive out of order (or missing), and it is up to the consumer to interpret. The timestamp of the event is in the enclosing WorkerMessage proto.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkerLifecycleEvent {
     /// The start time of this container. All events will report this so that events can be grouped together across container/VM restarts.
     #[serde(default, rename = "containerStartTime")]
@@ -1603,7 +1604,7 @@ pub struct WorkerLifecycleEvent {
 }
 
 /// A message code is used to report status and error messages to the service. The message codes are intended to be machine readable. The service will take care of translating these into user understandable messages if necessary. Example use cases: 1. Worker processes reporting successful startup. 2. Worker processes reporting specific errors (e.g. package staging failure).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkerMessageCode {
     /// The code is a string intended for consumption by a machine that identifies the type of message being sent. Examples: 1. "HARNESS_STARTED" might be used to indicate the worker harness has started. 2. "GCS_DOWNLOAD_ERROR" might be used to indicate an error downloading a Cloud Storage file as part of the boot process of one of the worker containers. This is a string and not an enum to make it easy to add new codes without waiting for an API change.
     #[serde(default)]
@@ -1614,7 +1615,7 @@ pub struct WorkerMessageCode {
 }
 
 /// Worker metrics exported from workers. This contains resource utilization metrics accumulated from a variety of sources. For more information, see go/df-resource-signals.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceUtilizationReport {
     /// Per container information. Key: container name.
     #[serde(default)]
@@ -1631,7 +1632,7 @@ pub struct ResourceUtilizationReport {
 }
 
 /// Shutdown notification from workers. This is to be sent by the shutdown script of the worker VM so that the backend knows that the VM is being shut down.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkerShutdownNotice {
     /// The reason for the worker shutdown. Current possible values are: "UNKNOWN": shutdown reason is unknown. "PREEMPTION": shutdown reason is preemption. Other possible reasons may be added in the future.
     #[serde(default)]
@@ -1639,7 +1640,7 @@ pub struct WorkerShutdownNotice {
 }
 
 /// Contains information about the thread scaling information of a worker.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkerThreadScalingReport {
     /// Current number of active threads in a worker.
     #[serde(default, rename = "currentThreadCount")]
@@ -1647,7 +1648,7 @@ pub struct WorkerThreadScalingReport {
 }
 
 /// Contains per-user-worker streaming scaling recommendation from the backend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamingScalingReportResponse {
     /// Maximum thread count limit;
     #[serde(default, rename = "maximumThreadCount")]
@@ -1655,7 +1656,7 @@ pub struct StreamingScalingReportResponse {
 }
 
 /// WorkerHealthReportResponse contains information returned to the worker in response to a health ping.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkerHealthReportResponse {
     /// A positive value indicates the worker should change its reporting interval to the specified value. The default value of zero means no change in report rate is requested by the server.
     #[serde(default, rename = "reportInterval")]
@@ -1663,7 +1664,7 @@ pub struct WorkerHealthReportResponse {
 }
 
 /// Contains the thread scaling recommendation for a worker from the backend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkerThreadScalingReportResponse {
     /// Recommended number of threads for a worker.
     #[serde(default, rename = "recommendedThreadCount")]
@@ -1671,7 +1672,7 @@ pub struct WorkerThreadScalingReportResponse {
 }
 
 /// Information about an individual work item execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkItemDetails {
     /// Attempt ID of this work item
     #[serde(default, rename = "attemptId")]
@@ -1700,7 +1701,7 @@ pub struct WorkItemDetails {
 }
 
 /// Information for a straggler.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Straggler {
     /// Batch straggler identification and debugging information.
     #[serde(default, rename = "batchStraggler")]
@@ -1711,7 +1712,7 @@ pub struct Straggler {
 }
 
 /// The environment values to be set at runtime for flex template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlexTemplateRuntimeEnvironment {
     /// Additional experiment flags for the job.
     #[serde(default, rename = "additionalExperiments")]
@@ -1794,7 +1795,7 @@ pub struct FlexTemplateRuntimeEnvironment {
 }
 
 /// Metadata describing a template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TemplateMetadata {
     /// Optional. Indicates the default streaming mode for a streaming template. Only valid if both supports_at_least_once and supports_exactly_once are true. Possible values: UNSPECIFIED, EXACTLY_ONCE and AT_LEAST_ONCE
     #[serde(default, rename = "defaultStreamingMode")]
@@ -1823,7 +1824,7 @@ pub struct TemplateMetadata {
 }
 
 /// SDK Information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SDKInfo {
     /// Required. The SDK Language. // TODO: enum values: ["UNKNOWN", "JAVA", "PYTHON", "GO", "YAML"]
     #[serde(default)]
@@ -1834,7 +1835,7 @@ pub struct SDKInfo {
 }
 
 /// Information about an output of a SeqMapTask.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SeqMapTaskOutputInfo {
     /// The sink to write the output value to.
     #[serde(default)]
@@ -1845,7 +1846,7 @@ pub struct SeqMapTaskOutputInfo {
 }
 
 /// A request to compute the SourceMetadata of a Source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceGetMetadataRequest {
     /// Specification of the source whose metadata should be computed.
     #[serde(default)]
@@ -1853,7 +1854,7 @@ pub struct SourceGetMetadataRequest {
 }
 
 /// Represents the operation to split a high-level Source specification into bundles (parts for parallel processing). At a high level, splitting of a source into bundles happens as follows: SourceSplitRequest is applied to the source. If it returns SOURCE_SPLIT_OUTCOME_USE_CURRENT, no further splitting happens and the source is used "as is". Otherwise, splitting is applied recursively to each produced DerivedSource. As an optimization, for any Source, if its does_not_need_splitting is true, the framework assumes that splitting this source would return SOURCE_SPLIT_OUTCOME_USE_CURRENT, and doesn''t initiate a SourceSplitRequest. This applies both to the initial source being split and to bundles produced from it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceSplitRequest {
     /// Hints for tuning the splitting process.
     #[serde(default)]
@@ -1864,7 +1865,7 @@ pub struct SourceSplitRequest {
 }
 
 /// Describes full or partial data disk assignment information of the computation ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamingComputationRanges {
     /// The ID of the computation.
     #[serde(default, rename = "computationId")]
@@ -1875,7 +1876,7 @@ pub struct StreamingComputationRanges {
 }
 
 /// Describes mounted data disk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MountedDataDisk {
     /// The name of the data disk. This name is local to the Google Cloud Platform project and uniquely identifies the disk within that project, for example "myproject-1014-104817-4c2-harness-0-disk-1".
     #[serde(default, rename = "dataDisk")]
@@ -1883,7 +1884,7 @@ pub struct MountedDataDisk {
 }
 
 /// Operational limits imposed on streaming jobs by the backend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamingOperationalLimits {
     /// The maximum size for an element in bag state.
     #[serde(default, rename = "maxBagElementBytes")]
@@ -1912,7 +1913,7 @@ pub struct StreamingOperationalLimits {
 }
 
 /// Configuration information for a single streaming computation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamingComputationConfig {
     /// Unique identifier for this computation.
     #[serde(default, rename = "computationId")]
@@ -1932,7 +1933,7 @@ pub struct StreamingComputationConfig {
 }
 
 /// Streaming appliance snapshot configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamingApplianceSnapshotConfig {
     /// Indicates which endpoint is used to import appliance state.
     #[serde(default, rename = "importStateEndpoint")]
@@ -1943,7 +1944,7 @@ pub struct StreamingApplianceSnapshotConfig {
 }
 
 /// Global topology of the streaming Dataflow job, including all computations and their sharded locations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TopologyConfig {
     /// The computations associated with a streaming Dataflow job.
     #[serde(default)]
@@ -1963,7 +1964,7 @@ pub struct TopologyConfig {
 }
 
 /// Structured data associated with this message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Parameter {
     /// Key or name for this parameter.
     #[serde(default)]
@@ -1974,7 +1975,7 @@ pub struct Parameter {
 }
 
 /// Describes any options that have an effect on the debugging of pipelines.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DebugOptions {
     /// Configuration options for sampling elements from a running pipeline.
     #[serde(default, rename = "dataSampling")]
@@ -1985,7 +1986,7 @@ pub struct DebugOptions {
 }
 
 /// Describes one particular pool of Cloud Dataflow workers to be instantiated by the Cloud Dataflow service in order to perform the computations required by a job. Note that a workflow job may use multiple pools, in order to match the various computational requirements of the various stages of the job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkerPool {
     /// Settings for autoscaling of this WorkerPool.
     #[serde(default, rename = "autoscalingSettings")]
@@ -2063,7 +2064,7 @@ pub struct WorkerPool {
 }
 
 /// Metadata for a Cloud Bigtable connector used by the job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BigTableIODetails {
     /// InstanceId accessed in the connection.
     #[serde(default, rename = "instanceId")]
@@ -2077,7 +2078,7 @@ pub struct BigTableIODetails {
 }
 
 /// Metadata for a BigQuery connector used by the job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BigQueryIODetails {
     /// Dataset accessed in the connection.
     #[serde(default)]
@@ -2094,7 +2095,7 @@ pub struct BigQueryIODetails {
 }
 
 /// Metadata for a Datastore connector used by the job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatastoreIODetails {
     /// Namespace used in the connection.
     #[serde(default)]
@@ -2105,7 +2106,7 @@ pub struct DatastoreIODetails {
 }
 
 /// Metadata for a File connector used by the job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FileIODetails {
     /// File Pattern used to access files by the connector.
     #[serde(default, rename = "filePattern")]
@@ -2113,7 +2114,7 @@ pub struct FileIODetails {
 }
 
 /// Metadata for a Pub/Sub connector used by the job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PubSubIODetails {
     /// Subscription used in the connection.
     #[serde(default)]
@@ -2124,7 +2125,7 @@ pub struct PubSubIODetails {
 }
 
 /// The version of the SDK used to run the job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SdkVersion {
     /// Output only. Known bugs found in this SDK version.
     #[serde(default)]
@@ -2141,7 +2142,7 @@ pub struct SdkVersion {
 }
 
 /// Metadata for a Spanner connector used by the job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpannerIODetails {
     /// DatabaseId accessed in the connection.
     #[serde(default, rename = "databaseId")]
@@ -2155,7 +2156,7 @@ pub struct SpannerIODetails {
 }
 
 /// Description of the composing transforms, names/ids, and input/outputs of a stage of execution. Some composing transforms and sources may have been generated by the Dataflow service during execution planning.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExecutionStageSummary {
     /// Collections produced and consumed by component transforms of this stage.
     #[serde(default, rename = "componentSource")]
@@ -2184,7 +2185,7 @@ pub struct ExecutionStageSummary {
 }
 
 /// Description of the type, names/ids, and input/outputs for a transform.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransformSummary {
     /// Transform-specific display data.
     #[serde(default, rename = "displayData")]
@@ -2207,7 +2208,7 @@ pub struct TransformSummary {
 }
 
 /// The message type used for encoding metrics of type bounded trie.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BoundedTrie {
     /// The maximum number of elements to store before truncation.
     #[serde(default)]
@@ -2221,7 +2222,7 @@ pub struct BoundedTrie {
 }
 
 /// A metric value representing a distribution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DistributionUpdate {
     /// The count of the number of elements present in the distribution.
     #[serde(default)]
@@ -2244,7 +2245,7 @@ pub struct DistributionUpdate {
 }
 
 /// A metric value representing a list of floating point numbers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FloatingPointList {
     /// Elements of the list.
     #[serde(default)]
@@ -2252,7 +2253,7 @@ pub struct FloatingPointList {
 }
 
 /// A representation of a floating point mean metric contribution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FloatingPointMean {
     /// The number of values being aggregated.
     #[serde(default)]
@@ -2263,7 +2264,7 @@ pub struct FloatingPointMean {
 }
 
 /// A metric value representing temporal values of a variable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntegerGauge {
     /// The time at which this value was measured. Measured as msecs from epoch.
     #[serde(default)]
@@ -2274,7 +2275,7 @@ pub struct IntegerGauge {
 }
 
 /// A metric value representing a list of integers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntegerList {
     /// Elements of the list.
     #[serde(default)]
@@ -2282,7 +2283,7 @@ pub struct IntegerList {
 }
 
 /// A representation of an integer mean metric contribution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IntegerMean {
     /// The number of values being aggregated.
     #[serde(default)]
@@ -2293,7 +2294,7 @@ pub struct IntegerMean {
 }
 
 /// Basic metadata about a counter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NameAndKind {
     /// Counter aggregation kind. // TODO: enum values: ["INVALID", "SUM", "MAX", "MIN", "MEAN", "OR", "AND", "SET", "DISTRIBUTION", "LATEST_VALUE"]
     #[serde(default)]
@@ -2304,7 +2305,7 @@ pub struct NameAndKind {
 }
 
 /// A single message which encapsulates structured name and metadata for a given counter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CounterStructuredNameAndMetadata {
     /// Metadata associated with a counter
     #[serde(default)]
@@ -2315,7 +2316,7 @@ pub struct CounterStructuredNameAndMetadata {
 }
 
 /// Represents the level of parallelism in a WorkItem''s input, reported by the worker.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportedParallelism {
     /// Specifies whether the parallelism is infinite. If true, "value" is ignored. Infinite parallelism means the service will assume that the work item can always be split into more non-empty work items by dynamic splitting. This is a work-around for lack of support for infinity by the current JSON-based Java RPC stack.
     #[serde(default, rename = "isInfinite")]
@@ -2326,7 +2327,7 @@ pub struct ReportedParallelism {
 }
 
 /// The result of a SourceGetMetadataOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceGetMetadataResponse {
     /// The computed metadata.
     #[serde(default)]
@@ -2334,7 +2335,7 @@ pub struct SourceGetMetadataResponse {
 }
 
 /// The response to a SourceSplitRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceSplitResponse {
     /// If outcome is SPLITTING_HAPPENED, then this is a list of bundles into which the source was split. Otherwise this field is ignored. This list can be empty, which means the source represents an empty input.
     #[serde(default)]
@@ -2348,7 +2349,7 @@ pub struct SourceSplitResponse {
 }
 
 /// Metrics for a particular unfused step and namespace. A metric is uniquely identified by the metrics_namespace, original_step, metric name and metric_labels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PerStepNamespaceMetrics {
     /// Optional. Metrics that are recorded for this namespace and unfused step.
     #[serde(default, rename = "metricValues")]
@@ -2362,7 +2363,7 @@ pub struct PerStepNamespaceMetrics {
 }
 
 /// Modeled after information exposed by /proc/stat.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CPUTime {
     /// Average CPU utilization rate (% non-idle cpu / second) since previous sample.
     #[serde(default)]
@@ -2376,7 +2377,7 @@ pub struct CPUTime {
 }
 
 /// Information about the GPU usage on the worker.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GPUUsage {
     /// Required. Timestamp of the measurement.
     #[serde(default)]
@@ -2387,7 +2388,7 @@ pub struct GPUUsage {
 }
 
 /// Information about the memory usage of a worker or a container within a worker.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MemInfo {
     /// Instantenous memory limit in bytes.
     #[serde(default, rename = "currentLimitBytes")]
@@ -2407,7 +2408,7 @@ pub struct MemInfo {
 }
 
 /// Describes the state of a metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricUpdate {
     /// Worker-computed aggregate value for the "Trie" aggregation kind. The only possible value type is a BoundedTrieNode. Introduced this field to avoid breaking older SDKs when Dataflow service starts to populate the bounded_trie field.
     #[serde(default, rename = "boundedTrie")]
@@ -2451,7 +2452,7 @@ pub struct MetricUpdate {
 }
 
 /// Information about the progress of some component of job execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProgressTimeseries {
     /// The current progress of the component, in the range [0,1].
     #[serde(default, rename = "currentProgress")]
@@ -2462,7 +2463,7 @@ pub struct ProgressTimeseries {
 }
 
 /// Information useful for straggler identification and debugging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StragglerInfo {
     /// The straggler causes, keyed by the string representation of the StragglerCause enum and contains specialized debugging information for each straggler cause.
     #[serde(default)]
@@ -2473,7 +2474,7 @@ pub struct StragglerInfo {
 }
 
 /// Information useful for streaming straggler identification and debugging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamingStragglerInfo {
     /// The event-time watermark lag at the time of the straggler detection.
     #[serde(default, rename = "dataWatermarkLag")]
@@ -2493,7 +2494,7 @@ pub struct StreamingStragglerInfo {
 }
 
 /// Metadata for a specific parameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ParameterMetadata {
     /// Optional. Additional metadata for describing this parameter.
     #[serde(default, rename = "customMetadata")]
@@ -2537,7 +2538,7 @@ pub struct ParameterMetadata {
 }
 
 /// Hints for splitting a Source into bundles (parts for parallel processing) using SourceSplitRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceSplitOptions {
     /// The source should be split into a set of bundles where the estimated size of each is approximately this many bytes.
     #[serde(default, rename = "desiredBundleSizeBytes")]
@@ -2548,7 +2549,7 @@ pub struct SourceSplitOptions {
 }
 
 /// Data disk assignment information for a specific key-range of a sharded computation. Currently we only support UTF-8 character splits to simplify encoding into JSON.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyRangeDataDiskAssignment {
     /// The name of the data disk where data for this range is stored. This name is local to the Google Cloud Platform project and uniquely identifies the disk within that project, for example "myproject-1014-104817-4c2-harness-0-disk-1".
     #[serde(default, rename = "dataDisk")]
@@ -2562,7 +2563,7 @@ pub struct KeyRangeDataDiskAssignment {
 }
 
 /// Describes a particular operation comprising a MapTask.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ParallelInstruction {
     /// Additional information for Flatten instructions.
     #[serde(default)]
@@ -2594,7 +2595,7 @@ pub struct ParallelInstruction {
 }
 
 /// All configuration data for a particular Computation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputationTopology {
     /// The ID of the computation.
     #[serde(default, rename = "computationId")]
@@ -2617,7 +2618,7 @@ pub struct ComputationTopology {
 }
 
 /// Data disk assignment for a given VM instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataDiskAssignment {
     /// Mounted data disks. The order is important a data disk''s 0-based index in this list defines which persistent directory the disk is mounted to, for example the list of { "myproject-1014-104817-4c2-harness-0-disk-0" }, { "myproject-1014-104817-4c2-harness-0-disk-1" }.
     #[serde(default, rename = "dataDisks")]
@@ -2628,7 +2629,7 @@ pub struct DataDiskAssignment {
 }
 
 /// Configuration options for sampling elements.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataSamplingConfig {
     /// List of given sampling behaviors to enable. For example, specifying behaviors = [ALWAYS_ON] samples in-flight elements but does not sample exceptions. Can be used to specify multiple behaviors like, behaviors = [ALWAYS_ON, EXCEPTIONS] for specifying periodic sampling and exception sampling. If DISABLED is in the list, then sampling will be disabled and ignore the other given behaviors. Ordering does not matter.
     #[serde(default)]
@@ -2636,7 +2637,7 @@ pub struct DataSamplingConfig {
 }
 
 /// Settings for WorkerPool autoscaling.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoscalingSettings {
     /// The algorithm to use for autoscaling. // TODO: enum values: ["AUTOSCALING_ALGORITHM_UNKNOWN", "AUTOSCALING_ALGORITHM_NONE", "AUTOSCALING_ALGORITHM_BASIC"]
     #[serde(default)]
@@ -2647,7 +2648,7 @@ pub struct AutoscalingSettings {
 }
 
 /// Describes the data disk used by a workflow job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Disk {
     /// Disk storage type, as defined by Google Compute Engine. This must be a disk type appropriate to the project and zone in which the workers will run. If unknown or unspecified, the service will attempt to choose a reasonable default. For example, the standard persistent disk type is a resource name typically ending in "pd-standard". If SSD persistent disks are available, the resource name typically ends with "pd-ssd". The actual valid values are defined the Google Compute Engine API, not by the Cloud Dataflow API; consult the Google Compute Engine documentation for more information about determining the set of available disk types for a particular project and zone. Google Compute Engine Disk types are local to a particular project in a particular zone, and so the resource name will typically look something like this: compute.googleapis.com/projects/project-id/zones/zone/diskTypes/pd-standard
     #[serde(default, rename = "diskType")]
@@ -2661,7 +2662,7 @@ pub struct Disk {
 }
 
 /// The packages that must be installed in order for a worker to run the steps of the Cloud Dataflow job that will be assigned to its worker pool. This is the mechanism by which the Cloud Dataflow SDK causes code to be loaded onto the workers. For example, the Cloud Dataflow Java SDK might use this to install jars containing the user''s code and all of the various dependencies (libraries, data files, etc.) required in order for that code to run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Package {
     /// The resource to read the package from. The supported resource type is: Google Cloud Storage: storage.googleapis.com/{bucket} bucket.storage.googleapis.com/
     #[serde(default)]
@@ -2672,7 +2673,7 @@ pub struct Package {
 }
 
 /// Defines an SDK harness container for executing Dataflow pipelines.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SdkHarnessContainerImage {
     /// The set of capabilities enumerated in the above Environment proto. See also [beam_runner_api.proto](https://github.com/apache/beam/blob/master/model/pipeline/src/main/proto/org/apache/beam/model/pipeline/v1/beam_runner_api.proto)
     #[serde(default)]
@@ -2689,7 +2690,7 @@ pub struct SdkHarnessContainerImage {
 }
 
 /// Taskrunner configuration settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TaskRunnerSettings {
     /// Whether to also send taskrunner log info to stderr.
     #[serde(default)]
@@ -2751,7 +2752,7 @@ pub struct TaskRunnerSettings {
 }
 
 /// A bug found in the Dataflow SDK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SdkBug {
     /// Output only. How severe the SDK bug is. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "NOTICE", "WARNING", "SEVERE"]
     #[serde(default)]
@@ -2765,7 +2766,7 @@ pub struct SdkBug {
 }
 
 /// Description of an interstitial value between transforms in an execution stage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComponentSource {
     /// Dataflow service generated name for this source.
     #[serde(default)]
@@ -2779,7 +2780,7 @@ pub struct ComponentSource {
 }
 
 /// Description of a transform executed as part of an execution stage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComponentTransform {
     /// Dataflow service generated name for this source.
     #[serde(default)]
@@ -2793,7 +2794,7 @@ pub struct ComponentTransform {
 }
 
 /// Description of an input or output of an execution stage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StageSource {
     /// Dataflow service generated name for this source.
     #[serde(default)]
@@ -2810,7 +2811,7 @@ pub struct StageSource {
 }
 
 /// Data provided with a pipeline or transform to provide descriptive info.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisplayData {
     /// Contains value if the data is of a boolean type.
     #[serde(default, rename = "boolValue")]
@@ -2851,7 +2852,7 @@ pub struct DisplayData {
 }
 
 /// A single node in a BoundedTrie.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BoundedTrieNode {
     /// Children of this node. Must be empty if truncated is true.
     #[serde(default)]
@@ -2862,7 +2863,7 @@ pub struct BoundedTrieNode {
 }
 
 /// Histogram of value counts for a distribution. Buckets have an inclusive lower bound and exclusive upper bound and use "1,2,5 bucketing": The first bucket range is from [0,1) and all subsequent bucket boundaries are powers of ten multiplied by 1, 2, or 5. Thus, bucket boundaries are 0, 1, 2, 5, 10, 20, 50, 100, 200, 500, 1000, ... Negative values are not supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Histogram {
     /// Counts of values in each bucket. For efficiency, prefix and trailing buckets with count = 0 are elided. Buckets can store the full range of values of an unsigned long, with ULLONG_MAX falling into the 59th bucket with range [1e19, 2e19).
     #[serde(default, rename = "bucketCounts")]
@@ -2873,7 +2874,7 @@ pub struct Histogram {
 }
 
 /// A representation of an int64, n, that is immune to precision loss when encoded in JSON.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SplitInt64 {
     /// The high order bits, including the sign: n &gt;&gt; 32.
     #[serde(default, rename = "highBits")]
@@ -2884,7 +2885,7 @@ pub struct SplitInt64 {
 }
 
 /// CounterMetadata includes all static non-name non-value counter attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CounterMetadata {
     /// Human-readable description of the counter semantics.
     #[serde(default)]
@@ -2901,7 +2902,7 @@ pub struct CounterMetadata {
 }
 
 /// Identifies a counter within a per-job namespace. Counters whose structured names are the same get merged into a single value for the job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CounterStructuredName {
     /// Name of the optimized step being executed by the workers.
     #[serde(default, rename = "componentStepName")]
@@ -2936,7 +2937,7 @@ pub struct CounterStructuredName {
 }
 
 /// Specification of one of the bundles produced as a result of splitting a Source (e.g. when executing a SourceSplitRequest, or when splitting an active task using WorkItemStatus.dynamic_source_split), relative to the source being split.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DerivedSource {
     /// What source to base the produced source on (if any). // TODO: enum values: ["SOURCE_DERIVATION_MODE_UNKNOWN", "SOURCE_DERIVATION_MODE_INDEPENDENT", "SOURCE_DERIVATION_MODE_CHILD_OF_CURRENT", "SOURCE_DERIVATION_MODE_SIBLING_OF_CURRENT"]
     #[serde(default, rename = "derivationMode")]
@@ -2947,7 +2948,7 @@ pub struct DerivedSource {
 }
 
 /// DEPRECATED in favor of DerivedSource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceSplitShard {
     /// DEPRECATED // TODO: enum values: ["SOURCE_DERIVATION_MODE_UNKNOWN", "SOURCE_DERIVATION_MODE_INDEPENDENT", "SOURCE_DERIVATION_MODE_CHILD_OF_CURRENT", "SOURCE_DERIVATION_MODE_SIBLING_OF_CURRENT"]
     #[serde(default, rename = "derivationMode")]
@@ -2958,7 +2959,7 @@ pub struct SourceSplitShard {
 }
 
 /// The value of a metric along with its name and labels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricValue {
     /// Base name for this metric.
     #[serde(default)]
@@ -2978,7 +2979,7 @@ pub struct MetricValue {
 }
 
 /// Utilization details about the GPU.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GPUUtilization {
     /// Required. GPU utilization rate of any kernel over the last sample period in the range of [0, 1].
     #[serde(default)]
@@ -2986,7 +2987,7 @@ pub struct GPUUtilization {
 }
 
 /// Identifies a metric, by describing the source which generated the metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricStructuredName {
     /// Zero or more labeled fields which identify the part of the job this metric is associated with, such as the name of a step or collection. For example, built-in counters associated with steps will have context[''step''] = . Counters associated with PCollections in the SDK will have context[''pcollection''] = .
     #[serde(default)]
@@ -3000,7 +3001,7 @@ pub struct MetricStructuredName {
 }
 
 /// A point in the timeseries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Point {
     /// The timestamp of the point.
     #[serde(default)]
@@ -3011,7 +3012,7 @@ pub struct Point {
 }
 
 /// ParameterMetadataEnumOption specifies the option shown in the enum form.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ParameterMetadataEnumOption {
     /// Optional. The description to display for the enum option.
     #[serde(default)]
@@ -3025,7 +3026,7 @@ pub struct ParameterMetadataEnumOption {
 }
 
 /// An instruction that copies its inputs (zero or more) to its (single) output.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FlattenInstruction {
     /// Describes the inputs to the flatten instruction.
     #[serde(default)]
@@ -3033,7 +3034,7 @@ pub struct FlattenInstruction {
 }
 
 /// An output of an instruction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstructionOutput {
     /// The codec to use to encode data being written via this output.
     #[serde(default)]
@@ -3056,7 +3057,7 @@ pub struct InstructionOutput {
 }
 
 /// An instruction that does a ParDo operation. Takes one main input and zero or more side inputs, and produces zero or more outputs. Runs user code.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ParDoInstruction {
     /// The input.
     #[serde(default)]
@@ -3076,7 +3077,7 @@ pub struct ParDoInstruction {
 }
 
 /// An instruction that does a partial group-by-key. One input and one output.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartialGroupByKeyInstruction {
     /// Describes the input to the partial group-by-key instruction.
     #[serde(default)]
@@ -3099,7 +3100,7 @@ pub struct PartialGroupByKeyInstruction {
 }
 
 /// An instruction that reads records. Takes no inputs, produces one output.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReadInstruction {
     /// The source to read from.
     #[serde(default)]
@@ -3107,7 +3108,7 @@ pub struct ReadInstruction {
 }
 
 /// An instruction that writes records. Takes one input, produces no outputs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WriteInstruction {
     /// The input.
     #[serde(default)]
@@ -3118,7 +3119,7 @@ pub struct WriteInstruction {
 }
 
 /// Describes a stream of data, either as input to be processed or as output of a streaming Dataflow job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamLocation {
     /// The stream is a custom source.
     #[serde(default, rename = "customSourceLocation")]
@@ -3135,7 +3136,7 @@ pub struct StreamLocation {
 }
 
 /// Location information for a specific key-range of a sharded computation. Currently we only support UTF-8 character splits to simplify encoding into JSON.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyRangeLocation {
     /// The name of the data disk where data for this range is stored. This name is local to the Google Cloud Platform project and uniquely identifies the disk within that project, for example "myproject-1014-104817-4c2-harness-0-disk-1".
     #[serde(default, rename = "dataDisk")]
@@ -3155,7 +3156,7 @@ pub struct KeyRangeLocation {
 }
 
 /// State family configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StateFamilyConfig {
     /// If true, this family corresponds to a read operation.
     #[serde(default, rename = "isRead")]
@@ -3166,7 +3167,7 @@ pub struct StateFamilyConfig {
 }
 
 /// Provides data to pass through to the worker harness.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkerSettings {
     /// The base URL for accessing Google Cloud APIs. When workers access Google Cloud APIs, they logically do so via relative URLs. If this field is specified, it supplies the base URL to use for resolving these relative URLs. The normative algorithm used is defined by RFC 1808, "Relative Uniform Resource Locators". If not specified, the default value is "http://www.googleapis.com/"
     #[serde(default, rename = "baseUrl")]
@@ -3189,7 +3190,7 @@ pub struct WorkerSettings {
 }
 
 /// The gauge value of a metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataflowGaugeValue {
     /// The timestamp when the gauge was recorded.
     #[serde(default, rename = "measuredTime")]
@@ -3200,7 +3201,7 @@ pub struct DataflowGaugeValue {
 }
 
 /// Summary statistics for a population of values. HistogramValue contains a sequence of buckets and gives a count of values that fall into each bucket. Bucket boundares are defined by a formula and bucket widths are either fixed or exponentially increasing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataflowHistogramValue {
     /// Optional. The number of values in each bucket of the histogram, as described in bucket_options. bucket_counts should contain N values, where N is the number of buckets specified in bucket_options. If bucket_counts has fewer than N values, the remaining values are assumed to be 0.
     #[serde(default, rename = "bucketCounts")]
@@ -3217,7 +3218,7 @@ pub struct DataflowHistogramValue {
 }
 
 /// Information about an output of a multi-output DoFn.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MultiOutputInfo {
     /// The id of the tag the user code will emit to this output by; this should correspond to the tag of some SideInputInfo.
     #[serde(default)]
@@ -3225,7 +3226,7 @@ pub struct MultiOutputInfo {
 }
 
 /// Information about a side input of a DoFn or an input of a SeqDoFn.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SideInputInfo {
     /// How to interpret the source element(s) as a side input value.
     #[serde(default)]
@@ -3239,7 +3240,7 @@ pub struct SideInputInfo {
 }
 
 /// An input of an instruction, as a reference to an output of a producer instruction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstructionInput {
     /// The output index (origin zero) within the producer.
     #[serde(default, rename = "outputNum")]
@@ -3250,7 +3251,7 @@ pub struct InstructionInput {
 }
 
 /// A sink that records can be encoded and written to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Sink {
     /// The codec to use to encode data written to the sink.
     #[serde(default)]
@@ -3261,7 +3262,7 @@ pub struct Sink {
 }
 
 /// Identifies the location of a custom souce.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomSourceLocation {
     /// Whether this source is stateful.
     #[serde(default)]
@@ -3269,7 +3270,7 @@ pub struct CustomSourceLocation {
 }
 
 /// Identifies a pubsub location to use for transferring data into or out of a streaming Dataflow job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PubsubLocation {
     /// Indicates whether the pipeline allows late-arriving data.
     #[serde(default, rename = "dropLateData")]
@@ -3298,7 +3299,7 @@ pub struct PubsubLocation {
 }
 
 /// Identifies the location of a streaming side input.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamingSideInputLocation {
     /// Identifies the state family where this side input is stored.
     #[serde(default, rename = "stateFamily")]
@@ -3309,7 +3310,7 @@ pub struct StreamingSideInputLocation {
 }
 
 /// Identifies the location of a streaming computation stage, for stage-to-stage communication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamingStageLocation {
     /// Identifies the particular stream within the streaming Dataflow job.
     #[serde(default, rename = "streamId")]
@@ -3317,7 +3318,7 @@ pub struct StreamingStageLocation {
 }
 
 /// BucketOptions describes the bucket boundaries used in the histogram.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BucketOptions {
     /// Bucket boundaries grow exponentially.
     #[serde(default)]
@@ -3328,7 +3329,7 @@ pub struct BucketOptions {
 }
 
 /// Statistics for the underflow and overflow bucket.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OutlierStats {
     /// Number of values that are larger than the upper bound of the largest bucket.
     #[serde(default, rename = "overflowCount")]
@@ -3345,7 +3346,7 @@ pub struct OutlierStats {
 }
 
 /// A source that records can be read and decoded from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Source {
     /// While splitting, sources may specify the produced bundles as differences against another source, in order to save backend-side memory and allow bigger jobs. For details, see SourceSplitRequest. To support this use case, the full set of parameters of the source is logically obtained by taking the latest explicitly specified value of each parameter in the order: base_specs (later items win), spec (overrides anything in base_specs).
     #[serde(default, rename = "baseSpecs")]
@@ -3365,7 +3366,7 @@ pub struct Source {
 }
 
 /// Exponential buckets where the growth factor between buckets is 2**(2**-scale). e.g. for scale=1 growth factor is 2**(2**(-1))=sqrt(2). n buckets will have the following boundaries. - 0th: [0, gf) - i in [1, n-1]: [gf^(i), gf^(i+1))
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Base2Exponent {
     /// Must be greater than 0.
     #[serde(default, rename = "numberOfBuckets")]
@@ -3376,7 +3377,7 @@ pub struct Base2Exponent {
 }
 
 /// Linear buckets with the following boundaries for indices in 0 to n-1. - i in [0, n-1]: [start + (i)*width, start + (i+1)*width)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Linear {
     /// Must be greater than 0.
     #[serde(default, rename = "numberOfBuckets")]
@@ -3390,7 +3391,7 @@ pub struct Linear {
 }
 
 /// Metadata about a Source useful for automatically optimizing and tuning the pipeline, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceMetadata {
     /// An estimate of the total size (in bytes) of the data that would be read from this source. This estimate is in terms of external storage size, before any decompression or other processing done by the reader.
     #[serde(default, rename = "estimatedSizeBytes")]
@@ -3404,7 +3405,7 @@ pub struct SourceMetadata {
 }
 
 /// A position that encapsulates an inner position and an index for the inner position. A ConcatPosition can be used by a reader of a source that encapsulates a set of other sources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConcatPosition {
     /// Index of the inner source.
     #[serde(default)]
@@ -3415,7 +3416,7 @@ pub struct ConcatPosition {
 }
 
 /// Position defines a position within a collection of data. The value can be either the end position, a key (used with ordered collections), a byte offset, or a record index.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Position {
     /// Position is a byte offset.
     #[serde(default, rename = "byteOffset")]

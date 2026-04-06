@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// SiteVerificationWebResourceGettokenRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SiteVerificationWebResourceGettokenRequest {
     /// The site for which a verification token will be generated.
     #[serde(default)]
@@ -22,7 +23,7 @@ pub struct SiteVerificationWebResourceGettokenRequest {
 }
 
 /// SiteVerificationWebResourceGettokenResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SiteVerificationWebResourceGettokenResponse {
     /// The verification method to use in conjunction with this token. For FILE, the token should be placed in the top-level directory of the site, stored inside a file of the same name. For META, the token should be placed in the HEAD tag of the default page that is loaded for the site. For DNS, the token should be placed in a TXT record of the domain.
     #[serde(default)]
@@ -33,7 +34,7 @@ pub struct SiteVerificationWebResourceGettokenResponse {
 }
 
 /// SiteVerificationWebResourceListResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SiteVerificationWebResourceListResponse {
     /// The list of sites that are owned by the authenticated user.
     #[serde(default)]
@@ -41,7 +42,7 @@ pub struct SiteVerificationWebResourceListResponse {
 }
 
 /// SiteVerificationWebResourceResource resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SiteVerificationWebResourceResource {
     /// The string used to identify this site. This value should be used in the "id" portion of the REST URL for the Get, Update, and Delete operations.
     #[serde(default)]

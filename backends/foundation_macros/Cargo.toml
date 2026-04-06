@@ -40,6 +40,8 @@ new_mime_guess = "4.0"
 
 [dev-dependencies]
 trybuild = "1.0"
+serde = { workspace = true }
+serde_json = { workspace = true }
 
 [lints]
 workspace = true

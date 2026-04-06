@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Generate video response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiLargeModelsVisionGenerateVideoResponse {
     /// The generates samples.
     #[serde(default, rename = "generatedSamples")]
@@ -29,7 +30,7 @@ pub struct CloudAiLargeModelsVisionGenerateVideoResponse {
 }
 
 /// Create API error message for Vertex Pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiPlatformCommonCreatePipelineJobApiErrorDetail {
     /// The error root cause returned by CreatePipelineJob API. // TODO: enum values: ["ERROR_CAUSE_UNSPECIFIED", "INVALID_PIPELINE_SPEC_FORMAT", "INVALID_PIPELINE_SPEC", "INVALID_DEPLOYMENT_CONFIG", "INVALID_DEPLOYMENT_SPEC", "INVALID_INSTANCE_SCHEMA", "INVALID_CUSTOM_JOB", "INVALID_CONTAINER_SPEC", "INVALID_NOTIFICATION_EMAIL_SETUP", "INVALID_SERVICE_ACCOUNT_SETUP", "INVALID_KMS_SETUP", "INVALID_NETWORK_SETUP", "INVALID_PIPELINE_TASK_SPEC", "INVALID_PIPELINE_TASK_ARTIFACT", "INVALID_IMPORTER_SPEC", "INVALID_RESOLVER_SPEC", "INVALID_RUNTIME_PARAMETERS", "CLOUD_API_NOT_ENABLED", "INVALID_GCS_INPUT_URI", "INVALID_GCS_OUTPUT_URI", "INVALID_COMPONENT_SPEC", "INVALID_DAG_OUTPUTS_SPEC", "INVALID_DAG_SPEC", "INSUFFICIENT_QUOTA", "INTERNAL"]
     #[serde(default, rename = "errorCause")]
@@ -40,7 +41,7 @@ pub struct CloudAiPlatformCommonCreatePipelineJobApiErrorDetail {
 }
 
 /// Request message for MetadataService.AddContextArtifactsAndExecutions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AddContextArtifactsAndExecutionsRequest {
     /// The resource names of the Artifacts to attribute to the Context. Format: projects/{project}/locations/{location}/metadataStores/{metadatastore}/artifacts/{artifact}
     #[serde(default)]
@@ -51,11 +52,11 @@ pub struct GoogleCloudAiplatformV1AddContextArtifactsAndExecutionsRequest {
 }
 
 /// Response message for MetadataService.AddContextArtifactsAndExecutions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AddContextArtifactsAndExecutionsResponse {}
 
 /// Request message for MetadataService.AddContextChildren.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AddContextChildrenRequest {
     /// The resource names of the child Contexts.
     #[serde(default, rename = "childContexts")]
@@ -63,11 +64,11 @@ pub struct GoogleCloudAiplatformV1AddContextChildrenRequest {
 }
 
 /// Response message for MetadataService.AddContextChildren.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AddContextChildrenResponse {}
 
 /// Request message for MetadataService.AddExecutionEvents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AddExecutionEventsRequest {
     /// The Events to create and add.
     #[serde(default)]
@@ -75,11 +76,11 @@ pub struct GoogleCloudAiplatformV1AddExecutionEventsRequest {
 }
 
 /// Response message for MetadataService.AddExecutionEvents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AddExecutionEventsResponse {}
 
 /// Request message for VizierService.AddTrialMeasurement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AddTrialMeasurementRequest {
     /// Required. The measurement to be added to a Trial.
     #[serde(default)]
@@ -87,7 +88,7 @@ pub struct GoogleCloudAiplatformV1AddTrialMeasurementRequest {
 }
 
 /// Identifies a concept with which DataItems may be annotated with.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AnnotationSpec {
     /// Output only. Timestamp when this AnnotationSpec was created.
     #[serde(default, rename = "createTime")]
@@ -107,11 +108,11 @@ pub struct GoogleCloudAiplatformV1AnnotationSpec {
 }
 
 /// Response message for SessionService.AppendEvent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AppendEventResponse {}
 
 /// Agentic Retrieval Ask API for RAG. Request message for VertexRagService.AskContexts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AskContextsRequest {
     /// Required. Single RAG retrieve query.
     #[serde(default)]
@@ -122,7 +123,7 @@ pub struct GoogleCloudAiplatformV1AskContextsRequest {
 }
 
 /// Response message for VertexRagService.AskContexts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AskContextsResponse {
     /// The contexts of the query.
     #[serde(default)]
@@ -133,7 +134,7 @@ pub struct GoogleCloudAiplatformV1AskContextsResponse {
 }
 
 /// Metadata information for NotebookService.AssignNotebookRuntime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AssignNotebookRuntimeOperationMetadata {
     /// The operation generic information.
     #[serde(default, rename = "genericMetadata")]
@@ -144,7 +145,7 @@ pub struct GoogleCloudAiplatformV1AssignNotebookRuntimeOperationMetadata {
 }
 
 /// Request message for NotebookService.AssignNotebookRuntime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AssignNotebookRuntimeRequest {
     /// Required. Provide runtime specific information (e.g. runtime owner, notebook id) used for NotebookRuntime assignment.
     #[serde(default, rename = "notebookRuntime")]
@@ -158,7 +159,7 @@ pub struct GoogleCloudAiplatformV1AssignNotebookRuntimeRequest {
 }
 
 /// Request message for VertexRagService.AsyncRetrieveContexts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AsyncRetrieveContextsRequest {
     /// Required. Single RAG retrieve query.
     #[serde(default)]
@@ -169,7 +170,7 @@ pub struct GoogleCloudAiplatformV1AsyncRetrieveContextsRequest {
 }
 
 /// Request message for AugmentPrompt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AugmentPromptRequest {
     /// Optional. Input content to augment, only text format is supported for now.
     #[serde(default)]
@@ -183,7 +184,7 @@ pub struct GoogleCloudAiplatformV1AugmentPromptRequest {
 }
 
 /// Response message for AugmentPrompt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AugmentPromptResponse {
     /// Augmented prompt, only text format is supported for now.
     #[serde(default, rename = "augmentedPrompt")]
@@ -194,7 +195,7 @@ pub struct GoogleCloudAiplatformV1AugmentPromptResponse {
 }
 
 /// Request message for PipelineService.BatchCancelPipelineJobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchCancelPipelineJobsRequest {
     /// Required. The names of the PipelineJobs to cancel. A maximum of 32 PipelineJobs can be cancelled in a batch. Format: projects/{project}/locations/{location}/pipelineJobs/{pipelineJob}
     #[serde(default)]
@@ -202,7 +203,7 @@ pub struct GoogleCloudAiplatformV1BatchCancelPipelineJobsRequest {
 }
 
 /// Details of operations that perform batch create Features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchCreateFeaturesOperationMetadata {
     /// Operation metadata for Feature.
     #[serde(default, rename = "genericMetadata")]
@@ -210,7 +211,7 @@ pub struct GoogleCloudAiplatformV1BatchCreateFeaturesOperationMetadata {
 }
 
 /// Request message for FeaturestoreService.BatchCreateFeatures. Request message for FeatureRegistryService.BatchCreateFeatures.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchCreateFeaturesRequest {
     /// Required. The request message specifying the Features to create. All Features must be created under the same parent EntityType / FeatureGroup. The parent field in each child request message can be omitted. If parent is set in a child request, then the value must match the parent value in this request message.
     #[serde(default)]
@@ -219,7 +220,7 @@ pub struct GoogleCloudAiplatformV1BatchCreateFeaturesRequest {
 }
 
 /// Response message for FeaturestoreService.BatchCreateFeatures.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchCreateFeaturesResponse {
     /// The Features created.
     #[serde(default)]
@@ -227,7 +228,7 @@ pub struct GoogleCloudAiplatformV1BatchCreateFeaturesResponse {
 }
 
 /// Request message for TensorboardService.BatchCreateTensorboardRuns.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchCreateTensorboardRunsRequest {
     /// Required. The request message specifying the TensorboardRuns to create. A maximum of 1000 TensorboardRuns can be created in a batch.
     #[serde(default)]
@@ -236,7 +237,7 @@ pub struct GoogleCloudAiplatformV1BatchCreateTensorboardRunsRequest {
 }
 
 /// Response message for TensorboardService.BatchCreateTensorboardRuns.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchCreateTensorboardRunsResponse {
     /// The created TensorboardRuns.
     #[serde(default, rename = "tensorboardRuns")]
@@ -245,7 +246,7 @@ pub struct GoogleCloudAiplatformV1BatchCreateTensorboardRunsResponse {
 }
 
 /// Request message for TensorboardService.BatchCreateTensorboardTimeSeries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchCreateTensorboardTimeSeriesRequest {
     /// Required. The request message specifying the TensorboardTimeSeries to create. A maximum of 1000 TensorboardTimeSeries can be created in a batch.
     #[serde(default)]
@@ -255,7 +256,7 @@ pub struct GoogleCloudAiplatformV1BatchCreateTensorboardTimeSeriesRequest {
 }
 
 /// Response message for TensorboardService.BatchCreateTensorboardTimeSeries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchCreateTensorboardTimeSeriesResponse {
     /// The created TensorboardTimeSeries.
     #[serde(default, rename = "tensorboardTimeSeries")]
@@ -264,7 +265,7 @@ pub struct GoogleCloudAiplatformV1BatchCreateTensorboardTimeSeriesResponse {
 }
 
 /// Request message for PipelineService.BatchDeletePipelineJobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchDeletePipelineJobsRequest {
     /// Required. The names of the PipelineJobs to delete. A maximum of 32 PipelineJobs can be deleted in a batch. Format: projects/{project}/locations/{location}/pipelineJobs/{pipelineJob}
     #[serde(default)]
@@ -272,7 +273,7 @@ pub struct GoogleCloudAiplatformV1BatchDeletePipelineJobsRequest {
 }
 
 /// Request message for ModelService.BatchImportEvaluatedAnnotations
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchImportEvaluatedAnnotationsRequest {
     /// Required. Evaluated annotations resource to be imported.
     #[serde(default, rename = "evaluatedAnnotations")]
@@ -281,7 +282,7 @@ pub struct GoogleCloudAiplatformV1BatchImportEvaluatedAnnotationsRequest {
 }
 
 /// Response message for ModelService.BatchImportEvaluatedAnnotations
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchImportEvaluatedAnnotationsResponse {
     /// Output only. Number of EvaluatedAnnotations imported.
     #[serde(default, rename = "importedEvaluatedAnnotationsCount")]
@@ -289,7 +290,7 @@ pub struct GoogleCloudAiplatformV1BatchImportEvaluatedAnnotationsResponse {
 }
 
 /// Request message for ModelService.BatchImportModelEvaluationSlices
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchImportModelEvaluationSlicesRequest {
     /// Required. Model evaluation slice resource to be imported.
     #[serde(default, rename = "modelEvaluationSlices")]
@@ -298,7 +299,7 @@ pub struct GoogleCloudAiplatformV1BatchImportModelEvaluationSlicesRequest {
 }
 
 /// Response message for ModelService.BatchImportModelEvaluationSlices
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchImportModelEvaluationSlicesResponse {
     /// Output only. List of imported ModelEvaluationSlice.name.
     #[serde(default, rename = "importedModelEvaluationSlices")]
@@ -306,7 +307,7 @@ pub struct GoogleCloudAiplatformV1BatchImportModelEvaluationSlicesResponse {
 }
 
 /// Runtime operation information for MigrationService.BatchMigrateResources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchMigrateResourcesOperationMetadata {
     /// The common part of the operation metadata.
     #[serde(default, rename = "genericMetadata")]
@@ -319,7 +320,7 @@ pub struct GoogleCloudAiplatformV1BatchMigrateResourcesOperationMetadata {
 }
 
 /// Request message for MigrationService.BatchMigrateResources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchMigrateResourcesRequest {
     /// Required. The request messages specifying the resources to migrate. They must be in the same location as the destination. Up to 50 resources can be migrated in one batch.
     #[serde(default, rename = "migrateResourceRequests")]
@@ -328,7 +329,7 @@ pub struct GoogleCloudAiplatformV1BatchMigrateResourcesRequest {
 }
 
 /// Response message for MigrationService.BatchMigrateResources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchMigrateResourcesResponse {
     /// Successfully migrated resources.
     #[serde(default, rename = "migrateResourceResponses")]
@@ -337,7 +338,7 @@ pub struct GoogleCloudAiplatformV1BatchMigrateResourcesResponse {
 }
 
 /// Details of operations that batch reads Feature values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchReadFeatureValuesOperationMetadata {
     /// Operation metadata for Featurestore batch read Features values.
     #[serde(default, rename = "genericMetadata")]
@@ -345,7 +346,7 @@ pub struct GoogleCloudAiplatformV1BatchReadFeatureValuesOperationMetadata {
 }
 
 /// Request message for FeaturestoreService.BatchReadFeatureValues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchReadFeatureValuesRequest {
     /// Similar to csv_read_instances, but from BigQuery source.
     #[serde(default, rename = "bigqueryReadInstances")]
@@ -372,11 +373,11 @@ pub struct GoogleCloudAiplatformV1BatchReadFeatureValuesRequest {
 }
 
 /// Response message for FeaturestoreService.BatchReadFeatureValues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchReadFeatureValuesResponse {}
 
 /// Response message for TensorboardService.BatchReadTensorboardTimeSeriesData.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchReadTensorboardTimeSeriesDataResponse {
     /// The returned time series data.
     #[serde(default, rename = "timeSeriesData")]
@@ -385,7 +386,7 @@ pub struct GoogleCloudAiplatformV1BatchReadTensorboardTimeSeriesDataResponse {
 }
 
 /// Config of GenAI caching features. This is a singleton resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CacheConfig {
     /// If set to true, disables GenAI caching. Otherwise caching is enabled.
     #[serde(default, rename = "disableCache")]
@@ -396,43 +397,43 @@ pub struct GoogleCloudAiplatformV1CacheConfig {
 }
 
 /// Request message for JobService.CancelBatchPredictionJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CancelBatchPredictionJobRequest {}
 
 /// Request message for JobService.CancelCustomJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CancelCustomJobRequest {}
 
 /// Request message for JobService.CancelDataLabelingJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CancelDataLabelingJobRequest {}
 
 /// Request message for EvaluationManagementService.CancelEvaluationRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CancelEvaluationRunRequest {}
 
 /// Request message for JobService.CancelHyperparameterTuningJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CancelHyperparameterTuningJobRequest {}
 
 /// Request message for JobService.CancelNasJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CancelNasJobRequest {}
 
 /// Request message for PipelineService.CancelPipelineJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CancelPipelineJobRequest {}
 
 /// Request message for PipelineService.CancelTrainingPipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CancelTrainingPipelineRequest {}
 
 /// Request message for GenAiTuningService.CancelTuningJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CancelTuningJobRequest {}
 
 /// This message will be placed in the metadata field of a google.longrunning.Operation associated with a CheckTrialEarlyStoppingState request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CheckTrialEarlyStoppingStateMetatdata {
     /// Operation metadata for suggesting Trials.
     #[serde(default, rename = "genericMetadata")]
@@ -446,11 +447,11 @@ pub struct GoogleCloudAiplatformV1CheckTrialEarlyStoppingStateMetatdata {
 }
 
 /// Request message for VizierService.CheckTrialEarlyStoppingState.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CheckTrialEarlyStoppingStateRequest {}
 
 /// Response message for VizierService.CheckTrialEarlyStoppingState.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CheckTrialEarlyStoppingStateResponse {
     /// True if the Trial should stop.
     #[serde(default, rename = "shouldStop")]
@@ -458,7 +459,7 @@ pub struct GoogleCloudAiplatformV1CheckTrialEarlyStoppingStateResponse {
 }
 
 /// Request message for VizierService.CompleteTrial.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CompleteTrialRequest {
     /// Optional. If provided, it will be used as the completed Trial''s final_measurement; Otherwise, the service will auto-select a previously reported measurement as the final-measurement
     #[serde(default, rename = "finalMeasurement")]
@@ -472,7 +473,7 @@ pub struct GoogleCloudAiplatformV1CompleteTrialRequest {
 }
 
 /// Request message for ComputeTokens RPC call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ComputeTokensRequest {
     /// Optional. Input content.
     #[serde(default)]
@@ -486,7 +487,7 @@ pub struct GoogleCloudAiplatformV1ComputeTokensRequest {
 }
 
 /// Response message for ComputeTokens RPC call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ComputeTokensResponse {
     /// Lists of tokens info from the input. A ComputeTokensRequest could have multiple instances with a prompt in each instance. We also need to return lists of tokens info for the request with multiple instances.
     #[serde(default, rename = "tokensInfo")]
@@ -494,7 +495,7 @@ pub struct GoogleCloudAiplatformV1ComputeTokensResponse {
 }
 
 /// Repeated Content type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ContentMapContents {
     /// Optional. Repeated contents.
     #[serde(default)]
@@ -502,7 +503,7 @@ pub struct GoogleCloudAiplatformV1ContentMapContents {
 }
 
 /// Details of ModelService.CopyModel operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CopyModelOperationMetadata {
     /// The common part of the operation metadata.
     #[serde(default, rename = "genericMetadata")]
@@ -510,7 +511,7 @@ pub struct GoogleCloudAiplatformV1CopyModelOperationMetadata {
 }
 
 /// Request message for ModelService.CopyModel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CopyModelRequest {
     /// Customer-managed encryption key options. If this is set, then the Model copy will be encrypted with the provided encryption key.
     #[serde(default, rename = "encryptionSpec")]
@@ -527,7 +528,7 @@ pub struct GoogleCloudAiplatformV1CopyModelRequest {
 }
 
 /// Response message of ModelService.CopyModel operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CopyModelResponse {
     /// The name of the copied Model resource. Format: projects/{project}/locations/{location}/models/{model}
     #[serde(default)]
@@ -538,7 +539,7 @@ pub struct GoogleCloudAiplatformV1CopyModelResponse {
 }
 
 /// Request message for CorroborateContent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CorroborateContentRequest {
     /// Optional. Input content to corroborate, only text format is supported for now.
     #[serde(default)]
@@ -553,7 +554,7 @@ pub struct GoogleCloudAiplatformV1CorroborateContentRequest {
 }
 
 /// Response message for CorroborateContent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CorroborateContentResponse {
     /// Claims that are extracted from the input content and facts that support the claims.
     #[serde(default)]
@@ -564,7 +565,7 @@ pub struct GoogleCloudAiplatformV1CorroborateContentResponse {
 }
 
 /// Request message for PredictionService.CountTokens.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CountTokensRequest {
     /// Optional. Input content.
     #[serde(default)]
@@ -587,7 +588,7 @@ pub struct GoogleCloudAiplatformV1CountTokensRequest {
 }
 
 /// Response message for PredictionService.CountTokens.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CountTokensResponse {
     /// Output only. List of modalities that were processed in the request input.
     #[serde(default, rename = "promptTokensDetails")]
@@ -602,7 +603,7 @@ pub struct GoogleCloudAiplatformV1CountTokensResponse {
 }
 
 /// Runtime operation information for DatasetService.CreateDataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CreateDatasetOperationMetadata {
     /// The operation generic information.
     #[serde(default, rename = "genericMetadata")]
@@ -610,7 +611,7 @@ pub struct GoogleCloudAiplatformV1CreateDatasetOperationMetadata {
 }
 
 /// Runtime operation information for DatasetService.CreateDatasetVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CreateDatasetVersionOperationMetadata {
     /// The common part of the operation metadata.
     #[serde(default, rename = "genericMetadata")]
@@ -618,7 +619,7 @@ pub struct GoogleCloudAiplatformV1CreateDatasetVersionOperationMetadata {
 }
 
 /// Runtime operation information for CreateDeploymentResourcePool method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CreateDeploymentResourcePoolOperationMetadata {
     /// The operation generic information.
     #[serde(default, rename = "genericMetadata")]
@@ -626,7 +627,7 @@ pub struct GoogleCloudAiplatformV1CreateDeploymentResourcePoolOperationMetadata 
 }
 
 /// Request message for CreateDeploymentResourcePool method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CreateDeploymentResourcePoolRequest {
     /// Required. The DeploymentResourcePool to create.
     #[serde(default, rename = "deploymentResourcePool")]
@@ -638,7 +639,7 @@ pub struct GoogleCloudAiplatformV1CreateDeploymentResourcePoolRequest {
 }
 
 /// Runtime operation information for EndpointService.CreateEndpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CreateEndpointOperationMetadata {
     /// Output only. The deployment stage of the model. Only populated if this CreateEndpoint request deploys a model at the same time. // TODO: enum values: ["DEPLOYMENT_STAGE_UNSPECIFIED", "STARTING_DEPLOYMENT", "PREPARING_MODEL", "CREATING_SERVING_CLUSTER", "ADDING_NODES_TO_CLUSTER", "GETTING_CONTAINER_IMAGE", "STARTING_MODEL_SERVER", "FINISHING_UP", "DEPLOYMENT_TERMINATED", "SUCCESSFULLY_DEPLOYED", "FAILED_TO_DEPLOY"]
     #[serde(default, rename = "deploymentStage")]
@@ -649,7 +650,7 @@ pub struct GoogleCloudAiplatformV1CreateEndpointOperationMetadata {
 }
 
 /// Details of operations that perform create EntityType.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CreateEntityTypeOperationMetadata {
     /// Operation metadata for EntityType.
     #[serde(default, rename = "genericMetadata")]
@@ -657,7 +658,7 @@ pub struct GoogleCloudAiplatformV1CreateEntityTypeOperationMetadata {
 }
 
 /// Details of operations that perform create FeatureGroup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CreateFeatureGroupOperationMetadata {
     /// Operation metadata for FeatureGroup.
     #[serde(default, rename = "genericMetadata")]
@@ -665,7 +666,7 @@ pub struct GoogleCloudAiplatformV1CreateFeatureGroupOperationMetadata {
 }
 
 /// Details of operations that perform create FeatureOnlineStore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CreateFeatureOnlineStoreOperationMetadata {
     /// Operation metadata for FeatureOnlineStore.
     #[serde(default, rename = "genericMetadata")]
@@ -673,7 +674,7 @@ pub struct GoogleCloudAiplatformV1CreateFeatureOnlineStoreOperationMetadata {
 }
 
 /// Details of operations that perform create Feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CreateFeatureOperationMetadata {
     /// Operation metadata for Feature.
     #[serde(default, rename = "genericMetadata")]
@@ -681,7 +682,7 @@ pub struct GoogleCloudAiplatformV1CreateFeatureOperationMetadata {
 }
 
 /// Details of operations that perform create FeatureView.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CreateFeatureViewOperationMetadata {
     /// Operation metadata for FeatureView Create.
     #[serde(default, rename = "genericMetadata")]
@@ -689,7 +690,7 @@ pub struct GoogleCloudAiplatformV1CreateFeatureViewOperationMetadata {
 }
 
 /// Details of operations that perform create Featurestore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CreateFeaturestoreOperationMetadata {
     /// Operation metadata for Featurestore.
     #[serde(default, rename = "genericMetadata")]
@@ -697,7 +698,7 @@ pub struct GoogleCloudAiplatformV1CreateFeaturestoreOperationMetadata {
 }
 
 /// Runtime operation information for IndexEndpointService.CreateIndexEndpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CreateIndexEndpointOperationMetadata {
     /// The operation generic information.
     #[serde(default, rename = "genericMetadata")]
@@ -705,7 +706,7 @@ pub struct GoogleCloudAiplatformV1CreateIndexEndpointOperationMetadata {
 }
 
 /// Runtime operation information for IndexService.CreateIndex.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CreateIndexOperationMetadata {
     /// The operation generic information.
     #[serde(default, rename = "genericMetadata")]
@@ -717,7 +718,7 @@ pub struct GoogleCloudAiplatformV1CreateIndexOperationMetadata {
 }
 
 /// Details of operations that perform MetadataService.CreateMetadataStore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CreateMetadataStoreOperationMetadata {
     /// Operation metadata for creating a MetadataStore.
     #[serde(default, rename = "genericMetadata")]
@@ -725,7 +726,7 @@ pub struct GoogleCloudAiplatformV1CreateMetadataStoreOperationMetadata {
 }
 
 /// Metadata information for NotebookService.CreateNotebookExecutionJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CreateNotebookExecutionJobOperationMetadata {
     /// The operation generic information.
     #[serde(default, rename = "genericMetadata")]
@@ -736,7 +737,7 @@ pub struct GoogleCloudAiplatformV1CreateNotebookExecutionJobOperationMetadata {
 }
 
 /// Metadata information for NotebookService.CreateNotebookRuntimeTemplate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CreateNotebookRuntimeTemplateOperationMetadata {
     /// The operation generic information.
     #[serde(default, rename = "genericMetadata")]
@@ -744,7 +745,7 @@ pub struct GoogleCloudAiplatformV1CreateNotebookRuntimeTemplateOperationMetadata
 }
 
 /// Details of operations that perform create PersistentResource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CreatePersistentResourceOperationMetadata {
     /// Operation metadata for PersistentResource.
     #[serde(default, rename = "genericMetadata")]
@@ -755,7 +756,7 @@ pub struct GoogleCloudAiplatformV1CreatePersistentResourceOperationMetadata {
 }
 
 /// Details of operations that perform create FeatureGroup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CreateRegistryFeatureOperationMetadata {
     /// Operation metadata for Feature.
     #[serde(default, rename = "genericMetadata")]
@@ -763,7 +764,7 @@ pub struct GoogleCloudAiplatformV1CreateRegistryFeatureOperationMetadata {
 }
 
 /// Runtime operation information for SpecialistPoolService.CreateSpecialistPool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CreateSpecialistPoolOperationMetadata {
     /// The operation generic information.
     #[serde(default, rename = "genericMetadata")]
@@ -771,7 +772,7 @@ pub struct GoogleCloudAiplatformV1CreateSpecialistPoolOperationMetadata {
 }
 
 /// Details of operations that perform create Tensorboard.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CreateTensorboardOperationMetadata {
     /// Operation metadata for Tensorboard.
     #[serde(default, rename = "genericMetadata")]
@@ -779,7 +780,7 @@ pub struct GoogleCloudAiplatformV1CreateTensorboardOperationMetadata {
 }
 
 /// Details of operations that delete Feature values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeleteFeatureValuesOperationMetadata {
     /// Operation metadata for Featurestore delete Features values.
     #[serde(default, rename = "genericMetadata")]
@@ -787,7 +788,7 @@ pub struct GoogleCloudAiplatformV1DeleteFeatureValuesOperationMetadata {
 }
 
 /// Request message for FeaturestoreService.DeleteFeatureValues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeleteFeatureValuesRequest {
     /// Select feature values to be deleted by specifying entities.
     #[serde(default, rename = "selectEntity")]
@@ -801,7 +802,7 @@ pub struct GoogleCloudAiplatformV1DeleteFeatureValuesRequest {
 }
 
 /// Response message for FeaturestoreService.DeleteFeatureValues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeleteFeatureValuesResponse {
     /// Response for request specifying the entities to delete
     #[serde(default, rename = "selectEntity")]
@@ -815,7 +816,7 @@ pub struct GoogleCloudAiplatformV1DeleteFeatureValuesResponse {
 }
 
 /// Details of operations that perform MetadataService.DeleteMetadataStore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeleteMetadataStoreOperationMetadata {
     /// Operation metadata for deleting a MetadataStore.
     #[serde(default, rename = "genericMetadata")]
@@ -823,7 +824,7 @@ pub struct GoogleCloudAiplatformV1DeleteMetadataStoreOperationMetadata {
 }
 
 /// Details of operations that perform deletes of any entities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeleteOperationMetadata {
     /// The common part of the operation metadata.
     #[serde(default, rename = "genericMetadata")]
@@ -831,7 +832,7 @@ pub struct GoogleCloudAiplatformV1DeleteOperationMetadata {
 }
 
 /// Runtime operation information for IndexEndpointService.DeployIndex.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeployIndexOperationMetadata {
     /// The unique index id specified by user
     #[serde(default, rename = "deployedIndexId")]
@@ -842,7 +843,7 @@ pub struct GoogleCloudAiplatformV1DeployIndexOperationMetadata {
 }
 
 /// Request message for IndexEndpointService.DeployIndex.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeployIndexRequest {
     /// Required. The DeployedIndex to be created within the IndexEndpoint.
     #[serde(default, rename = "deployedIndex")]
@@ -850,7 +851,7 @@ pub struct GoogleCloudAiplatformV1DeployIndexRequest {
 }
 
 /// Response message for IndexEndpointService.DeployIndex.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeployIndexResponse {
     /// The DeployedIndex that had been deployed in the IndexEndpoint.
     #[serde(default, rename = "deployedIndex")]
@@ -858,7 +859,7 @@ pub struct GoogleCloudAiplatformV1DeployIndexResponse {
 }
 
 /// Runtime operation information for EndpointService.DeployModel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeployModelOperationMetadata {
     /// Output only. The deployment stage of the model. // TODO: enum values: ["DEPLOYMENT_STAGE_UNSPECIFIED", "STARTING_DEPLOYMENT", "PREPARING_MODEL", "CREATING_SERVING_CLUSTER", "ADDING_NODES_TO_CLUSTER", "GETTING_CONTAINER_IMAGE", "STARTING_MODEL_SERVER", "FINISHING_UP", "DEPLOYMENT_TERMINATED", "SUCCESSFULLY_DEPLOYED", "FAILED_TO_DEPLOY"]
     #[serde(default, rename = "deploymentStage")]
@@ -869,7 +870,7 @@ pub struct GoogleCloudAiplatformV1DeployModelOperationMetadata {
 }
 
 /// Request message for EndpointService.DeployModel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeployModelRequest {
     /// Required. The DeployedModel to be created within the Endpoint. Note that Endpoint.traffic_split must be updated for the DeployedModel to start receiving traffic, either as part of this call, or via EndpointService.UpdateEndpoint.
     #[serde(default, rename = "deployedModel")]
@@ -880,7 +881,7 @@ pub struct GoogleCloudAiplatformV1DeployModelRequest {
 }
 
 /// Response message for EndpointService.DeployModel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeployModelResponse {
     /// The DeployedModel that had been deployed in the Endpoint.
     #[serde(default, rename = "deployedModel")]
@@ -888,7 +889,7 @@ pub struct GoogleCloudAiplatformV1DeployModelResponse {
 }
 
 /// Runtime operation information for ModelGardenService.Deploy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeployOperationMetadata {
     /// Output only. The resource name of the Location to deploy the model in. Format: projects/{project}/locations/{location}
     #[serde(default)]
@@ -908,7 +909,7 @@ pub struct GoogleCloudAiplatformV1DeployOperationMetadata {
 }
 
 /// Request message for ModelGardenService.Deploy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeployRequest {
     /// Optional. The deploy config to use for the deployment. If not specified, the default deploy config will be used.
     #[serde(default, rename = "deployConfig")]
@@ -928,7 +929,7 @@ pub struct GoogleCloudAiplatformV1DeployRequest {
 }
 
 /// Response message for ModelGardenService.Deploy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeployResponse {
     /// Output only. The name of the Endpoint created. Format: projects/{project}/locations/{location}/endpoints/{endpoint}
     #[serde(default)]
@@ -942,7 +943,7 @@ pub struct GoogleCloudAiplatformV1DeployResponse {
 }
 
 /// Request message for PredictionService.DirectPredict.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DirectPredictRequest {
     /// The prediction input.
     #[serde(default)]
@@ -953,7 +954,7 @@ pub struct GoogleCloudAiplatformV1DirectPredictRequest {
 }
 
 /// Response message for PredictionService.DirectPredict.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DirectPredictResponse {
     /// The prediction output.
     #[serde(default)]
@@ -964,7 +965,7 @@ pub struct GoogleCloudAiplatformV1DirectPredictResponse {
 }
 
 /// Request message for PredictionService.DirectRawPredict.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DirectRawPredictRequest {
     /// The prediction input.
     #[serde(default)]
@@ -975,7 +976,7 @@ pub struct GoogleCloudAiplatformV1DirectRawPredictRequest {
 }
 
 /// Response message for PredictionService.DirectRawPredict.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DirectRawPredictResponse {
     /// The prediction output.
     #[serde(default)]
@@ -983,11 +984,11 @@ pub struct GoogleCloudAiplatformV1DirectRawPredictResponse {
 }
 
 /// The input content is encapsulated and uploaded in the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DirectUploadSource {}
 
 /// Request message for PredictionService.EmbedContent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EmbedContentRequest {
     /// Optional. Deprecated: Please use EmbedContentConfig.auto_truncate instead. Whether to silently truncate the input content if it''s longer than the maximum sequence length.
     #[serde(default, rename = "autoTruncate")]
@@ -1011,7 +1012,7 @@ pub struct GoogleCloudAiplatformV1EmbedContentRequest {
 }
 
 /// Response message for PredictionService.EmbedContent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EmbedContentResponse {
     /// The embedding generated from the input content.
     #[serde(default)]
@@ -1025,7 +1026,7 @@ pub struct GoogleCloudAiplatformV1EmbedContentResponse {
 }
 
 /// Request message for EvaluationService.EvaluateDataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluateDatasetRequest {
     /// Optional. Autorater config used for evaluation. Currently only publisher Gemini models are supported. Format: projects/{PROJECT}/locations/{LOCATION}/publishers/google/models/{MODEL}.
     #[serde(default, rename = "autoraterConfig")]
@@ -1045,7 +1046,7 @@ pub struct GoogleCloudAiplatformV1EvaluateDatasetRequest {
 }
 
 /// Request message for EvaluationService.EvaluateInstances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluateInstancesRequest {
     /// Optional. Autorater config used for evaluation.
     #[serde(default, rename = "autoraterConfig")]
@@ -1180,7 +1181,7 @@ pub struct GoogleCloudAiplatformV1EvaluateInstancesRequest {
 }
 
 /// Response message for EvaluationService.EvaluateInstances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluateInstancesResponse {
     /// Results for bleu metric.
     #[serde(default, rename = "bleuResults")]
@@ -1306,7 +1307,7 @@ pub struct GoogleCloudAiplatformV1EvaluateInstancesResponse {
 }
 
 /// Defines the configuration for a candidate model or agent being evaluated. InferenceConfig encapsulates all the necessary information to invoke or scrape the candidate during the evaluation run. This includes direct model inference parameters, agent execution settings, and multi-turn scraping configurations (such as user simulators). It serves as the primary representation of the candidate across different stages of the evaluation process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationRunInferenceConfig {
     /// Optional. Agent run config.
     #[serde(default, rename = "agentRunConfig")]
@@ -1321,11 +1322,11 @@ pub struct GoogleCloudAiplatformV1EvaluationRunInferenceConfig {
 }
 
 /// Spec for exact match metric - returns 1 if prediction and reference exactly matches, otherwise 0.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExactMatchSpec {}
 
 /// Request message for SandboxEnvironmentExecutionService.ExecuteCode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExecuteCodeRequest {
     /// Required. The inputs used for the stateless code execution.
     #[serde(default)]
@@ -1333,7 +1334,7 @@ pub struct GoogleCloudAiplatformV1ExecuteCodeRequest {
 }
 
 /// Response message for SandboxEnvironmentExecutionService.ExecuteCode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExecuteCodeResponse {
     /// The outputs from the sandbox environment.
     #[serde(default)]
@@ -1341,7 +1342,7 @@ pub struct GoogleCloudAiplatformV1ExecuteCodeResponse {
 }
 
 /// Request message for SandboxEnvironmentExecutionService.Execute.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExecuteSandboxEnvironmentRequest {
     /// Required. The inputs to the sandbox environment.
     #[serde(default)]
@@ -1349,7 +1350,7 @@ pub struct GoogleCloudAiplatformV1ExecuteSandboxEnvironmentRequest {
 }
 
 /// Response message for SandboxEnvironmentExecutionService.Execute.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExecuteSandboxEnvironmentResponse {
     /// The outputs from the sandbox environment.
     #[serde(default)]
@@ -1357,7 +1358,7 @@ pub struct GoogleCloudAiplatformV1ExecuteSandboxEnvironmentResponse {
 }
 
 /// Request message for PredictionService.Explain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExplainRequest {
     /// If specified, this ExplainRequest will be served by the chosen DeployedModel, overriding Endpoint.traffic_split.
     #[serde(default, rename = "deployedModelId")]
@@ -1375,7 +1376,7 @@ pub struct GoogleCloudAiplatformV1ExplainRequest {
 }
 
 /// Response message for PredictionService.Explain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExplainResponse {
     /// ID of the Endpoint''s DeployedModel that served this explanation.
     #[serde(default, rename = "deployedModelId")]
@@ -1389,7 +1390,7 @@ pub struct GoogleCloudAiplatformV1ExplainResponse {
 }
 
 /// Metadata of the input of a feature. Fields other than InputMetadata.input_baselines are applicable only for Models that are using Vertex AI-provided images for Tensorflow.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExplanationMetadataInputMetadata {
     /// Specifies the shape of the values of the input if the input is a sparse representation. Refer to Tensorflow documentation for more details: https://www.tensorflow.org/api_docs/python/tf/sparse/SparseTensor.
     #[serde(default, rename = "denseShapeTensorName")]
@@ -1434,7 +1435,7 @@ pub struct GoogleCloudAiplatformV1ExplanationMetadataInputMetadata {
 }
 
 /// Metadata of the prediction output to be explained.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExplanationMetadataOutputMetadata {
     /// Specify a field name in the prediction to look for the display name. Use this if the prediction contains the display names for the outputs. The display names in the prediction must have the same shape of the outputs, so that it can be located by Attribution.output_index for a specific output.
     #[serde(default, rename = "displayNameMappingKey")]
@@ -1448,7 +1449,7 @@ pub struct GoogleCloudAiplatformV1ExplanationMetadataOutputMetadata {
 }
 
 /// The input metadata entries to be overridden.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExplanationMetadataOverrideInputMetadataOverride {
     /// Baseline inputs for this feature. This overrides the input_baseline field of the ExplanationMetadata.InputMetadata object of the corresponding feature''s input metadata. If it''s not specified, the original baselines are not overridden.
     #[serde(default, rename = "inputBaselines")]
@@ -1456,7 +1457,7 @@ pub struct GoogleCloudAiplatformV1ExplanationMetadataOverrideInputMetadataOverri
 }
 
 /// Runtime operation information for DatasetService.ExportData.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExportDataOperationMetadata {
     /// A Google Cloud Storage directory which path ends with ''/''. The exported data is stored in the directory.
     #[serde(default, rename = "gcsOutputDirectory")]
@@ -1467,7 +1468,7 @@ pub struct GoogleCloudAiplatformV1ExportDataOperationMetadata {
 }
 
 /// Request message for DatasetService.ExportData.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExportDataRequest {
     /// Required. The desired output location.
     #[serde(default, rename = "exportConfig")]
@@ -1475,7 +1476,7 @@ pub struct GoogleCloudAiplatformV1ExportDataRequest {
 }
 
 /// Response message for DatasetService.ExportData.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExportDataResponse {
     /// Only present for custom code training export use case. Records data stats, i.e., train/validation/test item/annotation counts calculated during the export operation.
     #[serde(default, rename = "dataStats")]
@@ -1486,7 +1487,7 @@ pub struct GoogleCloudAiplatformV1ExportDataResponse {
 }
 
 /// Details of operations that exports Features values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExportFeatureValuesOperationMetadata {
     /// Operation metadata for Featurestore export Feature values.
     #[serde(default, rename = "genericMetadata")]
@@ -1494,7 +1495,7 @@ pub struct GoogleCloudAiplatformV1ExportFeatureValuesOperationMetadata {
 }
 
 /// Request message for FeaturestoreService.ExportFeatureValues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExportFeatureValuesRequest {
     /// Required. Specifies destination location and format.
     #[serde(default)]
@@ -1517,11 +1518,11 @@ pub struct GoogleCloudAiplatformV1ExportFeatureValuesRequest {
 }
 
 /// Response message for FeaturestoreService.ExportFeatureValues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExportFeatureValuesResponse {}
 
 /// Details of ModelService.ExportModel operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExportModelOperationMetadata {
     /// The common part of the operation metadata.
     #[serde(default, rename = "genericMetadata")]
@@ -1533,7 +1534,7 @@ pub struct GoogleCloudAiplatformV1ExportModelOperationMetadata {
 }
 
 /// Request message for ModelService.ExportModel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExportModelRequest {
     /// Required. The desired output location and configuration.
     #[serde(default, rename = "outputConfig")]
@@ -1542,11 +1543,11 @@ pub struct GoogleCloudAiplatformV1ExportModelRequest {
 }
 
 /// Response message of ModelService.ExportModel operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExportModelResponse {}
 
 /// Request message for TensorboardService.ExportTensorboardTimeSeriesData.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExportTensorboardTimeSeriesDataRequest {
     /// Exports the TensorboardTimeSeries'' data that match the filter expression.
     #[serde(default)]
@@ -1563,7 +1564,7 @@ pub struct GoogleCloudAiplatformV1ExportTensorboardTimeSeriesDataRequest {
 }
 
 /// Response message for TensorboardService.ExportTensorboardTimeSeriesData.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExportTensorboardTimeSeriesDataResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -1575,15 +1576,15 @@ pub struct GoogleCloudAiplatformV1ExportTensorboardTimeSeriesDataResponse {
 }
 
 /// The search parameters to use for SIMPLE_SEARCH spec.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExternalApiSimpleSearchParams {}
 
 /// Optimized storage type
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureOnlineStoreOptimized {}
 
 /// Request message for FeatureOnlineStoreService.FeatureViewDirectWrite.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureViewDirectWriteRequest {
     /// Required. The data keys and associated feature values.
     #[serde(default, rename = "dataKeyAndFeatureValues")]
@@ -1595,7 +1596,7 @@ pub struct GoogleCloudAiplatformV1FeatureViewDirectWriteRequest {
 }
 
 /// Response message for FeatureOnlineStoreService.FeatureViewDirectWrite.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureViewDirectWriteResponse {
     /// Response status for the keys listed in FeatureViewDirectWriteResponse.write_responses. The error only applies to the listed data keys - the stream will remain open for further FeatureOnlineStoreService.FeatureViewDirectWriteRequest requests. Partial failures (e.g. if the first 10 keys of a request fail, but the rest succeed) from a single request may result in multiple responses - there will be one response for the successful request keys and one response for the failing request keys.
     #[serde(default)]
@@ -1608,11 +1609,11 @@ pub struct GoogleCloudAiplatformV1FeatureViewDirectWriteResponse {
 }
 
 /// Configuration options for using brute force search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureViewIndexConfigBruteForceConfig {}
 
 /// Request message for FeatureOnlineStoreService.FetchFeatureValues. All the features under the requested feature view will be returned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FetchFeatureValuesRequest {
     /// Optional. Response data format. If not set, FeatureViewDataFormat.KEY_VALUE will be used. // TODO: enum values: ["FEATURE_VIEW_DATA_FORMAT_UNSPECIFIED", "KEY_VALUE", "PROTO_STRUCT"]
     #[serde(default, rename = "dataFormat")]
@@ -1623,7 +1624,7 @@ pub struct GoogleCloudAiplatformV1FetchFeatureValuesRequest {
 }
 
 /// Request message for PredictionService.FetchPredictOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FetchPredictOperationRequest {
     /// Required. The server-assigned name for the operation.
     #[serde(default, rename = "operationName")]
@@ -1631,7 +1632,7 @@ pub struct GoogleCloudAiplatformV1FetchPredictOperationRequest {
 }
 
 /// The request message for MatchService.FindNeighbors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FindNeighborsRequest {
     /// The ID of the DeployedIndex that will serve the request. This request is sent to a specific IndexEndpoint, as per the IndexEndpoint.network. That IndexEndpoint also has IndexEndpoint.deployed_indexes, and each such index has a DeployedIndex.id field. The value of the field below must equal one of the DeployedIndex.id fields of the IndexEndpoint that is being called for this request.
     #[serde(default, rename = "deployedIndexId")]
@@ -1646,7 +1647,7 @@ pub struct GoogleCloudAiplatformV1FindNeighborsRequest {
 }
 
 /// The response message for MatchService.FindNeighbors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FindNeighborsResponse {
     /// The nearest neighbors of the query datapoints.
     #[serde(default, rename = "nearestNeighbors")]
@@ -1656,7 +1657,7 @@ pub struct GoogleCloudAiplatformV1FindNeighborsResponse {
 }
 
 /// Request message for [PredictionService.GenerateContent].
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenerateContentRequest {
     /// Optional. The name of the cached content used as context to serve the prediction. Note: only used in explicit caching, where users can have control over caching (e.g. what content to cache) and enjoy guaranteed cost savings. Format: projects/{project}/locations/{location}/cachedContents/{cachedContent}
     #[serde(default, rename = "cachedContent")]
@@ -1689,7 +1690,7 @@ pub struct GoogleCloudAiplatformV1GenerateContentRequest {
 }
 
 /// Response message for [PredictionService.GenerateContent].
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenerateContentResponse {
     /// Output only. Generated candidates.
     #[serde(default)]
@@ -1714,11 +1715,11 @@ pub struct GoogleCloudAiplatformV1GenerateContentResponse {
 }
 
 /// Request message for FeatureOnlineStoreService.GenerateFetchAccessToken.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenerateFetchAccessTokenRequest {}
 
 /// Response message for FeatureOnlineStoreService.GenerateFetchAccessToken.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenerateFetchAccessTokenResponse {
     /// The OAuth 2.0 access token.
     #[serde(default, rename = "accessToken")]
@@ -1729,7 +1730,7 @@ pub struct GoogleCloudAiplatformV1GenerateFetchAccessTokenResponse {
 }
 
 /// Request message for EvaluationService.GenerateInstanceRubrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenerateInstanceRubricsRequest {
     /// Optional. Agent configuration, required for agent-based rubric generation.
     #[serde(default, rename = "agentConfig")]
@@ -1754,7 +1755,7 @@ pub struct GoogleCloudAiplatformV1GenerateInstanceRubricsRequest {
 }
 
 /// Response message for EvaluationService.GenerateInstanceRubrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenerateInstanceRubricsResponse {
     /// Output only. A list of generated rubrics.
     #[serde(default, rename = "generatedRubrics")]
@@ -1762,7 +1763,7 @@ pub struct GoogleCloudAiplatformV1GenerateInstanceRubricsResponse {
 }
 
 /// Request message for MemoryBankService.GenerateMemories. Maximum size is 8 MB.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenerateMemoriesRequest {
     /// Defines a direct source of content as the source content from which to generate memories.
     #[serde(default, rename = "directContentsSource")]
@@ -1803,7 +1804,7 @@ pub struct GoogleCloudAiplatformV1GenerateMemoriesRequest {
 }
 
 /// Request message for DataFoundryService.GenerateSyntheticData. It contains the settings and information needed to generate synthetic data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenerateSyntheticDataRequest {
     /// Required. The number of synthetic examples to generate. For this stateless API, you can generate up to 50 examples in a single request.
     #[serde(default)]
@@ -1821,7 +1822,7 @@ pub struct GoogleCloudAiplatformV1GenerateSyntheticDataRequest {
 }
 
 /// The response message for the GenerateSyntheticData method, containing the synthetic examples generated by the Gen AI evaluation service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenerateSyntheticDataResponse {
     /// A list of generated synthetic examples, each containing a complete synthetic data instance generated based on your request.
     #[serde(default, rename = "syntheticExamples")]
@@ -1830,7 +1831,7 @@ pub struct GoogleCloudAiplatformV1GenerateSyntheticDataResponse {
 }
 
 /// Generate video response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenerateVideoResponse {
     /// The cloud storage uris of the generated videos.
     #[serde(default, rename = "generatedSamples")]
@@ -1848,7 +1849,7 @@ pub struct GoogleCloudAiplatformV1GenerateVideoResponse {
 }
 
 /// Runtime operation information for DatasetService.ImportData.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ImportDataOperationMetadata {
     /// The common part of the operation metadata.
     #[serde(default, rename = "genericMetadata")]
@@ -1856,7 +1857,7 @@ pub struct GoogleCloudAiplatformV1ImportDataOperationMetadata {
 }
 
 /// Request message for DatasetService.ImportData.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ImportDataRequest {
     /// Required. The desired input locations. The contents of all input locations will be imported in one batch.
     #[serde(default, rename = "importConfigs")]
@@ -1865,11 +1866,11 @@ pub struct GoogleCloudAiplatformV1ImportDataRequest {
 }
 
 /// Response message for DatasetService.ImportData.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ImportDataResponse {}
 
 /// Details of operations that perform import Feature values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ImportFeatureValuesOperationMetadata {
     /// List of ImportFeatureValues operations running under a single EntityType that are blocking this operation.
     #[serde(default, rename = "blockingOperationIds")]
@@ -1895,7 +1896,7 @@ pub struct GoogleCloudAiplatformV1ImportFeatureValuesOperationMetadata {
 }
 
 /// Request message for FeaturestoreService.ImportFeatureValues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ImportFeatureValuesRequest {
     #[serde(default, rename = "avroSource")]
     pub avro_source: ::core::option::Option<GoogleCloudAiplatformV1AvroSource>,
@@ -1929,7 +1930,7 @@ pub struct GoogleCloudAiplatformV1ImportFeatureValuesRequest {
 }
 
 /// Response message for FeaturestoreService.ImportFeatureValues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ImportFeatureValuesResponse {
     /// Number of entities that have been imported by the operation.
     #[serde(default, rename = "importedEntityCount")]
@@ -1946,7 +1947,7 @@ pub struct GoogleCloudAiplatformV1ImportFeatureValuesResponse {
 }
 
 /// Request message for ModelService.ImportModelEvaluation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ImportModelEvaluationRequest {
     /// Required. Model evaluation resource to be imported.
     #[serde(default, rename = "modelEvaluation")]
@@ -1954,7 +1955,7 @@ pub struct GoogleCloudAiplatformV1ImportModelEvaluationRequest {
 }
 
 /// Request message for VertexRagDataService.ImportRagFiles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ImportRagFilesRequest {
     /// Required. The config for the RagFiles to be synced and imported into the RagCorpus. VertexRagDataService.ImportRagFiles.
     #[serde(default, rename = "importRagFilesConfig")]
@@ -1963,7 +1964,7 @@ pub struct GoogleCloudAiplatformV1ImportRagFilesRequest {
 }
 
 /// Request message for PredictionService.Invoke.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1InvokeRequest {
     /// ID of the DeployedModel that serves the invoke request.
     #[serde(default, rename = "deployedModelId")]
@@ -1974,7 +1975,7 @@ pub struct GoogleCloudAiplatformV1InvokeRequest {
 }
 
 /// A subgraph of the overall lineage graph. Event edges connect Artifact and Execution nodes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1LineageSubgraph {
     /// The Artifact nodes in the subgraph.
     #[serde(default)]
@@ -1988,7 +1989,7 @@ pub struct GoogleCloudAiplatformV1LineageSubgraph {
 }
 
 /// Response message for DatasetService.ListAnnotations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListAnnotationsResponse {
     /// A list of Annotations that matches the specified filter in the request.
     #[serde(default)]
@@ -1999,7 +2000,7 @@ pub struct GoogleCloudAiplatformV1ListAnnotationsResponse {
 }
 
 /// Response message for MetadataService.ListArtifacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListArtifactsResponse {
     /// The Artifacts retrieved from the MetadataStore.
     #[serde(default)]
@@ -2010,7 +2011,7 @@ pub struct GoogleCloudAiplatformV1ListArtifactsResponse {
 }
 
 /// Response message for JobService.ListBatchPredictionJobs
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListBatchPredictionJobsResponse {
     /// List of BatchPredictionJobs in the requested page.
     #[serde(default, rename = "batchPredictionJobs")]
@@ -2022,7 +2023,7 @@ pub struct GoogleCloudAiplatformV1ListBatchPredictionJobsResponse {
 }
 
 /// Response with a list of CachedContents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListCachedContentsResponse {
     /// List of cached contents.
     #[serde(default, rename = "cachedContents")]
@@ -2034,7 +2035,7 @@ pub struct GoogleCloudAiplatformV1ListCachedContentsResponse {
 }
 
 /// Response message for MetadataService.ListContexts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListContextsResponse {
     /// The Contexts retrieved from the MetadataStore.
     #[serde(default)]
@@ -2045,7 +2046,7 @@ pub struct GoogleCloudAiplatformV1ListContextsResponse {
 }
 
 /// Response message for JobService.ListCustomJobs
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListCustomJobsResponse {
     /// List of CustomJobs in the requested page.
     #[serde(default, rename = "customJobs")]
@@ -2056,7 +2057,7 @@ pub struct GoogleCloudAiplatformV1ListCustomJobsResponse {
 }
 
 /// Response message for DatasetService.ListDataItems.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListDataItemsResponse {
     /// A list of DataItems that matches the specified filter in the request.
     #[serde(default, rename = "dataItems")]
@@ -2067,7 +2068,7 @@ pub struct GoogleCloudAiplatformV1ListDataItemsResponse {
 }
 
 /// Response message for JobService.ListDataLabelingJobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListDataLabelingJobsResponse {
     /// A list of DataLabelingJobs that matches the specified filter in the request.
     #[serde(default, rename = "dataLabelingJobs")]
@@ -2079,7 +2080,7 @@ pub struct GoogleCloudAiplatformV1ListDataLabelingJobsResponse {
 }
 
 /// Response message for DatasetService.ListDatasetVersions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListDatasetVersionsResponse {
     /// A list of DatasetVersions that matches the specified filter in the request.
     #[serde(default, rename = "datasetVersions")]
@@ -2091,7 +2092,7 @@ pub struct GoogleCloudAiplatformV1ListDatasetVersionsResponse {
 }
 
 /// Response message for DatasetService.ListDatasets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListDatasetsResponse {
     /// A list of Datasets that matches the specified filter in the request.
     #[serde(default)]
@@ -2102,7 +2103,7 @@ pub struct GoogleCloudAiplatformV1ListDatasetsResponse {
 }
 
 /// Response message for ListDeploymentResourcePools method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListDeploymentResourcePoolsResponse {
     /// The DeploymentResourcePools from the specified location.
     #[serde(default, rename = "deploymentResourcePools")]
@@ -2114,7 +2115,7 @@ pub struct GoogleCloudAiplatformV1ListDeploymentResourcePoolsResponse {
 }
 
 /// Response message for EndpointService.ListEndpoints.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListEndpointsResponse {
     /// List of Endpoints in the requested page.
     #[serde(default)]
@@ -2125,7 +2126,7 @@ pub struct GoogleCloudAiplatformV1ListEndpointsResponse {
 }
 
 /// Response message for FeaturestoreService.ListEntityTypes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListEntityTypesResponse {
     /// The EntityTypes matching the request.
     #[serde(default, rename = "entityTypes")]
@@ -2136,7 +2137,7 @@ pub struct GoogleCloudAiplatformV1ListEntityTypesResponse {
 }
 
 /// Response message for EvaluationManagementService.ListEvaluationItems.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListEvaluationItemsResponse {
     /// List of EvaluationItems in the requested page.
     #[serde(default, rename = "evaluationItems")]
@@ -2148,7 +2149,7 @@ pub struct GoogleCloudAiplatformV1ListEvaluationItemsResponse {
 }
 
 /// Response message for EvaluationManagementService.ListEvaluationRuns.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListEvaluationRunsResponse {
     /// List of EvaluationRuns in the requested page.
     #[serde(default, rename = "evaluationRuns")]
@@ -2160,7 +2161,7 @@ pub struct GoogleCloudAiplatformV1ListEvaluationRunsResponse {
 }
 
 /// Response message for EvaluationManagementService.ListEvaluationSets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListEvaluationSetsResponse {
     /// List of EvaluationSets in the requested page.
     #[serde(default, rename = "evaluationSets")]
@@ -2172,7 +2173,7 @@ pub struct GoogleCloudAiplatformV1ListEvaluationSetsResponse {
 }
 
 /// Response message for SessionService.ListEvents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListEventsResponse {
     /// A token, which can be sent as ListEventsRequest.page_token to retrieve the next page. Absence of this field indicates there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -2184,7 +2185,7 @@ pub struct GoogleCloudAiplatformV1ListEventsResponse {
 }
 
 /// Response message for MetadataService.ListExecutions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListExecutionsResponse {
     /// The Executions retrieved from the MetadataStore.
     #[serde(default)]
@@ -2195,7 +2196,7 @@ pub struct GoogleCloudAiplatformV1ListExecutionsResponse {
 }
 
 /// Response message for FeatureRegistryService.ListFeatureGroups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListFeatureGroupsResponse {
     /// The FeatureGroups matching the request.
     #[serde(default, rename = "featureGroups")]
@@ -2207,7 +2208,7 @@ pub struct GoogleCloudAiplatformV1ListFeatureGroupsResponse {
 }
 
 /// Response message for FeatureOnlineStoreAdminService.ListFeatureOnlineStores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListFeatureOnlineStoresResponse {
     /// The FeatureOnlineStores matching the request.
     #[serde(default, rename = "featureOnlineStores")]
@@ -2219,7 +2220,7 @@ pub struct GoogleCloudAiplatformV1ListFeatureOnlineStoresResponse {
 }
 
 /// Response message for FeatureOnlineStoreAdminService.ListFeatureViewSyncs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListFeatureViewSyncsResponse {
     /// The FeatureViewSyncs matching the request.
     #[serde(default, rename = "featureViewSyncs")]
@@ -2231,7 +2232,7 @@ pub struct GoogleCloudAiplatformV1ListFeatureViewSyncsResponse {
 }
 
 /// Response message for FeatureOnlineStoreAdminService.ListFeatureViews.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListFeatureViewsResponse {
     /// The FeatureViews matching the request.
     #[serde(default, rename = "featureViews")]
@@ -2242,7 +2243,7 @@ pub struct GoogleCloudAiplatformV1ListFeatureViewsResponse {
 }
 
 /// Response message for FeaturestoreService.ListFeatures. Response message for FeatureRegistryService.ListFeatures.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListFeaturesResponse {
     /// The Features matching the request.
     #[serde(default)]
@@ -2253,7 +2254,7 @@ pub struct GoogleCloudAiplatformV1ListFeaturesResponse {
 }
 
 /// Response message for FeaturestoreService.ListFeaturestores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListFeaturestoresResponse {
     /// The Featurestores matching the request.
     #[serde(default)]
@@ -2264,7 +2265,7 @@ pub struct GoogleCloudAiplatformV1ListFeaturestoresResponse {
 }
 
 /// Response message for JobService.ListHyperparameterTuningJobs
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListHyperparameterTuningJobsResponse {
     /// List of HyperparameterTuningJobs in the requested page. HyperparameterTuningJob.trials of the jobs will be not be returned.
     #[serde(default, rename = "hyperparameterTuningJobs")]
@@ -2276,7 +2277,7 @@ pub struct GoogleCloudAiplatformV1ListHyperparameterTuningJobsResponse {
 }
 
 /// Response message for IndexEndpointService.ListIndexEndpoints.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListIndexEndpointsResponse {
     /// List of IndexEndpoints in the requested page.
     #[serde(default, rename = "indexEndpoints")]
@@ -2288,7 +2289,7 @@ pub struct GoogleCloudAiplatformV1ListIndexEndpointsResponse {
 }
 
 /// Response message for IndexService.ListIndexes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListIndexesResponse {
     /// List of indexes in the requested page.
     #[serde(default)]
@@ -2299,7 +2300,7 @@ pub struct GoogleCloudAiplatformV1ListIndexesResponse {
 }
 
 /// Response message for MemoryBankService.ListMemories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListMemoriesResponse {
     /// List of Memories in the requested page.
     #[serde(default)]
@@ -2310,7 +2311,7 @@ pub struct GoogleCloudAiplatformV1ListMemoriesResponse {
 }
 
 /// Response message for MemoryBankService.ListMemoryRevisions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListMemoryRevisionsResponse {
     /// The list of Memory Revisions in the request page.
     #[serde(default, rename = "memoryRevisions")]
@@ -2322,7 +2323,7 @@ pub struct GoogleCloudAiplatformV1ListMemoryRevisionsResponse {
 }
 
 /// Response message for MetadataService.ListMetadataSchemas.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListMetadataSchemasResponse {
     /// The MetadataSchemas found for the MetadataStore.
     #[serde(default, rename = "metadataSchemas")]
@@ -2334,7 +2335,7 @@ pub struct GoogleCloudAiplatformV1ListMetadataSchemasResponse {
 }
 
 /// Response message for MetadataService.ListMetadataStores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListMetadataStoresResponse {
     /// The MetadataStores found for the Location.
     #[serde(default, rename = "metadataStores")]
@@ -2346,7 +2347,7 @@ pub struct GoogleCloudAiplatformV1ListMetadataStoresResponse {
 }
 
 /// Response message for JobService.ListModelDeploymentMonitoringJobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListModelDeploymentMonitoringJobsResponse {
     /// A list of ModelDeploymentMonitoringJobs that matches the specified filter in the request.
     #[serde(default, rename = "modelDeploymentMonitoringJobs")]
@@ -2359,7 +2360,7 @@ pub struct GoogleCloudAiplatformV1ListModelDeploymentMonitoringJobsResponse {
 }
 
 /// Response message for ModelService.ListModelEvaluationSlices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListModelEvaluationSlicesResponse {
     /// List of ModelEvaluations in the requested page.
     #[serde(default, rename = "modelEvaluationSlices")]
@@ -2371,7 +2372,7 @@ pub struct GoogleCloudAiplatformV1ListModelEvaluationSlicesResponse {
 }
 
 /// Response message for ModelService.ListModelEvaluations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListModelEvaluationsResponse {
     /// List of ModelEvaluations in the requested page.
     #[serde(default, rename = "modelEvaluations")]
@@ -2383,7 +2384,7 @@ pub struct GoogleCloudAiplatformV1ListModelEvaluationsResponse {
 }
 
 /// Response message for ModelService.ListModelVersionCheckpoints
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListModelVersionCheckpointsResponse {
     /// List of Model Version checkpoints.
     #[serde(default)]
@@ -2395,7 +2396,7 @@ pub struct GoogleCloudAiplatformV1ListModelVersionCheckpointsResponse {
 }
 
 /// Response message for ModelService.ListModelVersions
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListModelVersionsResponse {
     /// List of Model versions in the requested page. In the returned Model name field, version ID instead of regvision tag will be included.
     #[serde(default)]
@@ -2406,7 +2407,7 @@ pub struct GoogleCloudAiplatformV1ListModelVersionsResponse {
 }
 
 /// Response message for ModelService.ListModels
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListModelsResponse {
     /// List of Models in the requested page.
     #[serde(default)]
@@ -2417,7 +2418,7 @@ pub struct GoogleCloudAiplatformV1ListModelsResponse {
 }
 
 /// Response message for JobService.ListNasJobs
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListNasJobsResponse {
     /// List of NasJobs in the requested page. NasJob.nas_job_output of the jobs will not be returned.
     #[serde(default, rename = "nasJobs")]
@@ -2428,7 +2429,7 @@ pub struct GoogleCloudAiplatformV1ListNasJobsResponse {
 }
 
 /// Response message for JobService.ListNasTrialDetails
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListNasTrialDetailsResponse {
     /// List of top NasTrials in the requested page.
     #[serde(default, rename = "nasTrialDetails")]
@@ -2440,7 +2441,7 @@ pub struct GoogleCloudAiplatformV1ListNasTrialDetailsResponse {
 }
 
 /// Response message for [NotebookService.CreateNotebookExecutionJob]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListNotebookExecutionJobsResponse {
     /// A token to retrieve next page of results. Pass to ListNotebookExecutionJobsRequest.page_token to obtain that page.
     #[serde(default, rename = "nextPageToken")]
@@ -2452,7 +2453,7 @@ pub struct GoogleCloudAiplatformV1ListNotebookExecutionJobsResponse {
 }
 
 /// Response message for NotebookService.ListNotebookRuntimeTemplates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListNotebookRuntimeTemplatesResponse {
     /// A token to retrieve next page of results. Pass to ListNotebookRuntimeTemplatesRequest.page_token to obtain that page.
     #[serde(default, rename = "nextPageToken")]
@@ -2464,7 +2465,7 @@ pub struct GoogleCloudAiplatformV1ListNotebookRuntimeTemplatesResponse {
 }
 
 /// Response message for NotebookService.ListNotebookRuntimes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListNotebookRuntimesResponse {
     /// A token to retrieve next page of results. Pass to ListNotebookRuntimesRequest.page_token to obtain that page.
     #[serde(default, rename = "nextPageToken")]
@@ -2476,11 +2477,11 @@ pub struct GoogleCloudAiplatformV1ListNotebookRuntimesResponse {
 }
 
 /// Request message for VizierService.ListOptimalTrials.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListOptimalTrialsRequest {}
 
 /// Response message for VizierService.ListOptimalTrials.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListOptimalTrialsResponse {
     /// The pareto-optimal Trials for multiple objective Study or the optimal trial for single objective Study. The definition of pareto-optimal can be checked in wiki page. https://en.wikipedia.org/wiki/Pareto_efficiency
     #[serde(default, rename = "optimalTrials")]
@@ -2488,7 +2489,7 @@ pub struct GoogleCloudAiplatformV1ListOptimalTrialsResponse {
 }
 
 /// Response message for PersistentResourceService.ListPersistentResources
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListPersistentResourcesResponse {
     /// A token to retrieve next page of results. Pass to ListPersistentResourcesRequest.page_token to obtain that page.
     #[serde(default, rename = "nextPageToken")]
@@ -2499,7 +2500,7 @@ pub struct GoogleCloudAiplatformV1ListPersistentResourcesResponse {
 }
 
 /// Response message for PipelineService.ListPipelineJobs
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListPipelineJobsResponse {
     /// A token to retrieve the next page of results. Pass to ListPipelineJobsRequest.page_token to obtain that page.
     #[serde(default, rename = "nextPageToken")]
@@ -2510,7 +2511,7 @@ pub struct GoogleCloudAiplatformV1ListPipelineJobsResponse {
 }
 
 /// Response message for VertexRagDataService.ListRagCorpora.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListRagCorporaResponse {
     /// A token to retrieve the next page of results. Pass to ListRagCorporaRequest.page_token to obtain that page.
     #[serde(default, rename = "nextPageToken")]
@@ -2521,7 +2522,7 @@ pub struct GoogleCloudAiplatformV1ListRagCorporaResponse {
 }
 
 /// Response message for VertexRagDataService.ListRagFiles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListRagFilesResponse {
     /// A token to retrieve the next page of results. Pass to ListRagFilesRequest.page_token to obtain that page.
     #[serde(default, rename = "nextPageToken")]
@@ -2532,7 +2533,7 @@ pub struct GoogleCloudAiplatformV1ListRagFilesResponse {
 }
 
 /// Response message for ReasoningEngineService.ListReasoningEngines
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListReasoningEnginesResponse {
     /// A token to retrieve the next page of results. Pass to ListReasoningEnginesRequest.page_token to obtain that page.
     #[serde(default, rename = "nextPageToken")]
@@ -2544,7 +2545,7 @@ pub struct GoogleCloudAiplatformV1ListReasoningEnginesResponse {
 }
 
 /// Response message for SandboxEnvironmentService.ListSandboxEnvironments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListSandboxEnvironmentsResponse {
     /// A token, which can be sent as ListSandboxEnvironmentsRequest.page_token to retrieve the next page. Absence of this field indicates there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -2556,7 +2557,7 @@ pub struct GoogleCloudAiplatformV1ListSandboxEnvironmentsResponse {
 }
 
 /// Response message for DatasetService.ListSavedQueries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListSavedQueriesResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -2567,7 +2568,7 @@ pub struct GoogleCloudAiplatformV1ListSavedQueriesResponse {
 }
 
 /// Response message for ScheduleService.ListSchedules
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListSchedulesResponse {
     /// A token to retrieve the next page of results. Pass to ListSchedulesRequest.page_token to obtain that page.
     #[serde(default, rename = "nextPageToken")]
@@ -2578,7 +2579,7 @@ pub struct GoogleCloudAiplatformV1ListSchedulesResponse {
 }
 
 /// Response message for SessionService.ListSessions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListSessionsResponse {
     /// A token, which can be sent as ListSessionsRequest.page_token to retrieve the next page. Absence of this field indicates there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -2589,7 +2590,7 @@ pub struct GoogleCloudAiplatformV1ListSessionsResponse {
 }
 
 /// Response message for SpecialistPoolService.ListSpecialistPools.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListSpecialistPoolsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -2601,7 +2602,7 @@ pub struct GoogleCloudAiplatformV1ListSpecialistPoolsResponse {
 }
 
 /// Response message for VizierService.ListStudies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListStudiesResponse {
     /// Passes this token as the page_token field of the request for a subsequent call. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -2612,7 +2613,7 @@ pub struct GoogleCloudAiplatformV1ListStudiesResponse {
 }
 
 /// Response message for TensorboardService.ListTensorboardExperiments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListTensorboardExperimentsResponse {
     /// A token, which can be sent as ListTensorboardExperimentsRequest.page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -2624,7 +2625,7 @@ pub struct GoogleCloudAiplatformV1ListTensorboardExperimentsResponse {
 }
 
 /// Response message for TensorboardService.ListTensorboardRuns.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListTensorboardRunsResponse {
     /// A token, which can be sent as ListTensorboardRunsRequest.page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -2636,7 +2637,7 @@ pub struct GoogleCloudAiplatformV1ListTensorboardRunsResponse {
 }
 
 /// Response message for TensorboardService.ListTensorboardTimeSeries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListTensorboardTimeSeriesResponse {
     /// A token, which can be sent as ListTensorboardTimeSeriesRequest.page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -2648,7 +2649,7 @@ pub struct GoogleCloudAiplatformV1ListTensorboardTimeSeriesResponse {
 }
 
 /// Response message for TensorboardService.ListTensorboards.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListTensorboardsResponse {
     /// A token, which can be sent as ListTensorboardsRequest.page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -2659,7 +2660,7 @@ pub struct GoogleCloudAiplatformV1ListTensorboardsResponse {
 }
 
 /// Response message for PipelineService.ListTrainingPipelines
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListTrainingPipelinesResponse {
     /// A token to retrieve the next page of results. Pass to ListTrainingPipelinesRequest.page_token to obtain that page.
     #[serde(default, rename = "nextPageToken")]
@@ -2671,7 +2672,7 @@ pub struct GoogleCloudAiplatformV1ListTrainingPipelinesResponse {
 }
 
 /// Response message for VizierService.ListTrials.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListTrialsResponse {
     /// Pass this token as the page_token field of the request for a subsequent call. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -2682,7 +2683,7 @@ pub struct GoogleCloudAiplatformV1ListTrialsResponse {
 }
 
 /// Response message for GenAiTuningService.ListTuningJobs
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ListTuningJobsResponse {
     /// A token to retrieve the next page of results. Pass this token in a subsequent [GenAiTuningService.ListTuningJobs] call to retrieve the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -2693,7 +2694,7 @@ pub struct GoogleCloudAiplatformV1ListTuningJobsResponse {
 }
 
 /// Request message for VizierService.LookupStudy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1LookupStudyRequest {
     /// Required. The user-defined display name of the Study
     #[serde(default, rename = "displayName")]
@@ -2701,7 +2702,7 @@ pub struct GoogleCloudAiplatformV1LookupStudyRequest {
 }
 
 /// Request message for ModelService.MergeVersionAliases.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MergeVersionAliasesRequest {
     /// Required. The set of version aliases to merge. The alias should be at most 128 characters, and match a-z{0,126}[a-z-0-9]. Add the - prefix to an alias means removing that alias from the version. - is NOT counted in the 128 characters. Example: -golden means removing the golden alias from the version. There is NO ordering in aliases, which means 1) The aliases returned from GetModel API might not have the exactly same order from this MergeVersionAliases API. 2) Adding and deleting the same alias in the request is not recommended, and the 2 operations will be cancelled out.
     #[serde(default, rename = "versionAliases")]
@@ -2709,7 +2710,7 @@ pub struct GoogleCloudAiplatformV1MergeVersionAliasesRequest {
 }
 
 /// Specification message containing the config for this SliceSpec. When kind is selected as value and/or range, only a single slice will be computed. When all_values is present, a separate slice will be computed for each possible label/value for the corresponding key in config. Examples, with feature zip_code with values 12345, 23334, 88888 and feature country with values "US", "Canada", "Mexico" in the dataset: Example 1: { "zip_code": { "value": { "float_value": 12345.0 } } } A single slice for any data with zip_code 12345 in the dataset. Example 2: { "zip_code": { "range": { "low": 12345, "high": 20000 } } } A single slice containing data where the zip_codes between 12345 and 20000 For this example, data with the zip_code of 12345 will be in this slice. Example 3: { "zip_code": { "range": { "low": 10000, "high": 20000 } }, "country": { "value": { "string_value": "US" } } } A single slice containing data where the zip_codes between 10000 and 20000 has the country "US". For this example, data with the zip_code of 12345 and country "US" will be in this slice. Example 4: { "country": {"all_values": { "value": true } } } Three slices are computed, one for each unique country in the dataset. Example 5: { "country": { "all_values": { "value": true } }, "zip_code": { "value": { "float_value": 12345.0 } } } Three slices are computed, one for each unique country in the dataset where the zip_code is also 12345. For this example, data with zip_code 12345 and country "US" will be in one slice, zip_code 12345 and country "Canada" in another slice, and zip_code 12345 and country "Mexico" in another slice, totaling 3 slices.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelEvaluationSliceSliceSliceSpecSliceConfig {
     /// If all_values is set to true, then all possible labels of the keyed feature will have another slice computed. Example: {"all_values":{"value":true}}
     #[serde(default, rename = "allValues")]
@@ -2725,7 +2726,7 @@ pub struct GoogleCloudAiplatformV1ModelEvaluationSliceSliceSliceSpecSliceConfig 
 }
 
 /// Runtime operation information for IndexEndpointService.MutateDeployedIndex.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MutateDeployedIndexOperationMetadata {
     /// The unique index id specified by user
     #[serde(default, rename = "deployedIndexId")]
@@ -2736,7 +2737,7 @@ pub struct GoogleCloudAiplatformV1MutateDeployedIndexOperationMetadata {
 }
 
 /// Response message for IndexEndpointService.MutateDeployedIndex.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MutateDeployedIndexResponse {
     /// The DeployedIndex that had been updated in the IndexEndpoint.
     #[serde(default, rename = "deployedIndex")]
@@ -2744,7 +2745,7 @@ pub struct GoogleCloudAiplatformV1MutateDeployedIndexResponse {
 }
 
 /// Runtime operation information for EndpointService.MutateDeployedModel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MutateDeployedModelOperationMetadata {
     /// The operation generic information.
     #[serde(default, rename = "genericMetadata")]
@@ -2752,7 +2753,7 @@ pub struct GoogleCloudAiplatformV1MutateDeployedModelOperationMetadata {
 }
 
 /// Request message for EndpointService.MutateDeployedModel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MutateDeployedModelRequest {
     /// Required. The DeployedModel to be mutated within the Endpoint. Only the following fields can be mutated: * min_replica_count in either DedicatedResources or AutomaticResources * max_replica_count in either DedicatedResources or AutomaticResources * required_replica_count in DedicatedResources * autoscaling_metric_specs * disable_container_logging (v1 only) * enable_container_logging (v1beta1 only) * scale_to_zero_spec in DedicatedResources (v1beta1 only) * initial_replica_count in DedicatedResources (v1beta1 only)
     #[serde(default, rename = "deployedModel")]
@@ -2763,7 +2764,7 @@ pub struct GoogleCloudAiplatformV1MutateDeployedModelRequest {
 }
 
 /// Response message for EndpointService.MutateDeployedModel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MutateDeployedModelResponse {
     /// The DeployedModel that''s being mutated.
     #[serde(default, rename = "deployedModel")]
@@ -2771,7 +2772,7 @@ pub struct GoogleCloudAiplatformV1MutateDeployedModelResponse {
 }
 
 /// String filter is used to search a subset of the entities by using boolean rules on string columns. For example: if a query specifies string filter with ''name = color, allow_tokens = {red, blue}, deny_tokens = {purple}'','' then that query will match entities that are red or blue, but if those points are also purple, then they will be excluded even if they are red/blue. Only string filter is supported for now, numeric filter will be supported in the near future.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NearestNeighborQueryStringFilter {
     /// Optional. The allowed tokens.
     #[serde(default, rename = "allowTokens")]
@@ -2785,19 +2786,19 @@ pub struct GoogleCloudAiplatformV1NearestNeighborQueryStringFilter {
 }
 
 /// Configuration for a Workbench Instances-based environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NotebookExecutionJobWorkbenchRuntime {}
 
 /// Request message for JobService.PauseModelDeploymentMonitoringJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PauseModelDeploymentMonitoringJobRequest {}
 
 /// Request message for ScheduleService.PauseSchedule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PauseScheduleRequest {}
 
 /// The type of an input artifact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PipelineJobRuntimeConfigInputArtifact {
     /// Artifact resource id from MLMD. Which is the last portion of an artifact resource name: projects/{project}/locations/{location}/metadataStores/default/artifacts/{artifact_id}. The artifact must stay within the same project, location and default metadatastore as the pipeline.
     #[serde(default, rename = "artifactId")]
@@ -2805,7 +2806,7 @@ pub struct GoogleCloudAiplatformV1PipelineJobRuntimeConfigInputArtifact {
 }
 
 /// A list of artifact metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PipelineTaskDetailArtifactList {
     /// Output only. A list of artifact metadata.
     #[serde(default)]
@@ -2813,7 +2814,7 @@ pub struct GoogleCloudAiplatformV1PipelineTaskDetailArtifactList {
 }
 
 /// Request message for PredictionService.PredictLongRunning.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PredictLongRunningRequest {
     /// Required. The instances that are the input to the prediction call. A DeployedModel may have an upper limit on the number of instances it supports per request, and when it is exceeded the prediction call errors in case of AutoML Models, or, in case of customer created Models, the behaviour is as documented by that Model. The schema of any single instance may be specified via Endpoint''s DeployedModels'' Model''s PredictSchemata''s instance_schema_uri.
     #[serde(default)]
@@ -2827,7 +2828,7 @@ pub struct GoogleCloudAiplatformV1PredictLongRunningRequest {
 }
 
 /// Request message for PredictionService.Predict.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PredictRequest {
     /// Required. The instances that are the input to the prediction call. A DeployedModel may have an upper limit on the number of instances it supports per request, and when it is exceeded the prediction call errors in case of AutoML Models, or, in case of customer created Models, the behaviour is as documented by that Model. The schema of any single instance may be specified via Endpoint''s DeployedModels'' Model''s PredictSchemata''s instance_schema_uri.
     #[serde(default)]
@@ -2841,7 +2842,7 @@ pub struct GoogleCloudAiplatformV1PredictRequest {
 }
 
 /// Response message for PredictionService.Predict.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PredictResponse {
     /// ID of the Endpoint''s DeployedModel that served this prediction.
     #[serde(default, rename = "deployedModelId")]
@@ -2864,7 +2865,7 @@ pub struct GoogleCloudAiplatformV1PredictResponse {
 }
 
 /// A Model Garden Publisher Model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PublisherModel {
     /// Optional. Additional information about the model''s Frameworks.
     #[serde(default)]
@@ -2897,7 +2898,7 @@ pub struct GoogleCloudAiplatformV1PublisherModel {
 }
 
 /// Reference to a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PublisherModelResourceReference {
     /// Description of the resource.
     #[serde(default)]
@@ -2914,7 +2915,7 @@ pub struct GoogleCloudAiplatformV1PublisherModelResourceReference {
 }
 
 /// Details of operations that perform MetadataService.PurgeArtifacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PurgeArtifactsMetadata {
     /// Operation metadata for purging Artifacts.
     #[serde(default, rename = "genericMetadata")]
@@ -2922,7 +2923,7 @@ pub struct GoogleCloudAiplatformV1PurgeArtifactsMetadata {
 }
 
 /// Request message for MetadataService.PurgeArtifacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PurgeArtifactsRequest {
     /// Required. A required filter matching the Artifacts to be purged. E.g., update_time &lt;= 2020-11-19T11:30:00-04:00.
     #[serde(default)]
@@ -2933,7 +2934,7 @@ pub struct GoogleCloudAiplatformV1PurgeArtifactsRequest {
 }
 
 /// Response message for MetadataService.PurgeArtifacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PurgeArtifactsResponse {
     /// The number of Artifacts that this request deleted (or, if force is false, the number of Artifacts that will be deleted). This can be an estimate.
     #[serde(default, rename = "purgeCount")]
@@ -2944,7 +2945,7 @@ pub struct GoogleCloudAiplatformV1PurgeArtifactsResponse {
 }
 
 /// Details of operations that perform MetadataService.PurgeContexts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PurgeContextsMetadata {
     /// Operation metadata for purging Contexts.
     #[serde(default, rename = "genericMetadata")]
@@ -2952,7 +2953,7 @@ pub struct GoogleCloudAiplatformV1PurgeContextsMetadata {
 }
 
 /// Request message for MetadataService.PurgeContexts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PurgeContextsRequest {
     /// Required. A required filter matching the Contexts to be purged. E.g., update_time &lt;= 2020-11-19T11:30:00-04:00.
     #[serde(default)]
@@ -2963,7 +2964,7 @@ pub struct GoogleCloudAiplatformV1PurgeContextsRequest {
 }
 
 /// Response message for MetadataService.PurgeContexts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PurgeContextsResponse {
     /// The number of Contexts that this request deleted (or, if force is false, the number of Contexts that will be deleted). This can be an estimate.
     #[serde(default, rename = "purgeCount")]
@@ -2974,7 +2975,7 @@ pub struct GoogleCloudAiplatformV1PurgeContextsResponse {
 }
 
 /// Details of operations that perform MetadataService.PurgeExecutions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PurgeExecutionsMetadata {
     /// Operation metadata for purging Executions.
     #[serde(default, rename = "genericMetadata")]
@@ -2982,7 +2983,7 @@ pub struct GoogleCloudAiplatformV1PurgeExecutionsMetadata {
 }
 
 /// Request message for MetadataService.PurgeExecutions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PurgeExecutionsRequest {
     /// Required. A required filter matching the Executions to be purged. E.g., update_time &lt;= 2020-11-19T11:30:00-04:00.
     #[serde(default)]
@@ -2993,7 +2994,7 @@ pub struct GoogleCloudAiplatformV1PurgeExecutionsRequest {
 }
 
 /// Response message for MetadataService.PurgeExecutions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PurgeExecutionsResponse {
     /// The number of Executions that this request deleted (or, if force is false, the number of Executions that will be deleted). This can be an estimate.
     #[serde(default, rename = "purgeCount")]
@@ -3004,7 +3005,7 @@ pub struct GoogleCloudAiplatformV1PurgeExecutionsResponse {
 }
 
 /// Request message for MemoryBankService.PurgeMemories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PurgeMemoriesRequest {
     /// Required. The standard list filter to determine which memories to purge. More detail in [AIP-160](https://google.aip.dev/160).
     #[serde(default)]
@@ -3019,7 +3020,7 @@ pub struct GoogleCloudAiplatformV1PurgeMemoriesRequest {
 }
 
 /// Response message for QueryDeployedModels method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1QueryDeployedModelsResponse {
     /// References to the DeployedModels that share the specified deploymentResourcePool.
     #[serde(default, rename = "deployedModelRefs")]
@@ -3041,7 +3042,7 @@ pub struct GoogleCloudAiplatformV1QueryDeployedModelsResponse {
 }
 
 /// Request message for ReasoningEngineExecutionService.Query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1QueryReasoningEngineRequest {
     /// Optional. Class method to be used for the query. It is optional and defaults to "query" if unspecified.
     #[serde(default, rename = "classMethod")]
@@ -3052,7 +3053,7 @@ pub struct GoogleCloudAiplatformV1QueryReasoningEngineRequest {
 }
 
 /// Response message for ReasoningEngineExecutionService.Query
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1QueryReasoningEngineResponse {
     /// Response provided by users in JSON object format.
     #[serde(default)]
@@ -3060,7 +3061,7 @@ pub struct GoogleCloudAiplatformV1QueryReasoningEngineResponse {
 }
 
 /// Config for RagEngine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagEngineConfig {
     /// Identifier. The name of the RagEngineConfig. Format: projects/{project}/locations/{location}/ragEngineConfig
     #[serde(default)]
@@ -3071,27 +3072,27 @@ pub struct GoogleCloudAiplatformV1RagEngineConfig {
 }
 
 /// Basic tier is a cost-effective and low compute tier suitable for the following cases: * Experimenting with RagManagedDb. * Small data size. * Latency insensitive workload. * Only using RAG Engine with external vector DBs. NOTE: This is the default tier under Spanner mode if not explicitly chosen.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagManagedDbConfigBasic {}
 
 /// Scaled tier offers production grade performance along with autoscaling functionality. It is suitable for customers with large amounts of data or performance sensitive workloads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagManagedDbConfigScaled {}
 
 /// Message to configure the serverless mode offered by RAG Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagManagedDbConfigServerless {}
 
 /// Disables the RAG Engine service and deletes all your data held within this service. This will halt the billing of the service. NOTE: Once deleted the data cannot be recovered. To start using RAG Engine again, you will need to update the tier by calling the UpdateRagEngineConfig API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagManagedDbConfigUnprovisioned {}
 
 /// Config for KNN search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDbKNN {}
 
 /// Request message for PredictionService.RawPredict.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RawPredictRequest {
     /// The prediction input. Supports HTTP headers and arbitrary data payload. A DeployedModel may have an upper limit on the number of instances it supports per request. When this limit it is exceeded for an AutoML model, the RawPredict method returns an error. When this limit is exceeded for a custom-trained model, the behavior varies depending on the model. You can specify the schema for each instance in the predict_schemata.instance_schema_uri field when you create a Model. This schema applies when you deploy the Model as a DeployedModel to an Endpoint and use the RawPredict method.
     #[serde(default, rename = "httpBody")]
@@ -3099,7 +3100,7 @@ pub struct GoogleCloudAiplatformV1RawPredictRequest {
 }
 
 /// Request message for FeaturestoreOnlineServingService.ReadFeatureValues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReadFeatureValuesRequest {
     /// Required. ID for a specific entity. For example, for a machine learning model predicting user clicks on a website, an entity ID could be user_123.
     #[serde(default, rename = "entityId")]
@@ -3110,7 +3111,7 @@ pub struct GoogleCloudAiplatformV1ReadFeatureValuesRequest {
 }
 
 /// Response message for FeaturestoreOnlineServingService.ReadFeatureValues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReadFeatureValuesResponse {
     /// Entity view with Feature values. This may be the entity in the Featurestore if values for all Features were requested, or a projection of the entity in the Featurestore if values for only some Features were requested.
     #[serde(default, rename = "entityView")]
@@ -3122,7 +3123,7 @@ pub struct GoogleCloudAiplatformV1ReadFeatureValuesResponse {
 }
 
 /// The request message for MatchService.ReadIndexDatapoints.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReadIndexDatapointsRequest {
     /// The ID of the DeployedIndex that will serve the request.
     #[serde(default, rename = "deployedIndexId")]
@@ -3133,7 +3134,7 @@ pub struct GoogleCloudAiplatformV1ReadIndexDatapointsRequest {
 }
 
 /// The response message for MatchService.ReadIndexDatapoints.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReadIndexDatapointsResponse {
     /// The result list of datapoints.
     #[serde(default)]
@@ -3141,7 +3142,7 @@ pub struct GoogleCloudAiplatformV1ReadIndexDatapointsResponse {
 }
 
 /// Response message for TensorboardService.ReadTensorboardBlobData.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReadTensorboardBlobDataResponse {
     /// Blob messages containing blob bytes.
     #[serde(default)]
@@ -3149,7 +3150,7 @@ pub struct GoogleCloudAiplatformV1ReadTensorboardBlobDataResponse {
 }
 
 /// Response message for TensorboardService.ReadTensorboardSize.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReadTensorboardSizeResponse {
     /// Payload storage size for the TensorBoard
     #[serde(default, rename = "storageSizeByte")]
@@ -3157,7 +3158,7 @@ pub struct GoogleCloudAiplatformV1ReadTensorboardSizeResponse {
 }
 
 /// Response message for TensorboardService.ReadTensorboardTimeSeriesData.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReadTensorboardTimeSeriesDataResponse {
     /// The returned time series data.
     #[serde(default, rename = "timeSeriesData")]
@@ -3165,7 +3166,7 @@ pub struct GoogleCloudAiplatformV1ReadTensorboardTimeSeriesDataResponse {
 }
 
 /// Response message for TensorboardService.ReadTensorboardUsage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReadTensorboardUsageResponse {
     /// Maps year-month (YYYYMM) string to per month usage data.
     #[serde(default, rename = "monthlyUsageData")]
@@ -3173,7 +3174,7 @@ pub struct GoogleCloudAiplatformV1ReadTensorboardUsageResponse {
 }
 
 /// Per month usage data
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReadTensorboardUsageResponsePerMonthUsageData {
     /// Usage data for each user in the given month.
     #[serde(default, rename = "userUsageData")]
@@ -3183,7 +3184,7 @@ pub struct GoogleCloudAiplatformV1ReadTensorboardUsageResponsePerMonthUsageData 
 }
 
 /// Request message for GenAiTuningService.RebaseTunedModel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RebaseTunedModelRequest {
     /// Optional. The Google Cloud Storage location to write the artifacts to.
     #[serde(default, rename = "artifactDestination")]
@@ -3200,7 +3201,7 @@ pub struct GoogleCloudAiplatformV1RebaseTunedModelRequest {
 }
 
 /// Details of operations that perform reboot PersistentResource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RebootPersistentResourceOperationMetadata {
     /// Operation metadata for PersistentResource.
     #[serde(default, rename = "genericMetadata")]
@@ -3211,11 +3212,11 @@ pub struct GoogleCloudAiplatformV1RebootPersistentResourceOperationMetadata {
 }
 
 /// Request message for PersistentResourceService.RebootPersistentResource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RebootPersistentResourceRequest {}
 
 /// Request message for MetadataService.DeleteContextChildrenRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RemoveContextChildrenRequest {
     /// The resource names of the child Contexts.
     #[serde(default, rename = "childContexts")]
@@ -3223,11 +3224,11 @@ pub struct GoogleCloudAiplatformV1RemoveContextChildrenRequest {
 }
 
 /// Response message for MetadataService.RemoveContextChildren.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RemoveContextChildrenResponse {}
 
 /// Request message for IndexService.RemoveDatapoints
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RemoveDatapointsRequest {
     /// A list of datapoint ids to be deleted.
     #[serde(default, rename = "datapointIds")]
@@ -3235,11 +3236,11 @@ pub struct GoogleCloudAiplatformV1RemoveDatapointsRequest {
 }
 
 /// Response message for IndexService.RemoveDatapoints
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RemoveDatapointsResponse {}
 
 /// Runtime operation information for DatasetService.RestoreDatasetVersion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RestoreDatasetVersionOperationMetadata {
     /// The common part of the operation metadata.
     #[serde(default, rename = "genericMetadata")]
@@ -3247,11 +3248,11 @@ pub struct GoogleCloudAiplatformV1RestoreDatasetVersionOperationMetadata {
 }
 
 /// Request message for JobService.ResumeModelDeploymentMonitoringJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ResumeModelDeploymentMonitoringJobRequest {}
 
 /// Request message for ScheduleService.ResumeSchedule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ResumeScheduleRequest {
     /// Optional. Whether to backfill missed runs when the schedule is resumed from PAUSED state. If set to true, all missed runs will be scheduled. New runs will be scheduled after the backfill is complete. This will also update Schedule.catch_up field. Default to false.
     #[serde(default, rename = "catchUp")]
@@ -3259,7 +3260,7 @@ pub struct GoogleCloudAiplatformV1ResumeScheduleRequest {
 }
 
 /// Request message for VertexRagService.RetrieveContexts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RetrieveContextsRequest {
     /// Required. Single RAG retrieve query.
     #[serde(default)]
@@ -3271,7 +3272,7 @@ pub struct GoogleCloudAiplatformV1RetrieveContextsRequest {
 }
 
 /// Response message for VertexRagService.RetrieveContexts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RetrieveContextsResponse {
     /// The contexts of the query.
     #[serde(default)]
@@ -3279,7 +3280,7 @@ pub struct GoogleCloudAiplatformV1RetrieveContextsResponse {
 }
 
 /// Request message for MemoryBankService.RetrieveMemories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RetrieveMemoriesRequest {
     /// Optional. The standard list filter that will be applied to the retrieved memories. More detail in [AIP-160](https://google.aip.dev/160). Supported fields: * fact * create_time * update_time * topics (i.e. topics.custom_memory_topic_label: "example topic" OR topics.managed_memory_topic: USER_PREFERENCES)
     #[serde(default)]
@@ -3303,7 +3304,7 @@ pub struct GoogleCloudAiplatformV1RetrieveMemoriesRequest {
 }
 
 /// Response message for MemoryBankService.RetrieveMemories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RetrieveMemoriesResponse {
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages. This token is not set if similarity search was used for retrieval.
     #[serde(default, rename = "nextPageToken")]
@@ -3316,7 +3317,7 @@ pub struct GoogleCloudAiplatformV1RetrieveMemoriesResponse {
 }
 
 /// Request message for MemoryBankService.RollbackMemory.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RollbackMemoryRequest {
     /// Required. The ID of the revision to rollback to.
     #[serde(default, rename = "targetRevisionId")]
@@ -3324,11 +3325,11 @@ pub struct GoogleCloudAiplatformV1RollbackMemoryRequest {
 }
 
 /// Spec for RubricBasedInstructionFollowing metric - returns rubrics and verdicts corresponding to rubrics along with overall score.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RubricBasedInstructionFollowingSpec {}
 
 /// A group of rubrics, used for grouping rubrics based on a metric or a version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RubricGroup {
     /// Human-readable name for the group. This should be unique within a given context if used for display or selection. Example: "Instruction Following V1", "Content Quality - Summarization Task".
     #[serde(default, rename = "displayName")]
@@ -3342,7 +3343,7 @@ pub struct GoogleCloudAiplatformV1RubricGroup {
 }
 
 /// Annotation details specific to image object detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaImageBoundingBoxAnnotation {
     /// The resource Id of the AnnotationSpec that this Annotation pertains to.
     #[serde(default, rename = "annotationSpecId")]
@@ -3365,7 +3366,7 @@ pub struct GoogleCloudAiplatformV1SchemaImageBoundingBoxAnnotation {
 }
 
 /// Annotation details specific to image classification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaImageClassificationAnnotation {
     /// The resource Id of the AnnotationSpec that this Annotation pertains to.
     #[serde(default, rename = "annotationSpecId")]
@@ -3376,7 +3377,7 @@ pub struct GoogleCloudAiplatformV1SchemaImageClassificationAnnotation {
 }
 
 /// Payload of Image DataItem.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaImageDataItem {
     /// Required. Google Cloud Storage URI points to the original image in user''s bucket. The image is up to 30MB in size.
     #[serde(default, rename = "gcsUri")]
@@ -3387,7 +3388,7 @@ pub struct GoogleCloudAiplatformV1SchemaImageDataItem {
 }
 
 /// The metadata of Datasets that contain Image DataItems.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaImageDatasetMetadata {
     /// Points to a YAML file stored on Google Cloud Storage describing payload of the Image DataItems that belong to this Dataset.
     #[serde(default, rename = "dataItemSchemaUri")]
@@ -3398,7 +3399,7 @@ pub struct GoogleCloudAiplatformV1SchemaImageDatasetMetadata {
 }
 
 /// Annotation details specific to image segmentation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaImageSegmentationAnnotation {
     /// Mask based segmentation annotation. Only one mask annotation can exist for one image.
     #[serde(default, rename = "maskAnnotation")]
@@ -3418,7 +3419,7 @@ pub struct GoogleCloudAiplatformV1SchemaImageSegmentationAnnotation {
 }
 
 /// Metrics for classification evaluation results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsClassificationEvaluationMetrics {
     /// The Area Under Precision-Recall Curve metric. Micro-averaged for the overall evaluation.
     #[serde(default, rename = "auPrc")]
@@ -3438,7 +3439,7 @@ pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsClassificationEval
 }
 
 /// Metrics for forecasting evaluation results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsForecastingEvaluationMetrics {
     /// Mean Absolute Error (MAE).
     #[serde(default, rename = "meanAbsoluteError")]
@@ -3467,7 +3468,7 @@ pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsForecastingEvaluat
 }
 
 /// GoogleCloudAiplatformV1SchemaModelevaluationMetricsGeneralTextGenerationEvaluationMetrics resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsGeneralTextGenerationEvaluationMetrics
 {
     /// BLEU (bilingual evaluation understudy) scores based on sacrebleu implementation.
@@ -3479,7 +3480,7 @@ pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsGeneralTextGenerat
 }
 
 /// Metrics for image object detection evaluation results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsImageObjectDetectionEvaluationMetrics
 {
     /// The single metric for bounding boxes evaluation: the meanAveragePrecision averaged over all boundingBoxMetricsEntries.
@@ -3496,7 +3497,7 @@ pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsImageObjectDetecti
 }
 
 /// Metrics for image segmentation evaluation results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsImageSegmentationEvaluationMetrics {
     /// Metrics for each confidenceThreshold in 0.00,0.05,0.10,...,0.95,0.96,0.97,0.98,0.99 Precision-recall curve can be derived from it.
     #[serde(default, rename = "confidenceMetricsEntries")]
@@ -3504,7 +3505,7 @@ pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsImageSegmentationE
 }
 
 /// Metrics for general pairwise text generation evaluation results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsPairwiseTextGenerationEvaluationMetrics
 {
     /// Fraction of cases where the autorater agreed with the human raters.
@@ -3549,7 +3550,7 @@ pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsPairwiseTextGenera
 }
 
 /// GoogleCloudAiplatformV1SchemaModelevaluationMetricsQuestionAnsweringEvaluationMetrics resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsQuestionAnsweringEvaluationMetrics {
     /// The rate at which the input predicted strings exactly match their references.
     #[serde(default, rename = "exactMatch")]
@@ -3557,7 +3558,7 @@ pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsQuestionAnsweringE
 }
 
 /// Metrics for regression evaluation results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsRegressionEvaluationMetrics {
     /// Mean Absolute Error (MAE).
     #[serde(default, rename = "meanAbsoluteError")]
@@ -3577,7 +3578,7 @@ pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsRegressionEvaluati
 }
 
 /// GoogleCloudAiplatformV1SchemaModelevaluationMetricsSummarizationEvaluationMetrics resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsSummarizationEvaluationMetrics {
     /// ROUGE-L (Longest Common Subsequence) scoring at summary level.
     #[serde(default, rename = "rougeLSum")]
@@ -3585,7 +3586,7 @@ pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsSummarizationEvalu
 }
 
 /// Metrics for text extraction evaluation results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsTextExtractionEvaluationMetrics {
     /// Metrics that have confidence thresholds. Precision-recall curve can be derived from them.
     #[serde(default, rename = "confidenceMetrics")]
@@ -3596,7 +3597,7 @@ pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsTextExtractionEval
 }
 
 /// Model evaluation metrics for text sentiment problems.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsTextSentimentEvaluationMetrics {
     /// Confusion matrix of the evaluation. Only set for ModelEvaluations, not for ModelEvaluationSlices.
     #[serde(default, rename = "confusionMatrix")]
@@ -3626,7 +3627,7 @@ pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsTextSentimentEvalu
 }
 
 /// Model evaluation metrics for video action recognition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsVideoActionRecognitionMetrics {
     /// The number of ground truth actions used to create this evaluation.
     #[serde(default, rename = "evaluatedActionCount")]
@@ -3639,7 +3640,7 @@ pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsVideoActionRecogni
 }
 
 /// Model evaluation metrics for video object tracking problems. Evaluates prediction quality of both labeled bounding boxes and labeled tracks (i.e. series of bounding boxes sharing same label and instance ID).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsVideoObjectTrackingMetrics {
     /// The single metric for bounding boxes evaluation: the meanAveragePrecision averaged over all boundingBoxMetrics.
     #[serde(default, rename = "boundingBoxMeanAveragePrecision")]
@@ -3675,7 +3676,7 @@ pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsVideoObjectTrackin
 }
 
 /// Prediction input format for Image Classification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictInstanceImageClassificationPredictionInstance {
     /// The image bytes or Cloud Storage URI to make the prediction on.
     #[serde(default)]
@@ -3686,7 +3687,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictInstanceImageClassificationPredic
 }
 
 /// Prediction input format for Image Object Detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictInstanceImageObjectDetectionPredictionInstance {
     /// The image bytes or Cloud Storage URI to make the prediction on.
     #[serde(default)]
@@ -3697,7 +3698,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictInstanceImageObjectDetectionPredi
 }
 
 /// Prediction input format for Image Segmentation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictInstanceImageSegmentationPredictionInstance {
     /// The image bytes to make the predictions on.
     #[serde(default)]
@@ -3708,7 +3709,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictInstanceImageSegmentationPredicti
 }
 
 /// Prediction input format for Text Classification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictInstanceTextClassificationPredictionInstance {
     /// The text snippet to make the predictions on.
     #[serde(default)]
@@ -3719,7 +3720,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictInstanceTextClassificationPredict
 }
 
 /// Prediction input format for Text Extraction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictInstanceTextExtractionPredictionInstance {
     /// The text snippet to make the predictions on.
     #[serde(default)]
@@ -3733,7 +3734,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictInstanceTextExtractionPredictionI
 }
 
 /// Prediction input format for Text Sentiment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictInstanceTextSentimentPredictionInstance {
     /// The text snippet to make the predictions on.
     #[serde(default)]
@@ -3744,7 +3745,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictInstanceTextSentimentPredictionIn
 }
 
 /// Prediction input format for Video Action Recognition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictInstanceVideoActionRecognitionPredictionInstance {
     /// The Google Cloud Storage location of the video on which to perform the prediction.
     #[serde(default)]
@@ -3761,7 +3762,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictInstanceVideoActionRecognitionPre
 }
 
 /// Prediction input format for Video Classification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictInstanceVideoClassificationPredictionInstance {
     /// The Google Cloud Storage location of the video on which to perform the prediction.
     #[serde(default)]
@@ -3778,7 +3779,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictInstanceVideoClassificationPredic
 }
 
 /// Prediction input format for Video Object Tracking.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictInstanceVideoObjectTrackingPredictionInstance {
     /// The Google Cloud Storage location of the video on which to perform the prediction.
     #[serde(default)]
@@ -3795,7 +3796,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictInstanceVideoObjectTrackingPredic
 }
 
 /// Prediction model parameters for Image Classification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictParamsImageClassificationPredictionParams {
     /// The Model only returns predictions with at least this confidence score. Default value is 0.0
     #[serde(default, rename = "confidenceThreshold")]
@@ -3806,7 +3807,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictParamsImageClassificationPredicti
 }
 
 /// Prediction model parameters for Image Object Detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictParamsImageObjectDetectionPredictionParams {
     /// The Model only returns predictions with at least this confidence score. Default value is 0.0
     #[serde(default, rename = "confidenceThreshold")]
@@ -3817,7 +3818,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictParamsImageObjectDetectionPredict
 }
 
 /// Prediction model parameters for Image Segmentation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictParamsImageSegmentationPredictionParams {
     /// When the model predicts category of pixels of the image, it will only provide predictions for pixels that it is at least this much confident about. All other pixels will be classified as background. Default value is 0.5.
     #[serde(default, rename = "confidenceThreshold")]
@@ -3825,7 +3826,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictParamsImageSegmentationPrediction
 }
 
 /// Prediction model parameters for Video Action Recognition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictParamsVideoActionRecognitionPredictionParams {
     /// The Model only returns predictions with at least this confidence score. Default value is 0.0
     #[serde(default, rename = "confidenceThreshold")]
@@ -3836,7 +3837,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictParamsVideoActionRecognitionPredi
 }
 
 /// Prediction model parameters for Video Classification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictParamsVideoClassificationPredictionParams {
     /// The Model only returns predictions with at least this confidence score. Default value is 0.0
     #[serde(default, rename = "confidenceThreshold")]
@@ -3856,7 +3857,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictParamsVideoClassificationPredicti
 }
 
 /// Prediction model parameters for Video Object Tracking.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictParamsVideoObjectTrackingPredictionParams {
     /// The Model only returns predictions with at least this confidence score. Default value is 0.0
     #[serde(default, rename = "confidenceThreshold")]
@@ -3870,7 +3871,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictParamsVideoObjectTrackingPredicti
 }
 
 /// Prediction output format for Image and Text Classification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictPredictionClassificationPredictionResult {
     /// The Model''s confidences in correctness of the predicted IDs, higher value means higher confidence. Order matches the Ids.
     #[serde(default)]
@@ -3884,7 +3885,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictPredictionClassificationPredictio
 }
 
 /// Prediction output format for Image Object Detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictPredictionImageObjectDetectionPredictionResult {
     /// Bounding boxes, i.e. the rectangles over the image, that pinpoint the found AnnotationSpecs. Given in order that matches the IDs. Each bounding box is an array of 4 numbers xMin, xMax, yMin, and yMax, which represent the extremal coordinates of the box. They are relative to the image size, and the point 0,0 is in the top left of the image.
     #[serde(default)]
@@ -3901,7 +3902,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictPredictionImageObjectDetectionPre
 }
 
 /// Prediction output format for Image Segmentation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictPredictionImageSegmentationPredictionResult {
     /// A PNG image where each pixel in the mask represents the category in which the pixel in the original image was predicted to belong to. The size of this image will be the same as the original image. The mapping between the AnntoationSpec and the color can be found in model''s metadata. The model will choose the most likely category and if none of the categories reach the confidence threshold, the pixel will be marked as background.
     #[serde(default, rename = "categoryMask")]
@@ -3912,7 +3913,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictPredictionImageSegmentationPredic
 }
 
 /// Prediction output format for Tabular Classification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictPredictionTabularClassificationPredictionResult {
     /// The name of the classes being classified, contains all possible values of the target column.
     #[serde(default)]
@@ -3923,7 +3924,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictPredictionTabularClassificationPr
 }
 
 /// Prediction output format for Tabular Regression.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictPredictionTabularRegressionPredictionResult {
     /// The lower bound of the prediction interval.
     #[serde(default, rename = "lowerBound")]
@@ -3943,7 +3944,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictPredictionTabularRegressionPredic
 }
 
 /// Prediction output format for Text Extraction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictPredictionTextExtractionPredictionResult {
     /// The Model''s confidences in correctness of the predicted IDs, higher value means higher confidence. Order matches the Ids.
     #[serde(default)]
@@ -3963,7 +3964,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictPredictionTextExtractionPredictio
 }
 
 /// Prediction output format for Text Sentiment
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictPredictionTextSentimentPredictionResult {
     /// The integer sentiment labels between 0 (inclusive) and sentimentMax label (inclusive), while 0 maps to the least positive sentiment and sentimentMax maps to the most positive one. The higher the score is, the more positive the sentiment in the text snippet is. Note: sentimentMax is an integer value between 1 (inclusive) and 10 (inclusive).
     #[serde(default)]
@@ -3971,7 +3972,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictPredictionTextSentimentPrediction
 }
 
 /// Prediction output format for Time Series Forecasting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictPredictionTimeSeriesForecastingPredictionResult {
     /// Quantile predictions, in 1-1 correspondence with quantile_values.
     #[serde(default, rename = "quantilePredictions")]
@@ -3989,7 +3990,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictPredictionTimeSeriesForecastingPr
 }
 
 /// Prediction output format for Video Action Recognition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictPredictionVideoActionRecognitionPredictionResult {
     /// The Model''s confidence in correction of this prediction, higher value means higher confidence.
     #[serde(default)]
@@ -4009,7 +4010,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictPredictionVideoActionRecognitionP
 }
 
 /// Prediction output format for Video Classification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictPredictionVideoClassificationPredictionResult {
     /// The Model''s confidence in correction of this prediction, higher value means higher confidence.
     #[serde(default)]
@@ -4032,7 +4033,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictPredictionVideoClassificationPred
 }
 
 /// Prediction output format for Video Object Tracking.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictPredictionVideoObjectTrackingPredictionResult {
     /// The Model''s confidence in correction of this prediction, higher value means higher confidence.
     #[serde(default)]
@@ -4059,7 +4060,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictPredictionVideoObjectTrackingPred
 }
 
 /// Represents a line of JSONL in the batch prediction output file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictionResult {
     /// The error result. Do not set prediction if this is set.
     #[serde(default)]
@@ -4076,7 +4077,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictionResult {
 }
 
 /// The value of a variable in prompt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPromptInstanceVariableValue {
     /// The parts of the variable value.
     #[serde(default, rename = "partList")]
@@ -4084,7 +4085,7 @@ pub struct GoogleCloudAiplatformV1SchemaPromptInstanceVariableValue {
 }
 
 /// The metadata of Datasets that contain tables data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTablesDatasetMetadata {
     #[serde(default, rename = "inputConfig")]
     pub input_config:
@@ -4092,7 +4093,7 @@ pub struct GoogleCloudAiplatformV1SchemaTablesDatasetMetadata {
 }
 
 /// Annotation details specific to text classification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTextClassificationAnnotation {
     /// The resource Id of the AnnotationSpec that this Annotation pertains to.
     #[serde(default, rename = "annotationSpecId")]
@@ -4103,7 +4104,7 @@ pub struct GoogleCloudAiplatformV1SchemaTextClassificationAnnotation {
 }
 
 /// Payload of Text DataItem.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTextDataItem {
     /// Output only. Google Cloud Storage URI points to a copy of the original text in the Vertex-managed bucket in the user''s project. The text file is up to 10MB in size.
     #[serde(default, rename = "gcsUri")]
@@ -4111,7 +4112,7 @@ pub struct GoogleCloudAiplatformV1SchemaTextDataItem {
 }
 
 /// The metadata of Datasets that contain Text DataItems.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTextDatasetMetadata {
     /// Points to a YAML file stored on Google Cloud Storage describing payload of the Text DataItems that belong to this Dataset.
     #[serde(default, rename = "dataItemSchemaUri")]
@@ -4122,7 +4123,7 @@ pub struct GoogleCloudAiplatformV1SchemaTextDatasetMetadata {
 }
 
 /// Annotation details specific to text extraction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTextExtractionAnnotation {
     /// The resource Id of the AnnotationSpec that this Annotation pertains to.
     #[serde(default, rename = "annotationSpecId")]
@@ -4136,7 +4137,7 @@ pub struct GoogleCloudAiplatformV1SchemaTextExtractionAnnotation {
 }
 
 /// The metadata of Datasets that contain Text Prompt data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTextPromptDatasetMetadata {
     /// Number of candidates.
     #[serde(default, rename = "candidateCount")]
@@ -4196,7 +4197,7 @@ pub struct GoogleCloudAiplatformV1SchemaTextPromptDatasetMetadata {
 }
 
 /// Annotation details specific to text sentiment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTextSentimentAnnotation {
     /// The resource Id of the AnnotationSpec that this Annotation pertains to.
     #[serde(default, rename = "annotationSpecId")]
@@ -4213,7 +4214,7 @@ pub struct GoogleCloudAiplatformV1SchemaTextSentimentAnnotation {
 }
 
 /// The metadata of SavedQuery contains TextSentiment Annotations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTextSentimentSavedQueryMetadata {
     /// The maximum sentiment of sentiment Anntoation in this SavedQuery.
     #[serde(default, rename = "sentimentMax")]
@@ -4221,7 +4222,7 @@ pub struct GoogleCloudAiplatformV1SchemaTextSentimentSavedQueryMetadata {
 }
 
 /// The metadata of Datasets that contain time series data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTimeSeriesDatasetMetadata {
     #[serde(default, rename = "inputConfig")]
     pub input_config:
@@ -4235,7 +4236,7 @@ pub struct GoogleCloudAiplatformV1SchemaTimeSeriesDatasetMetadata {
 }
 
 /// A TrainingJob that trains and uploads an AutoML Forecasting Model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlForecasting {
     /// The input parameters of this TrainingJob.
     #[serde(default)]
@@ -4250,7 +4251,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlForecasting {
 }
 
 /// A TrainingJob that trains and uploads an AutoML Image Classification Model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlImageClassification {
     /// The input parameters of this TrainingJob.
     #[serde(default)]
@@ -4265,7 +4266,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlImageClassifi
 }
 
 /// A TrainingJob that trains and uploads an AutoML Image Object Detection Model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlImageObjectDetection {
     /// The input parameters of this TrainingJob.
     #[serde(default)]
@@ -4280,7 +4281,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlImageObjectDe
 }
 
 /// A TrainingJob that trains and uploads an AutoML Image Segmentation Model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlImageSegmentation {
     /// The input parameters of this TrainingJob.
     #[serde(default)]
@@ -4295,7 +4296,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlImageSegmenta
 }
 
 /// A TrainingJob that trains and uploads an AutoML Tables Model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTables {
     /// The input parameters of this TrainingJob.
     #[serde(default)]
@@ -4310,7 +4311,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTables {
 }
 
 /// A TrainingJob that trains and uploads an AutoML Text Classification Model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTextClassification {
     /// The input parameters of this TrainingJob.
     #[serde(default)]
@@ -4320,7 +4321,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTextClassific
 }
 
 /// A TrainingJob that trains and uploads an AutoML Text Extraction Model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTextExtraction {
     /// The input parameters of this TrainingJob.
     #[serde(default)]
@@ -4328,11 +4329,11 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTextExtractio
 }
 
 /// GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTextExtractionInputs resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTextExtractionInputs {}
 
 /// A TrainingJob that trains and uploads an AutoML Text Sentiment Model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTextSentiment {
     /// The input parameters of this TrainingJob.
     #[serde(default)]
@@ -4342,7 +4343,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTextSentiment
 }
 
 /// A TrainingJob that trains and uploads an AutoML Video Action Recognition Model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlVideoActionRecognition {
     /// The input parameters of this TrainingJob.
     #[serde(default)]
@@ -4352,7 +4353,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlVideoActionRe
 }
 
 /// A TrainingJob that trains and uploads an AutoML Video Classification Model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlVideoClassification {
     /// The input parameters of this TrainingJob.
     #[serde(default)]
@@ -4362,7 +4363,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlVideoClassifi
 }
 
 /// A TrainingJob that trains and uploads an AutoML Video ObjectTracking Model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlVideoObjectTracking {
     /// The input parameters of this TrainingJob.
     #[serde(default)]
@@ -4372,7 +4373,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlVideoObjectTr
 }
 
 /// A TrainingJob that trains a custom code Model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionCustomTask {
     /// The input parameters of this CustomTask.
     #[serde(default)]
@@ -4384,7 +4385,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionCustomTask {
 }
 
 /// A TrainingJob that tunes Hypererparameters of a custom code Model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionHyperparameterTuningTask {
     /// The input parameters of this HyperparameterTuningTask.
     #[serde(default)]
@@ -4399,7 +4400,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionHyperparameterTunin
 }
 
 /// A TrainingJob that trains and uploads an AutoML Forecasting Model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionSeq2SeqPlusForecasting {
     /// The input parameters of this TrainingJob.
     #[serde(default)]
@@ -4414,7 +4415,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionSeq2SeqPlusForecast
 }
 
 /// A TrainingJob that trains and uploads an AutoML Forecasting Model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionTftForecasting {
     /// The input parameters of this TrainingJob.
     #[serde(default)]
@@ -4429,7 +4430,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionTftForecasting {
 }
 
 /// Annotation details specific to video action recognition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaVideoActionRecognitionAnnotation {
     /// The resource Id of the AnnotationSpec that this Annotation pertains to.
     #[serde(default, rename = "annotationSpecId")]
@@ -4443,7 +4444,7 @@ pub struct GoogleCloudAiplatformV1SchemaVideoActionRecognitionAnnotation {
 }
 
 /// Annotation details specific to video classification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaVideoClassificationAnnotation {
     /// The resource Id of the AnnotationSpec that this Annotation pertains to.
     #[serde(default, rename = "annotationSpecId")]
@@ -4457,7 +4458,7 @@ pub struct GoogleCloudAiplatformV1SchemaVideoClassificationAnnotation {
 }
 
 /// Payload of Video DataItem.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaVideoDataItem {
     /// Required. Google Cloud Storage URI points to the original video in user''s bucket. The video is up to 50 GB in size and up to 3 hour in duration.
     #[serde(default, rename = "gcsUri")]
@@ -4468,7 +4469,7 @@ pub struct GoogleCloudAiplatformV1SchemaVideoDataItem {
 }
 
 /// The metadata of Datasets that contain Video DataItems.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaVideoDatasetMetadata {
     /// Points to a YAML file stored on Google Cloud Storage describing payload of the Video DataItems that belong to this Dataset.
     #[serde(default, rename = "dataItemSchemaUri")]
@@ -4479,7 +4480,7 @@ pub struct GoogleCloudAiplatformV1SchemaVideoDatasetMetadata {
 }
 
 /// Annotation details specific to video object tracking.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaVideoObjectTrackingAnnotation {
     /// The resource Id of the AnnotationSpec that this Annotation pertains to.
     #[serde(default, rename = "annotationSpecId")]
@@ -4508,7 +4509,7 @@ pub struct GoogleCloudAiplatformV1SchemaVideoObjectTrackingAnnotation {
 }
 
 /// GoogleCloudAiplatformV1SchemaVisualInspectionClassificationLabelSavedQueryMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaVisualInspectionClassificationLabelSavedQueryMetadata {
     /// Whether or not the classification label is multi_label.
     #[serde(default, rename = "multiLabel")]
@@ -4516,11 +4517,11 @@ pub struct GoogleCloudAiplatformV1SchemaVisualInspectionClassificationLabelSaved
 }
 
 /// GoogleCloudAiplatformV1SchemaVisualInspectionMaskSavedQueryMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaVisualInspectionMaskSavedQueryMetadata {}
 
 /// Response message for DatasetService.SearchDataItems.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SearchDataItemsResponse {
     /// The DataItemViews read.
     #[serde(default, rename = "dataItemViews")]
@@ -4532,7 +4533,7 @@ pub struct GoogleCloudAiplatformV1SearchDataItemsResponse {
 }
 
 /// Response message for FeaturestoreService.SearchFeatures.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SearchFeaturesResponse {
     /// The Features matching the request. Fields returned: * name * description * labels * create_time * update_time
     #[serde(default)]
@@ -4543,7 +4544,7 @@ pub struct GoogleCloudAiplatformV1SearchFeaturesResponse {
 }
 
 /// Request message for MigrationService.SearchMigratableResources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SearchMigratableResourcesRequest {
     /// A filter for your search. You can use the following types of filters: * Resource type filters. The following strings filter for a specific type of MigratableResource: * ml_engine_model_version:* * automl_model:* * automl_dataset:* * data_labeling_dataset:* * "Migrated or not" filters. The following strings filter for resources that either have or have not already been migrated: * last_migrate_time:* filters for migrated resources. * NOT last_migrate_time:* filters for not yet migrated resources.
     #[serde(default)]
@@ -4557,7 +4558,7 @@ pub struct GoogleCloudAiplatformV1SearchMigratableResourcesRequest {
 }
 
 /// Response message for MigrationService.SearchMigratableResources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SearchMigratableResourcesResponse {
     /// All migratable resources that can be migrated to the location specified in the request.
     #[serde(default, rename = "migratableResources")]
@@ -4569,7 +4570,7 @@ pub struct GoogleCloudAiplatformV1SearchMigratableResourcesResponse {
 }
 
 /// Request message for JobService.SearchModelDeploymentMonitoringStatsAnomalies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SearchModelDeploymentMonitoringStatsAnomaliesRequest {
     /// Required. The DeployedModel ID of the [ModelDeploymentMonitoringObjectiveConfig.deployed_model_id].
     #[serde(default, rename = "deployedModelId")]
@@ -4595,7 +4596,7 @@ pub struct GoogleCloudAiplatformV1SearchModelDeploymentMonitoringStatsAnomaliesR
 }
 
 /// Response message for JobService.SearchModelDeploymentMonitoringStatsAnomalies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SearchModelDeploymentMonitoringStatsAnomaliesResponse {
     /// Stats retrieved for requested objectives. There are at most 1000 ModelMonitoringStatsAnomalies.FeatureHistoricStatsAnomalies.prediction_stats in the response.
     #[serde(default, rename = "monitoringStats")]
@@ -4608,7 +4609,7 @@ pub struct GoogleCloudAiplatformV1SearchModelDeploymentMonitoringStatsAnomaliesR
 }
 
 /// The request message for FeatureOnlineStoreService.SearchNearestEntities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SearchNearestEntitiesRequest {
     /// Required. The query.
     #[serde(default)]
@@ -4619,7 +4620,7 @@ pub struct GoogleCloudAiplatformV1SearchNearestEntitiesRequest {
 }
 
 /// Response message for FeatureOnlineStoreService.SearchNearestEntities
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SearchNearestEntitiesResponse {
     /// The nearest neighbors of the query entity.
     #[serde(default, rename = "nearestNeighbors")]
@@ -4627,7 +4628,7 @@ pub struct GoogleCloudAiplatformV1SearchNearestEntitiesResponse {
 }
 
 /// Metadata information for NotebookService.StartNotebookRuntime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StartNotebookRuntimeOperationMetadata {
     /// The operation generic information.
     #[serde(default, rename = "genericMetadata")]
@@ -4638,19 +4639,19 @@ pub struct GoogleCloudAiplatformV1StartNotebookRuntimeOperationMetadata {
 }
 
 /// Request message for NotebookService.StartNotebookRuntime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StartNotebookRuntimeRequest {}
 
 /// Request message for NotebookService.StopNotebookRuntime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StopNotebookRuntimeRequest {}
 
 /// Request message for VizierService.StopTrial.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StopTrialRequest {}
 
 /// Request message for ReasoningEngineExecutionService.StreamQuery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StreamQueryReasoningEngineRequest {
     /// Optional. Class method to be used for the stream query. It is optional and defaults to "stream_query" if unspecified.
     #[serde(default, rename = "classMethod")]
@@ -4661,7 +4662,7 @@ pub struct GoogleCloudAiplatformV1StreamQueryReasoningEngineRequest {
 }
 
 /// Request message for PredictionService.StreamRawPredict.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StreamRawPredictRequest {
     /// The prediction input. Supports HTTP headers and arbitrary data payload.
     #[serde(default, rename = "httpBody")]
@@ -4669,7 +4670,7 @@ pub struct GoogleCloudAiplatformV1StreamRawPredictRequest {
 }
 
 /// Request message for PredictionService.StreamingPredict. The first message must contain endpoint field and optionally input. The subsequent messages must contain input.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StreamingPredictRequest {
     /// The prediction input.
     #[serde(default)]
@@ -4680,7 +4681,7 @@ pub struct GoogleCloudAiplatformV1StreamingPredictRequest {
 }
 
 /// Response message for PredictionService.StreamingPredict.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StreamingPredictResponse {
     /// The prediction output.
     #[serde(default)]
@@ -4691,7 +4692,7 @@ pub struct GoogleCloudAiplatformV1StreamingPredictResponse {
 }
 
 /// Request message for FeaturestoreOnlineServingService.StreamingReadFeatureValues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StreamingReadFeatureValuesRequest {
     /// Required. IDs of entities to read Feature values of. The maximum number of IDs is 100. For example, for a machine learning model predicting user clicks on a website, an entity ID could be user_123.
     #[serde(default, rename = "entityIds")]
@@ -4702,7 +4703,7 @@ pub struct GoogleCloudAiplatformV1StreamingReadFeatureValuesRequest {
 }
 
 /// A list of string values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StringArray {
     /// A list of string values.
     #[serde(default)]
@@ -4710,7 +4711,7 @@ pub struct GoogleCloudAiplatformV1StringArray {
 }
 
 /// Details of operations that perform Trials suggestion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SuggestTrialsMetadata {
     /// The identifier of the client that is requesting the suggestion. If multiple SuggestTrialsRequests have the same client_id, the service will return the identical suggested Trial if the Trial is pending, and provide a new Trial if the last suggested Trial was completed.
     #[serde(default, rename = "clientId")]
@@ -4721,7 +4722,7 @@ pub struct GoogleCloudAiplatformV1SuggestTrialsMetadata {
 }
 
 /// Request message for VizierService.SuggestTrials.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SuggestTrialsRequest {
     /// Required. The identifier of the client that is requesting the suggestion. If multiple SuggestTrialsRequests have the same client_id, the service will return the identical suggested Trial if the Trial is pending, and provide a new Trial if the last suggested Trial was completed.
     #[serde(default, rename = "clientId")]
@@ -4735,7 +4736,7 @@ pub struct GoogleCloudAiplatformV1SuggestTrialsRequest {
 }
 
 /// Response message for VizierService.SuggestTrials.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SuggestTrialsResponse {
     /// The time at which operation processing completed.
     #[serde(default, rename = "endTime")]
@@ -4752,11 +4753,11 @@ pub struct GoogleCloudAiplatformV1SuggestTrialsResponse {
 }
 
 /// Request message for FeatureOnlineStoreAdminService.SyncFeatureView.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SyncFeatureViewRequest {}
 
 /// Response message for FeatureOnlineStoreAdminService.SyncFeatureView.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SyncFeatureViewResponse {
     /// Format: projects/{project}/locations/{location}/featureOnlineStores/{feature_online_store}/featureViews/{feature_view}/featureViewSyncs/{feature_view_sync}
     #[serde(default, rename = "featureViewSync")]
@@ -4764,51 +4765,51 @@ pub struct GoogleCloudAiplatformV1SyncFeatureViewResponse {
 }
 
 /// Spec for tool call valid metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolCallValidSpec {}
 
 /// Tool that executes code generated by the model, and automatically returns the result to the model. See also ExecutableCode and CodeExecutionResult, which are input and output to this tool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolCodeExecution {}
 
 /// Image search for grounding and related configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolGoogleSearchImageSearch {}
 
 /// Standard web search for grounding and related configurations. Only text results are returned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolGoogleSearchWebSearch {}
 
 /// Spec for tool name match metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolNameMatchSpec {}
 
 /// Spec for tool parameter key match metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolParameterKeyMatchSpec {}
 
 /// Spec for TrajectoryAnyOrderMatch metric - returns 1 if all tool calls in the reference trajectory appear in the predicted trajectory in any order, else 0.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectoryAnyOrderMatchSpec {}
 
 /// Spec for TrajectoryExactMatch metric - returns 1 if tool calls in the reference trajectory exactly match the predicted trajectory, else 0.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectoryExactMatchSpec {}
 
 /// Spec for TrajectoryInOrderMatch metric - returns 1 if tool calls in the reference trajectory appear in the predicted trajectory in the same order, else 0.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectoryInOrderMatchSpec {}
 
 /// Spec for TrajectoryPrecision metric - returns a float score based on average precision of individual tool calls.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectoryPrecisionSpec {}
 
 /// Spec for TrajectoryRecall metric - returns a float score based on average recall of individual tool calls.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectoryRecallSpec {}
 
 /// Runtime operation information for IndexEndpointService.UndeployIndex.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UndeployIndexOperationMetadata {
     /// The operation generic information.
     #[serde(default, rename = "genericMetadata")]
@@ -4816,7 +4817,7 @@ pub struct GoogleCloudAiplatformV1UndeployIndexOperationMetadata {
 }
 
 /// Request message for IndexEndpointService.UndeployIndex.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UndeployIndexRequest {
     /// Required. The ID of the DeployedIndex to be undeployed from the IndexEndpoint.
     #[serde(default, rename = "deployedIndexId")]
@@ -4824,11 +4825,11 @@ pub struct GoogleCloudAiplatformV1UndeployIndexRequest {
 }
 
 /// Response message for IndexEndpointService.UndeployIndex.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UndeployIndexResponse {}
 
 /// Runtime operation information for EndpointService.UndeployModel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UndeployModelOperationMetadata {
     /// The operation generic information.
     #[serde(default, rename = "genericMetadata")]
@@ -4836,7 +4837,7 @@ pub struct GoogleCloudAiplatformV1UndeployModelOperationMetadata {
 }
 
 /// Request message for EndpointService.UndeployModel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UndeployModelRequest {
     /// Required. The ID of the DeployedModel to be undeployed from the Endpoint.
     #[serde(default, rename = "deployedModelId")]
@@ -4847,11 +4848,11 @@ pub struct GoogleCloudAiplatformV1UndeployModelRequest {
 }
 
 /// Response message for EndpointService.UndeployModel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UndeployModelResponse {}
 
 /// Runtime operation information for UpdateDeploymentResourcePool method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UpdateDeploymentResourcePoolOperationMetadata {
     /// The operation generic information.
     #[serde(default, rename = "genericMetadata")]
@@ -4859,7 +4860,7 @@ pub struct GoogleCloudAiplatformV1UpdateDeploymentResourcePoolOperationMetadata 
 }
 
 /// Request message for EndpointService.UpdateEndpointLongRunning.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UpdateEndpointLongRunningRequest {
     /// Required. The Endpoint which replaces the resource on the server. Currently we only support updating the client_connection_config field, all the other fields'' update will be blocked.
     #[serde(default)]
@@ -4867,7 +4868,7 @@ pub struct GoogleCloudAiplatformV1UpdateEndpointLongRunningRequest {
 }
 
 /// Runtime operation information for ModelService.UpdateExplanationDataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UpdateExplanationDatasetOperationMetadata {
     /// The common part of the operation metadata.
     #[serde(default, rename = "genericMetadata")]
@@ -4875,7 +4876,7 @@ pub struct GoogleCloudAiplatformV1UpdateExplanationDatasetOperationMetadata {
 }
 
 /// Request message for ModelService.UpdateExplanationDataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UpdateExplanationDatasetRequest {
     /// The example config containing the location of the dataset.
     #[serde(default)]
@@ -4883,11 +4884,11 @@ pub struct GoogleCloudAiplatformV1UpdateExplanationDatasetRequest {
 }
 
 /// Response message of ModelService.UpdateExplanationDataset operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UpdateExplanationDatasetResponse {}
 
 /// Details of operations that perform update FeatureGroup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UpdateFeatureGroupOperationMetadata {
     /// Operation metadata for FeatureGroup.
     #[serde(default, rename = "genericMetadata")]
@@ -4895,7 +4896,7 @@ pub struct GoogleCloudAiplatformV1UpdateFeatureGroupOperationMetadata {
 }
 
 /// Details of operations that perform update FeatureOnlineStore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UpdateFeatureOnlineStoreOperationMetadata {
     /// Operation metadata for FeatureOnlineStore.
     #[serde(default, rename = "genericMetadata")]
@@ -4903,7 +4904,7 @@ pub struct GoogleCloudAiplatformV1UpdateFeatureOnlineStoreOperationMetadata {
 }
 
 /// Details of operations that perform update Feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UpdateFeatureOperationMetadata {
     /// Operation metadata for Feature Update.
     #[serde(default, rename = "genericMetadata")]
@@ -4911,7 +4912,7 @@ pub struct GoogleCloudAiplatformV1UpdateFeatureOperationMetadata {
 }
 
 /// Details of operations that perform update FeatureView.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UpdateFeatureViewOperationMetadata {
     /// Operation metadata for FeatureView Update.
     #[serde(default, rename = "genericMetadata")]
@@ -4919,7 +4920,7 @@ pub struct GoogleCloudAiplatformV1UpdateFeatureViewOperationMetadata {
 }
 
 /// Details of operations that perform update Featurestore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UpdateFeaturestoreOperationMetadata {
     /// Operation metadata for Featurestore.
     #[serde(default, rename = "genericMetadata")]
@@ -4927,7 +4928,7 @@ pub struct GoogleCloudAiplatformV1UpdateFeaturestoreOperationMetadata {
 }
 
 /// Runtime operation information for IndexService.UpdateIndex.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UpdateIndexOperationMetadata {
     /// The operation generic information.
     #[serde(default, rename = "genericMetadata")]
@@ -4939,7 +4940,7 @@ pub struct GoogleCloudAiplatformV1UpdateIndexOperationMetadata {
 }
 
 /// Runtime operation information for JobService.UpdateModelDeploymentMonitoringJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UpdateModelDeploymentMonitoringJobOperationMetadata {
     /// The operation generic information.
     #[serde(default, rename = "genericMetadata")]
@@ -4947,7 +4948,7 @@ pub struct GoogleCloudAiplatformV1UpdateModelDeploymentMonitoringJobOperationMet
 }
 
 /// Details of operations that perform update PersistentResource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UpdatePersistentResourceOperationMetadata {
     /// Operation metadata for PersistentResource.
     #[serde(default, rename = "genericMetadata")]
@@ -4958,7 +4959,7 @@ pub struct GoogleCloudAiplatformV1UpdatePersistentResourceOperationMetadata {
 }
 
 /// Runtime operation metadata for SpecialistPoolService.UpdateSpecialistPool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UpdateSpecialistPoolOperationMetadata {
     /// The operation generic information.
     #[serde(default, rename = "genericMetadata")]
@@ -4969,7 +4970,7 @@ pub struct GoogleCloudAiplatformV1UpdateSpecialistPoolOperationMetadata {
 }
 
 /// Details of operations that perform update Tensorboard.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UpdateTensorboardOperationMetadata {
     /// Operation metadata for Tensorboard.
     #[serde(default, rename = "genericMetadata")]
@@ -4977,7 +4978,7 @@ pub struct GoogleCloudAiplatformV1UpdateTensorboardOperationMetadata {
 }
 
 /// Metadata information for NotebookService.UpgradeNotebookRuntime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UpgradeNotebookRuntimeOperationMetadata {
     /// The operation generic information.
     #[serde(default, rename = "genericMetadata")]
@@ -4988,11 +4989,11 @@ pub struct GoogleCloudAiplatformV1UpgradeNotebookRuntimeOperationMetadata {
 }
 
 /// Request message for NotebookService.UpgradeNotebookRuntime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UpgradeNotebookRuntimeRequest {}
 
 /// Details of ModelService.UploadModel operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UploadModelOperationMetadata {
     /// The common part of the operation metadata.
     #[serde(default, rename = "genericMetadata")]
@@ -5000,7 +5001,7 @@ pub struct GoogleCloudAiplatformV1UploadModelOperationMetadata {
 }
 
 /// Request message for ModelService.UploadModel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UploadModelRequest {
     /// Required. The Model to create.
     #[serde(default)]
@@ -5017,7 +5018,7 @@ pub struct GoogleCloudAiplatformV1UploadModelRequest {
 }
 
 /// Response message of ModelService.UploadModel operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UploadModelResponse {
     /// The name of the uploaded Model resource. Format: projects/{project}/locations/{location}/models/{model}
     #[serde(default)]
@@ -5028,7 +5029,7 @@ pub struct GoogleCloudAiplatformV1UploadModelResponse {
 }
 
 /// Request message for VertexRagDataService.UploadRagFile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UploadRagFileRequest {
     /// Required. The RagFile to upload.
     #[serde(default, rename = "ragFile")]
@@ -5039,7 +5040,7 @@ pub struct GoogleCloudAiplatformV1UploadRagFileRequest {
 }
 
 /// Response message for VertexRagDataService.UploadRagFile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UploadRagFileResponse {
     /// The error that occurred while processing the RagFile.
     #[serde(default)]
@@ -5050,7 +5051,7 @@ pub struct GoogleCloudAiplatformV1UploadRagFileResponse {
 }
 
 /// Request message for IndexService.UpsertDatapoints
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UpsertDatapointsRequest {
     /// A list of datapoints to be created/updated.
     #[serde(default)]
@@ -5061,15 +5062,15 @@ pub struct GoogleCloudAiplatformV1UpsertDatapointsRequest {
 }
 
 /// Response message for IndexService.UpsertDatapoints
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UpsertDatapointsResponse {}
 
 /// Tool to support URL context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UrlContext {}
 
 /// Value is the value of the field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Value {
     /// A double value.
     #[serde(default, rename = "doubleValue")]
@@ -5083,7 +5084,7 @@ pub struct GoogleCloudAiplatformV1Value {
 }
 
 /// Request message for FeaturestoreOnlineServingService.WriteFeatureValues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1WriteFeatureValuesRequest {
     /// Required. The entities to be written. Up to 100,000 feature values can be written across all payloads.
     #[serde(default)]
@@ -5092,11 +5093,11 @@ pub struct GoogleCloudAiplatformV1WriteFeatureValuesRequest {
 }
 
 /// Response message for FeaturestoreOnlineServingService.WriteFeatureValues.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1WriteFeatureValuesResponse {}
 
 /// Request message for TensorboardService.WriteTensorboardExperimentData.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1WriteTensorboardExperimentDataRequest {
     /// Required. Requests containing per-run TensorboardTimeSeries data to write.
     #[serde(default, rename = "writeRunDataRequests")]
@@ -5106,15 +5107,15 @@ pub struct GoogleCloudAiplatformV1WriteTensorboardExperimentDataRequest {
 }
 
 /// Response message for TensorboardService.WriteTensorboardExperimentData.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1WriteTensorboardExperimentDataResponse {}
 
 /// Response message for TensorboardService.WriteTensorboardRunData.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1WriteTensorboardRunDataResponse {}
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudLocationListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -5125,7 +5126,7 @@ pub struct GoogleCloudLocationListLocationsResponse {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -5133,7 +5134,7 @@ pub struct GoogleIamV1SetIamPolicyRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -5141,7 +5142,7 @@ pub struct GoogleIamV1TestIamPermissionsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -5155,11 +5156,11 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// Media.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiLargeModelsVisionMedia {
     /// Image.
     #[serde(default)]
@@ -5170,7 +5171,7 @@ pub struct CloudAiLargeModelsVisionMedia {
 }
 
 /// CloudAiLargeModelsVisionGenerateVideoResponseVideo resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiLargeModelsVisionGenerateVideoResponseVideo {
     /// Base64 encoded bytes string representing the video.
     #[serde(default, rename = "bytesBase64Encoded")]
@@ -5188,7 +5189,7 @@ pub struct CloudAiLargeModelsVisionGenerateVideoResponseVideo {
 }
 
 /// Metadata of the backend deployed model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AugmentPromptRequestModel {
     /// Optional. The model that the user will send the augmented prompt for content generation.
     #[serde(default)]
@@ -5199,7 +5200,7 @@ pub struct GoogleCloudAiplatformV1AugmentPromptRequestModel {
 }
 
 /// Request message for FeaturestoreService.CreateFeature. Request message for FeatureRegistryService.CreateFeature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CreateFeatureRequest {
     /// Required. The Feature to create.
     #[serde(default)]
@@ -5213,7 +5214,7 @@ pub struct GoogleCloudAiplatformV1CreateFeatureRequest {
 }
 
 /// Request message for TensorboardService.CreateTensorboardRun.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CreateTensorboardRunRequest {
     /// Required. The resource name of the TensorboardExperiment to create the TensorboardRun in. Format: projects/{project}/locations/{location}/tensorboards/{tensorboard}/experiments/{experiment}
     #[serde(default)]
@@ -5227,7 +5228,7 @@ pub struct GoogleCloudAiplatformV1CreateTensorboardRunRequest {
 }
 
 /// Request message for TensorboardService.CreateTensorboardTimeSeries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CreateTensorboardTimeSeriesRequest {
     /// Required. The resource name of the TensorboardRun to create the TensorboardTimeSeries in. Format: projects/{project}/locations/{location}/tensorboards/{tensorboard}/experiments/{experiment}/runs/{run}
     #[serde(default)]
@@ -5242,7 +5243,7 @@ pub struct GoogleCloudAiplatformV1CreateTensorboardTimeSeriesRequest {
 }
 
 /// True positive, false positive, or false negative. EvaluatedAnnotation is only available under ModelEvaluationSlice with slice of annotationSpec dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluatedAnnotation {
     /// Output only. The data item payload that the Model predicted this EvaluatedAnnotation on.
     #[serde(default, rename = "dataItemPayload")]
@@ -5271,7 +5272,7 @@ pub struct GoogleCloudAiplatformV1EvaluatedAnnotation {
 }
 
 /// Represents a partial result in batch migration operation for one MigrateResourceRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchMigrateResourcesOperationMetadataPartialResult {
     /// Migrated dataset resource name.
     #[serde(default)]
@@ -5288,7 +5289,7 @@ pub struct GoogleCloudAiplatformV1BatchMigrateResourcesOperationMetadataPartialR
 }
 
 /// Describes a successfully migrated resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MigrateResourceResponse {
     /// Migrated Dataset''s resource name.
     #[serde(default)]
@@ -5302,7 +5303,7 @@ pub struct GoogleCloudAiplatformV1MigrateResourceResponse {
 }
 
 /// Selects Features of an EntityType to read values of and specifies read settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchReadFeatureValuesRequestEntityTypeSpec {
     /// Required. ID of the EntityType to select Features. The EntityType id is the entity_type_id specified during EntityType creation.
     #[serde(default, rename = "entityTypeId")]
@@ -5317,7 +5318,7 @@ pub struct GoogleCloudAiplatformV1BatchReadFeatureValuesRequestEntityTypeSpec {
 }
 
 /// Describe pass-through fields in read_instance source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchReadFeatureValuesRequestPassThroughField {
     /// Required. The name of the field in the CSV header or the name of the column in BigQuery table. The naming restriction is the same as Feature.name.
     #[serde(default, rename = "fieldName")]
@@ -5325,7 +5326,7 @@ pub struct GoogleCloudAiplatformV1BatchReadFeatureValuesRequestPassThroughField 
 }
 
 /// Tokens info with a list of tokens and the corresponding list of token ids.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TokensInfo {
     /// Optional. Optional fields for the role from the corresponding Content.
     #[serde(default)]
@@ -5339,7 +5340,7 @@ pub struct GoogleCloudAiplatformV1TokensInfo {
 }
 
 /// The fact used in grounding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Fact {
     /// If present, chunk properties.
     #[serde(default)]
@@ -5365,7 +5366,7 @@ pub struct GoogleCloudAiplatformV1Fact {
 }
 
 /// Parameters that can be overrided per request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CorroborateContentRequestParameters {
     /// Optional. Only return claims with citation score larger than the threshold.
     #[serde(default, rename = "citationThreshold")]
@@ -5373,7 +5374,7 @@ pub struct GoogleCloudAiplatformV1CorroborateContentRequestParameters {
 }
 
 /// Claim that is extracted from the input text and facts that support it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Claim {
     /// Index in the input text where the claim ends (exclusive).
     #[serde(default, rename = "endIndex")]
@@ -5390,7 +5391,7 @@ pub struct GoogleCloudAiplatformV1Claim {
 }
 
 /// Message to select entity. If an entity id is selected, all the feature values corresponding to the entity id will be deleted, including the entityId.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeleteFeatureValuesRequestSelectEntity {
     /// Required. Selectors choosing feature values of which entity id to be deleted from the EntityType.
     #[serde(default, rename = "entityIdSelector")]
@@ -5398,7 +5399,7 @@ pub struct GoogleCloudAiplatformV1DeleteFeatureValuesRequestSelectEntity {
 }
 
 /// Message to select time range and feature. Values of the selected feature generated within an inclusive time range will be deleted. Using this option permanently deletes the feature values from the specified feature IDs within the specified time range. This might include data from the online storage. If you want to retain any deleted historical data in the online storage, you must re-ingest it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeleteFeatureValuesRequestSelectTimeRangeAndFeature {
     /// Required. Selectors choosing which feature values to be deleted from the EntityType.
     #[serde(default, rename = "featureSelector")]
@@ -5412,7 +5413,7 @@ pub struct GoogleCloudAiplatformV1DeleteFeatureValuesRequestSelectTimeRangeAndFe
 }
 
 /// Response message if the request uses the SelectEntity option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeleteFeatureValuesResponseSelectEntity {
     /// The count of deleted entity rows in the offline storage. Each row corresponds to the combination of an entity ID and a timestamp. One entity ID can have multiple rows in the offline storage.
     #[serde(default, rename = "offlineStorageDeletedEntityRowCount")]
@@ -5423,7 +5424,7 @@ pub struct GoogleCloudAiplatformV1DeleteFeatureValuesResponseSelectEntity {
 }
 
 /// Response message if the request uses the SelectTimeRangeAndFeature option.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeleteFeatureValuesResponseSelectTimeRangeAndFeature {
     /// The count of the features or columns impacted. This is the same as the feature count in the request.
     #[serde(default, rename = "impactedFeatureCount")]
@@ -5437,7 +5438,7 @@ pub struct GoogleCloudAiplatformV1DeleteFeatureValuesResponseSelectTimeRangeAndF
 }
 
 /// The deploy config to use for the deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeployRequestDeployConfig {
     /// Optional. The dedicated resources to use for the endpoint. If not set, the default resources will be used.
     #[serde(default, rename = "dedicatedResources")]
@@ -5451,7 +5452,7 @@ pub struct GoogleCloudAiplatformV1DeployRequestDeployConfig {
 }
 
 /// The endpoint config to use for the deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeployRequestEndpointConfig {
     /// Optional. By default, if dedicated endpoint is enabled and private service connect config is not set, the endpoint will be exposed through a dedicated DNS [Endpoint.dedicated_endpoint_dns]. If private service connect config is set, the endpoint will be exposed through private service connect. Your request to the dedicated DNS will be isolated from other users'' traffic and will have better performance and reliability. Note: Once you enabled dedicated endpoint, you won''t be able to send request to the shared DNS {region}-aiplatform.googleapis.com. The limitations will be removed soon. If this field is set to true, the dedicated endpoint will be disabled and the deployed model will be exposed through the shared DNS {region}-aiplatform.googleapis.com.
     #[serde(default, rename = "dedicatedEndpointDisabled")]
@@ -5475,7 +5476,7 @@ pub struct GoogleCloudAiplatformV1DeployRequestEndpointConfig {
 }
 
 /// The model config to use for the deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeployRequestModelConfig {
     /// Optional. Whether the user accepts the End User License Agreement (EULA) for the model.
     #[serde(default, rename = "acceptEula")]
@@ -5498,7 +5499,7 @@ pub struct GoogleCloudAiplatformV1DeployRequestModelConfig {
 }
 
 /// Configurations for the EmbedContent API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EmbedContentRequestEmbedContentConfig {
     /// Optional. Whether to extract audio from video content.
     #[serde(default, rename = "audioTrackExtraction")]
@@ -5521,7 +5522,7 @@ pub struct GoogleCloudAiplatformV1EmbedContentRequestEmbedContentConfig {
 }
 
 /// A list of floats representing an embedding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EmbedContentResponseEmbedding {
     /// Embedding vector values.
     #[serde(default)]
@@ -5529,7 +5530,7 @@ pub struct GoogleCloudAiplatformV1EmbedContentResponseEmbedding {
 }
 
 /// Usage metadata about the content generation request and response. This message provides a detailed breakdown of token usage and other relevant metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UsageMetadata {
     /// Output only. A detailed breakdown of the token count for each modality in the cached content.
     #[serde(default, rename = "cacheTokensDetails")]
@@ -5571,7 +5572,7 @@ pub struct GoogleCloudAiplatformV1UsageMetadata {
 }
 
 /// Input for bleu metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BleuInput {
     /// Required. Repeated bleu instances.
     #[serde(default)]
@@ -5582,7 +5583,7 @@ pub struct GoogleCloudAiplatformV1BleuInput {
 }
 
 /// Input for coherence metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CoherenceInput {
     /// Required. Coherence instance.
     #[serde(default)]
@@ -5593,7 +5594,7 @@ pub struct GoogleCloudAiplatformV1CoherenceInput {
 }
 
 /// Input for Comet metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CometInput {
     /// Required. Comet instance.
     #[serde(default)]
@@ -5604,7 +5605,7 @@ pub struct GoogleCloudAiplatformV1CometInput {
 }
 
 /// Input for exact match metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExactMatchInput {
     /// Required. Repeated exact match instances.
     #[serde(default)]
@@ -5616,7 +5617,7 @@ pub struct GoogleCloudAiplatformV1ExactMatchInput {
 }
 
 /// Input for fluency metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FluencyInput {
     /// Required. Fluency instance.
     #[serde(default)]
@@ -5627,7 +5628,7 @@ pub struct GoogleCloudAiplatformV1FluencyInput {
 }
 
 /// Input for fulfillment metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FulfillmentInput {
     /// Required. Fulfillment instance.
     #[serde(default)]
@@ -5638,7 +5639,7 @@ pub struct GoogleCloudAiplatformV1FulfillmentInput {
 }
 
 /// Input for groundedness metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GroundednessInput {
     /// Required. Groundedness instance.
     #[serde(default)]
@@ -5649,7 +5650,7 @@ pub struct GoogleCloudAiplatformV1GroundednessInput {
 }
 
 /// A single instance to be evaluated. Instances are used to specify the input data for evaluation, from simple string comparisons to complex, multi-turn model evaluations
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationInstance {
     /// Optional. Deprecated: Use agent_eval_data instead. Data used for agent evaluation.
     #[serde(default, rename = "agentData")]
@@ -5673,7 +5674,7 @@ pub struct GoogleCloudAiplatformV1EvaluationInstance {
 }
 
 /// The metric source used for evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MetricSource {
     /// Inline metric config.
     #[serde(default)]
@@ -5684,7 +5685,7 @@ pub struct GoogleCloudAiplatformV1MetricSource {
 }
 
 /// Input for MetricX metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MetricxInput {
     /// Required. Metricx instance.
     #[serde(default)]
@@ -5695,7 +5696,7 @@ pub struct GoogleCloudAiplatformV1MetricxInput {
 }
 
 /// Input for pairwise metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PairwiseMetricInput {
     /// Required. Pairwise metric instance.
     #[serde(default)]
@@ -5706,7 +5707,7 @@ pub struct GoogleCloudAiplatformV1PairwiseMetricInput {
 }
 
 /// Input for pairwise question answering quality metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PairwiseQuestionAnsweringQualityInput {
     /// Required. Pairwise question answering quality instance.
     #[serde(default)]
@@ -5719,7 +5720,7 @@ pub struct GoogleCloudAiplatformV1PairwiseQuestionAnsweringQualityInput {
 }
 
 /// Input for pairwise summarization quality metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PairwiseSummarizationQualityInput {
     /// Required. Pairwise summarization quality instance.
     #[serde(default)]
@@ -5732,7 +5733,7 @@ pub struct GoogleCloudAiplatformV1PairwiseSummarizationQualityInput {
 }
 
 /// Input for pointwise metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PointwiseMetricInput {
     /// Required. Pointwise metric instance.
     #[serde(default)]
@@ -5743,7 +5744,7 @@ pub struct GoogleCloudAiplatformV1PointwiseMetricInput {
 }
 
 /// Input for question answering correctness metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1QuestionAnsweringCorrectnessInput {
     /// Required. Question answering correctness instance.
     #[serde(default)]
@@ -5756,7 +5757,7 @@ pub struct GoogleCloudAiplatformV1QuestionAnsweringCorrectnessInput {
 }
 
 /// Input for question answering helpfulness metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1QuestionAnsweringHelpfulnessInput {
     /// Required. Question answering helpfulness instance.
     #[serde(default)]
@@ -5769,7 +5770,7 @@ pub struct GoogleCloudAiplatformV1QuestionAnsweringHelpfulnessInput {
 }
 
 /// Input for question answering quality metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1QuestionAnsweringQualityInput {
     /// Required. Question answering quality instance.
     #[serde(default)]
@@ -5780,7 +5781,7 @@ pub struct GoogleCloudAiplatformV1QuestionAnsweringQualityInput {
 }
 
 /// Input for question answering relevance metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1QuestionAnsweringRelevanceInput {
     /// Required. Question answering relevance instance.
     #[serde(default)]
@@ -5791,7 +5792,7 @@ pub struct GoogleCloudAiplatformV1QuestionAnsweringRelevanceInput {
 }
 
 /// Input for rouge metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RougeInput {
     /// Required. Repeated rouge instances.
     #[serde(default)]
@@ -5802,7 +5803,7 @@ pub struct GoogleCloudAiplatformV1RougeInput {
 }
 
 /// Instance and metric spec for RubricBasedInstructionFollowing metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RubricBasedInstructionFollowingInput {
     /// Required. Instance for RubricBasedInstructionFollowing metric.
     #[serde(default)]
@@ -5814,7 +5815,7 @@ pub struct GoogleCloudAiplatformV1RubricBasedInstructionFollowingInput {
 }
 
 /// Input for safety metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SafetyInput {
     /// Required. Safety instance.
     #[serde(default)]
@@ -5825,7 +5826,7 @@ pub struct GoogleCloudAiplatformV1SafetyInput {
 }
 
 /// Input for summarization helpfulness metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SummarizationHelpfulnessInput {
     /// Required. Summarization helpfulness instance.
     #[serde(default)]
@@ -5836,7 +5837,7 @@ pub struct GoogleCloudAiplatformV1SummarizationHelpfulnessInput {
 }
 
 /// Input for summarization quality metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SummarizationQualityInput {
     /// Required. Summarization quality instance.
     #[serde(default)]
@@ -5847,7 +5848,7 @@ pub struct GoogleCloudAiplatformV1SummarizationQualityInput {
 }
 
 /// Input for summarization verbosity metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SummarizationVerbosityInput {
     /// Required. Summarization verbosity instance.
     #[serde(default)]
@@ -5858,7 +5859,7 @@ pub struct GoogleCloudAiplatformV1SummarizationVerbosityInput {
 }
 
 /// Input for tool call valid metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolCallValidInput {
     /// Required. Repeated tool call valid instances.
     #[serde(default)]
@@ -5870,7 +5871,7 @@ pub struct GoogleCloudAiplatformV1ToolCallValidInput {
 }
 
 /// Input for tool name match metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolNameMatchInput {
     /// Required. Repeated tool name match instances.
     #[serde(default)]
@@ -5882,7 +5883,7 @@ pub struct GoogleCloudAiplatformV1ToolNameMatchInput {
 }
 
 /// Input for tool parameter key match metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolParameterKeyMatchInput {
     /// Required. Repeated tool parameter key match instances.
     #[serde(default)]
@@ -5895,7 +5896,7 @@ pub struct GoogleCloudAiplatformV1ToolParameterKeyMatchInput {
 }
 
 /// Input for tool parameter key value match metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolParameterKVMatchInput {
     /// Required. Repeated tool parameter key value match instances.
     #[serde(default)]
@@ -5908,7 +5909,7 @@ pub struct GoogleCloudAiplatformV1ToolParameterKVMatchInput {
 }
 
 /// Instances and metric spec for TrajectoryAnyOrderMatch metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectoryAnyOrderMatchInput {
     /// Required. Repeated TrajectoryAnyOrderMatch instance.
     #[serde(default)]
@@ -5921,7 +5922,7 @@ pub struct GoogleCloudAiplatformV1TrajectoryAnyOrderMatchInput {
 }
 
 /// Instances and metric spec for TrajectoryExactMatch metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectoryExactMatchInput {
     /// Required. Repeated TrajectoryExactMatch instance.
     #[serde(default)]
@@ -5934,7 +5935,7 @@ pub struct GoogleCloudAiplatformV1TrajectoryExactMatchInput {
 }
 
 /// Instances and metric spec for TrajectoryInOrderMatch metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectoryInOrderMatchInput {
     /// Required. Repeated TrajectoryInOrderMatch instance.
     #[serde(default)]
@@ -5947,7 +5948,7 @@ pub struct GoogleCloudAiplatformV1TrajectoryInOrderMatchInput {
 }
 
 /// Instances and metric spec for TrajectoryPrecision metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectoryPrecisionInput {
     /// Required. Repeated TrajectoryPrecision instance.
     #[serde(default)]
@@ -5959,7 +5960,7 @@ pub struct GoogleCloudAiplatformV1TrajectoryPrecisionInput {
 }
 
 /// Instances and metric spec for TrajectoryRecall metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectoryRecallInput {
     /// Required. Repeated TrajectoryRecall instance.
     #[serde(default)]
@@ -5971,7 +5972,7 @@ pub struct GoogleCloudAiplatformV1TrajectoryRecallInput {
 }
 
 /// Instances and metric spec for TrajectorySingleToolUse metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectorySingleToolUseInput {
     /// Required. Repeated TrajectorySingleToolUse instance.
     #[serde(default)]
@@ -5984,7 +5985,7 @@ pub struct GoogleCloudAiplatformV1TrajectorySingleToolUseInput {
 }
 
 /// Results for bleu metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BleuResults {
     /// Output only. Bleu metric values.
     #[serde(default, rename = "bleuMetricValues")]
@@ -5993,7 +5994,7 @@ pub struct GoogleCloudAiplatformV1BleuResults {
 }
 
 /// Spec for coherence result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CoherenceResult {
     /// Output only. Confidence for coherence score.
     #[serde(default)]
@@ -6007,7 +6008,7 @@ pub struct GoogleCloudAiplatformV1CoherenceResult {
 }
 
 /// Spec for Comet result - calculates the comet score for the given instance using the version specified in the spec.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CometResult {
     /// Output only. Comet score. Range depends on version.
     #[serde(default)]
@@ -6015,7 +6016,7 @@ pub struct GoogleCloudAiplatformV1CometResult {
 }
 
 /// Results for exact match metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExactMatchResults {
     /// Output only. Exact match metric values.
     #[serde(default, rename = "exactMatchMetricValues")]
@@ -6024,7 +6025,7 @@ pub struct GoogleCloudAiplatformV1ExactMatchResults {
 }
 
 /// Spec for fluency result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FluencyResult {
     /// Output only. Confidence for fluency score.
     #[serde(default)]
@@ -6038,7 +6039,7 @@ pub struct GoogleCloudAiplatformV1FluencyResult {
 }
 
 /// Spec for fulfillment result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FulfillmentResult {
     /// Output only. Confidence for fulfillment score.
     #[serde(default)]
@@ -6052,7 +6053,7 @@ pub struct GoogleCloudAiplatformV1FulfillmentResult {
 }
 
 /// Spec for groundedness result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GroundednessResult {
     /// Output only. Confidence for groundedness score.
     #[serde(default)]
@@ -6066,7 +6067,7 @@ pub struct GoogleCloudAiplatformV1GroundednessResult {
 }
 
 /// Result for a single metric on a single instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MetricResult {
     /// Output only. The error status for the metric result.
     #[serde(default)]
@@ -6084,7 +6085,7 @@ pub struct GoogleCloudAiplatformV1MetricResult {
 }
 
 /// Spec for MetricX result - calculates the MetricX score for the given instance using the version specified in the spec.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MetricxResult {
     /// Output only. MetricX score. Range depends on version.
     #[serde(default)]
@@ -6092,7 +6093,7 @@ pub struct GoogleCloudAiplatformV1MetricxResult {
 }
 
 /// Spec for pairwise question answering quality result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PairwiseQuestionAnsweringQualityResult {
     /// Output only. Confidence for question answering quality score.
     #[serde(default)]
@@ -6106,7 +6107,7 @@ pub struct GoogleCloudAiplatformV1PairwiseQuestionAnsweringQualityResult {
 }
 
 /// Spec for pairwise summarization quality result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PairwiseSummarizationQualityResult {
     /// Output only. Confidence for summarization quality score.
     #[serde(default)]
@@ -6120,7 +6121,7 @@ pub struct GoogleCloudAiplatformV1PairwiseSummarizationQualityResult {
 }
 
 /// Spec for question answering correctness result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1QuestionAnsweringCorrectnessResult {
     /// Output only. Confidence for question answering correctness score.
     #[serde(default)]
@@ -6134,7 +6135,7 @@ pub struct GoogleCloudAiplatformV1QuestionAnsweringCorrectnessResult {
 }
 
 /// Spec for question answering helpfulness result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1QuestionAnsweringHelpfulnessResult {
     /// Output only. Confidence for question answering helpfulness score.
     #[serde(default)]
@@ -6148,7 +6149,7 @@ pub struct GoogleCloudAiplatformV1QuestionAnsweringHelpfulnessResult {
 }
 
 /// Spec for question answering quality result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1QuestionAnsweringQualityResult {
     /// Output only. Confidence for question answering quality score.
     #[serde(default)]
@@ -6162,7 +6163,7 @@ pub struct GoogleCloudAiplatformV1QuestionAnsweringQualityResult {
 }
 
 /// Spec for question answering relevance result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1QuestionAnsweringRelevanceResult {
     /// Output only. Confidence for question answering relevance score.
     #[serde(default)]
@@ -6176,7 +6177,7 @@ pub struct GoogleCloudAiplatformV1QuestionAnsweringRelevanceResult {
 }
 
 /// Results for rouge metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RougeResults {
     /// Output only. Rouge metric values.
     #[serde(default, rename = "rougeMetricValues")]
@@ -6185,7 +6186,7 @@ pub struct GoogleCloudAiplatformV1RougeResults {
 }
 
 /// Result for RubricBasedInstructionFollowing metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RubricBasedInstructionFollowingResult {
     /// Output only. List of per rubric critique results.
     #[serde(default, rename = "rubricCritiqueResults")]
@@ -6197,7 +6198,7 @@ pub struct GoogleCloudAiplatformV1RubricBasedInstructionFollowingResult {
 }
 
 /// Spec for safety result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SafetyResult {
     /// Output only. Confidence for safety score.
     #[serde(default)]
@@ -6211,7 +6212,7 @@ pub struct GoogleCloudAiplatformV1SafetyResult {
 }
 
 /// Spec for summarization helpfulness result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SummarizationHelpfulnessResult {
     /// Output only. Confidence for summarization helpfulness score.
     #[serde(default)]
@@ -6225,7 +6226,7 @@ pub struct GoogleCloudAiplatformV1SummarizationHelpfulnessResult {
 }
 
 /// Spec for summarization quality result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SummarizationQualityResult {
     /// Output only. Confidence for summarization quality score.
     #[serde(default)]
@@ -6239,7 +6240,7 @@ pub struct GoogleCloudAiplatformV1SummarizationQualityResult {
 }
 
 /// Spec for summarization verbosity result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SummarizationVerbosityResult {
     /// Output only. Confidence for summarization verbosity score.
     #[serde(default)]
@@ -6253,7 +6254,7 @@ pub struct GoogleCloudAiplatformV1SummarizationVerbosityResult {
 }
 
 /// Results for tool call valid metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolCallValidResults {
     /// Output only. Tool call valid metric values.
     #[serde(default, rename = "toolCallValidMetricValues")]
@@ -6262,7 +6263,7 @@ pub struct GoogleCloudAiplatformV1ToolCallValidResults {
 }
 
 /// Results for tool name match metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolNameMatchResults {
     /// Output only. Tool name match metric values.
     #[serde(default, rename = "toolNameMatchMetricValues")]
@@ -6271,7 +6272,7 @@ pub struct GoogleCloudAiplatformV1ToolNameMatchResults {
 }
 
 /// Results for tool parameter key match metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolParameterKeyMatchResults {
     /// Output only. Tool parameter key match metric values.
     #[serde(default, rename = "toolParameterKeyMatchMetricValues")]
@@ -6281,7 +6282,7 @@ pub struct GoogleCloudAiplatformV1ToolParameterKeyMatchResults {
 }
 
 /// Results for tool parameter key value match metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolParameterKVMatchResults {
     /// Output only. Tool parameter key value match metric values.
     #[serde(default, rename = "toolParameterKvMatchMetricValues")]
@@ -6291,7 +6292,7 @@ pub struct GoogleCloudAiplatformV1ToolParameterKVMatchResults {
 }
 
 /// Results for TrajectoryAnyOrderMatch metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectoryAnyOrderMatchResults {
     /// Output only. TrajectoryAnyOrderMatch metric values.
     #[serde(default, rename = "trajectoryAnyOrderMatchMetricValues")]
@@ -6301,7 +6302,7 @@ pub struct GoogleCloudAiplatformV1TrajectoryAnyOrderMatchResults {
 }
 
 /// Results for TrajectoryExactMatch metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectoryExactMatchResults {
     /// Output only. TrajectoryExactMatch metric values.
     #[serde(default, rename = "trajectoryExactMatchMetricValues")]
@@ -6311,7 +6312,7 @@ pub struct GoogleCloudAiplatformV1TrajectoryExactMatchResults {
 }
 
 /// Results for TrajectoryInOrderMatch metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectoryInOrderMatchResults {
     /// Output only. TrajectoryInOrderMatch metric values.
     #[serde(default, rename = "trajectoryInOrderMatchMetricValues")]
@@ -6321,7 +6322,7 @@ pub struct GoogleCloudAiplatformV1TrajectoryInOrderMatchResults {
 }
 
 /// Results for TrajectoryPrecision metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectoryPrecisionResults {
     /// Output only. TrajectoryPrecision metric values.
     #[serde(default, rename = "trajectoryPrecisionMetricValues")]
@@ -6331,7 +6332,7 @@ pub struct GoogleCloudAiplatformV1TrajectoryPrecisionResults {
 }
 
 /// Results for TrajectoryRecall metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectoryRecallResults {
     /// Output only. TrajectoryRecall metric values.
     #[serde(default, rename = "trajectoryRecallMetricValues")]
@@ -6340,7 +6341,7 @@ pub struct GoogleCloudAiplatformV1TrajectoryRecallResults {
 }
 
 /// Results for TrajectorySingleToolUse metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectorySingleToolUseResults {
     /// Output only. TrajectorySingleToolUse metric values.
     #[serde(default, rename = "trajectorySingleToolUseMetricValues")]
@@ -6350,7 +6351,7 @@ pub struct GoogleCloudAiplatformV1TrajectorySingleToolUseResults {
 }
 
 /// Configuration for Agent Run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationRunInferenceConfigAgentRunConfig {
     /// Optional. The resource name of the Agent Engine. Format: projects/{project}/locations/{location}/reasoningEngines/{reasoning_engine} For example: projects/123/locations/us-central1/reasoningEngines/456
     #[serde(default, rename = "agentEngine")]
@@ -6367,7 +6368,7 @@ pub struct GoogleCloudAiplatformV1EvaluationRunInferenceConfigAgentRunConfig {
 }
 
 /// Container for bytes-encoded data such as video frame, audio sample, or a complete binary/text data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Chunk {
     /// Required. The data in the chunk.
     #[serde(default)]
@@ -6381,7 +6382,7 @@ pub struct GoogleCloudAiplatformV1Chunk {
 }
 
 /// The ExplanationSpec entries that can be overridden at online explanation time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExplanationSpecOverride {
     /// The example-based explanations parameter overrides.
     #[serde(default, rename = "examplesOverride")]
@@ -6395,7 +6396,7 @@ pub struct GoogleCloudAiplatformV1ExplanationSpecOverride {
 }
 
 /// Domain details of the input feature value. Provides numeric information about the feature, such as its range (min, max). If the feature has been pre-processed, for example with z-scoring, then it provides information about how to recover the original feature. For example, if the input feature is an image and it has been pre-processed to obtain 0-mean and stddev = 1 values, then original_mean, and original_stddev refer to the mean and stddev of the original feature (e.g. image tensor) from which input feature (with mean = 0 and stddev = 1) was obtained.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExplanationMetadataInputMetadataFeatureValueDomain {
     /// The maximum permissible value for this feature.
     #[serde(default, rename = "maxValue")]
@@ -6412,7 +6413,7 @@ pub struct GoogleCloudAiplatformV1ExplanationMetadataInputMetadataFeatureValueDo
 }
 
 /// Visualization configurations for image explanation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExplanationMetadataInputMetadataVisualization {
     /// Excludes attributions below the specified percentile, from the highlighted areas. Defaults to 62.
     #[serde(default, rename = "clipPercentLowerbound")]
@@ -6435,7 +6436,7 @@ pub struct GoogleCloudAiplatformV1ExplanationMetadataInputMetadataVisualization 
 }
 
 /// Describes what part of the Dataset is to be exported, the destination of the export and how to export.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExportDataConfig {
     /// The Cloud Storage URI that points to a YAML file describing the annotation schema. The schema is defined as an OpenAPI 3.0.2 [Schema Object](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.2.md#schemaObject). The schema files that can be used here are found in gs://google-cloud-aiplatform/schema/dataset/annotation/, note that the chosen schema must be consistent with metadata of the Dataset specified by ExportDataRequest.name. Only used for custom training data export use cases. Only applicable to Datasets that have DataItems and Annotations. Only Annotations that both match this schema and belong to DataItems not ignored by the split method are used in respectively training, validation or test role, depending on the role of the DataItem they are on. When used in conjunction with annotations_filter, the Annotations used for training are filtered by both annotations_filter and annotation_schema_uri.
     #[serde(default, rename = "annotationSchemaUri")]
@@ -6461,7 +6462,7 @@ pub struct GoogleCloudAiplatformV1ExportDataConfig {
 }
 
 /// A destination location for Feature values and format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureValueDestination {
     /// Output in BigQuery format. BigQueryDestination.output_uri in FeatureValueDestination.bigquery_destination must refer to a table.
     #[serde(default, rename = "bigqueryDestination")]
@@ -6475,7 +6476,7 @@ pub struct GoogleCloudAiplatformV1FeatureValueDestination {
 }
 
 /// Describes exporting all historical Feature values of all entities of the EntityType between [start_time, end_time].
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExportFeatureValuesRequestFullExport {
     /// Exports Feature values as of this timestamp. If not set, retrieve values as of now. Timestamp, if present, must not have higher than millisecond precision.
     #[serde(default, rename = "endTime")]
@@ -6486,7 +6487,7 @@ pub struct GoogleCloudAiplatformV1ExportFeatureValuesRequestFullExport {
 }
 
 /// Describes exporting the latest Feature values of all entities of the EntityType between [start_time, snapshot_time].
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExportFeatureValuesRequestSnapshotExport {
     /// Exports Feature values as of this timestamp. If not set, retrieve values as of now. Timestamp, if present, must not have higher than millisecond precision.
     #[serde(default, rename = "snapshotTime")]
@@ -6497,7 +6498,7 @@ pub struct GoogleCloudAiplatformV1ExportFeatureValuesRequestSnapshotExport {
 }
 
 /// Further describes the output of the ExportModel. Supplements ExportModelRequest.OutputConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExportModelOperationMetadataOutputInfo {
     /// Output only. If the Model artifact is being exported to Google Cloud Storage this is the full path of the directory created, into which the Model files are being written to.
     #[serde(default, rename = "artifactOutputUri")]
@@ -6508,7 +6509,7 @@ pub struct GoogleCloudAiplatformV1ExportModelOperationMetadataOutputInfo {
 }
 
 /// Output configuration for the Model export.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExportModelRequestOutputConfig {
     /// The Cloud Storage location where the Model artifact is to be written to. Under the directory given as the destination a new one with name "model-export--", where timestamp is in YYYY-MM-DDThh:mm:ss.sssZ ISO-8601 format, will be created. Inside, the Model and any of its supporting files will be written. This field should only be set when the exportableContent field of the [Model.supported_export_formats] object contains ARTIFACT.
     #[serde(default, rename = "artifactDestination")]
@@ -6523,7 +6524,7 @@ pub struct GoogleCloudAiplatformV1ExportModelRequestOutputConfig {
 }
 
 /// A data key and associated feature values to write to the feature view.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureViewDirectWriteRequestDataKeyAndFeatureValues {
     /// The data key.
     #[serde(default, rename = "dataKey")]
@@ -6538,7 +6539,7 @@ pub struct GoogleCloudAiplatformV1FeatureViewDirectWriteRequestDataKeyAndFeature
 }
 
 /// Details about the write for each key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureViewDirectWriteResponseWriteResponse {
     /// What key is this write response associated with.
     #[serde(default, rename = "dataKey")]
@@ -6549,7 +6550,7 @@ pub struct GoogleCloudAiplatformV1FeatureViewDirectWriteResponseWriteResponse {
 }
 
 /// A query to find a number of the nearest neighbors (most similar vectors) of a vector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FindNeighborsRequestQuery {
     /// The number of neighbors to find via approximate search before exact reordering is performed. If not set, the default value from scam config is used; if set, this value must be &gt; 0.
     #[serde(default, rename = "approximateNeighborCount")]
@@ -6572,7 +6573,7 @@ pub struct GoogleCloudAiplatformV1FindNeighborsRequestQuery {
 }
 
 /// Nearest neighbors for one query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FindNeighborsResponseNearestNeighbors {
     /// The ID of the query datapoint.
     #[serde(default)]
@@ -6585,7 +6586,7 @@ pub struct GoogleCloudAiplatformV1FindNeighborsResponseNearestNeighbors {
 }
 
 /// Configuration for Model Armor. Model Armor is a Google Cloud service that provides safety and security filtering for prompts and responses. It helps protect your AI applications from risks such as harmful content, sensitive data leakage, and prompt injection attacks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelArmorConfig {
     /// Optional. The resource name of the Model Armor template to use for prompt screening. A Model Armor template is a set of customized filters and thresholds that define how Model Armor screens content. If specified, Model Armor will use this template to check the user''s prompt for safety and security risks before it is sent to the model. The name must be in the format projects/{project}/locations/{location}/templates/{template}.
     #[serde(default, rename = "promptTemplateName")]
@@ -6596,7 +6597,7 @@ pub struct GoogleCloudAiplatformV1ModelArmorConfig {
 }
 
 /// A response candidate generated from the model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Candidate {
     /// Output only. The average log probability of the tokens in this candidate. This is a length-normalized score that can be used to compare the quality of candidates of different lengths. A higher average log probability suggests a more confident and coherent response.
     #[serde(default, rename = "avgLogprobs")]
@@ -6632,7 +6633,7 @@ pub struct GoogleCloudAiplatformV1Candidate {
 }
 
 /// Content filter results for a prompt sent in the request. Note: This is sent only in the first stream chunk and only if no candidates were generated due to content violations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenerateContentResponsePromptFeedback {
     /// Output only. The reason why the prompt was blocked. // TODO: enum values: ["BLOCKED_REASON_UNSPECIFIED", "SAFETY", "OTHER", "BLOCKLIST", "PROHIBITED_CONTENT", "MODEL_ARMOR", "IMAGE_SAFETY", "JAILBREAK"]
     #[serde(default, rename = "blockReason")]
@@ -6647,7 +6648,7 @@ pub struct GoogleCloudAiplatformV1GenerateContentResponsePromptFeedback {
 }
 
 /// Usage metadata about the content generation request and response. This message provides a detailed breakdown of token usage and other relevant metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenerateContentResponseUsageMetadata {
     /// Output only. A detailed breakdown of the token count for each modality in the cached content.
     #[serde(default, rename = "cacheTokensDetails")]
@@ -6689,7 +6690,7 @@ pub struct GoogleCloudAiplatformV1GenerateContentResponseUsageMetadata {
 }
 
 /// Defines a direct source of content from which to generate the memories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenerateMemoriesRequestDirectContentsSource {
     /// Required. The source content (i.e. chat history) to generate memories from.
     #[serde(default)]
@@ -6699,7 +6700,7 @@ pub struct GoogleCloudAiplatformV1GenerateMemoriesRequestDirectContentsSource {
 }
 
 /// Defines a direct source of memories that should be uploaded to Memory Bank with consolidation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenerateMemoriesRequestDirectMemoriesSource {
     /// Required. The direct memories to upload to Memory Bank. At most 5 direct memories are allowed per request.
     #[serde(default, rename = "directMemories")]
@@ -6711,7 +6712,7 @@ pub struct GoogleCloudAiplatformV1GenerateMemoriesRequestDirectMemoriesSource {
 }
 
 /// Defines an Agent Engine Session from which to generate the memories. If scope is not provided, the scope will be extracted from the Session (i.e. {"user_id": sesison.user_id}).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenerateMemoriesRequestVertexSessionSource {
     /// Optional. End time (exclusive) of the time range. If not set, the end time is unbounded.
     #[serde(default, rename = "endTime")]
@@ -6725,7 +6726,7 @@ pub struct GoogleCloudAiplatformV1GenerateMemoriesRequestVertexSessionSource {
 }
 
 /// Specifies the properties of a single field that are included in each generated synthetic example. This helps the model understand what kind of data to generate for each field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1OutputFieldSpec {
     /// Required. The name of this field in the generated synthetic data, such as "email_subject" or "customer_review".
     #[serde(default, rename = "fieldName")]
@@ -6739,7 +6740,7 @@ pub struct GoogleCloudAiplatformV1OutputFieldSpec {
 }
 
 /// Defines a generation strategy based on a general task description.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TaskDescriptionStrategy {
     /// Required. A general description of the type of synthetic data you want to generate. For example, "Generate customer reviews for a new smartphone."
     #[serde(default, rename = "taskDescription")]
@@ -6747,7 +6748,7 @@ pub struct GoogleCloudAiplatformV1TaskDescriptionStrategy {
 }
 
 /// A single instance of generated synthetic data. Each example is made up of one or more named fields, as defined in OutputFieldSpec. These examples are used as few-shot examples to show the model what you want (in GenerateSyntheticDataRequest.examples) and to return generated examples in the response (in GenerateSyntheticDataResponse.synthetic_examples).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SyntheticExample {
     /// Required. A list of fields that constitute an example.
     #[serde(default)]
@@ -6755,7 +6756,7 @@ pub struct GoogleCloudAiplatformV1SyntheticExample {
 }
 
 /// A generated video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenerateVideoResponseVideo {
     /// Base64 encoded bytes string representing the video.
     #[serde(default, rename = "bytesBase64Encoded")]
@@ -6769,7 +6770,7 @@ pub struct GoogleCloudAiplatformV1GenerateVideoResponseVideo {
 }
 
 /// Describes the location from where we import data into a Dataset, together with the labels that will be applied to the DataItems and the Annotations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ImportDataConfig {
     /// Labels that will be applied to newly imported Annotations. If two Annotations are identical, one of them will be deduped. Two Annotations are considered identical if their payload, payload_schema_uri and all of their labels are the same. These labels will be overridden by Annotation labels specified inside index file referenced by import_schema_uri, e.g. jsonl file.
     #[serde(default, rename = "annotationLabels")]
@@ -6786,7 +6787,7 @@ pub struct GoogleCloudAiplatformV1ImportDataConfig {
 }
 
 /// The storage details for Avro input content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AvroSource {
     /// Required. Google Cloud Storage location.
     #[serde(default, rename = "gcsSource")]
@@ -6794,7 +6795,7 @@ pub struct GoogleCloudAiplatformV1AvroSource {
 }
 
 /// Defines the Feature value(s) to import.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ImportFeatureValuesRequestFeatureSpec {
     /// Required. ID of the Feature to import values of. This Feature must exist in the target EntityType, or the request will fail.
     #[serde(default)]
@@ -6805,7 +6806,7 @@ pub struct GoogleCloudAiplatformV1ImportFeatureValuesRequestFeatureSpec {
 }
 
 /// Config for importing RagFiles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ImportRagFilesConfig {
     /// Google Cloud Storage location. Supports importing individual files as well as entire Google Cloud Storage directories. Sample formats: - gs://bucket_name/my_directory/object_name/my_file.txt - gs://bucket_name/my_directory
     #[serde(default, rename = "gcsSource")]
@@ -6853,7 +6854,7 @@ pub struct GoogleCloudAiplatformV1ImportRagFilesConfig {
 }
 
 /// An edge describing the relationship between an Artifact and an Execution in a lineage graph.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Event {
     /// Required. The relative resource name of the Artifact in the Event.
     #[serde(default)]
@@ -6873,7 +6874,7 @@ pub struct GoogleCloudAiplatformV1Event {
 }
 
 /// A job that uses a Model to produce predictions on multiple input instances. If predictions for significant portion of the instances fail, the job may finish without attempting predictions for all remaining instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchPredictionJob {
     /// Output only. Statistics on completed and failed prediction instances.
     #[serde(default, rename = "completionStats")]
@@ -6969,7 +6970,7 @@ pub struct GoogleCloudAiplatformV1BatchPredictionJob {
 }
 
 /// A resource used in LLM queries for users to explicitly specify what to cache and how to cache.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CachedContent {
     /// Optional. Input only. Immutable. The content to cache
     #[serde(default)]
@@ -7013,7 +7014,7 @@ pub struct GoogleCloudAiplatformV1CachedContent {
 }
 
 /// Represents a job that runs custom workloads such as a Docker container or a Python package. A CustomJob can have multiple worker pools and each worker pool can have its own machine and input spec. A CustomJob will be cleaned up once the job enters terminal state (failed or succeeded).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CustomJob {
     /// Output only. Time when the CustomJob was created.
     #[serde(default, rename = "createTime")]
@@ -7060,7 +7061,7 @@ pub struct GoogleCloudAiplatformV1CustomJob {
 }
 
 /// DataLabelingJob is used to trigger a human labeling job on unlabeled data from the following Dataset:
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DataLabelingJob {
     /// Parameters that configure the active learning pipeline. Active learning will label the data incrementally via several iterations. For every iteration, it will select a batch of data based on the sampling strategy.
     #[serde(default, rename = "activeLearningConfig")]
@@ -7119,7 +7120,7 @@ pub struct GoogleCloudAiplatformV1DataLabelingJob {
 }
 
 /// Describes the dataset version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DatasetVersion {
     /// Output only. Name of the associated BigQuery dataset.
     #[serde(default, rename = "bigQueryDatasetName")]
@@ -7154,7 +7155,7 @@ pub struct GoogleCloudAiplatformV1DatasetVersion {
 }
 
 /// A collection of DataItems and Annotations on them.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Dataset {
     /// Output only. Timestamp when this Dataset was created.
     #[serde(default, rename = "createTime")]
@@ -7207,7 +7208,7 @@ pub struct GoogleCloudAiplatformV1Dataset {
 }
 
 /// A description of resources that can be shared by multiple DeployedModels, whose underlying specification consists of a DedicatedResources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeploymentResourcePool {
     /// Output only. Timestamp when this DeploymentResourcePool was created.
     #[serde(default, rename = "createTime")]
@@ -7236,7 +7237,7 @@ pub struct GoogleCloudAiplatformV1DeploymentResourcePool {
 }
 
 /// An entity type is a type of object in a system that needs to be modeled and have stored information about. For example, driver is an entity type, and driver0 is an instance of an entity type driver.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EntityType {
     /// Output only. Timestamp when this EntityType was created.
     #[serde(default, rename = "createTime")]
@@ -7272,7 +7273,7 @@ pub struct GoogleCloudAiplatformV1EntityType {
 }
 
 /// EvaluationItem is a single evaluation request or result. The content of an EvaluationItem is immutable - it cannot be updated once created. EvaluationItems can be deleted when no longer needed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationItem {
     /// Output only. Timestamp when this item was created.
     #[serde(default, rename = "createTime")]
@@ -7307,7 +7308,7 @@ pub struct GoogleCloudAiplatformV1EvaluationItem {
 }
 
 /// EvaluationRun is a resource that represents a single evaluation run, which includes a set of prompts, model responses, evaluation configuration and the resulting metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationRun {
     /// Output only. Time when the evaluation run was completed.
     #[serde(default, rename = "completionTime")]
@@ -7352,7 +7353,7 @@ pub struct GoogleCloudAiplatformV1EvaluationRun {
 }
 
 /// EvaluationSet is a collection of related EvaluationItems that are evaluated together.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationSet {
     /// Output only. Timestamp when this item was created.
     #[serde(default, rename = "createTime")]
@@ -7375,7 +7376,7 @@ pub struct GoogleCloudAiplatformV1EvaluationSet {
 }
 
 /// An event represents a message from either the user or agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SessionEvent {
     /// Optional. Actions executed by the agent.
     #[serde(default)]
@@ -7410,7 +7411,7 @@ pub struct GoogleCloudAiplatformV1SessionEvent {
 }
 
 /// Vertex AI Feature Group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureGroup {
     /// Indicates that features for this group come from BigQuery Table/View. By default treats the source as a sparse time series source. The BigQuery source table or view must have at least one entity ID column and a column named feature_timestamp.
     #[serde(default, rename = "bigQuery")]
@@ -7442,7 +7443,7 @@ pub struct GoogleCloudAiplatformV1FeatureGroup {
 }
 
 /// Vertex AI Feature Online Store provides a centralized repository for serving ML features and embedding indexes at low latency. The Feature Online Store is a top-level container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureOnlineStore {
     /// Contains settings for the Cloud Bigtable instance that will be created to serve featureValues for all FeatureViews under this FeatureOnlineStore.
     #[serde(default)]
@@ -7484,7 +7485,7 @@ pub struct GoogleCloudAiplatformV1FeatureOnlineStore {
 }
 
 /// FeatureViewSync is a representation of sync operation which copies data from data source to Feature View in Online Store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureViewSync {
     /// Output only. Time when this FeatureViewSync is created. Creation of a FeatureViewSync means that the job is pending / waiting for sufficient resources but may not have started the actual data transfer yet.
     #[serde(default, rename = "createTime")]
@@ -7510,7 +7511,7 @@ pub struct GoogleCloudAiplatformV1FeatureViewSync {
 }
 
 /// FeatureView is representation of values that the FeatureOnlineStore will serve based on its syncConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureView {
     /// Optional. Configures how data is supposed to be extracted from a BigQuery source to be loaded onto the FeatureOnlineStore.
     #[serde(default, rename = "bigQuerySource")]
@@ -7566,7 +7567,7 @@ pub struct GoogleCloudAiplatformV1FeatureView {
 }
 
 /// Vertex AI Feature Store provides a centralized repository for organizing, storing, and serving ML features. The Featurestore is a top-level container for your features and their values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Featurestore {
     /// Output only. Timestamp when this Featurestore was created.
     #[serde(default, rename = "createTime")]
@@ -7605,7 +7606,7 @@ pub struct GoogleCloudAiplatformV1Featurestore {
 }
 
 /// Represents a HyperparameterTuningJob. A HyperparameterTuningJob has a Study specification and multiple CustomJobs with identical CustomJob specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1HyperparameterTuningJob {
     /// Output only. Time when the HyperparameterTuningJob was created.
     #[serde(default, rename = "createTime")]
@@ -7664,7 +7665,7 @@ pub struct GoogleCloudAiplatformV1HyperparameterTuningJob {
 }
 
 /// Indexes are deployed into it. An IndexEndpoint can have multiple DeployedIndexes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1IndexEndpoint {
     /// Output only. Timestamp when this IndexEndpoint was created.
     #[serde(default, rename = "createTime")]
@@ -7719,7 +7720,7 @@ pub struct GoogleCloudAiplatformV1IndexEndpoint {
 }
 
 /// A representation of a collection of database items organized in a way that allows for approximate nearest neighbor (a.k.a ANN) algorithms search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Index {
     /// Output only. Timestamp when this Index was created.
     #[serde(default, rename = "createTime")]
@@ -7770,7 +7771,7 @@ pub struct GoogleCloudAiplatformV1Index {
 }
 
 /// A revision of a Memory.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MemoryRevision {
     /// Output only. Timestamp when this Memory Revision was created.
     #[serde(default, rename = "createTime")]
@@ -7794,7 +7795,7 @@ pub struct GoogleCloudAiplatformV1MemoryRevision {
 }
 
 /// Instance of a general MetadataSchema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MetadataSchema {
     /// Output only. Timestamp when this MetadataSchema was created.
     #[serde(default, rename = "createTime")]
@@ -7817,7 +7818,7 @@ pub struct GoogleCloudAiplatformV1MetadataSchema {
 }
 
 /// Instance of a metadata store. Contains a set of metadata that can be queried.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MetadataStore {
     /// Output only. Timestamp when this MetadataStore was created.
     #[serde(default, rename = "createTime")]
@@ -7843,7 +7844,7 @@ pub struct GoogleCloudAiplatformV1MetadataStore {
 }
 
 /// Represents a job that runs periodically to monitor the deployed models in an endpoint. It will analyze the logged training & prediction data to detect any abnormal behaviors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelDeploymentMonitoringJob {
     /// YAML schema file uri describing the format of a single instance that you want Tensorflow Data Validation (TFDV) to analyze. If this field is empty, all the feature data types are inferred from predict_instance_schema_uri, meaning that TFDV will use the data in the exact format(data type) as prediction request/response. If there are any data type differences between predict instance and TFDV instance, this field can be used to override the schema. For models trained with Vertex AI, this field must be set as all the fields in predict instance formatted as string.
     #[serde(default, rename = "analysisInstanceSchemaUri")]
@@ -7932,7 +7933,7 @@ pub struct GoogleCloudAiplatformV1ModelDeploymentMonitoringJob {
 }
 
 /// A collection of metrics calculated by comparing Model''s predictions on a slice of the test data against ground truth annotations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelEvaluationSlice {
     /// Output only. Timestamp when this ModelEvaluationSlice was created.
     #[serde(default, rename = "createTime")]
@@ -7955,7 +7956,7 @@ pub struct GoogleCloudAiplatformV1ModelEvaluationSlice {
 }
 
 /// A collection of metrics calculated by comparing Model''s predictions on all of the test data against annotations from the test data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelEvaluation {
     /// Points to a YAML file stored on Google Cloud Storage describing EvaluatedDataItemView.predictions, EvaluatedDataItemView.ground_truths, EvaluatedAnnotation.predictions, and EvaluatedAnnotation.ground_truths. The schema is defined as an OpenAPI 3.0.2 [Schema Object](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.2.md#schemaObject). This field is not populated if there are neither EvaluatedDataItemViews nor EvaluatedAnnotations under this ModelEvaluation.
     #[serde(default, rename = "annotationSchemaUri")]
@@ -7995,7 +7996,7 @@ pub struct GoogleCloudAiplatformV1ModelEvaluation {
 }
 
 /// Describes the machine learning model version checkpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelVersionCheckpoint {
     /// The ID of the checkpoint.
     #[serde(default, rename = "checkpointId")]
@@ -8009,7 +8010,7 @@ pub struct GoogleCloudAiplatformV1ModelVersionCheckpoint {
 }
 
 /// Represents a Neural Architecture Search (NAS) job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NasJob {
     /// Output only. Time when the NasJob was created.
     #[serde(default, rename = "createTime")]
@@ -8059,7 +8060,7 @@ pub struct GoogleCloudAiplatformV1NasJob {
 }
 
 /// Represents a NasTrial details along with its parameters. If there is a corresponding train NasTrial, the train NasTrial is also returned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NasTrialDetail {
     /// Output only. Resource name of the NasTrialDetail.
     #[serde(default)]
@@ -8076,7 +8077,7 @@ pub struct GoogleCloudAiplatformV1NasTrialDetail {
 }
 
 /// A template that specifies runtime configurations such as machine type, runtime version, network configurations, etc. Multiple runtimes can be created from a runtime template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NotebookRuntimeTemplate {
     /// Output only. Timestamp when this NotebookRuntimeTemplate was created.
     #[serde(default, rename = "createTime")]
@@ -8144,7 +8145,7 @@ pub struct GoogleCloudAiplatformV1NotebookRuntimeTemplate {
 }
 
 /// A runtime is a virtual machine allocated to a particular user for a particular Notebook file on temporary basis with lifetime. Default runtimes have a lifetime of 18 hours, while custom runtimes last for 6 months from their creation or last upgrade.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NotebookRuntime {
     /// Output only. Timestamp when this NotebookRuntime was created.
     #[serde(default, rename = "createTime")]
@@ -8237,7 +8238,7 @@ pub struct GoogleCloudAiplatformV1NotebookRuntime {
 }
 
 /// Represents long-lasting resources that are dedicated to users to runs custom workloads. A PersistentResource can have multiple node pools and each node pool can have its own machine spec.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PersistentResource {
     /// Output only. Time when the PersistentResource was created.
     #[serde(default, rename = "createTime")]
@@ -8294,7 +8295,7 @@ pub struct GoogleCloudAiplatformV1PersistentResource {
 }
 
 /// A RagCorpus is a RagFile container and a project can have multiple RagCorpora.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagCorpus {
     /// Output only. RagCorpus state.
     #[serde(default, rename = "corpusStatus")]
@@ -8333,7 +8334,7 @@ pub struct GoogleCloudAiplatformV1RagCorpus {
 }
 
 /// ReasoningEngine provides a customizable runtime for models to determine which actions to take and in which order.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReasoningEngine {
     /// Optional. Configuration for how Agent Engine sub-resources should manage context.
     #[serde(default, rename = "contextSpec")]
@@ -8368,7 +8369,7 @@ pub struct GoogleCloudAiplatformV1ReasoningEngine {
 }
 
 /// SandboxEnvironment is a containerized environment that provides a customizable secure execution runtime for AI agents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SandboxEnvironment {
     /// Output only. The connection information of the SandboxEnvironment.
     #[serde(default, rename = "connectionInfo")]
@@ -8401,7 +8402,7 @@ pub struct GoogleCloudAiplatformV1SandboxEnvironment {
 }
 
 /// An instance of a Schedule periodically schedules runs to make API calls based on user specified time specification and API request type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Schedule {
     /// Optional. Whether new scheduled runs can be queued when max_concurrent_runs limit is reached. If set to true, new runs will be queued instead of skipped. Default to false.
     #[serde(default, rename = "allowQueueing")]
@@ -8469,7 +8470,7 @@ pub struct GoogleCloudAiplatformV1Schedule {
 }
 
 /// A session contains a set of actions between users and Vertex agents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Session {
     /// Output only. Timestamp when the session was created.
     #[serde(default, rename = "createTime")]
@@ -8501,7 +8502,7 @@ pub struct GoogleCloudAiplatformV1Session {
 }
 
 /// SpecialistPool represents customers'' own workforce to work on their data labeling jobs. It includes a group of specialist managers and workers. Managers are responsible for managing the workers in this pool as well as customers'' data labeling jobs associated with this pool. Customers create specialist pool as well as start data labeling jobs on Cloud, managers and workers handle the jobs using CrowdCompute console.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SpecialistPool {
     /// Required. The user-defined name of the SpecialistPool. The name can be up to 128 characters long and can consist of any UTF-8 characters. This field should be unique on project-level.
     #[serde(default, rename = "displayName")]
@@ -8524,7 +8525,7 @@ pub struct GoogleCloudAiplatformV1SpecialistPool {
 }
 
 /// A message representing a Study.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Study {
     /// Output only. Time at which the study was created.
     #[serde(default, rename = "createTime")]
@@ -8547,7 +8548,7 @@ pub struct GoogleCloudAiplatformV1Study {
 }
 
 /// A TensorboardExperiment is a group of TensorboardRuns, that are typically the results of a training job run, in a Tensorboard.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TensorboardExperiment {
     /// Output only. Timestamp when this TensorboardExperiment was created.
     #[serde(default, rename = "createTime")]
@@ -8576,7 +8577,7 @@ pub struct GoogleCloudAiplatformV1TensorboardExperiment {
 }
 
 /// Tensorboard is a physical database that stores users'' training metrics. A default Tensorboard is provided in each region of a Google Cloud project. If needed users can also create extra Tensorboards in their projects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Tensorboard {
     /// Output only. Consumer project Cloud Storage path prefix used to store blob data, which can either be a bucket or directory. Does not end with a ''/''.
     #[serde(default, rename = "blobStoragePathPrefix")]
@@ -8620,7 +8621,7 @@ pub struct GoogleCloudAiplatformV1Tensorboard {
 }
 
 /// The TrainingPipeline orchestrates tasks associated with training a Model. It always executes the training task, and optionally may also export data from Vertex AI''s Dataset which becomes the training input, upload the Model to Vertex AI, and evaluate the Model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrainingPipeline {
     /// Output only. Time when the TrainingPipeline was created.
     #[serde(default, rename = "createTime")]
@@ -8676,7 +8677,7 @@ pub struct GoogleCloudAiplatformV1TrainingPipeline {
 }
 
 /// A range of values for slice(s). low is inclusive, high is exclusive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelEvaluationSliceSliceSliceSpecRange {
     /// Exclusive high value for the range.
     #[serde(default)]
@@ -8687,7 +8688,7 @@ pub struct GoogleCloudAiplatformV1ModelEvaluationSliceSliceSliceSpecRange {
 }
 
 /// Single value that supports strings and floats.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelEvaluationSliceSliceSliceSpecValue {
     /// Float type.
     #[serde(default, rename = "floatValue")]
@@ -8698,7 +8699,7 @@ pub struct GoogleCloudAiplatformV1ModelEvaluationSliceSliceSliceSpecValue {
 }
 
 /// Instance of a general artifact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Artifact {
     /// Output only. Timestamp when this Artifact was created.
     #[serde(default, rename = "createTime")]
@@ -8739,7 +8740,7 @@ pub struct GoogleCloudAiplatformV1Artifact {
 }
 
 /// Actions could take on this Publisher Model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PublisherModelCallToAction {
     /// Optional. Create application using the PublisherModel.
     #[serde(default, rename = "createApplication")]
@@ -8808,7 +8809,7 @@ pub struct GoogleCloudAiplatformV1PublisherModelCallToAction {
 }
 
 /// Configuration message for RagManagedDb used by RagEngine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagManagedDbConfig {
     /// Deprecated: Use mode instead to set the tier under Spanner. Sets the RagManagedDb to the Basic tier.
     #[serde(default)]
@@ -8828,7 +8829,7 @@ pub struct GoogleCloudAiplatformV1RagManagedDbConfig {
 }
 
 /// Entity view with Feature values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReadFeatureValuesResponseEntityView {
     /// Each piece of data holds the k requested values for one requested Feature. If no values for the requested Feature exist, the corresponding cell will be empty. This has the same size and is in the same order as the features from the header ReadFeatureValuesResponse.header.
     #[serde(default)]
@@ -8841,7 +8842,7 @@ pub struct GoogleCloudAiplatformV1ReadFeatureValuesResponseEntityView {
 }
 
 /// Response header with metadata for the requested ReadFeatureValuesRequest.entity_type and Features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReadFeatureValuesResponseHeader {
     /// The resource name of the EntityType from the ReadFeatureValuesRequest. Value format: projects/{project}/locations/{location}/featurestores/{featurestore}/entityTypes/{entityType}.
     #[serde(default, rename = "entityType")]
@@ -8854,7 +8855,7 @@ pub struct GoogleCloudAiplatformV1ReadFeatureValuesResponseHeader {
 }
 
 /// Per user usage data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReadTensorboardUsageResponsePerUserUsageData {
     /// User''s username
     #[serde(default)]
@@ -8865,7 +8866,7 @@ pub struct GoogleCloudAiplatformV1ReadTensorboardUsageResponsePerUserUsageData {
 }
 
 /// TunedModel Reference for legacy model migration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TunedModelRef {
     /// Support migration from tuning job list page, from bison model to gemini model.
     #[serde(default, rename = "pipelineJob")]
@@ -8879,7 +8880,7 @@ pub struct GoogleCloudAiplatformV1TunedModelRef {
 }
 
 /// Represents a TuningJob that runs with Google owned models.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TuningJob {
     /// The base model that is being tuned. See [Supported models](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/tuning#supported_models).
     #[serde(default, rename = "baseModel")]
@@ -8946,7 +8947,7 @@ pub struct GoogleCloudAiplatformV1TuningJob {
 }
 
 /// A query to retrieve relevant contexts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagQuery {
     /// Optional. The retrieval config for the query.
     #[serde(default, rename = "ragRetrievalConfig")]
@@ -8957,7 +8958,7 @@ pub struct GoogleCloudAiplatformV1RagQuery {
 }
 
 /// The data source for Vertex RagStore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RetrieveContextsRequestVertexRagStore {
     /// Optional. The representation of the rag source. It can be used to specify corpus only or ragfiles. Currently only support one corpus or multiple files from one corpus. In the future we may open up multiple corpora support.
     #[serde(default, rename = "ragResources")]
@@ -8970,7 +8971,7 @@ pub struct GoogleCloudAiplatformV1RetrieveContextsRequestVertexRagStore {
 }
 
 /// Relevant contexts for one query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagContexts {
     /// All its contexts.
     #[serde(default)]
@@ -8979,7 +8980,7 @@ pub struct GoogleCloudAiplatformV1RagContexts {
 }
 
 /// A conjunction of filters that will be combined using AND logic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MemoryConjunctionFilter {
     /// Filters that will combined using AND logic.
     #[serde(default)]
@@ -8987,7 +8988,7 @@ pub struct GoogleCloudAiplatformV1MemoryConjunctionFilter {
 }
 
 /// Parameters for semantic similarity search based retrieval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RetrieveMemoriesRequestSimilaritySearchParams {
     /// Required. Query to use for similarity search retrieval. If provided, then the parent ReasoningEngine must have ReasoningEngineContextSpec.MemoryBankConfig.SimilaritySearchConfig set.
     #[serde(default, rename = "searchQuery")]
@@ -8998,7 +8999,7 @@ pub struct GoogleCloudAiplatformV1RetrieveMemoriesRequestSimilaritySearchParams 
 }
 
 /// Parameters for simple (non-similarity search) retrieval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RetrieveMemoriesRequestSimpleRetrievalParams {
     /// Optional. The maximum number of memories to return. The service may return fewer than this value. If unspecified, at most 3 memories will be returned. The maximum value is 100; values above 100 will be coerced to 100.
     #[serde(default, rename = "pageSize")]
@@ -9009,7 +9010,7 @@ pub struct GoogleCloudAiplatformV1RetrieveMemoriesRequestSimpleRetrievalParams {
 }
 
 /// A retrieved memory.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RetrieveMemoriesResponseRetrievedMemory {
     /// The distance between the query and the retrieved Memory. Smaller values indicate more similar memories. This is only set if similarity search was used for retrieval.
     #[serde(default)]
@@ -9020,7 +9021,7 @@ pub struct GoogleCloudAiplatformV1RetrieveMemoriesResponseRetrievedMemory {
 }
 
 /// The mask based segmentation annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaImageSegmentationAnnotationMaskAnnotation {
     /// The mapping between color and AnnotationSpec for this Annotation.
     #[serde(default, rename = "annotationSpecColors")]
@@ -9032,7 +9033,7 @@ pub struct GoogleCloudAiplatformV1SchemaImageSegmentationAnnotationMaskAnnotatio
 }
 
 /// Represents a polygon in image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaImageSegmentationAnnotationPolygonAnnotation {
     /// The resource Id of the AnnotationSpec that this Annotation pertains to.
     #[serde(default, rename = "annotationSpecId")]
@@ -9046,7 +9047,7 @@ pub struct GoogleCloudAiplatformV1SchemaImageSegmentationAnnotationPolygonAnnota
 }
 
 /// Represents a polyline in image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaImageSegmentationAnnotationPolylineAnnotation {
     /// The resource Id of the AnnotationSpec that this Annotation pertains to.
     #[serde(default, rename = "annotationSpecId")]
@@ -9060,7 +9061,7 @@ pub struct GoogleCloudAiplatformV1SchemaImageSegmentationAnnotationPolylineAnnot
 }
 
 /// GoogleCloudAiplatformV1SchemaModelevaluationMetricsClassificationEvaluationMetricsConfidenceMetrics resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsClassificationEvaluationMetricsConfidenceMetrics
 {
     /// Metrics are computed with an assumption that the Model never returns predictions with score lower than this value.
@@ -9118,7 +9119,7 @@ pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsClassificationEval
 }
 
 /// Entry for the Quantiles loss type optimization objective.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsForecastingEvaluationMetricsQuantileMetricsEntry
 {
     /// This is a custom metric that calculates the percentage of true values that were less than the predicted value for that quantile. Only populated when optimization_objective is minimize-quantile-loss and each entry corresponds to an entry in quantiles The percent value can be used to compare with the quantile value, which is the target value.
@@ -9133,7 +9134,7 @@ pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsForecastingEvaluat
 }
 
 /// GoogleCloudAiplatformV1SchemaModelevaluationMetricsImageSegmentationEvaluationMetricsConfidenceMetricsEntry resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsImageSegmentationEvaluationMetricsConfidenceMetricsEntry
 {
     /// Metrics are computed with an assumption that the model never returns predictions with score lower than this value.
@@ -9158,7 +9159,7 @@ pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsImageSegmentationE
 }
 
 /// GoogleCloudAiplatformV1SchemaModelevaluationMetricsTextExtractionEvaluationMetricsConfidenceMetrics resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsTextExtractionEvaluationMetricsConfidenceMetrics
 {
     /// Metrics are computed with an assumption that the Model never returns predictions with score lower than this value.
@@ -9176,7 +9177,7 @@ pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsTextExtractionEval
 }
 
 /// The Evaluation metrics given a specific precision_window_length.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsVideoActionMetrics {
     /// Metrics for each label-match confidence_threshold from 0.05,0.10,...,0.95,0.96,0.97,0.98,0.99.
     #[serde(default, rename = "confidenceMetrics")]
@@ -9194,7 +9195,7 @@ pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsVideoActionMetrics
 }
 
 /// Bounding box matching model metrics for a single intersection-over-union threshold and multiple label match confidence thresholds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsBoundingBoxMetrics {
     /// Metrics for each label-match confidence_threshold from 0.05,0.10,...,0.95,0.96,0.97,0.98,0.99. Precision-recall curve is derived from them.
     #[serde(default, rename = "confidenceMetrics")]
@@ -9212,7 +9213,7 @@ pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsBoundingBoxMetrics
 }
 
 /// UNIMPLEMENTED. Track matching model metrics for a single track match threshold and multiple label match confidence thresholds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsTrackMetrics {
     /// Metrics for each label-match confidenceThreshold from 0.05,0.10,...,0.95,0.96,0.97,0.98,0.99. Precision-recall curve is derived from them.
     #[serde(default, rename = "confidenceMetrics")]
@@ -9236,7 +9237,7 @@ pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsTrackMetrics {
 }
 
 /// GoogleCloudAiplatformV1SchemaPredictPredictionTftFeatureImportance resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictPredictionTftFeatureImportance {
     #[serde(default, rename = "attributeColumns")]
     pub attribute_columns: ::core::option::Option<::std::vec::Vec<String>>,
@@ -9254,7 +9255,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictPredictionTftFeatureImportance {
 }
 
 /// The fields xMin, xMax, yMin, and yMax refer to a bounding box, i.e. the rectangle over the video frame pinpointing the found AnnotationSpec. The coordinates are relative to the frame size, and the point 0,0 is in the top left of the frame.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictPredictionVideoObjectTrackingPredictionResultFrame {
     /// A time (frame) of a video in which the object has been detected. Expressed as a number of seconds as measured from the start of the video, with fractions up to a microsecond precision, and with "s" appended at the end.
     #[serde(default, rename = "timeOffset")]
@@ -9274,7 +9275,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictPredictionVideoObjectTrackingPred
 }
 
 /// GoogleCloudAiplatformV1SchemaPredictionResultError resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictionResultError {
     /// Error message with additional details.
     #[serde(default)]
@@ -9285,7 +9286,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictionResultError {
 }
 
 /// The tables Dataset''s data source. The Dataset doesn''t store the data directly, but only pointer(s) to its data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTablesDatasetMetadataInputConfig {
     #[serde(default, rename = "bigquerySource")]
     pub bigquery_source:
@@ -9296,7 +9297,7 @@ pub struct GoogleCloudAiplatformV1SchemaTablesDatasetMetadataInputConfig {
 }
 
 /// The text segment inside of DataItem.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTextSegment {
     /// The text content in the segment for output only.
     #[serde(default)]
@@ -9310,7 +9311,7 @@ pub struct GoogleCloudAiplatformV1SchemaTextSegment {
 }
 
 /// The configuration for grounding checking.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictParamsGroundingConfig {
     /// If set, skip finding claim attributions (i.e not generate grounding citation).
     #[serde(default, rename = "disableAttribution")]
@@ -9323,7 +9324,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictParamsGroundingConfig {
 }
 
 /// The A2 schema of a prompt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPromptApiSchema {
     /// The Schema version that represents changes to the API behavior.
     #[serde(default, rename = "apiSchemaVersion")]
@@ -9348,7 +9349,7 @@ pub struct GoogleCloudAiplatformV1SchemaPromptApiSchema {
 }
 
 /// The time series Dataset''s data source. The Dataset doesn''t store the data directly, but only pointer(s) to its data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTimeSeriesDatasetMetadataInputConfig {
     #[serde(default, rename = "bigquerySource")]
     pub bigquery_source: ::core::option::Option<
@@ -9360,7 +9361,7 @@ pub struct GoogleCloudAiplatformV1SchemaTimeSeriesDatasetMetadataInputConfig {
 }
 
 /// GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlForecastingInputs resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlForecastingInputs {
     /// Additional experiment flags for the time series forcasting training.
     #[serde(default, rename = "additionalExperiments")]
@@ -9438,7 +9439,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlForecastingIn
 }
 
 /// Model metadata specific to AutoML Forecasting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlForecastingMetadata {
     /// BigQuery destination uri for exported evaluated examples.
     #[serde(default, rename = "evaluatedDataItemsBigqueryUri")]
@@ -9449,7 +9450,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlForecastingMe
 }
 
 /// GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlImageClassificationInputs resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlImageClassificationInputs {
     /// The ID of the base model. If it is specified, the new model will be trained based on the base model. Otherwise, the new model will be trained from scratch. The base model must be in the same Project and Location as the new Model to train, and have the same modelType.
     #[serde(default, rename = "baseModelId")]
@@ -9477,7 +9478,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlImageClassifi
 }
 
 /// GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlImageClassificationMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlImageClassificationMetadata {
     /// The actual training cost of creating this model, expressed in milli node hours, i.e. 1,000 value in this field means 1 node hour. Guaranteed to not exceed inputs.budgetMilliNodeHours.
     #[serde(default, rename = "costMilliNodeHours")]
@@ -9488,7 +9489,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlImageClassifi
 }
 
 /// GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlImageObjectDetectionInputs resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlImageObjectDetectionInputs {
     /// The training budget of creating this model, expressed in milli node hours i.e. 1,000 value in this field means 1 node hour. The actual metadata.costMilliNodeHours will be equal or less than this value. If further model training ceases to provide any improvements, it will stop without using the full budget and the metadata.successfulStopReason will be model-converged. Note, node_hour = actual_hour * number_of_nodes_involved. For modelType cloud(default), the budget must be between 20,000 and 900,000 milli node hours, inclusive. The default value is 216,000 which represents one day in wall time, considering 9 nodes are used. For model types mobile-tf-low-latency-1, mobile-tf-versatile-1, mobile-tf-high-accuracy-1 the training budget must be between 1,000 and 100,000 milli node hours, inclusive. The default value is 24,000 which represents one day in wall time on a single node that is used.
     #[serde(default, rename = "budgetMilliNodeHours")]
@@ -9510,7 +9511,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlImageObjectDe
 }
 
 /// GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlImageObjectDetectionMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlImageObjectDetectionMetadata {
     /// The actual training cost of creating this model, expressed in milli node hours, i.e. 1,000 value in this field means 1 node hour. Guaranteed to not exceed inputs.budgetMilliNodeHours.
     #[serde(default, rename = "costMilliNodeHours")]
@@ -9521,7 +9522,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlImageObjectDe
 }
 
 /// GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlImageSegmentationInputs resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlImageSegmentationInputs {
     /// The ID of the base model. If it is specified, the new model will be trained based on the base model. Otherwise, the new model will be trained from scratch. The base model must be in the same Project and Location as the new Model to train, and have the same modelType.
     #[serde(default, rename = "baseModelId")]
@@ -9535,7 +9536,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlImageSegmenta
 }
 
 /// GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlImageSegmentationMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlImageSegmentationMetadata {
     /// The actual training cost of creating this model, expressed in milli node hours, i.e. 1,000 value in this field means 1 node hour. Guaranteed to not exceed inputs.budgetMilliNodeHours.
     #[serde(default, rename = "costMilliNodeHours")]
@@ -9546,7 +9547,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlImageSegmenta
 }
 
 /// GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesInputs resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesInputs {
     /// Additional experiment flags for the Tables training pipeline.
     #[serde(default, rename = "additionalExperiments")]
@@ -9590,7 +9591,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesInputs 
 }
 
 /// Model metadata specific to AutoML Tables.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesMetadata {
     /// BigQuery destination uri for exported evaluated examples.
     #[serde(default, rename = "evaluatedDataItemsBigqueryUri")]
@@ -9601,14 +9602,14 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesMetadat
 }
 
 /// GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTextClassificationInputs resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTextClassificationInputs {
     #[serde(default, rename = "multiLabel")]
     pub multi_label: ::core::option::Option<bool>,
 }
 
 /// GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTextSentimentInputs resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTextSentimentInputs {
     /// A sentiment is expressed as an integer ordinal, where higher value means a more positive sentiment. The range of sentiments that will be used is between 0 and sentimentMax (inclusive on both ends), and all the values in the range must be represented in the dataset before a model can be created. Only the Annotations with this sentimentMax will be used for training. sentimentMax value must be between 1 and 10 (inclusive).
     #[serde(default, rename = "sentimentMax")]
@@ -9616,7 +9617,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTextSentiment
 }
 
 /// GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlVideoActionRecognitionInputs resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlVideoActionRecognitionInputs {
     /// TODO: enum values: ["MODEL_TYPE_UNSPECIFIED", "CLOUD", "MOBILE_VERSATILE_1", "MOBILE_JETSON_VERSATILE_1", "MOBILE_CORAL_VERSATILE_1"]
     #[serde(default, rename = "modelType")]
@@ -9624,7 +9625,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlVideoActionRe
 }
 
 /// GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlVideoClassificationInputs resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlVideoClassificationInputs {
     /// TODO: enum values: ["MODEL_TYPE_UNSPECIFIED", "CLOUD", "MOBILE_VERSATILE_1", "MOBILE_JETSON_VERSATILE_1"]
     #[serde(default, rename = "modelType")]
@@ -9632,7 +9633,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlVideoClassifi
 }
 
 /// GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlVideoObjectTrackingInputs resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlVideoObjectTrackingInputs {
     /// TODO: enum values: ["MODEL_TYPE_UNSPECIFIED", "CLOUD", "MOBILE_VERSATILE_1", "MOBILE_CORAL_VERSATILE_1", "MOBILE_CORAL_LOW_LATENCY_1", "MOBILE_JETSON_VERSATILE_1", "MOBILE_JETSON_LOW_LATENCY_1"]
     #[serde(default, rename = "modelType")]
@@ -9640,7 +9641,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlVideoObjectTr
 }
 
 /// GoogleCloudAiplatformV1SchemaTrainingjobDefinitionCustomJobMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionCustomJobMetadata {
     /// The resource name of the CustomJob that has been created to carry out this custom task.
     #[serde(default, rename = "backingCustomJob")]
@@ -9648,7 +9649,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionCustomJobMetadata {
 }
 
 /// GoogleCloudAiplatformV1SchemaTrainingjobDefinitionHyperparameterTuningJobSpec resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionHyperparameterTuningJobSpec {
     /// The number of failed Trials that need to be seen before failing the HyperparameterTuningJob. If set to 0, Vertex AI decides how many Trials must fail before the whole job fails.
     #[serde(default, rename = "maxFailedTrialCount")]
@@ -9668,7 +9669,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionHyperparameterTunin
 }
 
 /// GoogleCloudAiplatformV1SchemaTrainingjobDefinitionHyperparameterTuningJobMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionHyperparameterTuningJobMetadata {
     /// The resource name of the HyperparameterTuningJob that has been created to carry out this HyperparameterTuning task.
     #[serde(default, rename = "backingHyperparameterTuningJob")]
@@ -9679,7 +9680,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionHyperparameterTunin
 }
 
 /// GoogleCloudAiplatformV1SchemaTrainingjobDefinitionSeq2SeqPlusForecastingInputs resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionSeq2SeqPlusForecastingInputs {
     /// Additional experiment flags for the time series forcasting training.
     #[serde(default, rename = "additionalExperiments")]
@@ -9744,7 +9745,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionSeq2SeqPlusForecast
 }
 
 /// Model metadata specific to Seq2Seq Plus Forecasting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionSeq2SeqPlusForecastingMetadata {
     /// BigQuery destination uri for exported evaluated examples.
     #[serde(default, rename = "evaluatedDataItemsBigqueryUri")]
@@ -9755,7 +9756,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionSeq2SeqPlusForecast
 }
 
 /// GoogleCloudAiplatformV1SchemaTrainingjobDefinitionTftForecastingInputs resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionTftForecastingInputs {
     /// Additional experiment flags for the time series forcasting training.
     #[serde(default, rename = "additionalExperiments")]
@@ -9830,7 +9831,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionTftForecastingInput
 }
 
 /// Model metadata specific to TFT Forecasting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionTftForecastingMetadata {
     /// BigQuery destination uri for exported evaluated examples.
     #[serde(default, rename = "evaluatedDataItemsBigqueryUri")]
@@ -9841,7 +9842,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionTftForecastingMetad
 }
 
 /// A time period inside of a DataItem that has a time dimension (e.g. video).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTimeSegment {
     /// End of the time segment (exclusive), represented as the duration since the start of the DataItem.
     #[serde(default, rename = "endTimeOffset")]
@@ -9852,7 +9853,7 @@ pub struct GoogleCloudAiplatformV1SchemaTimeSegment {
 }
 
 /// A container for a single DataItem and Annotations on it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DataItemView {
     /// The Annotations on the DataItem. If too many Annotations should be returned for the DataItem, this field will be truncated per annotations_limit in request. If it was, then the has_truncated_annotations will be set to true.
     #[serde(default)]
@@ -9866,7 +9867,7 @@ pub struct GoogleCloudAiplatformV1DataItemView {
 }
 
 /// Stats requested for specific objective.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SearchModelDeploymentMonitoringStatsAnomaliesRequestStatsAnomaliesObjective
 {
     /// If set, all attribution scores between SearchModelDeploymentMonitoringStatsAnomaliesRequest.start_time and SearchModelDeploymentMonitoringStatsAnomaliesRequest.end_time are fetched, and page token doesn''t take effect in this case. Only used to retrieve attribution score for the top Features which has the highest attribution score in the latest monitoring run.
@@ -9878,7 +9879,7 @@ pub struct GoogleCloudAiplatformV1SearchModelDeploymentMonitoringStatsAnomaliesR
 }
 
 /// Statistics and anomalies generated by Model Monitoring.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelMonitoringStatsAnomalies {
     /// Number of anomalies within all stats.
     #[serde(default, rename = "anomalyCount")]
@@ -9899,7 +9900,7 @@ pub struct GoogleCloudAiplatformV1ModelMonitoringStatsAnomalies {
 }
 
 /// A query to find a number of similar entities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NearestNeighborQuery {
     /// Optional. The embedding vector that be used for similar search.
     #[serde(default)]
@@ -9929,7 +9930,7 @@ pub struct GoogleCloudAiplatformV1NearestNeighborQuery {
 }
 
 /// Nearest neighbors for one query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NearestNeighbors {
     /// All its neighbors.
     #[serde(default)]
@@ -9938,7 +9939,7 @@ pub struct GoogleCloudAiplatformV1NearestNeighbors {
 }
 
 /// Message that represents an arbitrary HTTP body. It should only be used for payload formats that can''t be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleApiHttpBody {
     /// The HTTP Content-Type header value specifying the content type of the body.
     #[serde(default, rename = "contentType")]
@@ -9952,7 +9953,7 @@ pub struct GoogleApiHttpBody {
 }
 
 /// A tensor value type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Tensor {
     /// Type specific representations that make it easy to create tensor protos in all languages. Only the representation corresponding to "dtype" can be set. The values hold the flattened representation of the tensor in row major order. BOOL
     #[serde(default, rename = "boolVal")]
@@ -9999,7 +10000,7 @@ pub struct GoogleCloudAiplatformV1Tensor {
 }
 
 /// GoogleCloudAiplatformV1TrialContext resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrialContext {
     /// A human-readable field which can store a description of this context. This will become part of the resulting Trial''s description field.
     #[serde(default)]
@@ -10010,7 +10011,7 @@ pub struct GoogleCloudAiplatformV1TrialContext {
 }
 
 /// Models are deployed into it, and afterwards Endpoint is called to obtain predictions and explanations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Endpoint {
     /// Configurations that are applied to the endpoint for online prediction.
     #[serde(default, rename = "clientConnectionConfig")]
@@ -10086,7 +10087,7 @@ pub struct GoogleCloudAiplatformV1Endpoint {
 }
 
 /// Runtime operation metadata with regard to Matching Engine Index.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NearestNeighborSearchOperationMetadata {
     /// The validation stats of the content (per file) to be inserted or updated on the Matching Engine Index resource. Populated if contentsDeltaUri is provided as part of Index.metadata. Please note that, currently for those files that are broken or has unsupported file format, we will not have the stats for those files.
     #[serde(default, rename = "contentValidationStats")]
@@ -10101,7 +10102,7 @@ pub struct GoogleCloudAiplatformV1NearestNeighborSearchOperationMetadata {
 }
 
 /// Generic Metadata shared by all operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenericOperationMetadata {
     /// Output only. Time when the operation was created.
     #[serde(default, rename = "createTime")]
@@ -10115,7 +10116,7 @@ pub struct GoogleCloudAiplatformV1GenericOperationMetadata {
 }
 
 /// Config for uploading RagFile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UploadRagFileConfig {
     /// Specifies the transformation config for RagFiles.
     #[serde(default, rename = "ragFileTransformationConfig")]
@@ -10124,7 +10125,7 @@ pub struct GoogleCloudAiplatformV1UploadRagFileConfig {
 }
 
 /// A RagFile contains user data for chunking, embedding and indexing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagFile {
     /// Output only. Timestamp when this RagFile was created.
     #[serde(default, rename = "createTime")]
@@ -10168,7 +10169,7 @@ pub struct GoogleCloudAiplatformV1RagFile {
 }
 
 /// Contains Feature values to be written for a specific entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1WriteFeatureValuesPayload {
     /// Required. The ID of the entity.
     #[serde(default, rename = "entityId")]
@@ -10179,7 +10180,7 @@ pub struct GoogleCloudAiplatformV1WriteFeatureValuesPayload {
 }
 
 /// Request message for TensorboardService.WriteTensorboardRunData.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1WriteTensorboardRunDataRequest {
     /// Required. The resource name of the TensorboardRun to write data to. Format: projects/{project}/locations/{location}/tensorboards/{tensorboard}/experiments/{experiment}/runs/{run}
     #[serde(default, rename = "tensorboardRun")]
@@ -10191,7 +10192,7 @@ pub struct GoogleCloudAiplatformV1WriteTensorboardRunDataRequest {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudLocationLocation {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -10211,7 +10212,7 @@ pub struct GoogleCloudLocationLocation {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Policy {
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
@@ -10225,7 +10226,7 @@ pub struct GoogleIamV1Policy {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -10245,7 +10246,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// Image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiLargeModelsVisionImage {
     /// Image encoding, encoded as "image/png" or "image/jpg".
     #[serde(default)]
@@ -10278,7 +10279,7 @@ pub struct CloudAiLargeModelsVisionImage {
 }
 
 /// Video
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiLargeModelsVisionVideo {
     /// Base 64 encoded video bytes.
     #[serde(default, rename = "encodedVideo")]
@@ -10298,7 +10299,7 @@ pub struct CloudAiLargeModelsVisionVideo {
 }
 
 /// Experimental parameters for video generation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiLargeModelsVisionGenerateVideoExperiments {
     /// Human pose parameters for Pose Control
     #[serde(default, rename = "humanPose")]
@@ -10321,7 +10322,7 @@ pub struct CloudAiLargeModelsVisionGenerateVideoExperiments {
 }
 
 /// Feature Metadata information. For example, color is a feature that describes an apple.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Feature {
     /// Output only. Only applicable for Vertex AI Feature Store (Legacy). Timestamp when this EntityType was created.
     #[serde(default, rename = "createTime")]
@@ -10361,7 +10362,7 @@ pub struct GoogleCloudAiplatformV1Feature {
 }
 
 /// TensorboardRun maps to a specific execution of a training job with a given set of hyperparameter values, model definition, dataset, etc
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TensorboardRun {
     /// Output only. Timestamp when this TensorboardRun was created.
     #[serde(default, rename = "createTime")]
@@ -10387,7 +10388,7 @@ pub struct GoogleCloudAiplatformV1TensorboardRun {
 }
 
 /// TensorboardTimeSeries maps to times series produced in training runs
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TensorboardTimeSeries {
     /// Output only. Timestamp when this TensorboardTimeSeries was created.
     #[serde(default, rename = "createTime")]
@@ -10422,7 +10423,7 @@ pub struct GoogleCloudAiplatformV1TensorboardTimeSeries {
 }
 
 /// Model error analysis for each annotation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ErrorAnalysisAnnotation {
     /// Attributed items for a given annotation, typically representing neighbors from the training sets constrained by the query type.
     #[serde(default, rename = "attributedItems")]
@@ -10441,7 +10442,7 @@ pub struct GoogleCloudAiplatformV1ErrorAnalysisAnnotation {
 }
 
 /// Explanation result of the prediction produced by the Model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluatedAnnotationExplanation {
     /// Explanation attribution response details.
     #[serde(default)]
@@ -10452,7 +10453,7 @@ pub struct GoogleCloudAiplatformV1EvaluatedAnnotationExplanation {
 }
 
 /// Config of migrating one resource from automl.googleapis.com, datalabeling.googleapis.com and ml.googleapis.com to Vertex AI.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MigrateResourceRequest {
     /// Config for migrating Dataset in automl.googleapis.com to Vertex AI''s Dataset.
     #[serde(default, rename = "migrateAutomlDatasetConfig")]
@@ -10477,7 +10478,7 @@ pub struct GoogleCloudAiplatformV1MigrateResourceRequest {
 }
 
 /// Represents one resource that exists in automl.googleapis.com, datalabeling.googleapis.com or ml.googleapis.com.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MigratableResource {
     /// Output only. Represents one Dataset in automl.googleapis.com.
     #[serde(default, rename = "automlDataset")]
@@ -10503,7 +10504,7 @@ pub struct GoogleCloudAiplatformV1MigratableResource {
 }
 
 /// GoogleCloudAiplatformV1DestinationFeatureSetting resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DestinationFeatureSetting {
     /// Specify the field name in the export destination. If not specified, Feature ID is used.
     #[serde(default, rename = "destinationField")]
@@ -10514,7 +10515,7 @@ pub struct GoogleCloudAiplatformV1DestinationFeatureSetting {
 }
 
 /// Selector for entityId. Getting ids from the given source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EntityIdSelector {
     /// Source of Csv
     #[serde(default, rename = "csvSource")]
@@ -10525,7 +10526,7 @@ pub struct GoogleCloudAiplatformV1EntityIdSelector {
 }
 
 /// Selector for Features of an EntityType.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureSelector {
     /// Required. Matches Features based on ID.
     #[serde(default, rename = "idMatcher")]
@@ -10533,7 +10534,7 @@ pub struct GoogleCloudAiplatformV1FeatureSelector {
 }
 
 /// Spec for bleu instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BleuInstance {
     /// Required. Output of the evaluated model.
     #[serde(default)]
@@ -10544,7 +10545,7 @@ pub struct GoogleCloudAiplatformV1BleuInstance {
 }
 
 /// Spec for coherence instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CoherenceInstance {
     /// Required. Output of the evaluated model.
     #[serde(default)]
@@ -10552,7 +10553,7 @@ pub struct GoogleCloudAiplatformV1CoherenceInstance {
 }
 
 /// Spec for coherence score metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CoherenceSpec {
     /// Optional. Which version to use for evaluation.
     #[serde(default)]
@@ -10560,7 +10561,7 @@ pub struct GoogleCloudAiplatformV1CoherenceSpec {
 }
 
 /// Spec for Comet instance - The fields used for evaluation are dependent on the comet version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CometInstance {
     /// Required. Output of the evaluated model.
     #[serde(default)]
@@ -10574,7 +10575,7 @@ pub struct GoogleCloudAiplatformV1CometInstance {
 }
 
 /// Spec for Comet metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CometSpec {
     /// Optional. Source language in BCP-47 format.
     #[serde(default, rename = "sourceLanguage")]
@@ -10588,7 +10589,7 @@ pub struct GoogleCloudAiplatformV1CometSpec {
 }
 
 /// Spec for exact match instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExactMatchInstance {
     /// Required. Output of the evaluated model.
     #[serde(default)]
@@ -10599,7 +10600,7 @@ pub struct GoogleCloudAiplatformV1ExactMatchInstance {
 }
 
 /// Spec for fluency instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FluencyInstance {
     /// Required. Output of the evaluated model.
     #[serde(default)]
@@ -10607,7 +10608,7 @@ pub struct GoogleCloudAiplatformV1FluencyInstance {
 }
 
 /// Spec for fluency score metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FluencySpec {
     /// Optional. Which version to use for evaluation.
     #[serde(default)]
@@ -10615,7 +10616,7 @@ pub struct GoogleCloudAiplatformV1FluencySpec {
 }
 
 /// Spec for fulfillment instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FulfillmentInstance {
     /// Required. Inference instruction prompt to compare prediction with.
     #[serde(default)]
@@ -10626,7 +10627,7 @@ pub struct GoogleCloudAiplatformV1FulfillmentInstance {
 }
 
 /// Spec for fulfillment metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FulfillmentSpec {
     /// Optional. Which version to use for evaluation.
     #[serde(default)]
@@ -10634,7 +10635,7 @@ pub struct GoogleCloudAiplatformV1FulfillmentSpec {
 }
 
 /// Spec for groundedness instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GroundednessInstance {
     /// Required. Background information provided in context used to compare against the prediction.
     #[serde(default)]
@@ -10645,7 +10646,7 @@ pub struct GoogleCloudAiplatformV1GroundednessInstance {
 }
 
 /// Spec for groundedness metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GroundednessSpec {
     /// Optional. Which version to use for evaluation.
     #[serde(default)]
@@ -10653,7 +10654,7 @@ pub struct GoogleCloudAiplatformV1GroundednessSpec {
 }
 
 /// Deprecated: Use agent_eval_data instead. Contains data specific to agent evaluations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationInstanceDeprecatedAgentData {
     /// Optional. Deprecated: Use agent_eval_data instead. Agent configuration.
     #[serde(default, rename = "agentConfig")]
@@ -10687,7 +10688,7 @@ pub struct GoogleCloudAiplatformV1EvaluationInstanceDeprecatedAgentData {
 }
 
 /// Instance data specified as a map.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationInstanceMapInstance {
     /// Optional. Map of instance data.
     #[serde(default, rename = "mapInstance")]
@@ -10695,7 +10696,7 @@ pub struct GoogleCloudAiplatformV1EvaluationInstanceMapInstance {
 }
 
 /// Spec for MetricX instance - The fields used for evaluation are dependent on the MetricX version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MetricxInstance {
     /// Required. Output of the evaluated model.
     #[serde(default)]
@@ -10709,7 +10710,7 @@ pub struct GoogleCloudAiplatformV1MetricxInstance {
 }
 
 /// Spec for MetricX metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MetricxSpec {
     /// Optional. Source language in BCP-47 format.
     #[serde(default, rename = "sourceLanguage")]
@@ -10723,7 +10724,7 @@ pub struct GoogleCloudAiplatformV1MetricxSpec {
 }
 
 /// Pairwise metric instance. Usually one instance corresponds to one row in an evaluation dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PairwiseMetricInstance {
     /// Key-value contents for the mutlimodality input, including text, image, video, audio, and pdf, etc. The key is placeholder in metric prompt template, and the value is the multimodal content.
     #[serde(default, rename = "contentMapInstance")]
@@ -10734,7 +10735,7 @@ pub struct GoogleCloudAiplatformV1PairwiseMetricInstance {
 }
 
 /// Spec for pairwise question answering quality instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PairwiseQuestionAnsweringQualityInstance {
     /// Required. Output of the baseline model.
     #[serde(default, rename = "baselinePrediction")]
@@ -10754,7 +10755,7 @@ pub struct GoogleCloudAiplatformV1PairwiseQuestionAnsweringQualityInstance {
 }
 
 /// Spec for pairwise question answering quality score metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PairwiseQuestionAnsweringQualitySpec {
     /// Optional. Whether to use instance.reference to compute question answering quality.
     #[serde(default, rename = "useReference")]
@@ -10765,7 +10766,7 @@ pub struct GoogleCloudAiplatformV1PairwiseQuestionAnsweringQualitySpec {
 }
 
 /// Spec for pairwise summarization quality instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PairwiseSummarizationQualityInstance {
     /// Required. Output of the baseline model.
     #[serde(default, rename = "baselinePrediction")]
@@ -10785,7 +10786,7 @@ pub struct GoogleCloudAiplatformV1PairwiseSummarizationQualityInstance {
 }
 
 /// Spec for pairwise summarization quality score metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PairwiseSummarizationQualitySpec {
     /// Optional. Whether to use instance.reference to compute pairwise summarization quality.
     #[serde(default, rename = "useReference")]
@@ -10796,7 +10797,7 @@ pub struct GoogleCloudAiplatformV1PairwiseSummarizationQualitySpec {
 }
 
 /// Pointwise metric instance. Usually one instance corresponds to one row in an evaluation dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PointwiseMetricInstance {
     /// Key-value contents for the mutlimodality input, including text, image, video, audio, and pdf, etc. The key is placeholder in metric prompt template, and the value is the multimodal content.
     #[serde(default, rename = "contentMapInstance")]
@@ -10807,7 +10808,7 @@ pub struct GoogleCloudAiplatformV1PointwiseMetricInstance {
 }
 
 /// Spec for question answering correctness instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1QuestionAnsweringCorrectnessInstance {
     /// Optional. Text provided as context to answer the question.
     #[serde(default)]
@@ -10824,7 +10825,7 @@ pub struct GoogleCloudAiplatformV1QuestionAnsweringCorrectnessInstance {
 }
 
 /// Spec for question answering correctness metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1QuestionAnsweringCorrectnessSpec {
     /// Optional. Whether to use instance.reference to compute question answering correctness.
     #[serde(default, rename = "useReference")]
@@ -10835,7 +10836,7 @@ pub struct GoogleCloudAiplatformV1QuestionAnsweringCorrectnessSpec {
 }
 
 /// Spec for question answering helpfulness instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1QuestionAnsweringHelpfulnessInstance {
     /// Optional. Text provided as context to answer the question.
     #[serde(default)]
@@ -10852,7 +10853,7 @@ pub struct GoogleCloudAiplatformV1QuestionAnsweringHelpfulnessInstance {
 }
 
 /// Spec for question answering helpfulness metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1QuestionAnsweringHelpfulnessSpec {
     /// Optional. Whether to use instance.reference to compute question answering helpfulness.
     #[serde(default, rename = "useReference")]
@@ -10863,7 +10864,7 @@ pub struct GoogleCloudAiplatformV1QuestionAnsweringHelpfulnessSpec {
 }
 
 /// Spec for question answering quality instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1QuestionAnsweringQualityInstance {
     /// Required. Text to answer the question.
     #[serde(default)]
@@ -10880,7 +10881,7 @@ pub struct GoogleCloudAiplatformV1QuestionAnsweringQualityInstance {
 }
 
 /// Spec for question answering quality score metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1QuestionAnsweringQualitySpec {
     /// Optional. Whether to use instance.reference to compute question answering quality.
     #[serde(default, rename = "useReference")]
@@ -10891,7 +10892,7 @@ pub struct GoogleCloudAiplatformV1QuestionAnsweringQualitySpec {
 }
 
 /// Spec for question answering relevance instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1QuestionAnsweringRelevanceInstance {
     /// Optional. Text provided as context to answer the question.
     #[serde(default)]
@@ -10908,7 +10909,7 @@ pub struct GoogleCloudAiplatformV1QuestionAnsweringRelevanceInstance {
 }
 
 /// Spec for question answering relevance metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1QuestionAnsweringRelevanceSpec {
     /// Optional. Whether to use instance.reference to compute question answering relevance.
     #[serde(default, rename = "useReference")]
@@ -10919,7 +10920,7 @@ pub struct GoogleCloudAiplatformV1QuestionAnsweringRelevanceSpec {
 }
 
 /// Spec for rouge instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RougeInstance {
     /// Required. Output of the evaluated model.
     #[serde(default)]
@@ -10930,7 +10931,7 @@ pub struct GoogleCloudAiplatformV1RougeInstance {
 }
 
 /// Instance for RubricBasedInstructionFollowing metric - one instance corresponds to one row in an evaluation dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RubricBasedInstructionFollowingInstance {
     /// Required. Instance specified as a json string. String key-value pairs are expected in the json_instance to render RubricBasedInstructionFollowing prompt templates.
     #[serde(default, rename = "jsonInstance")]
@@ -10938,7 +10939,7 @@ pub struct GoogleCloudAiplatformV1RubricBasedInstructionFollowingInstance {
 }
 
 /// Spec for safety instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SafetyInstance {
     /// Required. Output of the evaluated model.
     #[serde(default)]
@@ -10946,7 +10947,7 @@ pub struct GoogleCloudAiplatformV1SafetyInstance {
 }
 
 /// Spec for safety metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SafetySpec {
     /// Optional. Which version to use for evaluation.
     #[serde(default)]
@@ -10954,7 +10955,7 @@ pub struct GoogleCloudAiplatformV1SafetySpec {
 }
 
 /// Spec for summarization helpfulness instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SummarizationHelpfulnessInstance {
     /// Required. Text to be summarized.
     #[serde(default)]
@@ -10971,7 +10972,7 @@ pub struct GoogleCloudAiplatformV1SummarizationHelpfulnessInstance {
 }
 
 /// Spec for summarization helpfulness score metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SummarizationHelpfulnessSpec {
     /// Optional. Whether to use instance.reference to compute summarization helpfulness.
     #[serde(default, rename = "useReference")]
@@ -10982,7 +10983,7 @@ pub struct GoogleCloudAiplatformV1SummarizationHelpfulnessSpec {
 }
 
 /// Spec for summarization quality instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SummarizationQualityInstance {
     /// Required. Text to be summarized.
     #[serde(default)]
@@ -10999,7 +11000,7 @@ pub struct GoogleCloudAiplatformV1SummarizationQualityInstance {
 }
 
 /// Spec for summarization quality score metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SummarizationQualitySpec {
     /// Optional. Whether to use instance.reference to compute summarization quality.
     #[serde(default, rename = "useReference")]
@@ -11010,7 +11011,7 @@ pub struct GoogleCloudAiplatformV1SummarizationQualitySpec {
 }
 
 /// Spec for summarization verbosity instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SummarizationVerbosityInstance {
     /// Required. Text to be summarized.
     #[serde(default)]
@@ -11027,7 +11028,7 @@ pub struct GoogleCloudAiplatformV1SummarizationVerbosityInstance {
 }
 
 /// Spec for summarization verbosity score metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SummarizationVerbositySpec {
     /// Optional. Whether to use instance.reference to compute summarization verbosity.
     #[serde(default, rename = "useReference")]
@@ -11038,7 +11039,7 @@ pub struct GoogleCloudAiplatformV1SummarizationVerbositySpec {
 }
 
 /// Spec for tool call valid instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolCallValidInstance {
     /// Required. Output of the evaluated model.
     #[serde(default)]
@@ -11049,7 +11050,7 @@ pub struct GoogleCloudAiplatformV1ToolCallValidInstance {
 }
 
 /// Spec for tool name match instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolNameMatchInstance {
     /// Required. Output of the evaluated model.
     #[serde(default)]
@@ -11060,7 +11061,7 @@ pub struct GoogleCloudAiplatformV1ToolNameMatchInstance {
 }
 
 /// Spec for tool parameter key match instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolParameterKeyMatchInstance {
     /// Required. Output of the evaluated model.
     #[serde(default)]
@@ -11071,7 +11072,7 @@ pub struct GoogleCloudAiplatformV1ToolParameterKeyMatchInstance {
 }
 
 /// Spec for tool parameter key value match instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolParameterKVMatchInstance {
     /// Required. Output of the evaluated model.
     #[serde(default)]
@@ -11082,7 +11083,7 @@ pub struct GoogleCloudAiplatformV1ToolParameterKVMatchInstance {
 }
 
 /// Spec for tool parameter key value match metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolParameterKVMatchSpec {
     /// Optional. Whether to use STRICT string match on parameter values.
     #[serde(default, rename = "useStrictStringMatch")]
@@ -11090,7 +11091,7 @@ pub struct GoogleCloudAiplatformV1ToolParameterKVMatchSpec {
 }
 
 /// Spec for TrajectoryAnyOrderMatch instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectoryAnyOrderMatchInstance {
     /// Required. Spec for predicted tool call trajectory.
     #[serde(default, rename = "predictedTrajectory")]
@@ -11101,7 +11102,7 @@ pub struct GoogleCloudAiplatformV1TrajectoryAnyOrderMatchInstance {
 }
 
 /// Spec for TrajectoryExactMatch instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectoryExactMatchInstance {
     /// Required. Spec for predicted tool call trajectory.
     #[serde(default, rename = "predictedTrajectory")]
@@ -11112,7 +11113,7 @@ pub struct GoogleCloudAiplatformV1TrajectoryExactMatchInstance {
 }
 
 /// Spec for TrajectoryInOrderMatch instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectoryInOrderMatchInstance {
     /// Required. Spec for predicted tool call trajectory.
     #[serde(default, rename = "predictedTrajectory")]
@@ -11123,7 +11124,7 @@ pub struct GoogleCloudAiplatformV1TrajectoryInOrderMatchInstance {
 }
 
 /// Spec for TrajectoryPrecision instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectoryPrecisionInstance {
     /// Required. Spec for predicted tool call trajectory.
     #[serde(default, rename = "predictedTrajectory")]
@@ -11134,7 +11135,7 @@ pub struct GoogleCloudAiplatformV1TrajectoryPrecisionInstance {
 }
 
 /// Spec for TrajectoryRecall instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectoryRecallInstance {
     /// Required. Spec for predicted tool call trajectory.
     #[serde(default, rename = "predictedTrajectory")]
@@ -11145,7 +11146,7 @@ pub struct GoogleCloudAiplatformV1TrajectoryRecallInstance {
 }
 
 /// Spec for TrajectorySingleToolUse instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectorySingleToolUseInstance {
     /// Required. Spec for predicted tool call trajectory.
     #[serde(default, rename = "predictedTrajectory")]
@@ -11153,7 +11154,7 @@ pub struct GoogleCloudAiplatformV1TrajectorySingleToolUseInstance {
 }
 
 /// Spec for TrajectorySingleToolUse metric - returns 1 if tool is present in the predicted trajectory, else 0.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectorySingleToolUseSpec {
     /// Required. Spec for tool name to be checked for in the predicted trajectory.
     #[serde(default, rename = "toolName")]
@@ -11161,7 +11162,7 @@ pub struct GoogleCloudAiplatformV1TrajectorySingleToolUseSpec {
 }
 
 /// Rubric critique result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RubricCritiqueResult {
     /// Output only. Rubric to be evaluated.
     #[serde(default)]
@@ -11172,7 +11173,7 @@ pub struct GoogleCloudAiplatformV1RubricCritiqueResult {
 }
 
 /// Tool call valid metric value for an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolCallValidMetricValue {
     /// Output only. Tool call valid score.
     #[serde(default)]
@@ -11180,7 +11181,7 @@ pub struct GoogleCloudAiplatformV1ToolCallValidMetricValue {
 }
 
 /// Tool name match metric value for an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolNameMatchMetricValue {
     /// Output only. Tool name match score.
     #[serde(default)]
@@ -11188,7 +11189,7 @@ pub struct GoogleCloudAiplatformV1ToolNameMatchMetricValue {
 }
 
 /// Tool parameter key match metric value for an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolParameterKeyMatchMetricValue {
     /// Output only. Tool parameter key match score.
     #[serde(default)]
@@ -11196,7 +11197,7 @@ pub struct GoogleCloudAiplatformV1ToolParameterKeyMatchMetricValue {
 }
 
 /// Tool parameter key value match metric value for an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolParameterKVMatchMetricValue {
     /// Output only. Tool parameter key value match score.
     #[serde(default)]
@@ -11204,7 +11205,7 @@ pub struct GoogleCloudAiplatformV1ToolParameterKVMatchMetricValue {
 }
 
 /// TrajectoryAnyOrderMatch metric value for an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectoryAnyOrderMatchMetricValue {
     /// Output only. TrajectoryAnyOrderMatch score.
     #[serde(default)]
@@ -11212,7 +11213,7 @@ pub struct GoogleCloudAiplatformV1TrajectoryAnyOrderMatchMetricValue {
 }
 
 /// TrajectoryExactMatch metric value for an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectoryExactMatchMetricValue {
     /// Output only. TrajectoryExactMatch score.
     #[serde(default)]
@@ -11220,7 +11221,7 @@ pub struct GoogleCloudAiplatformV1TrajectoryExactMatchMetricValue {
 }
 
 /// TrajectoryInOrderMatch metric value for an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectoryInOrderMatchMetricValue {
     /// Output only. TrajectoryInOrderMatch score.
     #[serde(default)]
@@ -11228,7 +11229,7 @@ pub struct GoogleCloudAiplatformV1TrajectoryInOrderMatchMetricValue {
 }
 
 /// TrajectoryPrecision metric value for an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectoryPrecisionMetricValue {
     /// Output only. TrajectoryPrecision score.
     #[serde(default)]
@@ -11236,7 +11237,7 @@ pub struct GoogleCloudAiplatformV1TrajectoryPrecisionMetricValue {
 }
 
 /// TrajectoryRecall metric value for an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectoryRecallMetricValue {
     /// Output only. TrajectoryRecall score.
     #[serde(default)]
@@ -11244,7 +11245,7 @@ pub struct GoogleCloudAiplatformV1TrajectoryRecallMetricValue {
 }
 
 /// TrajectorySingleToolUse metric value for an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrajectorySingleToolUseMetricValue {
     /// Output only. TrajectorySingleToolUse score.
     #[serde(default)]
@@ -11252,7 +11253,7 @@ pub struct GoogleCloudAiplatformV1TrajectorySingleToolUseMetricValue {
 }
 
 /// Session input to run an Agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationRunInferenceConfigSessionInput {
     /// Optional. Additional parameters for the session, like app_name, etc. For example, {"app_name": "my-app"}.
     #[serde(default)]
@@ -11266,7 +11267,7 @@ pub struct GoogleCloudAiplatformV1EvaluationRunInferenceConfigSessionInput {
 }
 
 /// Used for multi-turn agent scraping. Contains configuration for a user simulator that uses an LLM to generate messages on behalf of the user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationRunInferenceConfigAgentRunConfigUserSimulatorConfig {
     /// Maximum number of invocations allowed by the multi-turn agent scraping. This property allows us to stop a run-off conversation, where the agent and the user simulator get into a never ending loop. The initial fixed prompt is also counted as an invocation.
     #[serde(default, rename = "maxTurn")]
@@ -11280,7 +11281,7 @@ pub struct GoogleCloudAiplatformV1EvaluationRunInferenceConfigAgentRunConfigUser
 }
 
 /// Metadata for a chunk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Metadata {
     /// Optional. Attributes attached to the data. The keys have semantic conventions and the consumers of the attributes should know how to deserialize the value bytes based on the keys.
     #[serde(default)]
@@ -11288,7 +11289,7 @@ pub struct GoogleCloudAiplatformV1Metadata {
 }
 
 /// Overrides for example-based explanations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExamplesOverride {
     /// The number of neighbors to return that have the same crowding tag.
     #[serde(default, rename = "crowdingCount")]
@@ -11310,7 +11311,7 @@ pub struct GoogleCloudAiplatformV1ExamplesOverride {
 }
 
 /// The ExplanationMetadata entries that can be overridden at online explanation time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExplanationMetadataOverride {
     /// Required. Overrides the input metadata of the features. The key is the name of the feature to be overridden. The keys specified here must exist in the input metadata to be overridden. If a feature is not specified here, the corresponding feature''s input metadata is not overridden.
     #[serde(default)]
@@ -11318,7 +11319,7 @@ pub struct GoogleCloudAiplatformV1ExplanationMetadataOverride {
 }
 
 /// Assigns input data to training, validation, and test sets based on the given filters, data pieces not matched by any filter are ignored. Currently only supported for Datasets containing DataItems. If any of the filters in this message are to match nothing, then they can be set as ''-'' (the minus sign). Supported only for unstructured Datasets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExportFilterSplit {
     /// Required. A filter on DataItems of the Dataset. DataItems that match this filter are used to test the Model. A filter with same syntax as the one used in DatasetService.ListDataItems may be used. If a single DataItem is matched by more than one of the FilterSplit filters, then it is assigned to the first set that applies to it in the training, validation, test order.
     #[serde(default, rename = "testFilter")]
@@ -11332,7 +11333,7 @@ pub struct GoogleCloudAiplatformV1ExportFilterSplit {
 }
 
 /// Assigns the input data to training, validation, and test sets as per the given fractions. Any of training_fraction, validation_fraction and test_fraction may optionally be provided, they must sum to up to 1. If the provided ones sum to less than 1, the remainder is assigned to sets as decided by Vertex AI. If none of the fractions are set, by default roughly 80% of data is used for training, 10% for validation, and 10% for test.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExportFractionSplit {
     /// The fraction of the input data that is to be used to evaluate the Model.
     #[serde(default, rename = "testFraction")]
@@ -11346,7 +11347,7 @@ pub struct GoogleCloudAiplatformV1ExportFractionSplit {
 }
 
 /// The storage details for CSV output content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CsvDestination {
     /// Required. Google Cloud Storage location.
     #[serde(default, rename = "gcsDestination")]
@@ -11354,7 +11355,7 @@ pub struct GoogleCloudAiplatformV1CsvDestination {
 }
 
 /// The storage details for TFRecord output content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1tFRecordDestination {
     /// Required. Google Cloud Storage location.
     #[serde(default, rename = "gcsDestination")]
@@ -11362,7 +11363,7 @@ pub struct GoogleCloudAiplatformV1tFRecordDestination {
 }
 
 /// The Container Registry location for the container image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ContainerRegistryDestination {
     /// Required. Container Registry URI of a container image. Only Google Container Registry and Artifact Registry are supported now. Accepted forms: * Google Container Registry path. For example: gcr.io/projectId/imageName:tag. * Artifact Registry path. For example: us-central1-docker.pkg.dev/projectId/repoName/imageName:tag. If a tag is not specified, "latest" will be used as the default tag.
     #[serde(default, rename = "outputUri")]
@@ -11370,7 +11371,7 @@ pub struct GoogleCloudAiplatformV1ContainerRegistryDestination {
 }
 
 /// Feature name & value pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureViewDirectWriteRequestDataKeyAndFeatureValuesFeature {
     /// Feature short name.
     #[serde(default)]
@@ -11381,7 +11382,7 @@ pub struct GoogleCloudAiplatformV1FeatureViewDirectWriteRequestDataKeyAndFeature
 }
 
 /// Parameters for RRF algorithm that combines search results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FindNeighborsRequestQueryRRF {
     /// Required. Users can provide an alpha value to give more weight to dense vs sparse results. For example, if the alpha is 0, we only return sparse and if the alpha is 1, we only return dense.
     #[serde(default)]
@@ -11389,7 +11390,7 @@ pub struct GoogleCloudAiplatformV1FindNeighborsRequestQueryRRF {
 }
 
 /// A neighbor of the query vector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FindNeighborsResponseNeighbor {
     /// The datapoint of the neighbor. Note that full datapoints are returned only when "return_full_datapoint" is set to true. Otherwise, only the "datapoint_id" and "crowding_tag" fields are populated.
     #[serde(default)]
@@ -11403,7 +11404,7 @@ pub struct GoogleCloudAiplatformV1FindNeighborsResponseNeighbor {
 }
 
 /// A collection of citations that apply to a piece of generated content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CitationMetadata {
     /// Output only. A list of citations for the content.
     #[serde(default)]
@@ -11411,7 +11412,7 @@ pub struct GoogleCloudAiplatformV1CitationMetadata {
 }
 
 /// The log probabilities of the tokens generated by the model. This is useful for understanding the model''s confidence in its predictions and for debugging. For example, you can use log probabilities to identify when the model is making a less confident prediction or to explore alternative responses that the model considered. A low log probability can also indicate that the model is "hallucinating" or generating factually incorrect information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1LogprobsResult {
     /// A list of the chosen candidate tokens at each decoding step. The length of this list is equal to the total number of decoding steps. Note that the chosen candidate might not be in top_candidates.
     #[serde(default, rename = "chosenCandidates")]
@@ -11424,7 +11425,7 @@ pub struct GoogleCloudAiplatformV1LogprobsResult {
 }
 
 /// Metadata returned when the model uses the url_context tool to get information from a user-provided URL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UrlContextMetadata {
     /// Output only. A list of URL metadata, with one entry for each URL retrieved by the tool.
     #[serde(default, rename = "urlMetadata")]
@@ -11432,7 +11433,7 @@ pub struct GoogleCloudAiplatformV1UrlContextMetadata {
 }
 
 /// A safety rating for a piece of content. The safety rating contains the harm category and the harm probability level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SafetyRating {
     /// Output only. Indicates whether the content was blocked because of this rating.
     #[serde(default)]
@@ -11458,7 +11459,7 @@ pub struct GoogleCloudAiplatformV1SafetyRating {
 }
 
 /// Represents a breakdown of token usage by modality. This message is used in CountTokensResponse and GenerateContentResponse.UsageMetadata to provide a detailed view of how many tokens are used by each modality (e.g., text, image, video) in a request. This is particularly useful for multimodal models, allowing you to track and manage token consumption for billing and quota purposes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModalityTokenCount {
     /// The modality that this token count applies to. // TODO: enum values: ["MODALITY_UNSPECIFIED", "TEXT", "IMAGE", "VIDEO", "AUDIO", "DOCUMENT"]
     #[serde(default)]
@@ -11469,7 +11470,7 @@ pub struct GoogleCloudAiplatformV1ModalityTokenCount {
 }
 
 /// A single piece of conversation from which to generate memories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenerateMemoriesRequestDirectContentsSourceEvent {
     /// Required. A single piece of content from which to generate memories.
     #[serde(default)]
@@ -11477,7 +11478,7 @@ pub struct GoogleCloudAiplatformV1GenerateMemoriesRequestDirectContentsSourceEve
 }
 
 /// A direct memory to upload to Memory Bank.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenerateMemoriesRequestDirectMemoriesSourceDirectMemory {
     /// Required. The fact to consolidate with existing memories.
     #[serde(default)]
@@ -11488,7 +11489,7 @@ pub struct GoogleCloudAiplatformV1GenerateMemoriesRequestDirectMemoriesSourceDir
 }
 
 /// Represents a single named field within a synthetic example, consisting of a name and the actual content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SyntheticField {
     /// Required. The actual content or value for this field. This can be text, images, or other types of data.
     #[serde(default)]
@@ -11499,7 +11500,7 @@ pub struct GoogleCloudAiplatformV1SyntheticField {
 }
 
 /// Specifies the parsing config for RagFiles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagFileParsingConfig {
     /// The Layout Parser to use for RagFiles.
     #[serde(default, rename = "layoutParser")]
@@ -11511,7 +11512,7 @@ pub struct GoogleCloudAiplatformV1RagFileParsingConfig {
 }
 
 /// Success and error statistics of processing multiple entities (for example, DataItems or structured data rows) in batch.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CompletionStats {
     /// Output only. The number of entities for which any error was encountered.
     #[serde(default, rename = "failedCount")]
@@ -11528,7 +11529,7 @@ pub struct GoogleCloudAiplatformV1CompletionStats {
 }
 
 /// A description of resources that are used for performing batch operations, are dedicated to a Model, and need manual configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchDedicatedResources {
     /// Required. Immutable. The specification of a single machine.
     #[serde(default, rename = "machineSpec")]
@@ -11542,7 +11543,7 @@ pub struct GoogleCloudAiplatformV1BatchDedicatedResources {
 }
 
 /// Configures the input to BatchPredictionJob. See Model.supported_input_storage_formats for Model''s supported input formats, and how instances should be expressed via any of them.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchPredictionJobInputConfig {
     /// The BigQuery location of the input table. The schema of the table should be in the format described by the given context OpenAPI Schema, if one is provided. The table may contain additional columns that are not described by the schema, and they will be ignored.
     #[serde(default, rename = "bigquerySource")]
@@ -11560,7 +11561,7 @@ pub struct GoogleCloudAiplatformV1BatchPredictionJobInputConfig {
 }
 
 /// Configuration defining how to transform batch prediction input instances to the instances that the Model accepts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchPredictionJobInstanceConfig {
     /// Fields that will be excluded in the prediction instance that is sent to the Model. Excluded will be attached to the batch prediction output if key_field is not specified. When excluded_fields is populated, included_fields must be empty. The input must be JSONL with objects at each line, BigQuery or TfRecord.
     #[serde(default, rename = "excludedFields")]
@@ -11577,7 +11578,7 @@ pub struct GoogleCloudAiplatformV1BatchPredictionJobInstanceConfig {
 }
 
 /// Manual batch tuning parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ManualBatchTuningParameters {
     /// Immutable. The number of the records (e.g. instances) of the operation given in each batch to a machine replica. Machine type, and size of a single record should be considered when setting this parameter, higher value speeds up the batch operation''s execution, but too high value will result in a whole batch not fitting in a machine''s memory, and the whole operation will fail. The default value is 64.
     #[serde(default, rename = "batchSize")]
@@ -11585,7 +11586,7 @@ pub struct GoogleCloudAiplatformV1ManualBatchTuningParameters {
 }
 
 /// Configures the output of BatchPredictionJob. See Model.supported_output_storage_formats for supported output formats, and how predictions are expressed via any of them.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchPredictionJobOutputConfig {
     /// The BigQuery project or dataset location where the output is to be written to. If project is provided, a new dataset is created with name prediction__ where is made BigQuery-dataset-name compatible (for example, most special characters become underscores), and timestamp is in YYYY_MM_DDThh_mm_ss_sssZ "based on ISO-8601" format. In the dataset two tables will be created, predictions, and errors. If the Model has both instance and prediction schemata defined then the tables have columns as follows: The predictions table contains instances for which the prediction succeeded, it has columns as per a concatenation of the Model''s instance and prediction schemata. The errors table contains rows for which the prediction has failed, it has instance columns, as per the instance schema, followed by a single "errors" column, which as values has google.rpc.Status represented as a STRUCT, and containing only code and message.
     #[serde(default, rename = "bigqueryDestination")]
@@ -11603,7 +11604,7 @@ pub struct GoogleCloudAiplatformV1BatchPredictionJobOutputConfig {
 }
 
 /// Further describes this job''s output. Supplements output_config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BatchPredictionJobOutputInfo {
     /// Output only. The path of the BigQuery dataset created, in bq://projectId.bqDatasetId format, into which the prediction output is written.
     #[serde(default, rename = "bigqueryOutputDataset")]
@@ -11620,7 +11621,7 @@ pub struct GoogleCloudAiplatformV1BatchPredictionJobOutputInfo {
 }
 
 /// Statistics information about resource consumption.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ResourcesConsumed {
     /// Output only. The number of replica hours used. Note that many replicas may run in parallel, and additionally any given work may be queued for some time. Therefore this value is not strictly related to wall time.
     #[serde(default, rename = "replicaHours")]
@@ -11628,7 +11629,7 @@ pub struct GoogleCloudAiplatformV1ResourcesConsumed {
 }
 
 /// Contains model information necessary to perform batch prediction without requiring a full model import.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UnmanagedContainerModel {
     /// The path to the directory containing the Model artifact and any of its supporting files.
     #[serde(default, rename = "artifactUri")]
@@ -11642,7 +11643,7 @@ pub struct GoogleCloudAiplatformV1UnmanagedContainerModel {
 }
 
 /// Metadata on the usage of the cached content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CachedContentUsageMetadata {
     /// Duration of audio in seconds.
     #[serde(default, rename = "audioDurationSeconds")]
@@ -11662,7 +11663,7 @@ pub struct GoogleCloudAiplatformV1CachedContentUsageMetadata {
 }
 
 /// Parameters that configure the active learning pipeline. Active learning will label the data incrementally by several iterations. For every iteration, it will select a batch of data based on the sampling strategy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ActiveLearningConfig {
     /// Max number of human labeled DataItems.
     #[serde(default, rename = "maxDataItemCount")]
@@ -11679,7 +11680,7 @@ pub struct GoogleCloudAiplatformV1ActiveLearningConfig {
 }
 
 /// Represents an amount of money with its currency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeMoney {
     /// The three-letter currency code defined in ISO 4217.
     #[serde(default, rename = "currencyCode")]
@@ -11693,7 +11694,7 @@ pub struct GoogleTypeMoney {
 }
 
 /// A SavedQuery is a view of the dataset. It references a subset of annotations by problem type and filters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SavedQuery {
     /// Output only. Filters on the Annotations in the dataset.
     #[serde(default, rename = "annotationFilter")]
@@ -11728,7 +11729,7 @@ pub struct GoogleCloudAiplatformV1SavedQuery {
 }
 
 /// Configuration of how features in Featurestore are monitored.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeaturestoreMonitoringConfig {
     /// Threshold for categorical features of anomaly detection. This is shared by all types of Featurestore Monitoring for categorical features (i.e. Features with type (Feature.ValueType) BOOL or STRING).
     #[serde(default, rename = "categoricalThresholdConfig")]
@@ -11750,7 +11751,7 @@ pub struct GoogleCloudAiplatformV1FeaturestoreMonitoringConfig {
 }
 
 /// Evaluation result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationResult {
     /// Optional. The results for the metric.
     #[serde(default, rename = "candidateResults")]
@@ -11774,7 +11775,7 @@ pub struct GoogleCloudAiplatformV1EvaluationResult {
 }
 
 /// The data source for the evaluation run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationRunDataSource {
     /// Evaluation data in bigquery.
     #[serde(default, rename = "bigqueryRequestSet")]
@@ -11785,7 +11786,7 @@ pub struct GoogleCloudAiplatformV1EvaluationRunDataSource {
 }
 
 /// The Evalution configuration used for the evaluation run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationRunEvaluationConfig {
     /// Optional. The autorater config for the evaluation run.
     #[serde(default, rename = "autoraterConfig")]
@@ -11814,7 +11815,7 @@ pub struct GoogleCloudAiplatformV1EvaluationRunEvaluationConfig {
 }
 
 /// The results of the evaluation run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationResults {
     /// The evaluation set where item level results are stored.
     #[serde(default, rename = "evaluationSet")]
@@ -11825,7 +11826,7 @@ pub struct GoogleCloudAiplatformV1EvaluationResults {
 }
 
 /// Actions are parts of events that are executed by the agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EventActions {
     /// Optional. Indicates that the event is updating an artifact. key is the filename, value is the version.
     #[serde(default, rename = "artifactDelta")]
@@ -11848,7 +11849,7 @@ pub struct GoogleCloudAiplatformV1EventActions {
 }
 
 /// Metadata relating to a LLM response event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EventMetadata {
     /// Optional. The branch of the event. The format is like agent_1.agent_2.agent_3, where agent_1 is the parent of agent_2, and agent_2 is the parent of agent_3. Branch is used when multiple child agents shouldn''t see their siblings'' conversation history.
     #[serde(default)]
@@ -11880,7 +11881,7 @@ pub struct GoogleCloudAiplatformV1EventMetadata {
 }
 
 /// Input source type for BigQuery Tables and Views.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureGroupBigQuery {
     /// Required. Immutable. The BigQuery source URI that points to either a BigQuery Table or View.
     #[serde(default, rename = "bigQuerySource")]
@@ -11900,7 +11901,7 @@ pub struct GoogleCloudAiplatformV1FeatureGroupBigQuery {
 }
 
 /// GoogleCloudAiplatformV1FeatureOnlineStoreBigtable resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureOnlineStoreBigtable {
     /// Required. Autoscaling config applied to Bigtable Instance.
     #[serde(default, rename = "autoScaling")]
@@ -11919,7 +11920,7 @@ pub struct GoogleCloudAiplatformV1FeatureOnlineStoreBigtable {
 }
 
 /// The dedicated serving endpoint for this FeatureOnlineStore. Only need to set when you choose Optimized storage type. Public endpoint is provisioned by default.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureOnlineStoreDedicatedServingEndpoint {
     /// Optional. Private service connect config. The private service connection is available only for Optimized storage type, not for embedding management now. If PrivateServiceConnectConfig.enable_private_service_connect set to true, customers will use private service connection to send request. Otherwise, the connection will set to public endpoint.
     #[serde(default, rename = "privateServiceConnectConfig")]
@@ -11934,7 +11935,7 @@ pub struct GoogleCloudAiplatformV1FeatureOnlineStoreDedicatedServingEndpoint {
 }
 
 /// Represents a time interval, encoded as a Timestamp start (inclusive) and a Timestamp end (exclusive). The start must be less than or equal to the end. When the start equals the end, the interval is empty (matches no time). When both start and end are unspecified, the interval matches any time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeInterval {
     /// Optional. Exclusive end of the interval. If specified, a Timestamp matching this interval will have to be before the end.
     #[serde(default, rename = "endTime")]
@@ -11945,7 +11946,7 @@ pub struct GoogleTypeInterval {
 }
 
 /// Summary from the Sync job. For continuous syncs, the summary is updated periodically. For batch syncs, it gets updated on completion of the sync.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureViewSyncSyncSummary {
     /// Output only. Total number of rows synced.
     #[serde(default, rename = "rowSynced")]
@@ -11959,7 +11960,7 @@ pub struct GoogleCloudAiplatformV1FeatureViewSyncSyncSummary {
 }
 
 /// GoogleCloudAiplatformV1FeatureViewBigQuerySource resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureViewBigQuerySource {
     /// Required. Columns to construct entity_id / row keys.
     #[serde(default, rename = "entityIdColumns")]
@@ -11970,7 +11971,7 @@ pub struct GoogleCloudAiplatformV1FeatureViewBigQuerySource {
 }
 
 /// Metadata for the Cloud Bigtable that supports directly interacting Bigtable instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureViewBigtableMetadata {
     /// Output only. The Bigtable App Profile to use for reading from Bigtable.
     #[serde(default, rename = "readAppProfile")]
@@ -11978,7 +11979,7 @@ pub struct GoogleCloudAiplatformV1FeatureViewBigtableMetadata {
 }
 
 /// A Feature Registry source for features that need to be synced to Online Store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureViewFeatureRegistrySource {
     /// Required. List of features that need to be synced to Online Store.
     #[serde(default, rename = "featureGroups")]
@@ -11991,7 +11992,7 @@ pub struct GoogleCloudAiplatformV1FeatureViewFeatureRegistrySource {
 }
 
 /// Configuration for vector indexing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureViewIndexConfig {
     /// Optional. Configuration options for using brute force search, which simply implements the standard linear search in the database for each query. It is primarily meant for benchmarking and to generate the ground truth for approximate search.
     #[serde(default, rename = "bruteForceConfig")]
@@ -12018,7 +12019,7 @@ pub struct GoogleCloudAiplatformV1FeatureViewIndexConfig {
 }
 
 /// Configuration for FeatureViews created in Optimized FeatureOnlineStore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureViewOptimizedConfig {
     /// Optional. A description of resources that the FeatureView uses, which to large degree are decided by Vertex AI, and optionally allows only a modest additional configuration. If min_replica_count is not set, the default value is 2. If max_replica_count is not set, the default value is 6. The max allowed replica count is 1000.
     #[serde(default, rename = "automaticResources")]
@@ -12026,7 +12027,7 @@ pub struct GoogleCloudAiplatformV1FeatureViewOptimizedConfig {
 }
 
 /// Configuration for Sync. Only one option is set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureViewSyncConfig {
     /// Optional. If true, syncs the FeatureView in a continuous manner to Online Store.
     #[serde(default)]
@@ -12037,7 +12038,7 @@ pub struct GoogleCloudAiplatformV1FeatureViewSyncConfig {
 }
 
 /// A Vertex Rag source for features that need to be synced to Online Store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureViewVertexRagSource {
     /// Optional. The RAG corpus id corresponding to this FeatureView.
     #[serde(default, rename = "ragCorpusId")]
@@ -12048,7 +12049,7 @@ pub struct GoogleCloudAiplatformV1FeatureViewVertexRagSource {
 }
 
 /// OnlineServingConfig specifies the details for provisioning online serving resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeaturestoreOnlineServingConfig {
     /// The number of nodes for the online store. The number of nodes doesn''t scale automatically, but you can manually update the number of nodes. If set to 0, the featurestore will not have an online store and cannot be used for online serving.
     #[serde(default, rename = "fixedNodeCount")]
@@ -12060,7 +12061,7 @@ pub struct GoogleCloudAiplatformV1FeaturestoreOnlineServingConfig {
 }
 
 /// A message representing a Trial. A Trial contains a unique set of Parameters that has been or will be evaluated, along with the objective metrics got by running the Trial.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Trial {
     /// Output only. The identifier of the client that originally requested this Trial. Each client is identified by a unique client_id. When a client asks for a suggestion, Vertex AI Vizier will assign it a Trial. The client should evaluate the Trial, complete it, and report back to Vertex AI Vizier. If suggestion is asked again by same client_id before the Trial is completed, the same Trial will be returned. Multiple clients with different client_ids can ask for suggestions simultaneously, each of them will get their own Trial.
     #[serde(default, rename = "clientId")]
@@ -12101,7 +12102,7 @@ pub struct GoogleCloudAiplatformV1Trial {
 }
 
 /// A deployment of an Index. IndexEndpoints contain one or more DeployedIndexes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeployedIndex {
     /// Optional. A description of resources that the DeployedIndex uses, which to large degree are decided by Vertex AI, and optionally allows only a modest additional configuration. If min_replica_count is not set, the default value is 2 (we don''t provide SLA when min_replica_count=1). If max_replica_count is not set, the default value is min_replica_count. The max allowed replica count is 1000.
     #[serde(default, rename = "automaticResources")]
@@ -12153,7 +12154,7 @@ pub struct GoogleCloudAiplatformV1DeployedIndex {
 }
 
 /// Points to a DeployedIndex.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeployedIndexRef {
     /// Immutable. The ID of the DeployedIndex in the above IndexEndpoint.
     #[serde(default, rename = "deployedIndexId")]
@@ -12167,7 +12168,7 @@ pub struct GoogleCloudAiplatformV1DeployedIndexRef {
 }
 
 /// Stats of the Index.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1IndexStats {
     /// Output only. The number of shards in the Index.
     #[serde(default, rename = "shardsCount")]
@@ -12181,7 +12182,7 @@ pub struct GoogleCloudAiplatformV1IndexStats {
 }
 
 /// An extracted memory that is the intermediate result before consolidation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1IntermediateExtractedMemory {
     /// Output only. The fact of the extracted memory.
     #[serde(default)]
@@ -12189,7 +12190,7 @@ pub struct GoogleCloudAiplatformV1IntermediateExtractedMemory {
 }
 
 /// Represents Dataplex integration settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MetadataStoreDataplexConfig {
     /// Optional. Whether or not Data Lineage synchronization is enabled for Vertex Pipelines.
     #[serde(default, rename = "enabledPipelinesLineage")]
@@ -12197,7 +12198,7 @@ pub struct GoogleCloudAiplatformV1MetadataStoreDataplexConfig {
 }
 
 /// Represents state information for a MetadataStore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MetadataStoreMetadataStoreState {
     /// The disk utilization of the MetadataStore in bytes.
     #[serde(default, rename = "diskUtilizationBytes")]
@@ -12205,7 +12206,7 @@ pub struct GoogleCloudAiplatformV1MetadataStoreMetadataStoreState {
 }
 
 /// ModelDeploymentMonitoringBigQueryTable specifies the BigQuery table name as well as some information of the logs stored in this table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelDeploymentMonitoringBigQueryTable {
     /// The created BigQuery table to store logs. Customer could do their own query & analysis. Format: bq://.model_deployment_monitoring_._
     #[serde(default, rename = "bigqueryTablePath")]
@@ -12222,7 +12223,7 @@ pub struct GoogleCloudAiplatformV1ModelDeploymentMonitoringBigQueryTable {
 }
 
 /// All metadata of most recent monitoring pipelines.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelDeploymentMonitoringJobLatestMonitoringPipelineMetadata {
     /// The time that most recent monitoring pipelines that is related to this run.
     #[serde(default, rename = "runTime")]
@@ -12233,7 +12234,7 @@ pub struct GoogleCloudAiplatformV1ModelDeploymentMonitoringJobLatestMonitoringPi
 }
 
 /// ModelDeploymentMonitoringObjectiveConfig contains the pair of deployed_model_id to ModelMonitoringObjectiveConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelDeploymentMonitoringObjectiveConfig {
     /// The DeployedModel ID of the objective config.
     #[serde(default, rename = "deployedModelId")]
@@ -12245,7 +12246,7 @@ pub struct GoogleCloudAiplatformV1ModelDeploymentMonitoringObjectiveConfig {
 }
 
 /// The config for scheduling monitoring job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelDeploymentMonitoringScheduleConfig {
     /// Required. The model monitoring job scheduling interval. It will be rounded up to next full hour. This defines how often the monitoring jobs are triggered.
     #[serde(default, rename = "monitorInterval")]
@@ -12256,7 +12257,7 @@ pub struct GoogleCloudAiplatformV1ModelDeploymentMonitoringScheduleConfig {
 }
 
 /// The alert config for model monitoring.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelMonitoringAlertConfig {
     /// Email alert config.
     #[serde(default, rename = "emailAlertConfig")]
@@ -12271,7 +12272,7 @@ pub struct GoogleCloudAiplatformV1ModelMonitoringAlertConfig {
 }
 
 /// Definition of a slice.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelEvaluationSliceSlice {
     /// Output only. The dimension of the slice. Well-known dimensions are: * annotationSpec: This slice is on the test data that has either ground truth or prediction with AnnotationSpec.display_name equals to value. * slice: This slice is a user customized slice defined by its SliceSpec.
     #[serde(default)]
@@ -12286,7 +12287,7 @@ pub struct GoogleCloudAiplatformV1ModelEvaluationSliceSlice {
 }
 
 /// GoogleCloudAiplatformV1ModelEvaluationModelEvaluationExplanationSpec resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelEvaluationModelEvaluationExplanationSpec {
     /// Explanation spec details.
     #[serde(default, rename = "explanationSpec")]
@@ -12297,7 +12298,7 @@ pub struct GoogleCloudAiplatformV1ModelEvaluationModelEvaluationExplanationSpec 
 }
 
 /// Aggregated explanation metrics for a Model over a set of instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelExplanation {
     /// Output only. Aggregated attributions explaining the Model''s prediction outputs over the set of instances. The attributions are grouped by outputs. For Models that predict only one output, such as regression Models that predict only one score, there is only one attibution that explains the predicted output. For Models that predict multiple outputs, such as multiclass Models that predict multiple classes, each element explains one specific item. Attribution.output_index can be used to identify which output this attribution is explaining. The baselineOutputValue, instanceOutputValue and featureAttributions fields are averaged over the test data. NOTE: Currently AutoML tabular classification Models produce only one attribution, which averages attributions over all the classes it predicts. Attribution.approximation_error is not populated.
     #[serde(default, rename = "meanAttributions")]
@@ -12306,7 +12307,7 @@ pub struct GoogleCloudAiplatformV1ModelExplanation {
 }
 
 /// Represents a uCAIP NasJob output.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NasJobOutput {
     /// Output only. The output of this multi-trial Neural Architecture Search (NAS) job.
     #[serde(default, rename = "multiTrialJobOutput")]
@@ -12315,7 +12316,7 @@ pub struct GoogleCloudAiplatformV1NasJobOutput {
 }
 
 /// Represents the spec of a NasJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NasJobSpec {
     /// The spec of multi-trial algorithms.
     #[serde(default, rename = "multiTrialAlgorithmSpec")]
@@ -12330,7 +12331,7 @@ pub struct GoogleCloudAiplatformV1NasJobSpec {
 }
 
 /// The euc configuration of NotebookRuntimeTemplate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NotebookEucConfig {
     /// Output only. Whether ActAs check is bypassed for service account attached to the VM. If false, we need ActAs check for the default Compute Engine Service account. When a Runtime is created, a VM is allocated using Default Compute Engine Service Account. Any user requesting to use this Runtime requires Service Account User (ActAs) permission over this SA. If true, Runtime owner is using EUC and does not require the above permission as VM no longer use default Compute Engine SA, but a P4SA.
     #[serde(default, rename = "bypassActasCheck")]
@@ -12341,7 +12342,7 @@ pub struct GoogleCloudAiplatformV1NotebookEucConfig {
 }
 
 /// The idle shutdown configuration of NotebookRuntimeTemplate, which contains the idle_timeout as required field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NotebookIdleShutdownConfig {
     /// Whether Idle Shutdown is disabled in this NotebookRuntimeTemplate.
     #[serde(default, rename = "idleShutdownDisabled")]
@@ -12352,7 +12353,7 @@ pub struct GoogleCloudAiplatformV1NotebookIdleShutdownConfig {
 }
 
 /// Points to a NotebookRuntimeTemplateRef.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NotebookRuntimeTemplateRef {
     /// Immutable. A resource name of the NotebookRuntimeTemplate.
     #[serde(default, rename = "notebookRuntimeTemplate")]
@@ -12360,7 +12361,7 @@ pub struct GoogleCloudAiplatformV1NotebookRuntimeTemplateRef {
 }
 
 /// Notebook Reservation Affinity for consuming Zonal reservation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NotebookReservationAffinity {
     /// Required. Specifies the type of reservation from which this instance can consume resources: RESERVATION_ANY (default), RESERVATION_SPECIFIC, or RESERVATION_NONE. See Consuming reserved instances for examples. // TODO: enum values: ["RESERVATION_AFFINITY_TYPE_UNSPECIFIED", "RESERVATION_NONE", "RESERVATION_ANY", "RESERVATION_SPECIFIC"]
     #[serde(default, rename = "consumeReservationType")]
@@ -12374,7 +12375,7 @@ pub struct GoogleCloudAiplatformV1NotebookReservationAffinity {
 }
 
 /// A set of Shielded Instance options. See [Images using supported Shielded VM features](https://cloud.google.com/compute/docs/instances/modifying-shielded-vm).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ShieldedVmConfig {
     /// Defines whether the instance has [Secure Boot](https://cloud.google.com/compute/shielded-vm/docs/shielded-vm#secure-boot) enabled. Secure Boot helps ensure that the system only runs authentic software by verifying the digital signature of all boot components, and halting the boot process if signature verification fails.
     #[serde(default, rename = "enableSecureBoot")]
@@ -12382,7 +12383,7 @@ pub struct GoogleCloudAiplatformV1ShieldedVmConfig {
 }
 
 /// Notebook Software Config. This is passed to the backend when user makes software configurations in UI.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NotebookSoftwareConfig {
     /// Optional. Google-managed NotebookRuntime colab image.
     #[serde(default, rename = "colabImage")]
@@ -12397,7 +12398,7 @@ pub struct GoogleCloudAiplatformV1NotebookSoftwareConfig {
 }
 
 /// Represents the spec of a group of resources of the same type, for example machine type, disk, and accelerators, in a PersistentResource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ResourcePool {
     /// Optional. Optional spec to configure GKE or Ray-on-Vertex autoscaling
     #[serde(default, rename = "autoscalingSpec")]
@@ -12421,7 +12422,7 @@ pub struct GoogleCloudAiplatformV1ResourcePool {
 }
 
 /// Persistent Cluster runtime information as output
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ResourceRuntime {
     /// Output only. URIs for user to connect to the Cluster. Example: { "RAY_HEAD_NODE_INTERNAL_IP": "head-node-IP:10001" "RAY_DASHBOARD_URI": "ray-dashboard-address:8888" }
     #[serde(default, rename = "accessUris")]
@@ -12429,7 +12430,7 @@ pub struct GoogleCloudAiplatformV1ResourceRuntime {
 }
 
 /// Configuration for the runtime on a PersistentResource instance, including but not limited to: * Service accounts used to run the workloads. * Whether to make it a dedicated Ray Cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ResourceRuntimeSpec {
     /// Optional. Ray cluster configuration. Required when creating a dedicated RayCluster on the PersistentResource.
     #[serde(default, rename = "raySpec")]
@@ -12440,7 +12441,7 @@ pub struct GoogleCloudAiplatformV1ResourceRuntimeSpec {
 }
 
 /// RagCorpus status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CorpusStatus {
     /// Output only. Only when the state field is ERROR.
     #[serde(default, rename = "errorStatus")]
@@ -12451,7 +12452,7 @@ pub struct GoogleCloudAiplatformV1CorpusStatus {
 }
 
 /// Config for the Vector DB to use for RAG.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagVectorDbConfig {
     /// Authentication config for the chosen Vector DB.
     #[serde(default, rename = "apiAuth")]
@@ -12474,7 +12475,7 @@ pub struct GoogleCloudAiplatformV1RagVectorDbConfig {
 }
 
 /// Config for the Vertex AI Search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1VertexAiSearchConfig {
     /// Vertex AI Search Serving Config resource full name. For example, projects/{project}/locations/{location}/collections/{collection}/engines/{engine}/servingConfigs/{serving_config} or projects/{project}/locations/{location}/collections/{collection}/dataStores/{data_store}/servingConfigs/{serving_config}.
     #[serde(default, rename = "servingConfig")]
@@ -12482,7 +12483,7 @@ pub struct GoogleCloudAiplatformV1VertexAiSearchConfig {
 }
 
 /// Configuration for how Agent Engine sub-resources should manage context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReasoningEngineContextSpec {
     /// Optional. Specification for a Memory Bank, which manages memories for the Agent Engine.
     #[serde(default, rename = "memoryBankConfig")]
@@ -12491,7 +12492,7 @@ pub struct GoogleCloudAiplatformV1ReasoningEngineContextSpec {
 }
 
 /// ReasoningEngine configurations
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReasoningEngineSpec {
     /// Optional. The OSS agent framework used to develop the agent. Currently supported values: "google-adk", "langchain", "langgraph", "ag2", "llama-index", "custom".
     #[serde(default, rename = "agentFramework")]
@@ -12526,7 +12527,7 @@ pub struct GoogleCloudAiplatformV1ReasoningEngineSpec {
 }
 
 /// The connection information of the SandboxEnvironment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SandboxEnvironmentConnectionInfo {
     /// Output only. The hostname of the load balancer.
     #[serde(default, rename = "loadBalancerHostname")]
@@ -12540,7 +12541,7 @@ pub struct GoogleCloudAiplatformV1SandboxEnvironmentConnectionInfo {
 }
 
 /// The specification of a SandboxEnvironment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SandboxEnvironmentSpec {
     /// Optional. The code execution environment.
     #[serde(default, rename = "codeExecutionEnvironment")]
@@ -12550,7 +12551,7 @@ pub struct GoogleCloudAiplatformV1SandboxEnvironmentSpec {
 }
 
 /// Request message for [NotebookService.CreateNotebookExecutionJob]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CreateNotebookExecutionJobRequest {
     /// Required. The NotebookExecutionJob to create.
     #[serde(default, rename = "notebookExecutionJob")]
@@ -12564,7 +12565,7 @@ pub struct GoogleCloudAiplatformV1CreateNotebookExecutionJobRequest {
 }
 
 /// Request message for PipelineService.CreatePipelineJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CreatePipelineJobRequest {
     /// Required. The resource name of the Location to create the PipelineJob in. Format: projects/{project}/locations/{location}
     #[serde(default)]
@@ -12578,7 +12579,7 @@ pub struct GoogleCloudAiplatformV1CreatePipelineJobRequest {
 }
 
 /// Status of a scheduled run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ScheduleRunResponse {
     /// The response of the scheduled run.
     #[serde(default, rename = "runResponse")]
@@ -12589,7 +12590,7 @@ pub struct GoogleCloudAiplatformV1ScheduleRunResponse {
 }
 
 /// Specifies Vertex AI owned input data to be used for training, and possibly evaluating, the Model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1InputDataConfig {
     /// Applicable only to custom training with Datasets that have DataItems and Annotations. Cloud Storage URI that points to a YAML file describing the annotation schema. The schema is defined as an OpenAPI 3.0.2 [Schema Object](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.2.md#schemaObject). The schema files that can be used here are found in gs://google-cloud-aiplatform/schema/dataset/annotation/ , note that the chosen schema must be consistent with metadata of the Dataset specified by dataset_id. Only Annotations that both match this schema and belong to DataItems not ignored by the split method are used in respectively training, validation or test role, depending on the role of the DataItem they are on. When used in conjunction with annotations_filter, the Annotations used for training are filtered by both annotations_filter and annotation_schema_uri.
     #[serde(default, rename = "annotationSchemaUri")]
@@ -12630,7 +12631,7 @@ pub struct GoogleCloudAiplatformV1InputDataConfig {
 }
 
 /// A trained machine learning Model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Model {
     /// Immutable. The path to the directory containing the Model artifact and any of its supporting files. Not required for AutoML Models.
     #[serde(default, rename = "artifactUri")]
@@ -12742,7 +12743,7 @@ pub struct GoogleCloudAiplatformV1Model {
 }
 
 /// Configurations for PublisherModel GKE deployment
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PublisherModelCallToActionDeployGke {
     /// Optional. GKE deployment configuration in yaml format.
     #[serde(default, rename = "gkeYamlConfigs")]
@@ -12750,7 +12751,7 @@ pub struct GoogleCloudAiplatformV1PublisherModelCallToActionDeployGke {
 }
 
 /// Multiple setups to deploy the PublisherModel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PublisherModelCallToActionDeployVertex {
     /// Optional. One click deployment configurations.
     #[serde(default, rename = "multiDeployVertex")]
@@ -12760,7 +12761,7 @@ pub struct GoogleCloudAiplatformV1PublisherModelCallToActionDeployVertex {
 }
 
 /// Open fine tuning pipelines.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PublisherModelCallToActionOpenFineTuningPipelines {
     /// Required. Regional resource references to fine tuning pipelines.
     #[serde(default, rename = "fineTuningPipelines")]
@@ -12772,7 +12773,7 @@ pub struct GoogleCloudAiplatformV1PublisherModelCallToActionOpenFineTuningPipeli
 }
 
 /// Open notebooks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PublisherModelCallToActionOpenNotebooks {
     /// Required. Regional resource references to notebooks.
     #[serde(default)]
@@ -12784,7 +12785,7 @@ pub struct GoogleCloudAiplatformV1PublisherModelCallToActionOpenNotebooks {
 }
 
 /// Rest API docs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PublisherModelCallToActionViewRestApi {
     /// Required.
     #[serde(default)]
@@ -12796,7 +12797,7 @@ pub struct GoogleCloudAiplatformV1PublisherModelCallToActionViewRestApi {
 }
 
 /// Message to configure the Spanner database used by RagManagedDb.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagManagedDbConfigSpanner {
     /// Sets the RagManagedDb to the Basic tier. This is the default tier for Spanner mode if not explicitly chosen.
     #[serde(default)]
@@ -12810,7 +12811,7 @@ pub struct GoogleCloudAiplatformV1RagManagedDbConfigSpanner {
 }
 
 /// Container to hold value(s), successive in time, for one Feature from the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReadFeatureValuesResponseEntityViewData {
     /// Feature value if a single value is requested.
     #[serde(default)]
@@ -12821,7 +12822,7 @@ pub struct GoogleCloudAiplatformV1ReadFeatureValuesResponseEntityViewData {
 }
 
 /// Metadata for requested Features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReadFeatureValuesResponseFeatureDescriptor {
     /// Feature ID.
     #[serde(default)]
@@ -12829,7 +12830,7 @@ pub struct GoogleCloudAiplatformV1ReadFeatureValuesResponseFeatureDescriptor {
 }
 
 /// Evaluate Dataset Run Result for Tuning Job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluateDatasetRun {
     /// Output only. The checkpoint id used in the evaluation run. Only populated when evaluating checkpoints.
     #[serde(default, rename = "checkpointId")]
@@ -12850,7 +12851,7 @@ pub struct GoogleCloudAiplatformV1EvaluateDatasetRun {
 }
 
 /// A pre-tuned model for continuous tuning.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PreTunedModel {
     /// Output only. The name of the base model this PreTunedModel was tuned from.
     #[serde(default, rename = "baseModel")]
@@ -12864,7 +12865,7 @@ pub struct GoogleCloudAiplatformV1PreTunedModel {
 }
 
 /// Tuning Spec for Preference Optimization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PreferenceOptimizationSpec {
     /// Optional. If set to true, disable intermediate checkpoints for Preference Optimization and only the last checkpoint will be exported. Otherwise, enable intermediate checkpoints for Preference Optimization. Default is false.
     #[serde(default, rename = "exportLastCheckpointOnly")]
@@ -12882,7 +12883,7 @@ pub struct GoogleCloudAiplatformV1PreferenceOptimizationSpec {
 }
 
 /// Tuning Spec for Supervised Tuning for first party models.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SupervisedTuningSpec {
     /// Optional. Evaluation Config for Tuning Job.
     #[serde(default, rename = "evaluationConfig")]
@@ -12902,7 +12903,7 @@ pub struct GoogleCloudAiplatformV1SupervisedTuningSpec {
 }
 
 /// The Model Registry Model and Online Prediction Endpoint associated with this TuningJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TunedModel {
     /// Output only. The checkpoints associated with this TunedModel. This field is only populated for tuning jobs that enable intermediate checkpoints.
     #[serde(default)]
@@ -12917,7 +12918,7 @@ pub struct GoogleCloudAiplatformV1TunedModel {
 }
 
 /// The tuning data statistic values for TuningJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TuningDataStats {
     /// Output only. Statistics for preference optimization.
     #[serde(default, rename = "preferenceOptimizationDataStats")]
@@ -12930,7 +12931,7 @@ pub struct GoogleCloudAiplatformV1TuningDataStats {
 }
 
 /// The definition of the Rag resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RetrieveContextsRequestVertexRagStoreRagResource {
     /// Optional. RagCorpora resource name. Format: projects/{project}/locations/{location}/ragCorpora/{rag_corpus}
     #[serde(default, rename = "ragCorpus")]
@@ -12941,7 +12942,7 @@ pub struct GoogleCloudAiplatformV1RetrieveContextsRequestVertexRagStoreRagResour
 }
 
 /// A context of the query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagContextsContext {
     /// Context of the retrieved chunk.
     #[serde(default)]
@@ -12961,7 +12962,7 @@ pub struct GoogleCloudAiplatformV1RagContextsContext {
 }
 
 /// Filter to apply when retrieving memories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MemoryFilter {
     /// Key of the filter. For example, "author" would apply to metadata entries with the key "author".
     #[serde(default)]
@@ -12978,7 +12979,7 @@ pub struct GoogleCloudAiplatformV1MemoryFilter {
 }
 
 /// A memory.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Memory {
     /// Output only. Timestamp when this Memory was created.
     #[serde(default, rename = "createTime")]
@@ -13028,7 +13029,7 @@ pub struct GoogleCloudAiplatformV1Memory {
 }
 
 /// An entry of mapping between color and AnnotationSpec. The mapping is used in segmentation mask.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaAnnotationSpecColor {
     /// The color of the AnnotationSpec in a segmentation mask.
     #[serde(default)]
@@ -13042,7 +13043,7 @@ pub struct GoogleCloudAiplatformV1SchemaAnnotationSpecColor {
 }
 
 /// Represents a 2D point in the image. Vertex coordinates are normalized to be relative to the original image dimensions and range from 0 to 1. The origin of the coordinate system (0,0) is the top-left corner of the image. x increases to the right, and y increases to the bottom.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaVertex {
     /// X coordinate of the vertex, normalized to [0.0, 1.0].
     #[serde(default)]
@@ -13053,7 +13054,7 @@ pub struct GoogleCloudAiplatformV1SchemaVertex {
 }
 
 /// GoogleCloudAiplatformV1SchemaModelevaluationMetricsConfusionMatrix resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsConfusionMatrix {
     /// AnnotationSpecs used in the confusion matrix. For AutoML Text Extraction, a special negative AnnotationSpec with empty id and displayName of "NULL" will be added as the last element.
     #[serde(default, rename = "annotationSpecs")]
@@ -13068,7 +13069,7 @@ pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsConfusionMatrix {
 }
 
 /// Metrics for a single confidence threshold.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsVideoActionMetricsConfidenceMetrics {
     /// Output only. The confidence threshold value used to compute the metrics.
     #[serde(default, rename = "confidenceThreshold")]
@@ -13085,7 +13086,7 @@ pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsVideoActionMetrics
 }
 
 /// Metrics for a single confidence threshold.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsBoundingBoxMetricsConfidenceMetrics {
     /// The confidence threshold value used to compute the metrics.
     #[serde(default, rename = "confidenceThreshold")]
@@ -13102,7 +13103,7 @@ pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsBoundingBoxMetrics
 }
 
 /// Metrics for a single confidence threshold.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsTrackMetricsConfidenceMetrics {
     /// Bounding box intersection-over-union precision. Measures how well the bounding boxes overlap between each other (e.g. complete overlap or just barely above iou_threshold).
     #[serde(default, rename = "boundingBoxIou")]
@@ -13122,7 +13123,7 @@ pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsTrackMetricsConfid
 }
 
 /// GoogleCloudAiplatformV1SchemaTablesDatasetMetadataBigQuerySource resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTablesDatasetMetadataBigQuerySource {
     /// The URI of a BigQuery table. e.g. bq://projectId.bqDatasetId.bqTableId
     #[serde(default)]
@@ -13130,7 +13131,7 @@ pub struct GoogleCloudAiplatformV1SchemaTablesDatasetMetadataBigQuerySource {
 }
 
 /// GoogleCloudAiplatformV1SchemaTablesDatasetMetadataGcsSource resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTablesDatasetMetadataGcsSource {
     /// Cloud Storage URI of one or more files. Only CSV files are supported. The first line of the CSV file is used as the header. If there are multiple files, the header is the first line of the lexicographically first file, the other files must either contain the exact same header or omit the header.
     #[serde(default)]
@@ -13138,7 +13139,7 @@ pub struct GoogleCloudAiplatformV1SchemaTablesDatasetMetadataGcsSource {
 }
 
 /// Single source entry for the grounding checking.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPredictParamsGroundingConfigSourceEntry {
     /// The uri of the Vertex AI Search data source. Deprecated. Use vertex_ai_search_datastore instead.
     #[serde(default, rename = "enterpriseDatastore")]
@@ -13155,7 +13156,7 @@ pub struct GoogleCloudAiplatformV1SchemaPredictParamsGroundingConfigSourceEntry 
 }
 
 /// A prompt instance''s parameters set that contains a set of variable values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPromptInstancePromptExecution {
     /// Maps variable names to their value.
     #[serde(default)]
@@ -13163,7 +13164,7 @@ pub struct GoogleCloudAiplatformV1SchemaPromptInstancePromptExecution {
 }
 
 /// Prompt variation that embeds preambles to prompt string.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPromptSpecMultimodalPrompt {
     /// The prompt message.
     #[serde(default, rename = "promptMessage")]
@@ -13172,7 +13173,7 @@ pub struct GoogleCloudAiplatformV1SchemaPromptSpecMultimodalPrompt {
 }
 
 /// Prompt variation that stores preambles in separate fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPromptSpecStructuredPrompt {
     /// Data for app builder use case.
     #[serde(default, rename = "appBuilderData")]
@@ -13212,7 +13213,7 @@ pub struct GoogleCloudAiplatformV1SchemaPromptSpecStructuredPrompt {
 }
 
 /// Prompt variation for Translation use case.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPromptSpecTranslationPrompt {
     /// The translation example.
     #[serde(default)]
@@ -13233,7 +13234,7 @@ pub struct GoogleCloudAiplatformV1SchemaPromptSpecTranslationPrompt {
 }
 
 /// GoogleCloudAiplatformV1SchemaTimeSeriesDatasetMetadataBigQuerySource resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTimeSeriesDatasetMetadataBigQuerySource {
     /// The URI of a BigQuery table.
     #[serde(default)]
@@ -13241,7 +13242,7 @@ pub struct GoogleCloudAiplatformV1SchemaTimeSeriesDatasetMetadataBigQuerySource 
 }
 
 /// GoogleCloudAiplatformV1SchemaTimeSeriesDatasetMetadataGcsSource resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTimeSeriesDatasetMetadataGcsSource {
     /// Cloud Storage URI of one or more files. Only CSV files are supported. The first line of the CSV file is used as the header. If there are multiple files, the header is the first line of the lexicographically first file, the other files must either contain the exact same header or omit the header.
     #[serde(default)]
@@ -13249,7 +13250,7 @@ pub struct GoogleCloudAiplatformV1SchemaTimeSeriesDatasetMetadataGcsSource {
 }
 
 /// A duration of time expressed in time granularity units.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlForecastingInputsGranularity {
     /// The number of granularity_units between data points in the training data. If granularity_unit is minute, can be 1, 5, 10, 15, or 30. For all other values of granularity_unit, must be 1.
     #[serde(default)]
@@ -13260,7 +13261,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlForecastingIn
 }
 
 /// GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlForecastingInputsTransformation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlForecastingInputsTransformation {
     #[serde(default)]
     pub auto: ::core::option::Option<GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlForecastingInputsTransformationAutoTransformation>,
@@ -13275,7 +13276,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlForecastingIn
 }
 
 /// A wrapper class which contains the tunable parameters in an AutoML Image training job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutomlImageTrainingTunableParameter {
     /// Optional. An unique name of pretrained model checkpoint provided in model garden, it will be mapped to a GCS location internally.
     #[serde(default, rename = "checkpointName")]
@@ -13295,7 +13296,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutomlImageTraining
 }
 
 /// GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesInputsTransformation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesInputsTransformation {
     #[serde(default)]
     pub auto: ::core::option::Option<GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesInputsTransformationAutoTransformation>,
@@ -13316,7 +13317,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesInputsT
 }
 
 /// A duration of time expressed in time granularity units.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionSeq2SeqPlusForecastingInputsGranularity
 {
     /// The number of granularity_units between data points in the training data. If granularity_unit is minute, can be 1, 5, 10, 15, or 30. For all other values of granularity_unit, must be 1.
@@ -13328,7 +13329,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionSeq2SeqPlusForecast
 }
 
 /// GoogleCloudAiplatformV1SchemaTrainingjobDefinitionSeq2SeqPlusForecastingInputsTransformation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionSeq2SeqPlusForecastingInputsTransformation {
     #[serde(default)]
     pub auto: ::core::option::Option<GoogleCloudAiplatformV1SchemaTrainingjobDefinitionSeq2SeqPlusForecastingInputsTransformationAutoTransformation>,
@@ -13343,7 +13344,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionSeq2SeqPlusForecast
 }
 
 /// A duration of time expressed in time granularity units.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionTftForecastingInputsGranularity {
     /// The number of granularity_units between data points in the training data. If granularity_unit is minute, can be 1, 5, 10, 15, or 30. For all other values of granularity_unit, must be 1.
     #[serde(default)]
@@ -13354,7 +13355,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionTftForecastingInput
 }
 
 /// Configuration for exporting test set predictions to a BigQuery table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionExportEvaluatedDataItemsConfig {
     /// URI of desired destination BigQuery table. Expected format: bq://{project_id}:{dataset_id}:{table} If not specified, then results are exported to the following auto-created BigQuery table: {project_id}:export_evaluated_examples_{model_name}_{yyyy_MM_dd''T''HH_mm_ss_SSS''Z''}.evaluated_examples
     #[serde(default, rename = "destinationBigqueryUri")]
@@ -13365,7 +13366,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionExportEvaluatedData
 }
 
 /// Configuration that defines the hierarchical relationship of time series and parameters for hierarchical forecasting strategies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionHierarchyConfig {
     /// A list of time series attribute column names that define the time series hierarchy. Only one level of hierarchy is supported, ex. ''region'' for a hierarchy of stores or ''department'' for a hierarchy of products. If multiple columns are specified, time series will be grouped by their combined values, ex. (''blue'', ''large'') for ''color'' and ''size'', up to 5 columns are accepted. If no group columns are specified, all time series are considered to be part of the same group.
     #[serde(default, rename = "groupColumns")]
@@ -13382,7 +13383,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionHierarchyConfig {
 }
 
 /// GoogleCloudAiplatformV1SchemaTrainingjobDefinitionTftForecastingInputsTransformation resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionTftForecastingInputsTransformation {
     #[serde(default)]
     pub auto: ::core::option::Option<GoogleCloudAiplatformV1SchemaTrainingjobDefinitionTftForecastingInputsTransformationAutoTransformation>,
@@ -13397,7 +13398,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionTftForecastingInput
 }
 
 /// Config that contains the strategy used to generate sliding windows in time series training. A window is a series of rows that comprise the context up to the time of prediction, and the horizon following. The corresponding row for each window marks the start of the forecast horizon. Each window is used as an input example for training/evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionWindowConfig {
     /// Name of the column that should be used to generate sliding windows. The column should contain either booleans or string booleans; if the value of the row is True, generate a sliding window with the horizon starting at that row. The column will not be used as a feature in training.
     #[serde(default)]
@@ -13411,7 +13412,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionWindowConfig {
 }
 
 /// Used to assign specific AnnotationSpec to a particular area of a DataItem or the whole part of the DataItem.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Annotation {
     /// Output only. The source of the Annotation.
     #[serde(default, rename = "annotationSource")]
@@ -13440,7 +13441,7 @@ pub struct GoogleCloudAiplatformV1Annotation {
 }
 
 /// A piece of data in a Dataset. Could be an image, a video, a document or plain text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DataItem {
     /// Output only. Timestamp when this DataItem was created.
     #[serde(default, rename = "createTime")]
@@ -13469,7 +13470,7 @@ pub struct GoogleCloudAiplatformV1DataItem {
 }
 
 /// Historical Stats (and Anomalies) for a specific Feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelMonitoringStatsAnomaliesFeatureHistoricStatsAnomalies {
     /// Display Name of the Feature.
     #[serde(default, rename = "featureDisplayName")]
@@ -13487,7 +13488,7 @@ pub struct GoogleCloudAiplatformV1ModelMonitoringStatsAnomaliesFeatureHistoricSt
 }
 
 /// The embedding vector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NearestNeighborQueryEmbedding {
     /// Optional. Individual value in the embedding.
     #[serde(default)]
@@ -13495,7 +13496,7 @@ pub struct GoogleCloudAiplatformV1NearestNeighborQueryEmbedding {
 }
 
 /// Numeric filter is used to search a subset of the entities by using boolean rules on numeric columns. For example: Database Point 0: {name: "a" value_int: 42} {name: "b" value_float: 1.0} Database Point 1: {name: "a" value_int: 10} {name: "b" value_float: 2.0} Database Point 2: {name: "a" value_int: -1} {name: "b" value_float: 3.0} Query: {name: "a" value_int: 12 operator: LESS} // Matches Point 1, 2 {name: "b" value_float: 2.0 operator: EQUAL} // Matches Point 1
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NearestNeighborQueryNumericFilter {
     /// Required. Column name in BigQuery that used as filters.
     #[serde(default)]
@@ -13515,7 +13516,7 @@ pub struct GoogleCloudAiplatformV1NearestNeighborQueryNumericFilter {
 }
 
 /// Parameters that can be overrided in each query to tune query latency and recall.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NearestNeighborQueryParameters {
     /// Optional. The number of neighbors to find via approximate search before exact reordering is performed; if set, this value must be &gt; neighbor_count.
     #[serde(default, rename = "approximateNeighborCandidates")]
@@ -13526,7 +13527,7 @@ pub struct GoogleCloudAiplatformV1NearestNeighborQueryParameters {
 }
 
 /// A neighbor of the query vector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NearestNeighborsNeighbor {
     /// The distance between the neighbor and the query vector.
     #[serde(default)]
@@ -13541,7 +13542,7 @@ pub struct GoogleCloudAiplatformV1NearestNeighborsNeighbor {
 }
 
 /// Configurations (e.g. inference timeout) that are applied on your endpoints.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ClientConnectionConfig {
     /// Customizable online prediction request timeout.
     #[serde(default, rename = "inferenceTimeout")]
@@ -13549,7 +13550,7 @@ pub struct GoogleCloudAiplatformV1ClientConnectionConfig {
 }
 
 /// A deployment of a Model. Endpoints contain one or more DeployedModels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeployedModel {
     /// A description of resources that to large degree are decided by Vertex AI, and require only a modest additional configuration.
     #[serde(default, rename = "automaticResources")]
@@ -13616,7 +13617,7 @@ pub struct GoogleCloudAiplatformV1DeployedModel {
 }
 
 /// Google Distributed Cloud (GDC) config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GdcConfig {
     /// GDC zone. A cluster will be designated for the Vertex AI workload in this zone.
     #[serde(default)]
@@ -13624,7 +13625,7 @@ pub struct GoogleCloudAiplatformV1GdcConfig {
 }
 
 /// Configuration for GenAiAdvancedFeatures.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenAiAdvancedFeaturesConfig {
     /// Configuration for Retrieval Augmented Generation feature.
     #[serde(default, rename = "ragConfig")]
@@ -13633,7 +13634,7 @@ pub struct GoogleCloudAiplatformV1GenAiAdvancedFeaturesConfig {
 }
 
 /// Configuration for logging request-response to a BigQuery table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PredictRequestResponseLoggingConfig {
     /// BigQuery table for logging. If only given a project, a new dataset will be created with name logging__ where will be made BigQuery-dataset-name compatible (e.g. most special characters will become underscores). If no table name is given, a new table will be created with name request_response_logging
     #[serde(default, rename = "bigqueryDestination")]
@@ -13647,7 +13648,7 @@ pub struct GoogleCloudAiplatformV1PredictRequestResponseLoggingConfig {
 }
 
 /// GoogleCloudAiplatformV1NearestNeighborSearchOperationMetadataContentValidationStats resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NearestNeighborSearchOperationMetadataContentValidationStats {
     /// Number of records in this file we skipped due to validate errors.
     #[serde(default, rename = "invalidRecordCount")]
@@ -13672,7 +13673,7 @@ pub struct GoogleCloudAiplatformV1NearestNeighborSearchOperationMetadataContentV
 }
 
 /// Specifies the transformation config for RagFiles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagFileTransformationConfig {
     /// Specifies the chunking config for RagFiles.
     #[serde(default, rename = "ragFileChunkingConfig")]
@@ -13681,7 +13682,7 @@ pub struct GoogleCloudAiplatformV1RagFileTransformationConfig {
 }
 
 /// RagFile status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FileStatus {
     /// Output only. Only when the state field is ERROR.
     #[serde(default, rename = "errorStatus")]
@@ -13692,7 +13693,7 @@ pub struct GoogleCloudAiplatformV1FileStatus {
 }
 
 /// The Google Drive location for the input content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GoogleDriveSource {
     /// Required. Google Drive resource IDs.
     #[serde(default, rename = "resourceIds")]
@@ -13701,7 +13702,7 @@ pub struct GoogleCloudAiplatformV1GoogleDriveSource {
 }
 
 /// The Jira source for the ImportRagFilesRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1JiraSource {
     /// Required. The Jira queries.
     #[serde(default, rename = "jiraQueries")]
@@ -13710,7 +13711,7 @@ pub struct GoogleCloudAiplatformV1JiraSource {
 }
 
 /// The SharePointSources to pass to ImportRagFiles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SharePointSources {
     /// The SharePoint sources.
     #[serde(default, rename = "sharePointSources")]
@@ -13720,7 +13721,7 @@ pub struct GoogleCloudAiplatformV1SharePointSources {
 }
 
 /// The Slack source for the ImportRagFilesRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SlackSource {
     /// Required. The Slack channels.
     #[serde(default)]
@@ -13729,7 +13730,7 @@ pub struct GoogleCloudAiplatformV1SlackSource {
 }
 
 /// All the data stored in a TensorboardTimeSeries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TimeSeriesData {
     /// Required. The ID of the TensorboardTimeSeries, which will become the final component of the TensorboardTimeSeries'' resource name
     #[serde(default, rename = "tensorboardTimeSeriesId")]
@@ -13743,7 +13744,7 @@ pub struct GoogleCloudAiplatformV1TimeSeriesData {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -13757,7 +13758,7 @@ pub struct GoogleIamV1Binding {
 }
 
 /// RAI scores for generated image returned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiLargeModelsVisionImageRAIScores {
     /// Agile watermark score for image.
     #[serde(default, rename = "agileWatermarkDetectionScore")]
@@ -13765,7 +13766,7 @@ pub struct CloudAiLargeModelsVisionImageRAIScores {
 }
 
 /// Image size.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiLargeModelsVisionImageImageSize {
     #[serde(default)]
     pub channels: ::core::option::Option<i32>,
@@ -13776,7 +13777,7 @@ pub struct CloudAiLargeModelsVisionImageImageSize {
 }
 
 /// Next ID: 6
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiLargeModelsVisionRaiInfo {
     /// List of blocked entities from the blocklist if it is detected.
     #[serde(default, rename = "blockedEntities")]
@@ -13797,7 +13798,7 @@ pub struct CloudAiLargeModelsVisionRaiInfo {
 }
 
 /// CloudAiLargeModelsVisionSemanticFilterResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiLargeModelsVisionSemanticFilterResponse {
     /// Class labels of the bounding boxes that failed the semantic filtering. Bounding box coordinates.
     #[serde(default, rename = "namedBoundingBoxes")]
@@ -13809,7 +13810,7 @@ pub struct CloudAiLargeModelsVisionSemanticFilterResponse {
 }
 
 /// CloudAiLargeModelsVisionHumanPose resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiLargeModelsVisionHumanPose {
     /// GCS URI of the human pose video to condition video generation.
     #[serde(default, rename = "bodyLandmarksGcsUri")]
@@ -13820,7 +13821,7 @@ pub struct CloudAiLargeModelsVisionHumanPose {
 }
 
 /// "Direct" prompting for Experimental Video Generation. These will be sent directly to the LDM without being rewritten.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiLargeModelsVisionPromptInputs {
     /// Description of audio content in the video, without speech.
     #[serde(default, rename = "audioPrompt")]
@@ -13840,7 +13841,7 @@ pub struct CloudAiLargeModelsVisionPromptInputs {
 }
 
 /// A list of historical SnapshotAnalysis or ImportFeaturesAnalysis stats requested by user, sorted by FeatureStatsAnomaly.start_time descending.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureMonitoringStatsAnomaly {
     /// Output only. The stats and anomalies generated at specific timestamp.
     #[serde(default, rename = "featureStatsAnomaly")]
@@ -13851,7 +13852,7 @@ pub struct GoogleCloudAiplatformV1FeatureMonitoringStatsAnomaly {
 }
 
 /// Describes metadata for a TensorboardTimeSeries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TensorboardTimeSeriesMetadata {
     /// Output only. The largest blob sequence length (number of blobs) of all data points in this time series, if its ValueType is BLOB_SEQUENCE.
     #[serde(default, rename = "maxBlobSequenceLength")]
@@ -13865,7 +13866,7 @@ pub struct GoogleCloudAiplatformV1TensorboardTimeSeriesMetadata {
 }
 
 /// Attributed items for a given annotation, typically representing neighbors from the training sets constrained by the query type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ErrorAnalysisAnnotationAttributedItem {
     /// The unique ID for each annotation. Used by FE to allocate the annotation in DB.
     #[serde(default, rename = "annotationResourceName")]
@@ -13876,7 +13877,7 @@ pub struct GoogleCloudAiplatformV1ErrorAnalysisAnnotationAttributedItem {
 }
 
 /// Explanation of a prediction (provided in PredictResponse.predictions) produced by the Model on a given instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Explanation {
     /// Output only. Feature attributions grouped by predicted outputs. For Models that predict only one output, such as regression Models that predict only one score, there is only one attibution that explains the predicted output. For Models that predict multiple outputs, such as multiclass Models that predict multiple classes, each element explains one specific item. Attribution.output_index can be used to identify which output this attribution is explaining. By default, we provide Shapley values for the predicted class. However, you can configure the explanation request to generate Shapley values for any other classes too. For example, if a model predicts a probability of 0.4 for approving a loan application, the model''s decision is to reject the application since p(reject) = 0.6 &gt; p(approve) = 0.4, and the default Shapley values would be computed for rejection decision and not approval, even though the latter might be the positive class. If users set ExplanationParameters.top_k, the attributions are sorted by instance_output_value in descending order. If ExplanationParameters.output_indices is specified, the attributions are stored by Attribution.output_index in the same order as they appear in the output_indices.
     #[serde(default)]
@@ -13887,7 +13888,7 @@ pub struct GoogleCloudAiplatformV1Explanation {
 }
 
 /// Config for migrating Dataset in automl.googleapis.com to Vertex AI''s Dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MigrateResourceRequestMigrateAutomlDatasetConfig {
     /// Required. Full resource name of automl Dataset. Format: projects/{project}/locations/{location}/datasets/{dataset}.
     #[serde(default)]
@@ -13898,7 +13899,7 @@ pub struct GoogleCloudAiplatformV1MigrateResourceRequestMigrateAutomlDatasetConf
 }
 
 /// Config for migrating Model in automl.googleapis.com to Vertex AI''s Model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MigrateResourceRequestMigrateAutomlModelConfig {
     /// Required. Full resource name of automl Model. Format: projects/{project}/locations/{location}/models/{model}.
     #[serde(default)]
@@ -13909,7 +13910,7 @@ pub struct GoogleCloudAiplatformV1MigrateResourceRequestMigrateAutomlModelConfig
 }
 
 /// Config for migrating Dataset in datalabeling.googleapis.com to Vertex AI''s Dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MigrateResourceRequestMigrateDataLabelingDatasetConfig {
     /// Required. Full resource name of data labeling Dataset. Format: projects/{project}/datasets/{dataset}.
     #[serde(default)]
@@ -13923,7 +13924,7 @@ pub struct GoogleCloudAiplatformV1MigrateResourceRequestMigrateDataLabelingDatas
 }
 
 /// Config for migrating version in ml.googleapis.com to Vertex AI''s Model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MigrateResourceRequestMigrateMlEngineModelVersionConfig {
     /// Required. The ml.googleapis.com endpoint that this model version should be migrated from. Example values: * ml.googleapis.com * us-centrall-ml.googleapis.com * europe-west4-ml.googleapis.com * asia-east1-ml.googleapis.com
     #[serde(default)]
@@ -13937,7 +13938,7 @@ pub struct GoogleCloudAiplatformV1MigrateResourceRequestMigrateMlEngineModelVers
 }
 
 /// Represents one Dataset in automl.googleapis.com.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MigratableResourceAutomlDataset {
     /// Full resource name of automl Dataset. Format: projects/{project}/locations/{location}/datasets/{dataset}.
     #[serde(default)]
@@ -13948,7 +13949,7 @@ pub struct GoogleCloudAiplatformV1MigratableResourceAutomlDataset {
 }
 
 /// Represents one Model in automl.googleapis.com.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MigratableResourceAutomlModel {
     /// Full resource name of automl Model. Format: projects/{project}/locations/{location}/models/{model}.
     #[serde(default)]
@@ -13959,7 +13960,7 @@ pub struct GoogleCloudAiplatformV1MigratableResourceAutomlModel {
 }
 
 /// Represents one Dataset in datalabeling.googleapis.com.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MigratableResourceDataLabelingDataset {
     /// The migratable AnnotatedDataset in datalabeling.googleapis.com belongs to the data labeling Dataset.
     #[serde(default, rename = "dataLabelingAnnotatedDatasets")]
@@ -13973,7 +13974,7 @@ pub struct GoogleCloudAiplatformV1MigratableResourceDataLabelingDataset {
 }
 
 /// Represents one model Version in ml.googleapis.com.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MigratableResourceMlEngineModelVersion {
     /// The ml.googleapis.com endpoint that this model Version currently lives in. Example values: * ml.googleapis.com * us-centrall-ml.googleapis.com * europe-west4-ml.googleapis.com * asia-east1-ml.googleapis.com
     #[serde(default)]
@@ -13984,7 +13985,7 @@ pub struct GoogleCloudAiplatformV1MigratableResourceMlEngineModelVersion {
 }
 
 /// The storage details for CSV input content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CsvSource {
     /// Required. Google Cloud Storage location.
     #[serde(default, rename = "gcsSource")]
@@ -13992,7 +13993,7 @@ pub struct GoogleCloudAiplatformV1CsvSource {
 }
 
 /// Matcher for Features of an EntityType by Feature ID.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1IdMatcher {
     /// Required. The following are accepted as ids: * A single-element list containing only *, which selects all Features in the target EntityType, or * A list containing only Feature IDs, which selects only Features with those IDs in the target EntityType.
     #[serde(default)]
@@ -14000,7 +14001,7 @@ pub struct GoogleCloudAiplatformV1IdMatcher {
 }
 
 /// Deprecated: Use google.cloud.aiplatform.master.AgentConfig in agent_eval_data instead. Configuration for an Agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationInstanceDeprecatedAgentConfig {
     /// Optional. Unique identifier of the agent. This ID is used to refer to this agent, e.g., in AgentEvent.author, or in the sub_agents field. It must be unique within the agents map.
     #[serde(default, rename = "agentId")]
@@ -14028,7 +14029,7 @@ pub struct GoogleCloudAiplatformV1EvaluationInstanceDeprecatedAgentConfig {
 }
 
 /// Represents a list of events for an agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationInstanceDeprecatedAgentDataEvents {
     /// Optional. A list of events.
     #[serde(default)]
@@ -14036,7 +14037,7 @@ pub struct GoogleCloudAiplatformV1EvaluationInstanceDeprecatedAgentDataEvents {
 }
 
 /// Deprecated: Use agent_eval_data instead. Represents a list of tools for an agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationInstanceDeprecatedAgentDataTools {
     /// Optional. List of tools: each tool can have multiple function declarations.
     #[serde(default)]
@@ -14044,7 +14045,7 @@ pub struct GoogleCloudAiplatformV1EvaluationInstanceDeprecatedAgentDataTools {
 }
 
 /// Represents a single turn/invocation in the conversation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationInstanceDeprecatedAgentDataConversationTurn {
     /// Optional. The list of events that occurred during this turn.
     #[serde(default)]
@@ -14060,7 +14061,7 @@ pub struct GoogleCloudAiplatformV1EvaluationInstanceDeprecatedAgentDataConversat
 }
 
 /// Map of placeholder in metric prompt template to contents of model input.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ContentMap {
     /// Optional. Map of placeholder to contents.
     #[serde(default)]
@@ -14068,7 +14069,7 @@ pub struct GoogleCloudAiplatformV1ContentMap {
 }
 
 /// Spec for trajectory.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Trajectory {
     /// Required. Tool calls in the trajectory.
     #[serde(default, rename = "toolCalls")]
@@ -14076,7 +14077,7 @@ pub struct GoogleCloudAiplatformV1Trajectory {
 }
 
 /// Restrictions namespace for example-based explanations overrides.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExamplesRestrictionsNamespace {
     /// The list of allowed tags.
     #[serde(default)]
@@ -14090,7 +14091,7 @@ pub struct GoogleCloudAiplatformV1ExamplesRestrictionsNamespace {
 }
 
 /// A datapoint of Index.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1IndexDatapoint {
     /// Optional. CrowdingTag of the datapoint, the number of neighbors to return in each crowding can be configured during query.
     #[serde(default, rename = "crowdingTag")]
@@ -14120,7 +14121,7 @@ pub struct GoogleCloudAiplatformV1IndexDatapoint {
 }
 
 /// A citation for a piece of generatedcontent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Citation {
     /// Output only. The end index of the citation in the content.
     #[serde(default, rename = "endIndex")]
@@ -14143,7 +14144,7 @@ pub struct GoogleCloudAiplatformV1Citation {
 }
 
 /// A list of the top candidate tokens and their log probabilities at each decoding step. This can be used to see what other tokens the model considered.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1LogprobsResultTopCandidates {
     /// The list of candidate tokens, sorted by log probability in descending order.
     #[serde(default)]
@@ -14152,7 +14153,7 @@ pub struct GoogleCloudAiplatformV1LogprobsResultTopCandidates {
 }
 
 /// The metadata for a single URL retrieval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UrlMetadata {
     /// The URL retrieved by the tool.
     #[serde(default, rename = "retrievedUrl")]
@@ -14163,7 +14164,7 @@ pub struct GoogleCloudAiplatformV1UrlMetadata {
 }
 
 /// Document AI Layout Parser config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagFileParsingConfigLayoutParser {
     /// The maximum number of requests the job is allowed to make to the Document AI processor per minute. Consult https://cloud.google.com/document-ai/quotas and the Quota page for your project to set an appropriate value here. If unspecified, a default value of 120 QPM would be used.
     #[serde(default, rename = "maxParsingRequestsPerMin")]
@@ -14174,7 +14175,7 @@ pub struct GoogleCloudAiplatformV1RagFileParsingConfigLayoutParser {
 }
 
 /// Specifies the LLM parsing for RagFiles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagFileParsingConfigLlmParser {
     /// The prompt to use for parsing. If not specified, a default prompt will be used.
     #[serde(default, rename = "customParsingPrompt")]
@@ -14188,7 +14189,7 @@ pub struct GoogleCloudAiplatformV1RagFileParsingConfigLlmParser {
 }
 
 /// The Vertex Multimodal Dataset for the input content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1VertexMultimodalDatasetSource {
     /// Required. The resource name of the Vertex Dataset. Format: projects/{project}/locations/{location}/datasets/{dataset}
     #[serde(default, rename = "datasetName")]
@@ -14196,7 +14197,7 @@ pub struct GoogleCloudAiplatformV1VertexMultimodalDatasetSource {
 }
 
 /// The details for a Vertex Multimodal Dataset output.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1VertexMultimodalDatasetDestination {
     /// Optional. The destination of the underlying BigQuery table that will be created for the output Multimodal Dataset. If not specified, the BigQuery table will be created in a default BigQuery dataset.
     #[serde(default, rename = "bigqueryDestination")]
@@ -14207,7 +14208,7 @@ pub struct GoogleCloudAiplatformV1VertexMultimodalDatasetDestination {
 }
 
 /// Active learning data sampling config. For every active learning labeling iteration, it will select a batch of data based on the sampling strategy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SampleConfig {
     /// The percentage of data needed to be labeled in each following batch (except the first batch).
     #[serde(default, rename = "followingBatchSamplePercentage")]
@@ -14221,7 +14222,7 @@ pub struct GoogleCloudAiplatformV1SampleConfig {
 }
 
 /// CMLE training config. For every active learning labeling iteration, system will train a machine learning model on CMLE. The trained model will be used by data sampling algorithm to select DataItems.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrainingConfig {
     /// The timeout hours for the CMLE training job, expressed in milli hours i.e. 1,000 value in this field means 1 hour.
     #[serde(default, rename = "timeoutTrainingMilliHours")]
@@ -14229,7 +14230,7 @@ pub struct GoogleCloudAiplatformV1TrainingConfig {
 }
 
 /// The config for Featurestore Monitoring threshold.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeaturestoreMonitoringConfigThresholdConfig {
     /// Specify a threshold value that can trigger the alert. 1. For categorical feature, the distribution distance is calculated by L-inifinity norm. 2. For numerical feature, the distribution distance is calculated by Jensen–Shannon divergence. Each feature must have a non-zero threshold if they need to be monitored. Otherwise no alert will be triggered for that feature.
     #[serde(default)]
@@ -14237,7 +14238,7 @@ pub struct GoogleCloudAiplatformV1FeaturestoreMonitoringConfigThresholdConfig {
 }
 
 /// Configuration of the Featurestore''s ImportFeature Analysis Based Monitoring. This type of analysis generates statistics for values of each Feature imported by every ImportFeatureValues operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeaturestoreMonitoringConfigImportFeaturesAnalysis {
     /// The baseline used to do anomaly detection for the statistics generated by import features analysis. // TODO: enum values: ["BASELINE_UNSPECIFIED", "LATEST_STATS", "MOST_RECENT_SNAPSHOT_STATS", "PREVIOUS_IMPORT_FEATURES_STATS"]
     #[serde(default, rename = "anomalyDetectionBaseline")]
@@ -14248,7 +14249,7 @@ pub struct GoogleCloudAiplatformV1FeaturestoreMonitoringConfigImportFeaturesAnal
 }
 
 /// Configuration of the Featurestore''s Snapshot Analysis Based Monitoring. This type of analysis generates statistics for each Feature based on a snapshot of the latest feature value of each entities every monitoring_interval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeaturestoreMonitoringConfigSnapshotAnalysis {
     /// The monitoring schedule for snapshot analysis. For EntityType-level config: unset / disabled = true indicates disabled by default for Features under it; otherwise by default enable snapshot analysis monitoring with monitoring_interval for Features under it. Feature-level config: disabled = true indicates disabled regardless of the EntityType-level config; unset monitoring_interval indicates going with EntityType-level config; otherwise run snapshot analysis monitoring with monitoring_interval regardless of the EntityType-level config. Explicitly Disable the snapshot analysis based monitoring.
     #[serde(default)]
@@ -14262,7 +14263,7 @@ pub struct GoogleCloudAiplatformV1FeaturestoreMonitoringConfigSnapshotAnalysis {
 }
 
 /// Result for a single candidate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CandidateResult {
     /// Optional. Additional results for the metric.
     #[serde(default, rename = "additionalResults")]
@@ -14286,7 +14287,7 @@ pub struct GoogleCloudAiplatformV1CandidateResult {
 }
 
 /// A single evaluation request supporting input for both single-turn model generation and multi-turn agent execution traces. Valid input modes: 1. Inference Mode: prompt is set (containing text or AgentData context). 2. Offline Eval Mode: prompt is unset, and candidate_responses contains agent_data (the completed execution trace). Validation Rule: Either prompt must be set, OR at least one of the candidate_responses must contain agent_data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationRequest {
     /// Optional. Responses from model under test and other baseline models for comparison.
     #[serde(default, rename = "candidateResponses")]
@@ -14304,7 +14305,7 @@ pub struct GoogleCloudAiplatformV1EvaluationRequest {
 }
 
 /// The request set for the evaluation run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BigQueryRequestSet {
     /// Optional. Map of candidate name to candidate response column name. The column will be in evaluation_item.CandidateResponse format.
     #[serde(default, rename = "candidateResponseColumns")]
@@ -14325,7 +14326,7 @@ pub struct GoogleCloudAiplatformV1BigQueryRequestSet {
 }
 
 /// The metric used for evaluation runs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationRunMetric {
     /// Spec for a computation based metric.
     #[serde(default, rename = "computationBasedMetricSpec")]
@@ -14356,7 +14357,7 @@ pub struct GoogleCloudAiplatformV1EvaluationRunMetric {
 }
 
 /// The output config for the evaluation run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationRunEvaluationConfigOutputConfig {
     /// BigQuery destination for evaluation output.
     #[serde(default, rename = "bigqueryDestination")]
@@ -14367,7 +14368,7 @@ pub struct GoogleCloudAiplatformV1EvaluationRunEvaluationConfigOutputConfig {
 }
 
 /// Prompt template used for inference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationRunEvaluationConfigPromptTemplate {
     /// Prompt template stored in Cloud Storage. Format: "gs://my-bucket/file-name.txt".
     #[serde(default, rename = "gcsUri")]
@@ -14378,7 +14379,7 @@ pub struct GoogleCloudAiplatformV1EvaluationRunEvaluationConfigPromptTemplate {
 }
 
 /// Configuration for a rubric group to be generated/saved for evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationRubricConfig {
     /// Dynamically generate rubrics using a predefined spec.
     #[serde(default, rename = "predefinedRubricGenerationSpec")]
@@ -14394,7 +14395,7 @@ pub struct GoogleCloudAiplatformV1EvaluationRubricConfig {
 }
 
 /// The summary metrics for the evaluation run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SummaryMetrics {
     /// Optional. The number of items that failed to be evaluated.
     #[serde(default, rename = "failedItems")]
@@ -14408,7 +14409,7 @@ pub struct GoogleCloudAiplatformV1SummaryMetrics {
 }
 
 /// Information about the sources that support the content of a response. When grounding is enabled, the model returns citations for claims in the response. This object contains the retrieved sources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GroundingMetadata {
     /// Optional. Output only. A token that can be used to render a Google Maps widget with the contextual data. This field is populated only when the grounding source is Google Maps.
     #[serde(default, rename = "googleMapsWidgetContextToken")]
@@ -14441,7 +14442,7 @@ pub struct GoogleCloudAiplatformV1GroundingMetadata {
 }
 
 /// Audio transcription in Server Content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Transcription {
     /// Optional. The bool indicates the end of the transcription.
     #[serde(default)]
@@ -14452,7 +14453,7 @@ pub struct GoogleCloudAiplatformV1Transcription {
 }
 
 /// GoogleCloudAiplatformV1FeatureGroupBigQueryTimeSeries resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureGroupBigQueryTimeSeries {
     /// Optional. Column hosting timestamp values for a time-series source. Will be used to determine the latest feature_values for each entity. Optional. If not provided, column named feature_timestamp of type TIMESTAMP will be used.
     #[serde(default, rename = "timestampColumn")]
@@ -14460,7 +14461,7 @@ pub struct GoogleCloudAiplatformV1FeatureGroupBigQueryTimeSeries {
 }
 
 /// GoogleCloudAiplatformV1FeatureOnlineStoreBigtableAutoScaling resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureOnlineStoreBigtableAutoScaling {
     /// Optional. A percentage of the cluster''s CPU capacity. Can be from 10% to 80%. When a cluster''s CPU utilization exceeds the target that you have set, Bigtable immediately adds nodes to the cluster. When CPU utilization is substantially lower than the target, Bigtable removes nodes. If not set will default to 50%.
     #[serde(default, rename = "cpuUtilizationTarget")]
@@ -14474,7 +14475,7 @@ pub struct GoogleCloudAiplatformV1FeatureOnlineStoreBigtableAutoScaling {
 }
 
 /// Metadata of the Bigtable instance. This is used by direct read access to the Bigtable in tenant project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureOnlineStoreBigtableBigtableMetadata {
     /// The Cloud Bigtable instance id.
     #[serde(default, rename = "instanceId")]
@@ -14488,7 +14489,7 @@ pub struct GoogleCloudAiplatformV1FeatureOnlineStoreBigtableBigtableMetadata {
 }
 
 /// Represents configuration for private service connect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PrivateServiceConnectConfig {
     /// Required. If true, expose the IndexEndpoint via private service connect.
     #[serde(default, rename = "enablePrivateServiceConnect")]
@@ -14506,7 +14507,7 @@ pub struct GoogleCloudAiplatformV1PrivateServiceConnectConfig {
 }
 
 /// Features belonging to a single feature group that will be synced to Online Store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureViewFeatureRegistrySourceFeatureGroup {
     /// Required. Identifier of the feature group.
     #[serde(default, rename = "featureGroupId")]
@@ -14517,7 +14518,7 @@ pub struct GoogleCloudAiplatformV1FeatureViewFeatureRegistrySourceFeatureGroup {
 }
 
 /// Configuration options for the tree-AH algorithm.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureViewIndexConfigTreeAHConfig {
     /// Optional. Number of embeddings on each leaf node. The default value is 1000 if not set.
     #[serde(default, rename = "leafNodeEmbeddingCount")]
@@ -14525,7 +14526,7 @@ pub struct GoogleCloudAiplatformV1FeatureViewIndexConfigTreeAHConfig {
 }
 
 /// Online serving scaling configuration. If min_node_count and max_node_count are set to the same value, the cluster will be configured with the fixed number of node (no auto-scaling).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeaturestoreOnlineServingConfigScaling {
     /// Optional. The cpu utilization that the Autoscaler should be trying to achieve. This number is on a scale from 0 (no utilization) to 100 (total utilization), and is limited between 10 and 80. When a cluster''s CPU utilization exceeds the target that you have set, Bigtable immediately adds nodes to the cluster. When CPU utilization is substantially lower than the target, Bigtable removes nodes. If not set or set to 0, default to 50.
     #[serde(default, rename = "cpuUtilizationTarget")]
@@ -14539,7 +14540,7 @@ pub struct GoogleCloudAiplatformV1FeaturestoreOnlineServingConfigScaling {
 }
 
 /// A message representing a parameter to be tuned.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TrialParameter {
     /// Output only. The ID of the parameter. The parameter should be defined in StudySpec''s Parameters.
     #[serde(default, rename = "parameterId")]
@@ -14550,7 +14551,7 @@ pub struct GoogleCloudAiplatformV1TrialParameter {
 }
 
 /// Used to set up the auth on the DeployedIndex''s private endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeployedIndexAuthConfig {
     /// Defines the authentication provider that the DeployedIndex uses.
     #[serde(default, rename = "authProvider")]
@@ -14559,7 +14560,7 @@ pub struct GoogleCloudAiplatformV1DeployedIndexAuthConfig {
 }
 
 /// IndexPrivateEndpoints proto is used to provide paths for users to send requests via private endpoints (e.g. private service access, private service connect). To send request via private service access, use match_grpc_address. To send request via private service connect, use service_attachment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1IndexPrivateEndpoints {
     /// Output only. The ip address used to send match gRPC requests.
     #[serde(default, rename = "matchGrpcAddress")]
@@ -14574,7 +14575,7 @@ pub struct GoogleCloudAiplatformV1IndexPrivateEndpoints {
 }
 
 /// The objective configuration for model monitoring, including the information needed to detect anomalies for one particular model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelMonitoringObjectiveConfig {
     /// The config for integrating with Vertex Explainable AI.
     #[serde(default, rename = "explanationConfig")]
@@ -14599,7 +14600,7 @@ pub struct GoogleCloudAiplatformV1ModelMonitoringObjectiveConfig {
 }
 
 /// The config for email alert.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelMonitoringAlertConfigEmailAlertConfig {
     /// The email addresses to send the alert.
     #[serde(default, rename = "userEmails")]
@@ -14607,7 +14608,7 @@ pub struct GoogleCloudAiplatformV1ModelMonitoringAlertConfigEmailAlertConfig {
 }
 
 /// Specification for how the data should be sliced.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelEvaluationSliceSliceSliceSpec {
     /// Mapping configuration for this SliceSpec. The key is the name of the feature. By default, the key will be prefixed by "instance" as a dictionary prefix for Vertex Batch Predictions output format.
     #[serde(default)]
@@ -14615,7 +14616,7 @@ pub struct GoogleCloudAiplatformV1ModelEvaluationSliceSliceSliceSpec {
 }
 
 /// The output of a multi-trial Neural Architecture Search (NAS) jobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NasJobOutputMultiTrialJobOutput {
     /// Output only. List of NasTrials that were started as part of search stage.
     #[serde(default, rename = "searchTrials")]
@@ -14626,7 +14627,7 @@ pub struct GoogleCloudAiplatformV1NasJobOutputMultiTrialJobOutput {
 }
 
 /// The spec of multi-trial Neural Architecture Search (NAS).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpec {
     /// Metric specs for the NAS job. Validation for this field is done at multi_trial_algorithm_spec field.
     #[serde(default)]
@@ -14648,7 +14649,7 @@ pub struct GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpec {
 }
 
 /// Colab image of the runtime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ColabImage {
     /// Output only. A human-readable description of the specified colab image release, populated by the system. Example: "Python 3.10", "Latest - current Python 3.11"
     #[serde(default)]
@@ -14659,7 +14660,7 @@ pub struct GoogleCloudAiplatformV1ColabImage {
 }
 
 /// Post startup script config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PostStartupScriptConfig {
     /// Optional. Post startup script to run after runtime is started.
     #[serde(default, rename = "postStartupScript")]
@@ -14673,7 +14674,7 @@ pub struct GoogleCloudAiplatformV1PostStartupScriptConfig {
 }
 
 /// The min/max number of replicas allowed if enabling autoscaling
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ResourcePoolAutoscalingSpec {
     /// Optional. max replicas in the node pool, must be ≥ replica_count and &gt; min_replica_count or will throw error
     #[serde(default, rename = "maxReplicaCount")]
@@ -14684,7 +14685,7 @@ pub struct GoogleCloudAiplatformV1ResourcePoolAutoscalingSpec {
 }
 
 /// Configuration information for the Ray cluster. For experimental launch, Ray cluster creation and Persistent cluster creation are 1:1 mapping: We will provision all the nodes within the Persistent cluster as Ray nodes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RaySpec {
     /// Optional. This will be used to indicate which resource pool will serve as the Ray head node(the first node within that pool). Will use the machine from the first workerpool as the head node by default if this field isn''t set.
     #[serde(default, rename = "headNodeResourcePoolId")]
@@ -14704,7 +14705,7 @@ pub struct GoogleCloudAiplatformV1RaySpec {
 }
 
 /// Configuration for the use of custom service account to run the workloads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ServiceAccountSpec {
     /// Required. If true, custom user-managed service account is enforced to run any workloads (for example, Vertex Jobs) on the resource. Otherwise, uses the [Vertex AI Custom Code Service Agent](https://cloud.google.com/vertex-ai/docs/general/access-control#service-agents).
     #[serde(default, rename = "enableCustomServiceAccount")]
@@ -14715,7 +14716,7 @@ pub struct GoogleCloudAiplatformV1ServiceAccountSpec {
 }
 
 /// The config for the Pinecone.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagVectorDbConfigPinecone {
     /// Pinecone index name. This value cannot be changed after it''s set.
     #[serde(default, rename = "indexName")]
@@ -14723,7 +14724,7 @@ pub struct GoogleCloudAiplatformV1RagVectorDbConfigPinecone {
 }
 
 /// Config for the embedding model to use for RAG.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagEmbeddingModelConfig {
     /// The Vertex AI Prediction Endpoint that either refers to a publisher model or an endpoint that is hosting a 1P fine-tuned text embedding model. Endpoints hosting non-1P fine-tuned text embedding models are currently not supported. This is used for dense vector search.
     #[serde(default, rename = "vertexPredictionEndpoint")]
@@ -14733,7 +14734,7 @@ pub struct GoogleCloudAiplatformV1RagEmbeddingModelConfig {
 }
 
 /// The config for the default RAG-managed Vector DB.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDb {
     /// Performs an ANN search on RagCorpus. Use this if you have a lot of files (&gt; 10K) in your RagCorpus and want to reduce the search latency.
     #[serde(default)]
@@ -14744,7 +14745,7 @@ pub struct GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDb {
 }
 
 /// The config for the Vertex Vector Search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagVectorDbConfigVertexVectorSearch {
     /// The resource name of the Index. Format: projects/{project}/locations/{location}/indexes/{index}
     #[serde(default)]
@@ -14755,7 +14756,7 @@ pub struct GoogleCloudAiplatformV1RagVectorDbConfigVertexVectorSearch {
 }
 
 /// Specification for a Memory Bank.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfig {
     /// Optional. Configuration for how to customize Memory Bank behavior for a particular scope.
     #[serde(default, rename = "customizationConfigs")]
@@ -14783,7 +14784,7 @@ pub struct GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfig {
 }
 
 /// Specification for deploying from a container image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReasoningEngineSpecContainerSpec {
     /// Required. The Artifact Registry Docker image URI (e.g., us-central1-docker.pkg.dev/my-project/my-repo/my-image:tag) of the container image that is to be run on each worker replica.
     #[serde(default, rename = "imageUri")]
@@ -14791,7 +14792,7 @@ pub struct GoogleCloudAiplatformV1ReasoningEngineSpecContainerSpec {
 }
 
 /// The specification of a Reasoning Engine deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReasoningEngineSpecDeploymentSpec {
     /// Optional. Concurrency for each container and agent server. Recommended value: 2 * cpu + 1. Defaults to 9.
     #[serde(default, rename = "containerConcurrency")]
@@ -14820,7 +14821,7 @@ pub struct GoogleCloudAiplatformV1ReasoningEngineSpecDeploymentSpec {
 }
 
 /// User-provided package specification, containing pickled object and package requirements.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReasoningEngineSpecPackageSpec {
     /// Optional. The Cloud Storage URI of the dependency files in tar.gz format.
     #[serde(default, rename = "dependencyFilesGcsUri")]
@@ -14837,7 +14838,7 @@ pub struct GoogleCloudAiplatformV1ReasoningEngineSpecPackageSpec {
 }
 
 /// Specification for deploying from source code.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpec {
     /// Source code is generated from the agent config.
     #[serde(default, rename = "agentConfigSource")]
@@ -14865,7 +14866,7 @@ pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpec {
 }
 
 /// The code execution environment with customized settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SandboxEnvironmentSpecCodeExecutionEnvironment {
     /// The coding language supported in this environment. // TODO: enum values: ["LANGUAGE_UNSPECIFIED", "LANGUAGE_PYTHON", "LANGUAGE_JAVASCRIPT"]
     #[serde(default, rename = "codeLanguage")]
@@ -14876,7 +14877,7 @@ pub struct GoogleCloudAiplatformV1SandboxEnvironmentSpecCodeExecutionEnvironment
 }
 
 /// NotebookExecutionJob represents an instance of a notebook execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NotebookExecutionJob {
     /// Output only. Timestamp when this NotebookExecutionJob was created.
     #[serde(default, rename = "createTime")]
@@ -14945,7 +14946,7 @@ pub struct GoogleCloudAiplatformV1NotebookExecutionJob {
 }
 
 /// An instance of a machine learning PipelineJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PipelineJob {
     /// Output only. Pipeline creation time.
     #[serde(default, rename = "createTime")]
@@ -15013,7 +15014,7 @@ pub struct GoogleCloudAiplatformV1PipelineJob {
 }
 
 /// Assigns input data to training, validation, and test sets based on the given filters, data pieces not matched by any filter are ignored. Currently only supported for Datasets containing DataItems. If any of the filters in this message are to match nothing, then they can be set as ''-'' (the minus sign). Supported only for unstructured Datasets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FilterSplit {
     /// Required. A filter on DataItems of the Dataset. DataItems that match this filter are used to test the Model. A filter with same syntax as the one used in DatasetService.ListDataItems may be used. If a single DataItem is matched by more than one of the FilterSplit filters, then it is assigned to the first set that applies to it in the training, validation, test order.
     #[serde(default, rename = "testFilter")]
@@ -15027,7 +15028,7 @@ pub struct GoogleCloudAiplatformV1FilterSplit {
 }
 
 /// Assigns the input data to training, validation, and test sets as per the given fractions. Any of training_fraction, validation_fraction and test_fraction may optionally be provided, they must sum to up to 1. If the provided ones sum to less than 1, the remainder is assigned to sets as decided by Vertex AI. If none of the fractions are set, by default roughly 80% of data is used for training, 10% for validation, and 10% for test.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FractionSplit {
     /// The fraction of the input data that is to be used to evaluate the Model.
     #[serde(default, rename = "testFraction")]
@@ -15041,7 +15042,7 @@ pub struct GoogleCloudAiplatformV1FractionSplit {
 }
 
 /// Assigns input data to training, validation, and test sets based on the value of a provided key. Supported only for tabular Datasets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PredefinedSplit {
     /// Required. The key is a name of one of the Dataset''s data columns. The value of the key (either the label''s value or value in the column) must be one of {training, validation, test}, and it defines to which set the given piece of data is assigned. If for a piece of data the key is not present or has an invalid value, that piece is ignored by the pipeline.
     #[serde(default)]
@@ -15049,7 +15050,7 @@ pub struct GoogleCloudAiplatformV1PredefinedSplit {
 }
 
 /// Assigns input data to the training, validation, and test sets so that the distribution of values found in the categorical column (as specified by the key field) is mirrored within each split. The fraction values determine the relative sizes of the splits. For example, if the specified column has three values, with 50% of the rows having value "A", 25% value "B", and 25% value "C", and the split fractions are specified as 80/10/10, then the training set will constitute 80% of the training data, with about 50% of the training set rows having the value "A" for the specified column, about 25% having the value "B", and about 25% having the value "C". Only the top 500 occurring values are used; any values not in the top 500 values are randomly assigned to a split. If less than three rows contain a specific value, those rows are randomly assigned. Supported only for tabular Datasets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StratifiedSplit {
     /// Required. The key is a name of one of the Dataset''s data columns. The key provided must be for a categorical column.
     #[serde(default)]
@@ -15066,7 +15067,7 @@ pub struct GoogleCloudAiplatformV1StratifiedSplit {
 }
 
 /// Assigns input data to training, validation, and test sets based on a provided timestamps. The youngest data pieces are assigned to training set, next to validation set, and the oldest to the test set. Supported only for tabular Datasets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TimestampSplit {
     /// Required. The key is a name of one of the Dataset''s data columns. The values of the key (the values in the column) must be in RFC 3339 date-time format, where time-offset = "Z" (e.g. 1985-04-12T23:20:50.52Z). If for a piece of data the key is not present or has an invalid value, that piece is ignored by the pipeline.
     #[serde(default)]
@@ -15083,7 +15084,7 @@ pub struct GoogleCloudAiplatformV1TimestampSplit {
 }
 
 /// User input field to specify the base model source. Currently it only supports specifing the Model Garden models and Genie models.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelBaseModelSource {
     /// Information about the base model of Genie models.
     #[serde(default, rename = "genieSource")]
@@ -15094,7 +15095,7 @@ pub struct GoogleCloudAiplatformV1ModelBaseModelSource {
 }
 
 /// Describes the machine learning model version checkpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Checkpoint {
     /// The ID of the checkpoint.
     #[serde(default, rename = "checkpointId")]
@@ -15108,7 +15109,7 @@ pub struct GoogleCloudAiplatformV1Checkpoint {
 }
 
 /// Stats of data used for train or evaluate the Model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelDataStats {
     /// Number of Annotations that are used for evaluating this Model. If the Model is evaluated multiple times, this will be the number of test Annotations used by the first evaluation. If the Model is not evaluated, the number is 0.
     #[serde(default, rename = "testAnnotationsCount")]
@@ -15131,7 +15132,7 @@ pub struct GoogleCloudAiplatformV1ModelDataStats {
 }
 
 /// Points to a DeployedModel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeployedModelRef {
     /// Immutable. The ID of the Checkpoint deployed in the DeployedModel.
     #[serde(default, rename = "checkpointId")]
@@ -15145,7 +15146,7 @@ pub struct GoogleCloudAiplatformV1DeployedModelRef {
 }
 
 /// Detail description of the source information of the model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelSourceInfo {
     /// If this Model is copy of another Model. If true then source_type pertains to the original.
     #[serde(default)]
@@ -15156,7 +15157,7 @@ pub struct GoogleCloudAiplatformV1ModelSourceInfo {
 }
 
 /// Contains information about the original Model if this Model is a copy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelOriginalModelInfo {
     /// Output only. The resource name of the Model this Model is a copy of, including the revision. Format: projects/{project}/locations/{location}/models/{model_id}@{version_id}
     #[serde(default)]
@@ -15164,7 +15165,7 @@ pub struct GoogleCloudAiplatformV1ModelOriginalModelInfo {
 }
 
 /// Contains the schemata used in Model''s predictions and explanations via PredictionService.Predict, PredictionService.Explain and BatchPredictionJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PredictSchemata {
     /// Immutable. Points to a YAML file stored on Google Cloud Storage describing the format of a single instance, which are used in PredictRequest.instances, ExplainRequest.instances and BatchPredictionJob.input_config. The schema is defined as an OpenAPI 3.0.2 [Schema Object](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.2.md#schemaObject). AutoML Models always have this field populated by Vertex AI. Note: The URI given on output will be immutable and probably different, including the URI scheme, than the one given on input. The output URI will point to a location where the user only has a read access.
     #[serde(default, rename = "instanceSchemaUri")]
@@ -15178,7 +15179,7 @@ pub struct GoogleCloudAiplatformV1PredictSchemata {
 }
 
 /// Represents export format supported by the Model. All formats export to Google Cloud Storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelExportFormat {
     /// Output only. The content of this Model that may be exported.
     #[serde(default, rename = "exportableContents")]
@@ -15189,7 +15190,7 @@ pub struct GoogleCloudAiplatformV1ModelExportFormat {
 }
 
 /// Model metadata that is needed for UploadModel or DeployModel/CreateEndpoint requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PublisherModelCallToActionDeploy {
     /// Optional. The path to the directory containing the Model artifact and any of its supporting files.
     #[serde(default, rename = "artifactUri")]
@@ -15229,7 +15230,7 @@ pub struct GoogleCloudAiplatformV1PublisherModelCallToActionDeploy {
 }
 
 /// The regional resource name or the URI. Key is region, e.g., us-central1, europe-west2, global, etc..
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PublisherModelCallToActionRegionalResourceReferences {
     /// Optional. For notebook resource. When set to true, the Colab Enterprise link will be disabled in the "open notebook" dialog in UI.
     #[serde(default, rename = "colabNotebookDisabled")]
@@ -15255,7 +15256,7 @@ pub struct GoogleCloudAiplatformV1PublisherModelCallToActionRegionalResourceRefe
 }
 
 /// A named piece of documentation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PublisherModelDocumentation {
     /// Required. Content of this piece of document (in Markdown format).
     #[serde(default)]
@@ -15266,7 +15267,7 @@ pub struct GoogleCloudAiplatformV1PublisherModelDocumentation {
 }
 
 /// Container for list of values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureValueList {
     /// A list of feature values. All of them should be the same data type.
     #[serde(default)]
@@ -15274,7 +15275,7 @@ pub struct GoogleCloudAiplatformV1FeatureValueList {
 }
 
 /// The results from an evaluation run performed by the EvaluationService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluateDatasetResponse {
     /// Output only. Aggregation statistics derived from results of EvaluationService.
     #[serde(default, rename = "aggregationOutput")]
@@ -15285,7 +15286,7 @@ pub struct GoogleCloudAiplatformV1EvaluateDatasetResponse {
 }
 
 /// Hyperparameters for Preference Optimization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PreferenceOptimizationHyperParameters {
     /// Optional. Adapter size for preference optimization. // TODO: enum values: ["ADAPTER_SIZE_UNSPECIFIED", "ADAPTER_SIZE_ONE", "ADAPTER_SIZE_TWO", "ADAPTER_SIZE_FOUR", "ADAPTER_SIZE_EIGHT", "ADAPTER_SIZE_SIXTEEN", "ADAPTER_SIZE_THIRTY_TWO"]
     #[serde(default, rename = "adapterSize")]
@@ -15302,7 +15303,7 @@ pub struct GoogleCloudAiplatformV1PreferenceOptimizationHyperParameters {
 }
 
 /// Evaluation Config for Tuning Job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationConfig {
     /// Optional. Autorater config for evaluation.
     #[serde(default, rename = "autoraterConfig")]
@@ -15324,7 +15325,7 @@ pub struct GoogleCloudAiplatformV1EvaluationConfig {
 }
 
 /// Hyperparameters for SFT.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SupervisedHyperParameters {
     /// Optional. Adapter size for tuning. // TODO: enum values: ["ADAPTER_SIZE_UNSPECIFIED", "ADAPTER_SIZE_ONE", "ADAPTER_SIZE_TWO", "ADAPTER_SIZE_FOUR", "ADAPTER_SIZE_EIGHT", "ADAPTER_SIZE_SIXTEEN", "ADAPTER_SIZE_THIRTY_TWO"]
     #[serde(default, rename = "adapterSize")]
@@ -15338,7 +15339,7 @@ pub struct GoogleCloudAiplatformV1SupervisedHyperParameters {
 }
 
 /// TunedModelCheckpoint for the Tuned Model of a Tuning Job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TunedModelCheckpoint {
     /// The ID of the checkpoint.
     #[serde(default, rename = "checkpointId")]
@@ -15355,7 +15356,7 @@ pub struct GoogleCloudAiplatformV1TunedModelCheckpoint {
 }
 
 /// Statistics computed for datasets used for preference optimization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PreferenceOptimizationDataStats {
     /// Output only. A partial sample of the indices (starting from 1) of the dropped examples.
     #[serde(default, rename = "droppedExampleIndices")]
@@ -15394,7 +15395,7 @@ pub struct GoogleCloudAiplatformV1PreferenceOptimizationDataStats {
 }
 
 /// Tuning data statistics for Supervised Tuning.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SupervisedTuningDataStats {
     /// Output only. For each index in truncated_example_indices, the user-facing reason why the example was dropped.
     #[serde(default, rename = "droppedExampleReasons")]
@@ -15439,7 +15440,7 @@ pub struct GoogleCloudAiplatformV1SupervisedTuningDataStats {
 }
 
 /// Memory metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MemoryMetadataValue {
     /// Boolean value.
     #[serde(default, rename = "boolValue")]
@@ -15456,7 +15457,7 @@ pub struct GoogleCloudAiplatformV1MemoryMetadataValue {
 }
 
 /// Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of java.awt.Color in Java; it can also be trivially provided to UIColor''s +colorWithRed:green:blue:alpha method in iOS; and, with just a little work, it can be easily formatted into a CSS rgba() string in JavaScript. This reference page doesn''t have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most 1e-5. Example (Java): import com.google.type.Color; // ... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha() ? protocolor.getAlpha().getValue() : 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color .newBuilder() .setRed(red / denominator) .setGreen(green / denominator) .setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha != 255) { result.setAlpha( FloatValue .newBuilder() .setValue(((float) alpha) / denominator) .build()); } return resultBuilder.build(); } // ... Example (iOS / Obj-C): // ... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper != nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha &lt;= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } // ... Example (JavaScript): // ... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!(''alpha'' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join('',''); return [''rgba('', rgbParams, '','', alphaFrac, '')''].join(''''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red &lt;&lt; 16) | (green &lt;&lt; 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = [''#'']; for (var i = 0; i &lt; missingZeros; i++) { resultBuilder.push(''0''); } resultBuilder.push(hexString); return resultBuilder.join(''''); }; // ...
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeColor {
     /// The fraction of this color that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (this color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color. This uses a wrapper message rather than a simple float scalar so that it is possible to distinguish between a default value and the value being unset. If omitted, this color object is rendered as a solid color (as if the alpha value had been explicitly given a value of 1.0).
     #[serde(default)]
@@ -15473,7 +15474,7 @@ pub struct GoogleTypeColor {
 }
 
 /// GoogleCloudAiplatformV1SchemaModelevaluationMetricsConfusionMatrixAnnotationSpecRef resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsConfusionMatrixAnnotationSpecRef {
     /// Display name of the AnnotationSpec.
     #[serde(default, rename = "displayName")]
@@ -15484,7 +15485,7 @@ pub struct GoogleCloudAiplatformV1SchemaModelevaluationMetricsConfusionMatrixAnn
 }
 
 /// Defines data for an application builder.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPromptSpecAppBuilderData {
     /// Serialized state of the code repository. This string will typically contain a JSON representation of the UI''s CodeRepositoryService state (files, folders, content, and any metadata). The UI is responsible for serialization and deserialization.
     #[serde(default, rename = "codeRepositoryState")]
@@ -15500,7 +15501,7 @@ pub struct GoogleCloudAiplatformV1SchemaPromptSpecAppBuilderData {
 }
 
 /// A list of elements and information that make up a portion of prompt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPromptSpecPartList {
     /// A list of elements that can be part of a prompt.
     #[serde(default)]
@@ -15508,7 +15509,7 @@ pub struct GoogleCloudAiplatformV1SchemaPromptSpecPartList {
 }
 
 /// Defines data for an interaction prompt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPromptSpecInteractionData {
     /// Optional. Lists interaction IDs associated with the prompt. This maps 1:1 to PromptMessage.contents. If InteractionData is present, every prompt message has an interaction ID.
     #[serde(default, rename = "interactionIds")]
@@ -15516,7 +15517,7 @@ pub struct GoogleCloudAiplatformV1SchemaPromptSpecInteractionData {
 }
 
 /// The translation example that contains reference sentences from various sources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPromptSpecTranslationExample {
     /// The reference sentences from inline text.
     #[serde(default, rename = "referenceSentencePairLists")]
@@ -15531,7 +15532,7 @@ pub struct GoogleCloudAiplatformV1SchemaPromptSpecTranslationExample {
 }
 
 /// Optional settings for translation prompt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPromptSpecTranslationOption {
     /// How many shots to use.
     #[serde(default, rename = "numberOfShots")]
@@ -15539,7 +15540,7 @@ pub struct GoogleCloudAiplatformV1SchemaPromptSpecTranslationOption {
 }
 
 /// The prompt message that aligns with the prompt message in google.cloud.aiplatform.master.GenerateContentRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPromptSpecPromptMessage {
     /// The content of the current conversation with the model. For single-turn queries, this is a single instance. For multi-turn queries, this is a repeated field that contains conversation history + latest request.
     #[serde(default)]
@@ -15566,7 +15567,7 @@ pub struct GoogleCloudAiplatformV1SchemaPromptSpecPromptMessage {
 }
 
 /// Training pipeline will infer the proper transformation based on the statistic of dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlForecastingInputsTransformationAutoTransformation
 {
     #[serde(default, rename = "columnName")]
@@ -15574,7 +15575,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlForecastingIn
 }
 
 /// Training pipeline will perform following transformation functions. * The categorical string as is--no change to case, punctuation, spelling, tense, and so on. * Convert the category name to a dictionary lookup index and generate an embedding for each index. * Categories that appear less than 5 times in the training dataset are treated as the "unknown" category. The "unknown" category gets its own special lookup index and resulting embedding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlForecastingInputsTransformationCategoricalTransformation
 {
     #[serde(default, rename = "columnName")]
@@ -15582,7 +15583,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlForecastingIn
 }
 
 /// Training pipeline will perform following transformation functions. * The value converted to float32. * The z_score of the value. * log(value+1) when the value is greater than or equal to 0. Otherwise, this transformation is not applied and the value is considered a missing value. * z_score of log(value+1) when the value is greater than or equal to 0. Otherwise, this transformation is not applied and the value is considered a missing value. * A boolean value that indicates whether the value is valid.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlForecastingInputsTransformationNumericTransformation
 {
     #[serde(default, rename = "columnName")]
@@ -15590,7 +15591,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlForecastingIn
 }
 
 /// Training pipeline will perform following transformation functions. * The text as is--no change to case, punctuation, spelling, tense, and so on. * Convert the category name to a dictionary lookup index and generate an embedding for each index.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlForecastingInputsTransformationTextTransformation
 {
     #[serde(default, rename = "columnName")]
@@ -15598,7 +15599,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlForecastingIn
 }
 
 /// Training pipeline will perform following transformation functions. * Apply the transformation functions for Numerical columns. * Determine the year, month, day,and weekday. Treat each value from the timestamp as a Categorical column. * Invalid numerical values (for example, values that fall outside of a typical timestamp range, or are extreme values) receive no special treatment and are not removed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlForecastingInputsTransformationTimestampTransformation
 {
     #[serde(default, rename = "columnName")]
@@ -15609,7 +15610,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlForecastingIn
 }
 
 /// Represents specification of a Study.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StudySpec {
     /// The search algorithm specified for the Study. // TODO: enum values: ["ALGORITHM_UNSPECIFIED", "GRID_SEARCH", "RANDOM_SEARCH"]
     #[serde(default)]
@@ -15647,7 +15648,7 @@ pub struct GoogleCloudAiplatformV1StudySpec {
 }
 
 /// Training pipeline will infer the proper transformation based on the statistic of dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesInputsTransformationAutoTransformation
 {
     #[serde(default, rename = "columnName")]
@@ -15655,7 +15656,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesInputsT
 }
 
 /// Training pipeline will perform following transformation functions. * The categorical string as is--no change to case, punctuation, spelling, tense, and so on. * Convert the category name to a dictionary lookup index and generate an embedding for each index. * Categories that appear less than 5 times in the training dataset are treated as the "unknown" category. The "unknown" category gets its own special lookup index and resulting embedding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesInputsTransformationCategoricalTransformation
 {
     #[serde(default, rename = "columnName")]
@@ -15663,7 +15664,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesInputsT
 }
 
 /// Training pipeline will perform following transformation functions. * The value converted to float32. * The z_score of the value. * log(value+1) when the value is greater than or equal to 0. Otherwise, this transformation is not applied and the value is considered a missing value. * z_score of log(value+1) when the value is greater than or equal to 0. Otherwise, this transformation is not applied and the value is considered a missing value. * A boolean value that indicates whether the value is valid.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesInputsTransformationNumericTransformation
 {
     #[serde(default, rename = "columnName")]
@@ -15674,7 +15675,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesInputsT
 }
 
 /// Treats the column as categorical array and performs following transformation functions. * For each element in the array, convert the category name to a dictionary lookup index and generate an embedding for each index. Combine the embedding of all elements into a single embedding using the mean. * Empty arrays treated as an embedding of zeroes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesInputsTransformationCategoricalArrayTransformation
 {
     #[serde(default, rename = "columnName")]
@@ -15682,7 +15683,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesInputsT
 }
 
 /// Treats the column as numerical array and performs following transformation functions. * All transformations for Numerical types applied to the average of the all elements. * The average of empty arrays is treated as zero.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesInputsTransformationNumericArrayTransformation
 {
     #[serde(default, rename = "columnName")]
@@ -15693,7 +15694,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesInputsT
 }
 
 /// Treats the column as text array and performs following transformation functions. * Concatenate all text values in the array into a single text value using a space (" ") as a delimiter, and then treat the result as a single text value. Apply the transformations for Text columns. * Empty arrays treated as an empty text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesInputsTransformationTextArrayTransformation
 {
     #[serde(default, rename = "columnName")]
@@ -15701,7 +15702,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesInputsT
 }
 
 /// Training pipeline will perform following transformation functions. * The text as is--no change to case, punctuation, spelling, tense, and so on. * Tokenize text to words. Convert each words to a dictionary lookup index and generate an embedding for each index. Combine the embedding of all elements into a single embedding using the mean. * Tokenization is based on unicode script boundaries. * Missing values get their own lookup index and resulting embedding. * Stop-words receive no special treatment and are not removed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesInputsTransformationTextTransformation
 {
     #[serde(default, rename = "columnName")]
@@ -15709,7 +15710,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesInputsT
 }
 
 /// Training pipeline will perform following transformation functions. * Apply the transformation functions for Numerical columns. * Determine the year, month, day,and weekday. Treat each value from the * timestamp as a Categorical column. * Invalid numerical values (for example, values that fall outside of a typical timestamp range, or are extreme values) receive no special treatment and are not removed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesInputsTransformationTimestampTransformation
 {
     #[serde(default, rename = "columnName")]
@@ -15723,7 +15724,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionAutoMlTablesInputsT
 }
 
 /// Training pipeline will infer the proper transformation based on the statistic of dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionSeq2SeqPlusForecastingInputsTransformationAutoTransformation
 {
     #[serde(default, rename = "columnName")]
@@ -15731,7 +15732,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionSeq2SeqPlusForecast
 }
 
 /// Training pipeline will perform following transformation functions. * The categorical string as is--no change to case, punctuation, spelling, tense, and so on. * Convert the category name to a dictionary lookup index and generate an embedding for each index. * Categories that appear less than 5 times in the training dataset are treated as the "unknown" category. The "unknown" category gets its own special lookup index and resulting embedding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionSeq2SeqPlusForecastingInputsTransformationCategoricalTransformation
 {
     #[serde(default, rename = "columnName")]
@@ -15739,7 +15740,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionSeq2SeqPlusForecast
 }
 
 /// Training pipeline will perform following transformation functions. * The value converted to float32. * The z_score of the value. * log(value+1) when the value is greater than or equal to 0. Otherwise, this transformation is not applied and the value is considered a missing value. * z_score of log(value+1) when the value is greater than or equal to 0. Otherwise, this transformation is not applied and the value is considered a missing value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionSeq2SeqPlusForecastingInputsTransformationNumericTransformation
 {
     #[serde(default, rename = "columnName")]
@@ -15747,7 +15748,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionSeq2SeqPlusForecast
 }
 
 /// Training pipeline will perform following transformation functions. * The text as is--no change to case, punctuation, spelling, tense, and so on. * Convert the category name to a dictionary lookup index and generate an embedding for each index.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionSeq2SeqPlusForecastingInputsTransformationTextTransformation
 {
     #[serde(default, rename = "columnName")]
@@ -15755,7 +15756,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionSeq2SeqPlusForecast
 }
 
 /// Training pipeline will perform following transformation functions. * Apply the transformation functions for Numerical columns. * Determine the year, month, day,and weekday. Treat each value from the timestamp as a Categorical column. * Invalid numerical values (for example, values that fall outside of a typical timestamp range, or are extreme values) receive no special treatment and are not removed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionSeq2SeqPlusForecastingInputsTransformationTimestampTransformation
 {
     #[serde(default, rename = "columnName")]
@@ -15766,7 +15767,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionSeq2SeqPlusForecast
 }
 
 /// Training pipeline will infer the proper transformation based on the statistic of dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionTftForecastingInputsTransformationAutoTransformation
 {
     #[serde(default, rename = "columnName")]
@@ -15774,7 +15775,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionTftForecastingInput
 }
 
 /// Training pipeline will perform following transformation functions. * The categorical string as is--no change to case, punctuation, spelling, tense, and so on. * Convert the category name to a dictionary lookup index and generate an embedding for each index. * Categories that appear less than 5 times in the training dataset are treated as the "unknown" category. The "unknown" category gets its own special lookup index and resulting embedding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionTftForecastingInputsTransformationCategoricalTransformation
 {
     #[serde(default, rename = "columnName")]
@@ -15782,7 +15783,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionTftForecastingInput
 }
 
 /// Training pipeline will perform following transformation functions. * The value converted to float32. * The z_score of the value. * log(value+1) when the value is greater than or equal to 0. Otherwise, this transformation is not applied and the value is considered a missing value. * z_score of log(value+1) when the value is greater than or equal to 0. Otherwise, this transformation is not applied and the value is considered a missing value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionTftForecastingInputsTransformationNumericTransformation
 {
     #[serde(default, rename = "columnName")]
@@ -15790,7 +15791,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionTftForecastingInput
 }
 
 /// Training pipeline will perform following transformation functions. * The text as is--no change to case, punctuation, spelling, tense, and so on. * Convert the category name to a dictionary lookup index and generate an embedding for each index.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionTftForecastingInputsTransformationTextTransformation
 {
     #[serde(default, rename = "columnName")]
@@ -15798,7 +15799,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionTftForecastingInput
 }
 
 /// Training pipeline will perform following transformation functions. * Apply the transformation functions for Numerical columns. * Determine the year, month, day,and weekday. Treat each value from the timestamp as a Categorical column. * Invalid numerical values (for example, values that fall outside of a typical timestamp range, or are extreme values) receive no special treatment and are not removed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionTftForecastingInputsTransformationTimestampTransformation
 {
     #[serde(default, rename = "columnName")]
@@ -15809,7 +15810,7 @@ pub struct GoogleCloudAiplatformV1SchemaTrainingjobDefinitionTftForecastingInput
 }
 
 /// References an API call. It contains more information about long running operation and Jobs that are triggered by the API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1UserActionReference {
     /// For API calls that start a LabelingJob. Resource name of the LabelingJob. Format: projects/{project}/locations/{location}/dataLabelingJobs/{data_labeling_job}
     #[serde(default, rename = "dataLabelingJob")]
@@ -15823,7 +15824,7 @@ pub struct GoogleCloudAiplatformV1UserActionReference {
 }
 
 /// Response message for FeatureOnlineStoreService.FetchFeatureValues
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FetchFeatureValuesResponse {
     /// The data key associated with this response. Will only be populated for FeatureOnlineStoreService.StreamingFetchFeatureValues RPCs.
     #[serde(default, rename = "dataKey")]
@@ -15839,7 +15840,7 @@ pub struct GoogleCloudAiplatformV1FetchFeatureValuesResponse {
 }
 
 /// Specification of Model explanation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExplanationSpec {
     /// Optional. Metadata describing the Model''s input and output for explanation.
     #[serde(default)]
@@ -15850,7 +15851,7 @@ pub struct GoogleCloudAiplatformV1ExplanationSpec {
 }
 
 /// Configuration for faster model deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FasterDeploymentConfig {
     /// If true, enable fast tryout feature for this deployed model.
     #[serde(default, rename = "fastTryoutEnabled")]
@@ -15858,7 +15859,7 @@ pub struct GoogleCloudAiplatformV1FasterDeploymentConfig {
 }
 
 /// PrivateEndpoints proto is used to provide paths for users to send requests privately. To send request via private service access, use predict_http_uri, explain_http_uri or health_http_uri. To send request via private service connect, use service_attachment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PrivateEndpoints {
     /// Output only. Http(s) path to send explain requests.
     #[serde(default, rename = "explainHttpUri")]
@@ -15875,7 +15876,7 @@ pub struct GoogleCloudAiplatformV1PrivateEndpoints {
 }
 
 /// Configuration for Speculative Decoding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SpeculativeDecodingSpec {
     /// draft model speculation.
     #[serde(default, rename = "draftModelSpeculation")]
@@ -15891,7 +15892,7 @@ pub struct GoogleCloudAiplatformV1SpeculativeDecodingSpec {
 }
 
 /// Runtime status of the deployed model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeployedModelStatus {
     /// Output only. The number of available replicas of the deployed model.
     #[serde(default, rename = "availableReplicaCount")]
@@ -15905,7 +15906,7 @@ pub struct GoogleCloudAiplatformV1DeployedModelStatus {
 }
 
 /// Configuration for Retrieval Augmented Generation feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenAiAdvancedFeaturesConfigRagConfig {
     /// If true, enable Retrieval Augmented Generation in ChatCompletion request. Once enabled, the endpoint will be identified as GenAI endpoint and Arthedain router will be used.
     #[serde(default, rename = "enableRag")]
@@ -15913,7 +15914,7 @@ pub struct GoogleCloudAiplatformV1GenAiAdvancedFeaturesConfigRagConfig {
 }
 
 /// GoogleCloudAiplatformV1NearestNeighborSearchOperationMetadataRecordError resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NearestNeighborSearchOperationMetadataRecordError {
     /// Empty if the embedding id is failed to parse.
     #[serde(default, rename = "embeddingId")]
@@ -15933,7 +15934,7 @@ pub struct GoogleCloudAiplatformV1NearestNeighborSearchOperationMetadataRecordEr
 }
 
 /// Specifies the size and overlap of chunks for RagFiles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagFileChunkingConfig {
     /// Specifies the fixed length chunking config.
     #[serde(default, rename = "fixedLengthChunking")]
@@ -15942,7 +15943,7 @@ pub struct GoogleCloudAiplatformV1RagFileChunkingConfig {
 }
 
 /// The type and ID of the Google Drive resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GoogleDriveSourceResourceId {
     /// Required. The ID of the Google Drive resource.
     #[serde(default, rename = "resourceId")]
@@ -15953,7 +15954,7 @@ pub struct GoogleCloudAiplatformV1GoogleDriveSourceResourceId {
 }
 
 /// JiraQueries contains the Jira queries and corresponding authentication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1JiraSourceJiraQueries {
     /// Required. The SecretManager secret version resource name (e.g. projects/{project}/secrets/{secret}/versions/{version}) storing the Jira API key. See [Manage API tokens for your Atlassian account](https://support.atlassian.com/atlassian-account/docs/manage-api-tokens-for-your-atlassian-account/).
     #[serde(default, rename = "apiKeyConfig")]
@@ -15973,7 +15974,7 @@ pub struct GoogleCloudAiplatformV1JiraSourceJiraQueries {
 }
 
 /// An individual SharePointSource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SharePointSourcesSharePointSource {
     /// The Application ID for the app registered in Microsoft Azure Portal. The application must also be configured with MS Graph permissions "Files.ReadAll", "Sites.ReadAll" and BrowserSiteLists.Read.All.
     #[serde(default, rename = "clientId")]
@@ -16005,7 +16006,7 @@ pub struct GoogleCloudAiplatformV1SharePointSourcesSharePointSource {
 }
 
 /// SlackChannels contains the Slack channels and corresponding access token.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SlackSourceSlackChannels {
     /// Required. The SecretManager secret version resource name (e.g. projects/{project}/secrets/{secret}/versions/{version}) storing the Slack channel access token that has access to the slack channel IDs. See: https://api.slack.com/tutorials/tracks/getting-a-token.
     #[serde(default, rename = "apiKeyConfig")]
@@ -16018,7 +16019,7 @@ pub struct GoogleCloudAiplatformV1SlackSourceSlackChannels {
 }
 
 /// A TensorboardTimeSeries data point.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TimeSeriesDataPoint {
     /// A blob sequence value.
     #[serde(default)]
@@ -16038,7 +16039,7 @@ pub struct GoogleCloudAiplatformV1TimeSeriesDataPoint {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeExpr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -16055,7 +16056,7 @@ pub struct GoogleTypeExpr {
 }
 
 /// Filters returning list of deteceted labels, scores, and bounding boxes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiLargeModelsVisionRaiInfoDetectedLabels {
     /// The list of detected entities for the rai signal.
     #[serde(default)]
@@ -16068,7 +16069,7 @@ pub struct CloudAiLargeModelsVisionRaiInfoDetectedLabels {
 }
 
 /// CloudAiLargeModelsVisionNamedBoundingBox resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiLargeModelsVisionNamedBoundingBox {
     #[serde(default)]
     pub classes: ::core::option::Option<::std::vec::Vec<String>>,
@@ -16087,7 +16088,7 @@ pub struct CloudAiLargeModelsVisionNamedBoundingBox {
 }
 
 /// Stats and Anomaly generated at specific timestamp for specific Feature. The start_time and end_time are used to define the time range of the dataset that current stats belongs to, e.g. prediction traffic is bucketed into prediction datasets by time window. If the Dataset is not defined by time window, start_time = end_time. Timestamp of the stats and anomalies always refers to end_time. Raw stats and anomalies are stored in stats_uri or anomaly_uri in the tensorflow defined protos. Field data_stats contains almost identical information with the raw stats in Vertex AI defined proto, for UI to display.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureStatsAnomaly {
     /// This is the threshold used when detecting anomalies. The threshold can be changed by user, so this one might be different from ThresholdConfig.value.
     #[serde(default, rename = "anomalyDetectionThreshold")]
@@ -16113,7 +16114,7 @@ pub struct GoogleCloudAiplatformV1FeatureStatsAnomaly {
 }
 
 /// Attribution that explains a particular prediction output.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Attribution {
     /// Output only. Error of feature_attributions caused by approximation used in the explanation method. Lower value means more precise attributions. * For Sampled Shapley attribution, increasing path_count might reduce the error. * For Integrated Gradients attribution, increasing step_count might reduce the error. * For XRAI attribution, increasing step_count might reduce the error. See [this introduction](/vertex-ai/docs/explainable-ai/overview) for more information.
     #[serde(default, rename = "approximationError")]
@@ -16139,7 +16140,7 @@ pub struct GoogleCloudAiplatformV1Attribution {
 }
 
 /// Neighbors for example-based explanations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Neighbor {
     /// Output only. The neighbor distance.
     #[serde(default, rename = "neighborDistance")]
@@ -16150,7 +16151,7 @@ pub struct GoogleCloudAiplatformV1Neighbor {
 }
 
 /// Config for migrating AnnotatedDataset in datalabeling.googleapis.com to Vertex AI''s SavedQuery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MigrateResourceRequestMigrateDataLabelingDatasetConfigMigrateDataLabelingAnnotatedDatasetConfig
 {
     /// Required. Full resource name of data labeling AnnotatedDataset. Format: projects/{project}/datasets/{dataset}/annotatedDatasets/{annotated_dataset}.
@@ -16159,7 +16160,7 @@ pub struct GoogleCloudAiplatformV1MigrateResourceRequestMigrateDataLabelingDatas
 }
 
 /// Represents one AnnotatedDataset in datalabeling.googleapis.com.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MigratableResourceDataLabelingDatasetDataLabelingAnnotatedDataset
 {
     /// Full resource name of data labeling AnnotatedDataset. Format: projects/{project}/datasets/{dataset}/annotatedDatasets/{annotated_dataset}.
@@ -16171,7 +16172,7 @@ pub struct GoogleCloudAiplatformV1MigratableResourceDataLabelingDatasetDataLabel
 }
 
 /// Instance data used to populate placeholders in a metric prompt template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationInstanceInstanceData {
     /// List of Gemini content data.
     #[serde(default)]
@@ -16183,7 +16184,7 @@ pub struct GoogleCloudAiplatformV1EvaluationInstanceInstanceData {
 }
 
 /// Represents a list of tools for an agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationInstanceDeprecatedAgentConfigTools {
     /// Optional. List of tools: each tool can have multiple function declarations.
     #[serde(default)]
@@ -16191,7 +16192,7 @@ pub struct GoogleCloudAiplatformV1EvaluationInstanceDeprecatedAgentConfigTools {
 }
 
 /// A single event in the execution trace.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationInstanceDeprecatedAgentDataAgentEvent {
     /// Optional. The list of tools that were active/available to the agent at the time of this event. This overrides the AgentConfig.tools if set.
     #[serde(default, rename = "activeTools")]
@@ -16211,7 +16212,7 @@ pub struct GoogleCloudAiplatformV1EvaluationInstanceDeprecatedAgentDataAgentEven
 }
 
 /// Spec for tool call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolCall {
     /// Optional. Spec for tool input
     #[serde(default, rename = "toolInput")]
@@ -16222,7 +16223,7 @@ pub struct GoogleCloudAiplatformV1ToolCall {
 }
 
 /// Crowding tag is a constraint on a neighbor list produced by nearest neighbor search requiring that no more than some value k'' of the k neighbors returned have the same value of crowding_attribute.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1IndexDatapointCrowdingTag {
     /// The attribute value used for crowding. The maximum number of neighbors to return per crowding attribute value (per_crowding_attribute_num_neighbors) is configured per-query. This field is ignored if per_crowding_attribute_num_neighbors is larger than the total number of neighbors to return for a given query.
     #[serde(default, rename = "crowdingAttribute")]
@@ -16230,7 +16231,7 @@ pub struct GoogleCloudAiplatformV1IndexDatapointCrowdingTag {
 }
 
 /// This field allows restricts to be based on numeric comparisons rather than categorical tokens.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1IndexDatapointNumericRestriction {
     /// The namespace of this restriction. e.g.: cost.
     #[serde(default)]
@@ -16250,7 +16251,7 @@ pub struct GoogleCloudAiplatformV1IndexDatapointNumericRestriction {
 }
 
 /// Restriction of a datapoint which describe its attributes(tokens) from each of several attribute categories(namespaces).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1IndexDatapointRestriction {
     /// The attributes to allow in this namespace. e.g.: ''red''
     #[serde(default, rename = "allowList")]
@@ -16264,7 +16265,7 @@ pub struct GoogleCloudAiplatformV1IndexDatapointRestriction {
 }
 
 /// Feature embedding vector for sparse index. An array of numbers whose values are located in the specified dimensions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1IndexDatapointSparseEmbedding {
     /// Required. The list of indexes for the embedding values of the sparse vector.
     #[serde(default)]
@@ -16275,7 +16276,7 @@ pub struct GoogleCloudAiplatformV1IndexDatapointSparseEmbedding {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeDate {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -16289,7 +16290,7 @@ pub struct GoogleTypeDate {
 }
 
 /// A single token and its associated log probability.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1LogprobsResultCandidate {
     /// The log probability of this token. A higher value indicates that the model was more confident in this token. The log probability can be used to assess the relative likelihood of different tokens and to identify when the model is uncertain.
     #[serde(default, rename = "logProbability")]
@@ -16303,7 +16304,7 @@ pub struct GoogleCloudAiplatformV1LogprobsResultCandidate {
 }
 
 /// Represents the verdict of an evaluation against a single rubric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RubricVerdict {
     /// Required. The full rubric definition that was evaluated. Storing this ensures the verdict is self-contained and understandable, especially if the original rubric definition changes or was dynamically generated.
     #[serde(default, rename = "evaluatedRubric")]
@@ -16317,7 +16318,7 @@ pub struct GoogleCloudAiplatformV1RubricVerdict {
 }
 
 /// Responses from model or agent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CandidateResponse {
     /// Required. The name of the candidate that produced the response.
     #[serde(default)]
@@ -16334,7 +16335,7 @@ pub struct GoogleCloudAiplatformV1CandidateResponse {
 }
 
 /// Prompt to be evaluated. This can represent a single-turn prompt or a multi-turn conversation for agent evaluations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationPrompt {
     /// Prompt template data.
     #[serde(default, rename = "promptTemplateData")]
@@ -16349,7 +16350,7 @@ pub struct GoogleCloudAiplatformV1EvaluationPrompt {
 }
 
 /// The sampling config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BigQueryRequestSetSamplingConfig {
     /// Optional. The total number of logged data to import. If available data is less than the sampling count, all data will be imported. Default is 100.
     #[serde(default, rename = "samplingCount")]
@@ -16363,7 +16364,7 @@ pub struct GoogleCloudAiplatformV1BigQueryRequestSetSamplingConfig {
 }
 
 /// Specification for a computation based metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationRunMetricComputationBasedMetricSpec {
     /// Optional. A map of parameters for the metric, e.g. {"rouge_type": "rougeL"}.
     #[serde(default)]
@@ -16374,7 +16375,7 @@ pub struct GoogleCloudAiplatformV1EvaluationRunMetricComputationBasedMetricSpec 
 }
 
 /// Specification for an LLM based metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationRunMetricLLMBasedMetricSpec {
     /// Optional. Optional additional configuration for the metric.
     #[serde(default, rename = "additionalConfig")]
@@ -16403,7 +16404,7 @@ pub struct GoogleCloudAiplatformV1EvaluationRunMetricLLMBasedMetricSpec {
 }
 
 /// Specification for a metric that is based on rubrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationRunMetricRubricBasedMetricSpec {
     /// Use rubrics provided directly in the spec.
     #[serde(default, rename = "inlineRubrics")]
@@ -16427,7 +16428,7 @@ pub struct GoogleCloudAiplatformV1EvaluationRunMetricRubricBasedMetricSpec {
 }
 
 /// A piece of evidence that supports a claim made by the model. This is used to show a citation for a claim made by the model. When grounding is enabled, the model returns a GroundingChunk that contains a reference to the source of the information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GroundingChunk {
     /// A grounding chunk from an image search result. See the Image message for details.
     #[serde(default)]
@@ -16445,7 +16446,7 @@ pub struct GoogleCloudAiplatformV1GroundingChunk {
 }
 
 /// A collection of supporting references for a segment or part of the model''s response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GroundingSupport {
     /// The confidence scores for the support references. This list is parallel to the grounding_chunk_indices list. A score is a value between 0.0 and 1.0, with a higher score indicating a higher confidence that the reference supports the claim. For Gemini 2.0 and before, this list has the same size as grounding_chunk_indices. For Gemini 2.5 and later, this list is empty and should be ignored.
     #[serde(default, rename = "confidenceScores")]
@@ -16462,7 +16463,7 @@ pub struct GoogleCloudAiplatformV1GroundingSupport {
 }
 
 /// Metadata related to the retrieval grounding source. This is part of the GroundingMetadata returned when grounding is enabled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RetrievalMetadata {
     /// Optional. A score indicating how likely it is that a Google Search query could help answer the prompt. The score is in the range of [0, 1]. A score of 1 means the model is confident that a search will be helpful, and 0 means it is not. This score is populated only when Google Search grounding and dynamic retrieval are enabled. The score is used to determine whether to trigger a search.
     #[serde(default, rename = "googleSearchDynamicRetrievalScore")]
@@ -16470,7 +16471,7 @@ pub struct GoogleCloudAiplatformV1RetrievalMetadata {
 }
 
 /// An entry point for displaying Google Search results. A SearchEntryPoint is populated when the grounding source for a model''s response is Google Search. It provides information that you can use to display the search results in your application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SearchEntryPoint {
     /// Optional. An HTML snippet that can be embedded in a web page or an application''s webview. This snippet displays a search result, including the title, URL, and a brief description of the search result.
     #[serde(default, rename = "renderedContent")]
@@ -16481,7 +16482,7 @@ pub struct GoogleCloudAiplatformV1SearchEntryPoint {
 }
 
 /// A URI that can be used to flag a place or review for inappropriate content. This is populated only when the grounding source is Google Maps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GroundingMetadataSourceFlaggingUri {
     /// The URI that can be used to flag the content.
     #[serde(default, rename = "flagContentUri")]
@@ -16492,7 +16493,7 @@ pub struct GoogleCloudAiplatformV1GroundingMetadataSourceFlaggingUri {
 }
 
 /// PSC config that is used to automatically create PSC endpoints in the user projects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1pSCAutomationConfig {
     /// Output only. Error message if the PSC service automation failed.
     #[serde(default, rename = "errorMessage")]
@@ -16515,7 +16516,7 @@ pub struct GoogleCloudAiplatformV1pSCAutomationConfig {
 }
 
 /// Configuration for an authentication provider, including support for [JSON Web Token (JWT)](https://tools.ietf.org/html/draft-ietf-oauth-json-web-token-32).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DeployedIndexAuthConfigAuthProvider {
     /// A list of allowed JWT issuers. Each entry must be a valid Google service account, in the following format: service-account-name@project-id.iam.gserviceaccount.com
     #[serde(default, rename = "allowedIssuers")]
@@ -16526,7 +16527,7 @@ pub struct GoogleCloudAiplatformV1DeployedIndexAuthConfigAuthProvider {
 }
 
 /// PscAutomatedEndpoints defines the output of the forwarding rule automatically created by each PscAutomationConfig.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PscAutomatedEndpoints {
     /// Ip Address created by the automated forwarding rule.
     #[serde(default, rename = "matchAddress")]
@@ -16540,7 +16541,7 @@ pub struct GoogleCloudAiplatformV1PscAutomatedEndpoints {
 }
 
 /// The config for integrating with Vertex Explainable AI. Only applicable if the Model has explanation_spec populated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigExplanationConfig {
     /// If want to analyze the Vertex Explainable AI feature attribute scores or not. If set to true, Vertex AI will log the feature attributions from explain response and do the skew/drift detection for them.
     #[serde(default, rename = "enableFeatureAttributes")]
@@ -16553,7 +16554,7 @@ pub struct GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigExplanationConfi
 }
 
 /// The config for Prediction data drift detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigPredictionDriftDetectionConfig {
     /// Key is the feature name and value is the threshold. The threshold here is against attribution score distance between different time windows.
     #[serde(default, rename = "attributionScoreDriftThresholds")]
@@ -16567,7 +16568,7 @@ pub struct GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigPredictionDriftD
 }
 
 /// Training Dataset information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigTrainingDataset {
     /// The BigQuery table of the unmanaged Dataset used to train this Model.
     #[serde(default, rename = "bigquerySource")]
@@ -16590,7 +16591,7 @@ pub struct GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigTrainingDataset 
 }
 
 /// The config for Training & Prediction data skew detection. It specifies the training dataset sources and the skew detection parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigTrainingPredictionSkewDetectionConfig
 {
     /// Key is the feature name and value is the threshold. The threshold here is against attribution score distance between the training and prediction feature.
@@ -16605,7 +16606,7 @@ pub struct GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigTrainingPredicti
 }
 
 /// Represents a uCAIP NasJob trial.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NasTrial {
     /// Output only. Time when the NasTrial''s status changed to SUCCEEDED or INFEASIBLE.
     #[serde(default, rename = "endTime")]
@@ -16625,7 +16626,7 @@ pub struct GoogleCloudAiplatformV1NasTrial {
 }
 
 /// Represents a metric to optimize.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpecMetricSpec {
     /// Required. The optimization goal of the metric. // TODO: enum values: ["GOAL_TYPE_UNSPECIFIED", "MAXIMIZE", "MINIMIZE"]
     #[serde(default)]
@@ -16636,7 +16637,7 @@ pub struct GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpecMetricSpec {
 }
 
 /// Represent spec for search trials.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpecSearchTrialSpec {
     /// The number of failed trials that need to be seen before failing the NasJob. If set to 0, Vertex AI decides how many trials must fail before the whole job fails.
     #[serde(default, rename = "maxFailedTrialCount")]
@@ -16653,7 +16654,7 @@ pub struct GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpecSearchTrialSp
 }
 
 /// Represent spec for train trials.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpecTrainTrialSpec {
     /// Required. Frequency of search trials to start train stage. Top N [TrainTrialSpec.max_parallel_trial_count] search trials will be trained for every M [TrainTrialSpec.frequency] trials searched.
     #[serde(default)]
@@ -16667,7 +16668,7 @@ pub struct GoogleCloudAiplatformV1NasJobSpecMultiTrialAlgorithmSpecTrainTrialSpe
 }
 
 /// Configuration for the Ray OSS Logs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RayLogsSpec {
     /// Optional. Flag to disable the export of Ray OSS logs to Cloud Logging.
     #[serde(default)]
@@ -16675,7 +16676,7 @@ pub struct GoogleCloudAiplatformV1RayLogsSpec {
 }
 
 /// Configuration for the Ray metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RayMetricSpec {
     /// Optional. Flag to disable the Ray metrics collection.
     #[serde(default)]
@@ -16683,7 +16684,7 @@ pub struct GoogleCloudAiplatformV1RayMetricSpec {
 }
 
 /// Config representing a model hosted on Vertex Prediction Endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagEmbeddingModelConfigVertexPredictionEndpoint {
     /// Required. The endpoint resource name. Format: projects/{project}/locations/{location}/publishers/{publisher}/models/{model} or projects/{project}/locations/{location}/endpoints/{endpoint}
     #[serde(default)]
@@ -16697,7 +16698,7 @@ pub struct GoogleCloudAiplatformV1RagEmbeddingModelConfigVertexPredictionEndpoin
 }
 
 /// Config for ANN search. RagManagedDb uses a tree-based structure to partition data and facilitate faster searches. As a tradeoff, it requires longer indexing time and manual triggering of index rebuild via the ImportRagFiles and UpdateRagCorpus API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDbANN {
     /// Number of leaf nodes in the tree-based structure. Each leaf node contains groups of closely related vectors along with their corresponding centroid. Recommended value is 10 * sqrt(num of RagFiles in your RagCorpus). Default value is 500.
     #[serde(default, rename = "leafCount")]
@@ -16708,7 +16709,7 @@ pub struct GoogleCloudAiplatformV1RagVectorDbConfigRagManagedDbANN {
 }
 
 /// Represents configuration for organizing memories for a particular scope.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfig {
     /// Optional. Represents configuration for customizing how memories are consolidated together.
     #[serde(default, rename = "consolidationConfig")]
@@ -16736,7 +16737,7 @@ pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfig {
 }
 
 /// Configuration for how to generate memories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigGenerationConfig {
     /// Required. The model used to generate memories. Format: projects/{project}/locations/{location}/publishers/google/models/{model}.
     #[serde(default)]
@@ -16744,7 +16745,7 @@ pub struct GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigGene
 }
 
 /// Configuration for how to perform similarity search on memories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigSimilaritySearchConfig {
     /// Required. The model used to generate embeddings to lookup similar memories. Format: projects/{project}/locations/{location}/publishers/google/models/{model}.
     #[serde(default, rename = "embeddingModel")]
@@ -16752,7 +16753,7 @@ pub struct GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigSimi
 }
 
 /// Configuration for automatically setting the TTL ("time-to-live") of the memories in the Memory Bank.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigTtlConfig {
     /// Optional. The default TTL duration of the memories in the Memory Bank. This applies to all operations that create or update a memory.
     #[serde(default, rename = "defaultTtl")]
@@ -16768,7 +16769,7 @@ pub struct GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigTtlC
 }
 
 /// Represents the configuration for keep-alive probe. Contains configuration on a specified endpoint that a deployment host should use to keep the container alive based on the probe settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1KeepAliveProbe {
     /// Optional. Specifies the HTTP GET configuration for the probe.
     #[serde(default, rename = "httpGet")]
@@ -16779,7 +16780,7 @@ pub struct GoogleCloudAiplatformV1KeepAliveProbe {
 }
 
 /// Represents an environment variable where the value is a secret in Cloud Secret Manager.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SecretEnvVar {
     /// Required. Name of the secret environment variable.
     #[serde(default)]
@@ -16790,7 +16791,7 @@ pub struct GoogleCloudAiplatformV1SecretEnvVar {
 }
 
 /// Specification for the deploying from agent config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecAgentConfigSource {
     /// Required. The ADK configuration.
     #[serde(default, rename = "adkConfig")]
@@ -16805,7 +16806,7 @@ pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecAgentConfigSo
 }
 
 /// Specifies source code to be fetched from a Git repository managed through the Developer Connect service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecDeveloperConnectSource {
     /// Required. The Developer Connect configuration that defines the specific repository, revision, and directory to use as the source code root.
     #[serde(default)]
@@ -16815,7 +16816,7 @@ pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecDeveloperConn
 }
 
 /// The image spec for building an image (within a single build step), based on the config file (i.e. Dockerfile) in the source directory.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecImageSpec {
     /// Optional. Build arguments to be used. They will be passed through --build-arg flags.
     #[serde(default, rename = "buildArgs")]
@@ -16823,7 +16824,7 @@ pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecImageSpec {
 }
 
 /// Specification for running a Python application from source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecPythonSpec {
     /// Optional. The Python module to load as the entrypoint, specified as a fully qualified module name. For example: path.to.agent. If not specified, defaults to "agent". The project root will be added to Python sys.path, allowing imports to be specified relative to the root. This field should not be set if the source is agent_config_source.
     #[serde(default, rename = "entrypointModule")]
@@ -16840,7 +16841,7 @@ pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecPythonSpec {
 }
 
 /// Compute configuration to use for an execution job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NotebookExecutionJobCustomEnvironmentSpec {
     /// The specification of a single machine for the execution job.
     #[serde(default, rename = "machineSpec")]
@@ -16854,7 +16855,7 @@ pub struct GoogleCloudAiplatformV1NotebookExecutionJobCustomEnvironmentSpec {
 }
 
 /// The Dataform Repository containing the input notebook.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NotebookExecutionJobDataformRepositorySource {
     /// The commit SHA to read repository with. If unset, the file will be read at HEAD.
     #[serde(default, rename = "commitSha")]
@@ -16865,7 +16866,7 @@ pub struct GoogleCloudAiplatformV1NotebookExecutionJobDataformRepositorySource {
 }
 
 /// The content of the input notebook in ipynb format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NotebookExecutionJobDirectNotebookSource {
     /// The base64-encoded contents of the input notebook file.
     #[serde(default)]
@@ -16873,7 +16874,7 @@ pub struct GoogleCloudAiplatformV1NotebookExecutionJobDirectNotebookSource {
 }
 
 /// The Cloud Storage uri for the input notebook.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NotebookExecutionJobGcsNotebookSource {
     /// The version of the Cloud Storage object to read. If unset, the current version of the object is read. See https://cloud.google.com/storage/docs/metadata#generation-number.
     #[serde(default)]
@@ -16884,7 +16885,7 @@ pub struct GoogleCloudAiplatformV1NotebookExecutionJobGcsNotebookSource {
 }
 
 /// Represents a customer-managed encryption key specification that can be applied to a Vertex AI resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EncryptionSpec {
     /// Required. Resource name of the Cloud KMS key used to protect the resource. The Cloud KMS key must be in the same region as the resource. It must have the format projects/{project}/locations/{location}/keyRings/{key_ring}/cryptoKeys/{crypto_key}.
     #[serde(default, rename = "kmsKeyName")]
@@ -16892,7 +16893,7 @@ pub struct GoogleCloudAiplatformV1EncryptionSpec {
 }
 
 /// The runtime detail of PipelineJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PipelineJobDetail {
     /// Output only. The context of the pipeline.
     #[serde(default, rename = "pipelineContext")]
@@ -16907,7 +16908,7 @@ pub struct GoogleCloudAiplatformV1PipelineJobDetail {
 }
 
 /// The runtime config of a PipelineJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PipelineJobRuntimeConfig {
     /// Represents the failure policy of a pipeline. Currently, the default of a pipeline is that the pipeline will continue to run until no more tasks can be executed, also known as PIPELINE_FAILURE_POLICY_FAIL_SLOW. However, if a pipeline is set to PIPELINE_FAILURE_POLICY_FAIL_FAST, it will stop scheduling any new tasks when a task has failed. Any scheduled tasks will continue to completion. // TODO: enum values: ["PIPELINE_FAILURE_POLICY_UNSPECIFIED", "PIPELINE_FAILURE_POLICY_FAIL_SLOW", "PIPELINE_FAILURE_POLICY_FAIL_FAST"]
     #[serde(default, rename = "failurePolicy")]
@@ -16927,7 +16928,7 @@ pub struct GoogleCloudAiplatformV1PipelineJobRuntimeConfig {
 }
 
 /// Pipeline template metadata if PipelineJob.template_uri is from supported template registry. Currently, the only supported registry is Artifact Registry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PipelineTemplateMetadata {
     /// The version_name in artifact registry. Will always be presented in output if the PipelineJob.template_uri is from supported template registry. Format is "sha256:abcdef123456...".
     #[serde(default)]
@@ -16935,7 +16936,7 @@ pub struct GoogleCloudAiplatformV1PipelineTemplateMetadata {
 }
 
 /// Contains information about the source of the models generated from Generative AI Studio.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenieSource {
     /// Required. The public base model URI.
     #[serde(default, rename = "baseModelUri")]
@@ -16943,7 +16944,7 @@ pub struct GoogleCloudAiplatformV1GenieSource {
 }
 
 /// Contains information about the source of the models generated from Model Garden.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelGardenSource {
     /// Required. The model garden source model resource name.
     #[serde(default, rename = "publicModelName")]
@@ -16957,7 +16958,7 @@ pub struct GoogleCloudAiplatformV1ModelGardenSource {
 }
 
 /// A description of resources that to large degree are decided by Vertex AI, and require only a modest additional configuration. Each Model supporting these resources documents its specific guidelines.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AutomaticResources {
     /// Immutable. The maximum number of replicas that may be deployed on when the traffic against it increases. If the requested value is too large, the deployment will error, but if deployment succeeds then the ability to scale to that many replicas is guaranteed (barring service outages). If traffic increases beyond what its replicas at maximum may handle, a portion of the traffic will be dropped. If this value is not provided, a no upper bound for scaling under heavy traffic will be assume, though Vertex AI may be unable to scale beyond certain replica number.
     #[serde(default, rename = "maxReplicaCount")]
@@ -16968,7 +16969,7 @@ pub struct GoogleCloudAiplatformV1AutomaticResources {
 }
 
 /// Specification of a container for serving predictions. Some fields in this message correspond to fields in the [Kubernetes Container v1 core specification](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#container-v1-core).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelContainerSpec {
     /// Immutable. Specifies arguments for the command that runs when the container starts. This overrides the container''s [CMD](https://docs.docker.com/engine/reference/builder/#cmd). Specify this field as an array of executable and arguments, similar to a Docker CMD''s "default parameters" form. If you don''t specify this field but do specify the command field, then the command from the command field runs without any additional arguments. See the [Kubernetes documentation about how the command and args fields interact with a container''s ENTRYPOINT and CMD](https://kubernetes.io/docs/tasks/inject-data-application/define-command-argument-container/#notes). If you don''t specify this field and don''t specify the command field, then the container''s [ENTRYPOINT](https://docs.docker.com/engine/reference/builder/#cmd) and CMD determine what runs based on their default behavior. See the Docker documentation about [how CMD and ENTRYPOINT interact](https://docs.docker.com/engine/reference/builder/#understand-how-cmd-and-entrypoint-interact). In this field, you can reference [environment variables set by Vertex AI](https://cloud.google.com/vertex-ai/docs/predictions/custom-container-requirements#aip-variables) and environment variables set in the env field. You cannot reference environment variables set in the Docker image. In order for environment variables to be expanded, reference them by using the following syntax: $( VARIABLE_NAME) Note that this differs from Bash variable expansion, which does not use parentheses. If a variable cannot be resolved, the reference in the input string is used unchanged. To avoid variable expansion, you can escape this syntax with $$; for example: $$(VARIABLE_NAME) This field corresponds to the args field of the Kubernetes Containers [v1 core API](https://kubernetes.io/docs/reference/generated/kubernetes-api/v1.23/#container-v1-core).
     #[serde(default)]
@@ -17015,7 +17016,7 @@ pub struct GoogleCloudAiplatformV1ModelContainerSpec {
 }
 
 /// A description of resources that are dedicated to a DeployedModel or DeployedIndex, and that need a higher degree of manual configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DedicatedResources {
     /// Immutable. The metric specifications that overrides a resource utilization metric (CPU utilization, accelerator''s duty cycle, and so on) target value (default to 60 if not set). At most one entry is allowed per metric. If machine_spec.accelerator_count is above 0, the autoscaling will be based on both CPU utilization and accelerator''s duty cycle metrics and scale up when either metrics exceeds its target value while scale down if both metrics are under their target value. The default target value is 60 for both metrics. If machine_spec.accelerator_count is 0, the autoscaling will be based on CPU utilization metric only with default target value 60 if not explicitly set. For example, in the case of Online Prediction, if you want to override target CPU utilization to 80, you should set autoscaling_metric_specs.metric_name to aiplatform.googleapis.com/prediction/online/cpu/utilization and autoscaling_metric_specs.target to 80.
     #[serde(default, rename = "autoscalingMetricSpecs")]
@@ -17039,7 +17040,7 @@ pub struct GoogleCloudAiplatformV1DedicatedResources {
 }
 
 /// Metadata information about the deployment for managing deployment config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PublisherModelCallToActionDeployDeployMetadata {
     /// Optional. Labels for the deployment config. For managing deployment config like verifying, source of deployment config, etc.
     #[serde(default)]
@@ -17050,7 +17051,7 @@ pub struct GoogleCloudAiplatformV1PublisherModelCallToActionDeployDeployMetadata
 }
 
 /// Contains information about the Large Model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1LargeModelReference {
     /// Required. The unique name of the large Foundation or pre-built model. Like "chat-bison", "text-bison". Or model name with version ID, like "chat-bison@001", "text-bison@005", etc.
     #[serde(default)]
@@ -17058,7 +17059,7 @@ pub struct GoogleCloudAiplatformV1LargeModelReference {
 }
 
 /// The aggregation result for the entire dataset and all metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AggregationOutput {
     /// One AggregationResult per metric.
     #[serde(default, rename = "aggregationResults")]
@@ -17070,7 +17071,7 @@ pub struct GoogleCloudAiplatformV1AggregationOutput {
 }
 
 /// Describes the info for output of EvaluationService.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1OutputInfo {
     /// Output only. The full path of the Cloud Storage directory created, into which the evaluation results and aggregation results are written.
     #[serde(default, rename = "gcsOutputDirectory")]
@@ -17078,7 +17079,7 @@ pub struct GoogleCloudAiplatformV1OutputInfo {
 }
 
 /// Defines a custom dataset-level aggregation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DatasetCustomMetric {
     /// Required. The Python code string containing the aggregation function. Expected function signature: def aggregate(instances: list[dict[str, Any]]) -&gt; dict[str, float]: The instances argument is a list of dictionaries, where each dictionary represents a single evaluation result item. The structure of each dictionary corresponds to the fields in the EvaluationResult message. This includes: - "request": Contains the original input data and model inputs (from EvaluationResult.EvaluationRequest). - "candidate_results": Contains the results of any instance-level metrics (from EvaluationResult.CandidateResults). Example of a single item in the instances list: { "request": { "prompt": {"text": "What is the capital of France?"}, "golden_response": {"text": "Paris"}, "candidate_responses": [{"candidate": "model-v1", "text": "Paris"}] }, "candidate_results": [ {"metric": "exact_match", "score": 1.0}, {"metric": "bleu", "score": 0.9} ] }
     #[serde(default, rename = "aggregationFunction")]
@@ -17089,7 +17090,7 @@ pub struct GoogleCloudAiplatformV1DatasetCustomMetric {
 }
 
 /// The metric used for running evaluations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Metric {
     /// Optional. The aggregation metrics to use.
     #[serde(default, rename = "aggregationMetrics")]
@@ -17129,7 +17130,7 @@ pub struct GoogleCloudAiplatformV1Metric {
 }
 
 /// Config for evaluation output.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1OutputConfig {
     /// Cloud storage destination for evaluation output.
     #[serde(default, rename = "gcsDestination")]
@@ -17137,7 +17138,7 @@ pub struct GoogleCloudAiplatformV1OutputConfig {
 }
 
 /// Distribution computed over a tuning dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DatasetDistribution {
     /// Output only. Defines the histogram bucket.
     #[serde(default)]
@@ -17168,7 +17169,7 @@ pub struct GoogleCloudAiplatformV1DatasetDistribution {
 }
 
 /// Input example for preference optimization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GeminiPreferenceExample {
     /// List of completions for a given prompt.
     #[serde(default)]
@@ -17181,7 +17182,7 @@ pub struct GoogleCloudAiplatformV1GeminiPreferenceExample {
 }
 
 /// Dataset distribution for Supervised Tuning.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SupervisedTuningDatasetDistribution {
     /// Output only. Sum of a given population of values that are billable.
     #[serde(default, rename = "billableSum")]
@@ -17215,7 +17216,7 @@ pub struct GoogleCloudAiplatformV1SupervisedTuningDatasetDistribution {
 }
 
 /// A linked resource attached to the application by the user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPromptSpecAppBuilderDataLinkedResource {
     /// A user-friendly name for the data source shown in the UI.
     #[serde(default, rename = "displayName")]
@@ -17229,7 +17230,7 @@ pub struct GoogleCloudAiplatformV1SchemaPromptSpecAppBuilderDataLinkedResource {
 }
 
 /// A list of reference sentence pairs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPromptSpecReferenceSentencePairList {
     /// Reference sentence pairs.
     #[serde(default, rename = "referenceSentencePairs")]
@@ -17239,7 +17240,7 @@ pub struct GoogleCloudAiplatformV1SchemaPromptSpecReferenceSentencePairList {
 }
 
 /// GoogleCloudAiplatformV1SchemaPromptSpecTranslationSentenceFileInput resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPromptSpecTranslationSentenceFileInput {
     /// Inlined file source.
     #[serde(default, rename = "fileInputSource")]
@@ -17252,7 +17253,7 @@ pub struct GoogleCloudAiplatformV1SchemaPromptSpecTranslationSentenceFileInput {
 }
 
 /// A safety setting that affects the safety-blocking behavior. A SafetySetting consists of a harm category and a threshold for that category.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SafetySetting {
     /// Required. The harm category to be blocked. // TODO: enum values: ["HARM_CATEGORY_UNSPECIFIED", "HARM_CATEGORY_HATE_SPEECH", "HARM_CATEGORY_DANGEROUS_CONTENT", "HARM_CATEGORY_HARASSMENT", "HARM_CATEGORY_SEXUALLY_EXPLICIT", "HARM_CATEGORY_CIVIC_INTEGRITY", "HARM_CATEGORY_IMAGE_HATE", "HARM_CATEGORY_IMAGE_DANGEROUS_CONTENT", "HARM_CATEGORY_IMAGE_HARASSMENT", "HARM_CATEGORY_IMAGE_SEXUALLY_EXPLICIT", "HARM_CATEGORY_JAILBREAK"]
     #[serde(default)]
@@ -17266,7 +17267,7 @@ pub struct GoogleCloudAiplatformV1SafetySetting {
 }
 
 /// Tool config. This config is shared for all tools provided in the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolConfig {
     /// Optional. Function calling config.
     #[serde(default, rename = "functionCallingConfig")]
@@ -17278,7 +17279,7 @@ pub struct GoogleCloudAiplatformV1ToolConfig {
 }
 
 /// Configuration for ConvexAutomatedStoppingSpec. When there are enough completed trials (configured by min_measurement_count), for pending trials with enough measurements and steps, the policy first computes an overestimate of the objective value at max_num_steps according to the slope of the incomplete objective value curve. No prediction can be made if the curve is completely flat. If the overestimation is worse than the best objective value of the completed trials, this pending trial will be early-stopped, but a last measurement will be added to the pending trial with max_num_steps and predicted objective value from the autoregression model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StudySpecConvexAutomatedStoppingSpec {
     /// The hyper-parameter name used in the tuning job that stands for learning rate. Leave it blank if learning rate is not in a parameter in tuning. The learning_rate is used to estimate the objective value of the ongoing trial.
     #[serde(default, rename = "learningRateParameterName")]
@@ -17301,7 +17302,7 @@ pub struct GoogleCloudAiplatformV1StudySpecConvexAutomatedStoppingSpec {
 }
 
 /// The decay curve automated stopping rule builds a Gaussian Process Regressor to predict the final objective value of a Trial based on the already completed Trials and the intermediate measurements of the current Trial. Early stopping is requested for the current Trial if there is very low probability to exceed the optimal value found so far.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StudySpecDecayCurveAutomatedStoppingSpec {
     /// True if Measurement.elapsed_duration is used as the x-axis of each Trials Decay Curve. Otherwise, Measurement.step_count will be used as the x-axis.
     #[serde(default, rename = "useElapsedDuration")]
@@ -17309,7 +17310,7 @@ pub struct GoogleCloudAiplatformV1StudySpecDecayCurveAutomatedStoppingSpec {
 }
 
 /// The median automated stopping rule stops a pending Trial if the Trial''s best objective_value is strictly below the median ''performance'' of all completed Trials reported up to the Trial''s last measurement. Currently, ''performance'' refers to the running average of the objective values reported by the Trial in each measurement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StudySpecMedianAutomatedStoppingSpec {
     /// True if median automated stopping rule applies on Measurement.elapsed_duration. It means that elapsed_duration field of latest measurement of current Trial is used to compute median objective value for each completed Trials.
     #[serde(default, rename = "useElapsedDuration")]
@@ -17317,7 +17318,7 @@ pub struct GoogleCloudAiplatformV1StudySpecMedianAutomatedStoppingSpec {
 }
 
 /// Represents a metric to optimize.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StudySpecMetricSpec {
     /// Required. The optimization goal of the metric. // TODO: enum values: ["GOAL_TYPE_UNSPECIFIED", "MAXIMIZE", "MINIMIZE"]
     #[serde(default)]
@@ -17332,7 +17333,7 @@ pub struct GoogleCloudAiplatformV1StudySpecMetricSpec {
 }
 
 /// The configuration (stopping conditions) for automated stopping of a Study. Conditions include trial budgets, time budgets, and convergence detection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StudySpecStudyStoppingConfig {
     /// If the objective value has not improved for this much time, stop the study. WARNING: Effective only for single-objective studies.
     #[serde(default, rename = "maxDurationNoProgress")]
@@ -17360,7 +17361,7 @@ pub struct GoogleCloudAiplatformV1StudySpecStudyStoppingConfig {
 }
 
 /// Lookup key for a feature view.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureViewDataKey {
     /// The actual Entity ID will be composed from this struct. This should match with the way ID is defined in the FeatureView spec.
     #[serde(default, rename = "compositeKey")]
@@ -17372,7 +17373,7 @@ pub struct GoogleCloudAiplatformV1FeatureViewDataKey {
 }
 
 /// Response structure in the format of key (feature name) and (feature) value pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FetchFeatureValuesResponseFeatureNameValuePairList {
     /// List of feature names and values.
     #[serde(default)]
@@ -17380,7 +17381,7 @@ pub struct GoogleCloudAiplatformV1FetchFeatureValuesResponseFeatureNameValuePair
 }
 
 /// Metadata describing the Model''s input and output for explanation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExplanationMetadata {
     /// Points to a YAML file stored on Google Cloud Storage describing the format of the feature attributions. The schema is defined as an OpenAPI 3.0.2 [Schema Object](https://github.com/OAI/OpenAPI-Specification/blob/main/versions/3.0.2.md#schemaObject). AutoML tabular Models always have this field populated by Vertex AI. Note: The URI given on output may be different, including the URI scheme, than the one given on input. The output URI will point to a location where the user only has a read access.
     #[serde(default, rename = "featureAttributionsSchemaUri")]
@@ -17397,7 +17398,7 @@ pub struct GoogleCloudAiplatformV1ExplanationMetadata {
 }
 
 /// Parameters to configure explaining for Model''s predictions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExplanationParameters {
     /// Example-based explanations that returns the nearest neighbors from the provided dataset.
     #[serde(default)]
@@ -17422,7 +17423,7 @@ pub struct GoogleCloudAiplatformV1ExplanationParameters {
 }
 
 /// Draft model speculation works by using the smaller model to generate candidate tokens for speculative decoding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SpeculativeDecodingSpecDraftModelSpeculation {
     /// Required. The resource name of the draft model.
     #[serde(default, rename = "draftModel")]
@@ -17430,7 +17431,7 @@ pub struct GoogleCloudAiplatformV1SpeculativeDecodingSpecDraftModelSpeculation {
 }
 
 /// N-Gram speculation works by trying to find matching tokens in the previous prompt sequence and use those as speculation for generating new tokens.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SpeculativeDecodingSpecNgramSpeculation {
     /// The number of last N input tokens used as ngram to search/match against the previous prompt sequence. This is equal to the N in N-Gram. The default value is 3 if not specified.
     #[serde(default, rename = "ngramSize")]
@@ -17438,7 +17439,7 @@ pub struct GoogleCloudAiplatformV1SpeculativeDecodingSpecNgramSpeculation {
 }
 
 /// Specifies the fixed length chunking config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagFileChunkingConfigFixedLengthChunking {
     /// The overlap between chunks.
     #[serde(default, rename = "chunkOverlap")]
@@ -17449,7 +17450,7 @@ pub struct GoogleCloudAiplatformV1RagFileChunkingConfigFixedLengthChunking {
 }
 
 /// SlackChannel contains the Slack channel ID and the time range to import.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SlackSourceSlackChannelsSlackChannel {
     /// Required. The Slack channel ID.
     #[serde(default, rename = "channelId")]
@@ -17463,7 +17464,7 @@ pub struct GoogleCloudAiplatformV1SlackSourceSlackChannelsSlackChannel {
 }
 
 /// One point viewable on a blob metric plot, but mostly just a wrapper message to work around repeated fields can''t be used directly within oneof fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TensorboardBlobSequence {
     /// List of blobs contained within the sequence.
     #[serde(default)]
@@ -17471,7 +17472,7 @@ pub struct GoogleCloudAiplatformV1TensorboardBlobSequence {
 }
 
 /// One point viewable on a scalar metric plot.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Scalar {
     /// Value of the point at this step / timestamp.
     #[serde(default)]
@@ -17479,7 +17480,7 @@ pub struct GoogleCloudAiplatformV1Scalar {
 }
 
 /// One point viewable on a tensor metric plot.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TensorboardTensor {
     /// Required. Serialized form of https://github.com/tensorflow/tensorflow/blob/master/tensorflow/core/framework/tensor.proto
     #[serde(default)]
@@ -17490,7 +17491,7 @@ pub struct GoogleCloudAiplatformV1TensorboardTensor {
 }
 
 /// The properties for a detected entity from the rai signal.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiLargeModelsVisionRaiInfoDetectedLabelsEntity {
     /// Bounding box of the label
     #[serde(default, rename = "boundingBox")]
@@ -17511,7 +17512,7 @@ pub struct CloudAiLargeModelsVisionRaiInfoDetectedLabelsEntity {
 }
 
 /// List of standard Content messages from Gemini API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationInstanceInstanceDataContents {
     /// Optional. Repeated contents.
     #[serde(default)]
@@ -17519,7 +17520,7 @@ pub struct GoogleCloudAiplatformV1EvaluationInstanceInstanceDataContents {
 }
 
 /// Tool details that the model may use to generate response. A Tool is a piece of code that enables the system to interact with external systems to perform an action, or set of actions, outside of knowledge and scope of the model. A Tool object should contain exactly one type of Tool (e.g FunctionDeclaration, Retrieval or GoogleSearchRetrieval).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Tool {
     /// Optional. CodeExecution tool type. Enables the model to execute code as part of generation.
     #[serde(default, rename = "codeExecution")]
@@ -17556,7 +17557,7 @@ pub struct GoogleCloudAiplatformV1Tool {
 }
 
 /// Message to hold a prompt template and the values to populate the template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationPromptPromptTemplateData {
     /// The values for fields in the prompt template.
     #[serde(default)]
@@ -17564,7 +17565,7 @@ pub struct GoogleCloudAiplatformV1EvaluationPromptPromptTemplateData {
 }
 
 /// Specification for a pre-defined metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationRunMetricPredefinedMetricSpec {
     /// Required. The name of a pre-defined metric, such as "instruction_following_v1" or "text_quality_v1".
     #[serde(default, rename = "metricSpecName")]
@@ -17575,7 +17576,7 @@ pub struct GoogleCloudAiplatformV1EvaluationRunMetricPredefinedMetricSpec {
 }
 
 /// Defines a list of rubrics, used when providing rubrics inline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationRunMetricRubricBasedMetricSpecRepeatedRubrics {
     /// The list of rubrics.
     #[serde(default)]
@@ -17583,7 +17584,7 @@ pub struct GoogleCloudAiplatformV1EvaluationRunMetricRubricBasedMetricSpecRepeat
 }
 
 /// Specification for how rubrics should be generated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationRunMetricRubricGenerationSpec {
     /// Optional. Resource name of the metric definition.
     #[serde(default, rename = "metricResourceName")]
@@ -17604,7 +17605,7 @@ pub struct GoogleCloudAiplatformV1EvaluationRunMetricRubricGenerationSpec {
 }
 
 /// An Image chunk is a piece of evidence that comes from an image search result. It contains the URI of the image search result and the URI of the image. This is used to provide the user with a link to the source of the information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GroundingChunkImage {
     /// The domain of the image search result page.
     #[serde(default)]
@@ -17621,7 +17622,7 @@ pub struct GoogleCloudAiplatformV1GroundingChunkImage {
 }
 
 /// A Maps chunk is a piece of evidence that comes from Google Maps, containing information about places or routes. This is used to provide the user with rich, location-based information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GroundingChunkMaps {
     /// The sources that were used to generate the place answer. This includes review snippets and photos that were used to generate the answer, as well as URIs to flag content.
     #[serde(default, rename = "placeAnswerSources")]
@@ -17645,7 +17646,7 @@ pub struct GoogleCloudAiplatformV1GroundingChunkMaps {
 }
 
 /// Context retrieved from a data source to ground the model''s response. This is used when a retrieval tool fetches information from a user-provided corpus or a public dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GroundingChunkRetrievedContext {
     /// Output only. The full resource name of the referenced Vertex AI Search document. This is used to identify the specific document that was retrieved. The format is projects/{project}/locations/{location}/collections/{collection}/dataStores/{data_store}/branches/{branch}/documents/{document}.
     #[serde(default, rename = "documentName")]
@@ -17665,7 +17666,7 @@ pub struct GoogleCloudAiplatformV1GroundingChunkRetrievedContext {
 }
 
 /// A Web chunk is a piece of evidence that comes from a web page. It contains the URI of the web page, the title of the page, and the domain of the page. This is used to provide the user with a link to the source of the information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GroundingChunkWeb {
     /// The domain of the web page that contains the evidence. This can be used to filter out low-quality sources.
     #[serde(default)]
@@ -17679,7 +17680,7 @@ pub struct GoogleCloudAiplatformV1GroundingChunkWeb {
 }
 
 /// A segment of the content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Segment {
     /// Output only. The end index of the segment in the Part, measured in bytes. This marks the end of the segment and is exclusive, meaning the segment includes content up to, but not including, the byte at this index.
     #[serde(default, rename = "endIndex")]
@@ -17696,7 +17697,7 @@ pub struct GoogleCloudAiplatformV1Segment {
 }
 
 /// Output from BatchPredictionJob for Model Monitoring baseline dataset, which can be used to generate baseline attribution scores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigExplanationConfigExplanationBaseline
 {
     /// BigQuery location for BatchExplain output.
@@ -17711,7 +17712,7 @@ pub struct GoogleCloudAiplatformV1ModelMonitoringObjectiveConfigExplanationConfi
 }
 
 /// Sampling Strategy for logging, can be for both training and prediction dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SamplingStrategy {
     /// Random sample config. Will support more sampling strategies later.
     #[serde(default, rename = "randomSampleConfig")]
@@ -17720,7 +17721,7 @@ pub struct GoogleCloudAiplatformV1SamplingStrategy {
 }
 
 /// The config for feature monitoring threshold.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ThresholdConfig {
     /// Specify a threshold value that can trigger the alert. If this threshold config is for feature distribution distance: 1. For categorical feature, the distribution distance is calculated by L-inifinity norm. 2. For numerical feature, the distribution distance is calculated by Jensen–Shannon divergence. Each feature must have a non-zero threshold if they need to be monitored. Otherwise no alert will be triggered for that feature.
     #[serde(default)]
@@ -17728,7 +17729,7 @@ pub struct GoogleCloudAiplatformV1ThresholdConfig {
 }
 
 /// A message representing a Measurement of a Trial. A Measurement contains the Metrics got by executing a Trial using suggested hyperparameter values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Measurement {
     /// Output only. Time that the Trial has been running at the point of this Measurement.
     #[serde(default, rename = "elapsedDuration")]
@@ -17742,7 +17743,7 @@ pub struct GoogleCloudAiplatformV1Measurement {
 }
 
 /// Represents the spec of a CustomJob.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CustomJobSpec {
     /// The Cloud Storage location to store the output of this CustomJob or HyperparameterTuningJob. For HyperparameterTuningJob, the baseOutputDirectory of each child CustomJob backing a Trial is set to a subdirectory of name id under its parent HyperparameterTuningJob''s baseOutputDirectory. The following Vertex AI environment variables will be passed to containers or python modules when this field is set: For CustomJob: * AIP_MODEL_DIR = /model/ * AIP_CHECKPOINT_DIR = /checkpoints/ * AIP_TENSORBOARD_LOG_DIR = /logs/ For CustomJob backing a Trial of HyperparameterTuningJob: * AIP_MODEL_DIR = //model/ * AIP_CHECKPOINT_DIR = //checkpoints/ * AIP_TENSORBOARD_LOG_DIR = //logs/
     #[serde(default, rename = "baseOutputDirectory")]
@@ -17793,7 +17794,7 @@ pub struct GoogleCloudAiplatformV1CustomJobSpec {
 }
 
 /// Represents configuration for customizing how memories are consolidated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigConsolidationConfig {
     /// Optional. The maximum number of revisions to consider for each candidate memory. If not set, then the default value (1) will be used, which means that only the latest revision will be considered.
     #[serde(default, rename = "revisionsPerCandidateCount")]
@@ -17801,7 +17802,7 @@ pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigConsolidationConf
 }
 
 /// An example of how to generate memories for a particular scope.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExample {
     /// A conversation source for the example.
     #[serde(default, rename = "conversationSource")]
@@ -17812,7 +17813,7 @@ pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesE
 }
 
 /// A topic of information that should be extracted from conversations and stored as memories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigMemoryTopic {
     /// A custom memory topic defined by the developer.
     #[serde(default, rename = "customMemoryTopic")]
@@ -17827,7 +17828,7 @@ pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigMemoryTopic {
 }
 
 /// Configuration for TTL of the memories in the Memory Bank based on the action that created or updated the memory.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigTtlConfigGranularTtlConfig
 {
     /// Optional. The TTL duration for memories uploaded via CreateMemory.
@@ -17842,7 +17843,7 @@ pub struct GoogleCloudAiplatformV1ReasoningEngineContextSpecMemoryBankConfigTtlC
 }
 
 /// Specifies the HTTP GET configuration for the probe.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1KeepAliveProbeHttpGet {
     /// Required. Specifies the path of the HTTP GET request (e.g., "/is_busy").
     #[serde(default)]
@@ -17853,7 +17854,7 @@ pub struct GoogleCloudAiplatformV1KeepAliveProbeHttpGet {
 }
 
 /// Reference to a secret stored in the Cloud Secret Manager that will provide the value for this environment variable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SecretRef {
     /// Required. The name of the secret in Cloud Secret Manager. Format: {secret_name}.
     #[serde(default)]
@@ -17864,7 +17865,7 @@ pub struct GoogleCloudAiplatformV1SecretRef {
 }
 
 /// Configuration for the Agent Development Kit (ADK).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecAgentConfigSourceAdkConfig {
     /// Required. The value of the ADK config in JSON format.
     #[serde(default, rename = "jsonConfig")]
@@ -17872,7 +17873,7 @@ pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecAgentConfigSo
 }
 
 /// Specifies source code provided as a byte stream.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecInlineSource {
     /// Required. Input only. The application source code archive. It must be a compressed tarball (.tar.gz) file.
     #[serde(default, rename = "sourceArchive")]
@@ -17880,7 +17881,7 @@ pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecInlineSource 
 }
 
 /// Specifies the configuration for fetching source code from a Git repository that is managed by Developer Connect. This includes the repository, revision, and directory to use.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecDeveloperConnectConfig {
     /// Required. Directory, relative to the source root, in which to run the build.
     #[serde(default)]
@@ -17894,7 +17895,7 @@ pub struct GoogleCloudAiplatformV1ReasoningEngineSpecSourceCodeSpecDeveloperConn
 }
 
 /// Network spec.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NetworkSpec {
     /// Whether to enable public internet access. Default false.
     #[serde(default, rename = "enableInternetAccess")]
@@ -17908,7 +17909,7 @@ pub struct GoogleCloudAiplatformV1NetworkSpec {
 }
 
 /// Represents the spec of persistent disk options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PersistentDiskSpec {
     /// Size in GB of the disk (default is 100GB).
     #[serde(default, rename = "diskSizeGb")]
@@ -17919,7 +17920,7 @@ pub struct GoogleCloudAiplatformV1PersistentDiskSpec {
 }
 
 /// Instance of a general context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Context {
     /// Output only. Timestamp when this Context was created.
     #[serde(default, rename = "createTime")]
@@ -17957,7 +17958,7 @@ pub struct GoogleCloudAiplatformV1Context {
 }
 
 /// The runtime detail of a task execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PipelineTaskDetail {
     /// Output only. Task create time.
     #[serde(default, rename = "createTime")]
@@ -18006,7 +18007,7 @@ pub struct GoogleCloudAiplatformV1PipelineTaskDetail {
 }
 
 /// Represents a network port in a container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Port {
     /// The number of the port to expose on the pod''s IP address. Must be a valid port number, between 1 and 65535 inclusive.
     #[serde(default, rename = "containerPort")]
@@ -18014,7 +18015,7 @@ pub struct GoogleCloudAiplatformV1Port {
 }
 
 /// Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Probe {
     /// ExecAction probes the health of a container by executing a command.
     #[serde(default)]
@@ -18046,7 +18047,7 @@ pub struct GoogleCloudAiplatformV1Probe {
 }
 
 /// The metric specification that defines the target resource utilization (CPU utilization, accelerator''s duty cycle, and so on) for calculating the desired replica count.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AutoscalingMetricSpec {
     /// Required. The resource metric name. Supported metrics: * For Online Prediction: * aiplatform.googleapis.com/prediction/online/accelerator/duty_cycle * aiplatform.googleapis.com/prediction/online/cpu/utilization * aiplatform.googleapis.com/prediction/online/request_count * pubsub.googleapis.com/subscription/num_undelivered_messages * prometheus.googleapis.com/vertex_dcgm_fi_dev_gpu_util * prometheus.googleapis.com/vertex_vllm_gpu_cache_usage_perc * prometheus.googleapis.com/vertex_vllm_num_requests_waiting
     #[serde(default, rename = "metricName")]
@@ -18057,7 +18058,7 @@ pub struct GoogleCloudAiplatformV1AutoscalingMetricSpec {
 }
 
 /// The aggregation result for a single metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AggregationResult {
     /// Aggregation metric. // TODO: enum values: ["AGGREGATION_METRIC_UNSPECIFIED", "AVERAGE", "MODE", "STANDARD_DEVIATION", "VARIANCE", "MINIMUM", "MAXIMUM", "MEDIAN", "PERCENTILE_P90", "PERCENTILE_P95", "PERCENTILE_P99"]
     #[serde(default, rename = "aggregationMetric")]
@@ -18086,7 +18087,7 @@ pub struct GoogleCloudAiplatformV1AggregationResult {
 }
 
 /// The dataset used for evaluation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationDataset {
     /// BigQuery source holds the dataset.
     #[serde(default, rename = "bigquerySource")]
@@ -18097,7 +18098,7 @@ pub struct GoogleCloudAiplatformV1EvaluationDataset {
 }
 
 /// Spec for bleu score metric - calculates the precision of n-grams in the prediction as compared to reference - returns a score ranging between 0 to 1.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BleuSpec {
     /// Optional. Whether to use_effective_order to compute bleu score.
     #[serde(default, rename = "useEffectiveOrder")]
@@ -18105,7 +18106,7 @@ pub struct GoogleCloudAiplatformV1BleuSpec {
 }
 
 /// Specification for a computation based metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ComputationBasedMetricSpec {
     /// Optional. A map of parameters for the metric, e.g. {"rouge_type": "rougeL"}.
     #[serde(default)]
@@ -18116,7 +18117,7 @@ pub struct GoogleCloudAiplatformV1ComputationBasedMetricSpec {
 }
 
 /// Specificies a metric that is populated by evaluating user-defined Python code.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CustomCodeExecutionSpec {
     /// Required. Python function. Expected user to define the following function, e.g.: def evaluate(instance: dict[str, Any]) -&gt; float: Please include this function signature in the code snippet. Instance is the evaluation instance, any fields populated in the instance are available to the function as instance[field_name]. Example: Example input:  instance= EvaluationInstance( response=EvaluationInstance.InstanceData(text="The answer is 4."), reference=EvaluationInstance.InstanceData(text="4") )  Example converted input:  { ''response'': {''text'': ''The answer is 4.''}, ''reference'': {''text'': ''4''} }  Example python function:  def evaluate(instance: dict[str, Any]) -&gt; float: if instance''response'' == instance''reference'': return 1.0 return 0.0  CustomCodeExecutionSpec is also supported in Batch Evaluation (EvalDataset RPC) and Tuning Evaluation. Each line in the input jsonl file will be converted to dict[str, Any] and passed to the evaluation function.
     #[serde(default, rename = "evaluationFunction")]
@@ -18124,7 +18125,7 @@ pub struct GoogleCloudAiplatformV1CustomCodeExecutionSpec {
 }
 
 /// Specification for an LLM based metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1lLMBasedMetricSpec {
     /// Optional. Optional additional configuration for the metric.
     #[serde(default, rename = "additionalConfig")]
@@ -18151,7 +18152,7 @@ pub struct GoogleCloudAiplatformV1lLMBasedMetricSpec {
 }
 
 /// Metadata about the metric, used for visualization and organization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MetricMetadata {
     /// Optional. Flexible metadata for user-defined attributes.
     #[serde(default, rename = "otherMetadata")]
@@ -18165,7 +18166,7 @@ pub struct GoogleCloudAiplatformV1MetricMetadata {
 }
 
 /// Spec for pairwise metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PairwiseMetricSpec {
     /// Optional. The field name of the baseline response.
     #[serde(default, rename = "baselineResponseFieldName")]
@@ -18186,7 +18187,7 @@ pub struct GoogleCloudAiplatformV1PairwiseMetricSpec {
 }
 
 /// Spec for pointwise metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PointwiseMetricSpec {
     /// Optional. CustomOutputFormatConfig allows customization of metric output. By default, metrics return a score and explanation. When this config is set, the default output is replaced with either: - The raw output string. - A parsed output based on a user-defined schema. If a custom format is chosen, the score and explanation fields in the corresponding metric result will be empty.
     #[serde(default, rename = "customOutputFormatConfig")]
@@ -18201,7 +18202,7 @@ pub struct GoogleCloudAiplatformV1PointwiseMetricSpec {
 }
 
 /// Spec for rouge score metric - calculates the recall of n-grams in prediction as compared to reference - returns a score ranging between 0 and 1.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RougeSpec {
     /// Optional. Supported rouge types are rougen[1-9], rougeL, and rougeLsum.
     #[serde(default, rename = "rougeType")]
@@ -18215,7 +18216,7 @@ pub struct GoogleCloudAiplatformV1RougeSpec {
 }
 
 /// Dataset bucket used to create a histogram for the distribution given a population of values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DatasetDistributionDistributionBucket {
     /// Output only. Number of values in the bucket.
     #[serde(default)]
@@ -18229,7 +18230,7 @@ pub struct GoogleCloudAiplatformV1DatasetDistributionDistributionBucket {
 }
 
 /// Completion and its preference score.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GeminiPreferenceExampleCompletion {
     /// Single turn completion for the given prompt.
     #[serde(default)]
@@ -18240,7 +18241,7 @@ pub struct GoogleCloudAiplatformV1GeminiPreferenceExampleCompletion {
 }
 
 /// Dataset bucket used to create a histogram for the distribution given a population of values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SupervisedTuningDatasetDistributionDatasetBucket {
     /// Output only. Number of values in the bucket.
     #[serde(default)]
@@ -18254,7 +18255,7 @@ pub struct GoogleCloudAiplatformV1SupervisedTuningDatasetDistributionDatasetBuck
 }
 
 /// A pair of sentences used as reference in source and target languages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPromptSpecReferenceSentencePair {
     /// Source sentence in the sentence pair.
     #[serde(default, rename = "sourceSentence")]
@@ -18265,7 +18266,7 @@ pub struct GoogleCloudAiplatformV1SchemaPromptSpecReferenceSentencePair {
 }
 
 /// GoogleCloudAiplatformV1SchemaPromptSpecTranslationFileInputSource resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPromptSpecTranslationFileInputSource {
     /// The file''s contents.
     #[serde(default)]
@@ -18279,7 +18280,7 @@ pub struct GoogleCloudAiplatformV1SchemaPromptSpecTranslationFileInputSource {
 }
 
 /// GoogleCloudAiplatformV1SchemaPromptSpecTranslationGcsInputSource resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SchemaPromptSpecTranslationGcsInputSource {
     /// Source data URI. For example, gs://my_bucket/my_object.
     #[serde(default, rename = "inputUri")]
@@ -18287,7 +18288,7 @@ pub struct GoogleCloudAiplatformV1SchemaPromptSpecTranslationGcsInputSource {
 }
 
 /// Function calling config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FunctionCallingConfig {
     /// Optional. Function names to call. Only set when the Mode is ANY. Function names should match FunctionDeclaration.name. With mode set to ANY, model will predict a function call from the set of function names provided.
     #[serde(default, rename = "allowedFunctionNames")]
@@ -18301,7 +18302,7 @@ pub struct GoogleCloudAiplatformV1FunctionCallingConfig {
 }
 
 /// Retrieval config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RetrievalConfig {
     /// The language code of the user.
     #[serde(default, rename = "languageCode")]
@@ -18312,7 +18313,7 @@ pub struct GoogleCloudAiplatformV1RetrievalConfig {
 }
 
 /// Used in safe optimization to specify threshold levels and risk tolerance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StudySpecMetricSpecSafetyMetricConfig {
     /// Desired minimum fraction of safe trials (over total number of trials) that should be targeted by the algorithm at any time during the study (best effort). This should be between 0.0 and 1.0 and a value of 0.0 means that there is no minimum and an algorithm proceeds without targeting any specific fraction. A value of 1.0 means that the algorithm attempts to only Suggest safe Trials.
     #[serde(default, rename = "desiredMinSafeTrialsFraction")]
@@ -18323,7 +18324,7 @@ pub struct GoogleCloudAiplatformV1StudySpecMetricSpecSafetyMetricConfig {
 }
 
 /// Time-based Constraint for Study
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StudyTimeConstraint {
     /// Compares the wallclock time to this time. Must use UTC timezone.
     #[serde(default, rename = "endTime")]
@@ -18334,7 +18335,7 @@ pub struct GoogleCloudAiplatformV1StudyTimeConstraint {
 }
 
 /// ID that is comprised from several parts (columns).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureViewDataKeyCompositeKey {
     /// Parts to construct Entity ID. Should match with the same ID columns as defined in FeatureView in the same order.
     #[serde(default)]
@@ -18342,7 +18343,7 @@ pub struct GoogleCloudAiplatformV1FeatureViewDataKeyCompositeKey {
 }
 
 /// Feature name & value pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FetchFeatureValuesResponseFeatureNameValuePairListFeatureNameValuePair
 {
     /// Feature short name.
@@ -18354,7 +18355,7 @@ pub struct GoogleCloudAiplatformV1FetchFeatureValuesResponseFeatureNameValuePair
 }
 
 /// Example-based explainability that returns the nearest neighbors from the provided dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Examples {
     /// The Cloud Storage input instances.
     #[serde(default, rename = "exampleGcsSource")]
@@ -18371,7 +18372,7 @@ pub struct GoogleCloudAiplatformV1Examples {
 }
 
 /// An attribution method that computes the Aumann-Shapley value taking advantage of the model''s fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1703.01365
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1IntegratedGradientsAttribution {
     /// Config for IG with blur baseline. When enabled, a linear path from the maximally blurred image to the input image is created. Using a blurred baseline instead of zero (black image) is motivated by the BlurIG approach explained here: https://arxiv.org/abs/2004.03383
     #[serde(default, rename = "blurBaselineConfig")]
@@ -18385,7 +18386,7 @@ pub struct GoogleCloudAiplatformV1IntegratedGradientsAttribution {
 }
 
 /// An attribution method that approximates Shapley values for features that contribute to the label being predicted. A sampling strategy is used to approximate the value rather than considering all subsets of features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SampledShapleyAttribution {
     /// Required. The number of feature permutations to consider when approximating the Shapley values. Valid range of its value is [1, 50], inclusively.
     #[serde(default, rename = "pathCount")]
@@ -18393,7 +18394,7 @@ pub struct GoogleCloudAiplatformV1SampledShapleyAttribution {
 }
 
 /// An explanation method that redistributes Integrated Gradients attributions to segmented regions, taking advantage of the model''s fully differentiable structure. Refer to this paper for more details: https://arxiv.org/abs/1906.02825 Supported only by image Models.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1XraiAttribution {
     /// Config for XRAI with blur baseline. When enabled, a linear path from the maximally blurred image to the input image is created. Using a blurred baseline instead of zero (black image) is motivated by the BlurIG approach explained here: https://arxiv.org/abs/2004.03383
     #[serde(default, rename = "blurBaselineConfig")]
@@ -18407,7 +18408,7 @@ pub struct GoogleCloudAiplatformV1XraiAttribution {
 }
 
 /// One blob (e.g, image, graph) viewable on a blob metric plot.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1TensorboardBlob {
     /// Optional. The bytes of the blob is not present unless it''s returned by the ReadTensorboardBlobData endpoint.
     #[serde(default)]
@@ -18418,7 +18419,7 @@ pub struct GoogleCloudAiplatformV1TensorboardBlob {
 }
 
 /// An integer bounding box of original pixels of the image for the detected labels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudAiLargeModelsVisionRaiInfoDetectedLabelsBoundingBox {
     /// The X coordinate of the top-left corner, in pixels.
     #[serde(default)]
@@ -18435,7 +18436,7 @@ pub struct CloudAiLargeModelsVisionRaiInfoDetectedLabelsBoundingBox {
 }
 
 /// Tool to support computer use.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolComputerUse {
     /// Required. The environment being operated. // TODO: enum values: ["ENVIRONMENT_UNSPECIFIED", "ENVIRONMENT_BROWSER"]
     #[serde(default)]
@@ -18446,7 +18447,7 @@ pub struct GoogleCloudAiplatformV1ToolComputerUse {
 }
 
 /// Tool to search public web data, powered by Vertex AI Search and Sec4 compliance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EnterpriseWebSearch {
     /// Optional. Sites with confidence level chosen & above this value will be blocked from the search results. // TODO: enum values: ["PHISH_BLOCK_THRESHOLD_UNSPECIFIED", "BLOCK_LOW_AND_ABOVE", "BLOCK_MEDIUM_AND_ABOVE", "BLOCK_HIGH_AND_ABOVE", "BLOCK_HIGHER_AND_ABOVE", "BLOCK_VERY_HIGH_AND_ABOVE", "BLOCK_ONLY_EXTREMELY_HIGH"]
     #[serde(default, rename = "blockingConfidence")]
@@ -18457,7 +18458,7 @@ pub struct GoogleCloudAiplatformV1EnterpriseWebSearch {
 }
 
 /// Structured representation of a function declaration as defined by the [OpenAPI 3.0 specification](https://spec.openapis.org/oas/v3.0.3). Included in this declaration are the function name, description, parameters and response type. This FunctionDeclaration is a representation of a block of code that can be used as a Tool by the model and executed by the client.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FunctionDeclaration {
     /// Optional. Description and purpose of the function. Model uses it to decide how and whether to call the function.
     #[serde(default)]
@@ -18480,7 +18481,7 @@ pub struct GoogleCloudAiplatformV1FunctionDeclaration {
 }
 
 /// Tool to retrieve public maps data for grounding, powered by Google.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GoogleMaps {
     /// Optional. If true, include the widget context token in the response.
     #[serde(default, rename = "enableWidget")]
@@ -18488,7 +18489,7 @@ pub struct GoogleCloudAiplatformV1GoogleMaps {
 }
 
 /// GoogleSearch tool type. Tool to support Google Search in Model. Powered by Google.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolGoogleSearch {
     /// Optional. Sites with confidence level chosen & above this value will be blocked from the search results. // TODO: enum values: ["PHISH_BLOCK_THRESHOLD_UNSPECIFIED", "BLOCK_LOW_AND_ABOVE", "BLOCK_MEDIUM_AND_ABOVE", "BLOCK_HIGH_AND_ABOVE", "BLOCK_HIGHER_AND_ABOVE", "BLOCK_VERY_HIGH_AND_ABOVE", "BLOCK_ONLY_EXTREMELY_HIGH"]
     #[serde(default, rename = "blockingConfidence")]
@@ -18502,7 +18503,7 @@ pub struct GoogleCloudAiplatformV1ToolGoogleSearch {
 }
 
 /// Tool to retrieve public web data for grounding, powered by Google.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GoogleSearchRetrieval {
     /// Specifies the dynamic retrieval configuration for the given source.
     #[serde(default, rename = "dynamicRetrievalConfig")]
@@ -18511,7 +18512,7 @@ pub struct GoogleCloudAiplatformV1GoogleSearchRetrieval {
 }
 
 /// ParallelAiSearch tool type. A tool that uses the Parallel.ai search engine for grounding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolParallelAiSearch {
     /// Optional. The API key for ParallelAiSearch. If an API key is not provided, the system will attempt to verify access by checking for an active Parallel.ai subscription through the Google Cloud Marketplace. See https://docs.parallel.ai/search/search-quickstart for more details.
     #[serde(default, rename = "apiKey")]
@@ -18522,7 +18523,7 @@ pub struct GoogleCloudAiplatformV1ToolParallelAiSearch {
 }
 
 /// Defines a retrieval tool that model can call to access external knowledge.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Retrieval {
     /// Optional. Deprecated. This option is no longer supported.
     #[serde(default, rename = "disableAttribution")]
@@ -18539,7 +18540,7 @@ pub struct GoogleCloudAiplatformV1Retrieval {
 }
 
 /// Message representing a single testable criterion for evaluation. One input prompt could have multiple rubrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Rubric {
     /// Required. The actual testable criteria for the rubric.
     #[serde(default)]
@@ -18556,7 +18557,7 @@ pub struct GoogleCloudAiplatformV1Rubric {
 }
 
 /// The autorater config used for the evaluation run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EvaluationRunEvaluationConfigAutoraterConfig {
     /// Optional. The fully qualified name of the publisher model or tuned autorater endpoint to use. Publisher model format: projects/{project}/locations/{location}/publishers/*/models/* Tuned model endpoint format: projects/{project}/locations/{location}/endpoints/{endpoint}
     #[serde(default, rename = "autoraterModel")]
@@ -18570,7 +18571,7 @@ pub struct GoogleCloudAiplatformV1EvaluationRunEvaluationConfigAutoraterConfig {
 }
 
 /// The sources that were used to generate the place answer. This includes review snippets and photos that were used to generate the answer, as well as URIs to flag content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GroundingChunkMapsPlaceAnswerSources {
     /// Snippets of reviews that were used to generate the answer.
     #[serde(default, rename = "reviewSnippets")]
@@ -18580,7 +18581,7 @@ pub struct GoogleCloudAiplatformV1GroundingChunkMapsPlaceAnswerSources {
 }
 
 /// Route information from Google Maps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GroundingChunkMapsRoute {
     /// The total distance of the route, in meters.
     #[serde(default, rename = "distanceMeters")]
@@ -18594,7 +18595,7 @@ pub struct GoogleCloudAiplatformV1GroundingChunkMapsRoute {
 }
 
 /// A RagChunk includes the content of a chunk of a RagFile, and associated metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagChunk {
     /// If populated, represents where the chunk starts and ends in the document.
     #[serde(default, rename = "pageSpan")]
@@ -18605,7 +18606,7 @@ pub struct GoogleCloudAiplatformV1RagChunk {
 }
 
 /// The BigQuery location for the output content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BigQueryDestination {
     /// Required. BigQuery URI to a project or table, up to 2000 characters long. When only the project is specified, the Dataset and Table is created. When the full table reference is specified, the Dataset must exist and table must not exist. Accepted forms: * BigQuery path. For example: bq://projectId or bq://projectId.bqDatasetId or bq://projectId.bqDatasetId.bqTableId.
     #[serde(default, rename = "outputUri")]
@@ -18613,7 +18614,7 @@ pub struct GoogleCloudAiplatformV1BigQueryDestination {
 }
 
 /// Requests are randomly selected.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SamplingStrategyRandomSampleConfig {
     /// Sample rate (0, 1]
     #[serde(default, rename = "sampleRate")]
@@ -18621,7 +18622,7 @@ pub struct GoogleCloudAiplatformV1SamplingStrategyRandomSampleConfig {
 }
 
 /// A message representing a metric in the measurement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MeasurementMetric {
     /// Output only. The ID of the Metric. The Metric should be defined in StudySpec''s Metrics.
     #[serde(default, rename = "metricId")]
@@ -18632,7 +18633,7 @@ pub struct GoogleCloudAiplatformV1MeasurementMetric {
 }
 
 /// The Google Cloud Storage location where the output is to be written to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GcsDestination {
     /// Required. Google Cloud Storage URI to output directory. If the uri doesn''t end with ''/'', a ''/'' will be automatically appended. The directory is created if it doesn''t exist.
     #[serde(default, rename = "outputUriPrefix")]
@@ -18640,7 +18641,7 @@ pub struct GoogleCloudAiplatformV1GcsDestination {
 }
 
 /// Configuration for PSC-I.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PscInterfaceConfig {
     /// Optional. DNS peering configurations. When specified, Vertex AI will attempt to configure DNS peering zones in the tenant project VPC to resolve the specified domains using the target network''s Cloud DNS. The user must grant the dns.peer role to the Vertex AI Service Agent on the target project.
     #[serde(default, rename = "dnsPeeringConfigs")]
@@ -18652,7 +18653,7 @@ pub struct GoogleCloudAiplatformV1PscInterfaceConfig {
 }
 
 /// All parameters related to queuing and scheduling of custom jobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Scheduling {
     /// Optional. Indicates if the job should retry for internal errors after the job starts running. If true, overrides Scheduling.restart_job_on_worker_restart to false.
     #[serde(default, rename = "disableRetries")]
@@ -18672,7 +18673,7 @@ pub struct GoogleCloudAiplatformV1Scheduling {
 }
 
 /// Represents the spec of a worker pool in a job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1WorkerPoolSpec {
     /// The custom container task.
     #[serde(default, rename = "containerSpec")]
@@ -18698,7 +18699,7 @@ pub struct GoogleCloudAiplatformV1WorkerPoolSpec {
 }
 
 /// A conversation source for the example. This is similar to DirectContentsSource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExampleConversationSource {
     /// Optional. The input conversation events for the example.
     #[serde(default)]
@@ -18706,7 +18707,7 @@ pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesE
 }
 
 /// A memory generated by the operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExampleGeneratedMemory
 {
     /// Required. The fact to generate a memory from.
@@ -18718,7 +18719,7 @@ pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesE
 }
 
 /// A custom memory topic defined by the developer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigMemoryTopicCustomMemoryTopic {
     /// Required. Description of the memory topic. This should explain what information should be extracted for this topic.
     #[serde(default)]
@@ -18729,7 +18730,7 @@ pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigMemoryTopicCustom
 }
 
 /// A managed memory topic defined by the system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigMemoryTopicManagedMemoryTopic {
     /// Required. The managed topic. // TODO: enum values: ["MANAGED_TOPIC_ENUM_UNSPECIFIED", "USER_PERSONAL_INFO", "USER_PREFERENCES", "KEY_CONVERSATION_DETAILS", "EXPLICIT_INSTRUCTIONS"]
     #[serde(default, rename = "managedTopicEnum")]
@@ -18737,7 +18738,7 @@ pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigMemoryTopicManage
 }
 
 /// Instance of a general execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Execution {
     /// Output only. Timestamp when this Execution was created.
     #[serde(default, rename = "createTime")]
@@ -18775,7 +18776,7 @@ pub struct GoogleCloudAiplatformV1Execution {
 }
 
 /// The runtime detail of a pipeline executor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PipelineTaskExecutorDetail {
     /// Output only. The detailed info for a container executor.
     #[serde(default, rename = "containerDetail")]
@@ -18788,7 +18789,7 @@ pub struct GoogleCloudAiplatformV1PipelineTaskExecutorDetail {
 }
 
 /// A single record of the task status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PipelineTaskDetailPipelineTaskStatus {
     /// Output only. The error that occurred during the state. May be set when the state is any of the non-final state (PENDING/RUNNING/CANCELLING) or FAILED state. If the state is FAILED, the error here is final and not going to be retried. If the state is a non-final state, the error indicates a system-error being retried.
     #[serde(default)]
@@ -18802,7 +18803,7 @@ pub struct GoogleCloudAiplatformV1PipelineTaskDetailPipelineTaskStatus {
 }
 
 /// ExecAction specifies a command to execute.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ProbeExecAction {
     /// Command is the command line to execute inside the container, the working directory for the command is root (''/'') in the container''s filesystem. The command is simply exec''d, it is not run inside a shell, so traditional shell instructions (''|'', etc) won''t work. To use a shell, you need to explicitly call out to that shell. Exit status of 0 is treated as live/healthy and non-zero is unhealthy.
     #[serde(default)]
@@ -18810,7 +18811,7 @@ pub struct GoogleCloudAiplatformV1ProbeExecAction {
 }
 
 /// GrpcAction checks the health of a container using a gRPC service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ProbeGrpcAction {
     /// Port number of the gRPC service. Number must be in the range 1 to 65535.
     #[serde(default)]
@@ -18821,7 +18822,7 @@ pub struct GoogleCloudAiplatformV1ProbeGrpcAction {
 }
 
 /// HttpGetAction describes an action based on HTTP Get requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ProbeHttpGetAction {
     /// Host name to connect to, defaults to the model serving container''s IP. You probably want to set "Host" in httpHeaders instead.
     #[serde(default)]
@@ -18842,7 +18843,7 @@ pub struct GoogleCloudAiplatformV1ProbeHttpGetAction {
 }
 
 /// TcpSocketAction probes the health of a container by opening a TCP socket connection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ProbeTcpSocketAction {
     /// Optional: Host name to connect to, defaults to the model serving container''s IP.
     #[serde(default)]
@@ -18853,7 +18854,7 @@ pub struct GoogleCloudAiplatformV1ProbeTcpSocketAction {
 }
 
 /// Bleu metric value for an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BleuMetricValue {
     /// Output only. Bleu score.
     #[serde(default)]
@@ -18861,7 +18862,7 @@ pub struct GoogleCloudAiplatformV1BleuMetricValue {
 }
 
 /// Result for custom code execution metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CustomCodeExecutionResult {
     /// Output only. Custom code execution score.
     #[serde(default)]
@@ -18869,7 +18870,7 @@ pub struct GoogleCloudAiplatformV1CustomCodeExecutionResult {
 }
 
 /// Exact match metric value for an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExactMatchMetricValue {
     /// Output only. Exact match score.
     #[serde(default)]
@@ -18877,7 +18878,7 @@ pub struct GoogleCloudAiplatformV1ExactMatchMetricValue {
 }
 
 /// Spec for pairwise metric result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PairwiseMetricResult {
     /// Output only. Spec for custom output.
     #[serde(default, rename = "customOutput")]
@@ -18891,7 +18892,7 @@ pub struct GoogleCloudAiplatformV1PairwiseMetricResult {
 }
 
 /// Spec for pointwise metric result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PointwiseMetricResult {
     /// Output only. Spec for custom output.
     #[serde(default, rename = "customOutput")]
@@ -18905,7 +18906,7 @@ pub struct GoogleCloudAiplatformV1PointwiseMetricResult {
 }
 
 /// Rouge metric value for an instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RougeMetricValue {
     /// Output only. Rouge score.
     #[serde(default)]
@@ -18913,7 +18914,7 @@ pub struct GoogleCloudAiplatformV1RougeMetricValue {
 }
 
 /// The BigQuery location for the input content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BigQuerySource {
     /// Required. BigQuery URI to a table, up to 2000 characters long. Accepted forms: * BigQuery path. For example: bq://projectId.bqDatasetId.bqTableId.
     #[serde(default, rename = "inputUri")]
@@ -18921,7 +18922,7 @@ pub struct GoogleCloudAiplatformV1BigQuerySource {
 }
 
 /// The spec for a pre-defined metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PredefinedMetricSpec {
     /// Required. The name of a pre-defined metric, such as "instruction_following_v1" or "text_quality_v1".
     #[serde(default, rename = "metricSpecName")]
@@ -18932,7 +18933,7 @@ pub struct GoogleCloudAiplatformV1PredefinedMetricSpec {
 }
 
 /// Specification for how rubrics should be generated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RubricGenerationSpec {
     /// Configuration for the model used in rubric generation. Configs including sampling count and base model can be specified here. Flipping is not supported for rubric generation.
     #[serde(default, rename = "modelConfig")]
@@ -18949,7 +18950,7 @@ pub struct GoogleCloudAiplatformV1RubricGenerationSpec {
 }
 
 /// The range of possible scores for this metric, used for plotting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MetricMetadataScoreRange {
     /// Optional. The description of the score explaining the directionality etc.
     #[serde(default)]
@@ -18966,7 +18967,7 @@ pub struct GoogleCloudAiplatformV1MetricMetadataScoreRange {
 }
 
 /// Spec for custom output format configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CustomOutputFormatConfig {
     /// Optional. Whether to return raw output.
     #[serde(default, rename = "returnRawOutput")]
@@ -18974,7 +18975,7 @@ pub struct GoogleCloudAiplatformV1CustomOutputFormatConfig {
 }
 
 /// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeLatLng {
     /// The latitude in degrees. It must be in the range [-90.0, +90.0].
     #[serde(default)]
@@ -18985,7 +18986,7 @@ pub struct GoogleTypeLatLng {
 }
 
 /// The Cloud Storage input instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExamplesExampleGcsSource {
     /// The format in which instances are given, if not specified, assume it''s JSONL format. Currently only JSONL format is supported. // TODO: enum values: ["DATA_FORMAT_UNSPECIFIED", "JSONL"]
     #[serde(default, rename = "dataFormat")]
@@ -18996,7 +18997,7 @@ pub struct GoogleCloudAiplatformV1ExamplesExampleGcsSource {
 }
 
 /// Preset configuration for example-based explanations
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Presets {
     /// The modality of the uploaded model, which automatically configures the distance measurement and feature normalization for the underlying example index and queries. If your model does not precisely fit one of these types, it is okay to choose the closest type. // TODO: enum values: ["MODALITY_UNSPECIFIED", "IMAGE", "TEXT", "TABULAR"]
     #[serde(default)]
@@ -19007,7 +19008,7 @@ pub struct GoogleCloudAiplatformV1Presets {
 }
 
 /// Config for blur baseline. When enabled, a linear path from the maximally blurred image to the input image is created. Using a blurred baseline instead of zero (black image) is motivated by the BlurIG approach explained here: https://arxiv.org/abs/2004.03383
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BlurBaselineConfig {
     /// The standard deviation of the blur kernel for the blurred baseline. The same blurring parameter is used for both the height and the width dimension. If not set, the method defaults to the zero (i.e. black for images) baseline.
     #[serde(default, rename = "maxBlurSigma")]
@@ -19015,7 +19016,7 @@ pub struct GoogleCloudAiplatformV1BlurBaselineConfig {
 }
 
 /// Config for SmoothGrad approximation of gradients. When enabled, the gradients are approximated by averaging the gradients from noisy samples in the vicinity of the inputs. Adding noise can help improve the computed gradients. Refer to this paper for more details: https://arxiv.org/pdf/1706.03825.pdf
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SmoothGradConfig {
     /// This is similar to noise_sigma, but provides additional flexibility. A separate noise sigma can be provided for each feature, which is useful if their distributions are different. No noise is added to features that are not set. If this field is unset, noise_sigma will be used for all features.
     #[serde(default, rename = "featureNoiseSigma")]
@@ -19029,7 +19030,7 @@ pub struct GoogleCloudAiplatformV1SmoothGradConfig {
 }
 
 /// Different types of search that can be enabled on the GoogleSearch tool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ToolGoogleSearchSearchTypes {
     /// Optional. Setting this field enables image search. Image bytes are returned.
     #[serde(default, rename = "imageSearch")]
@@ -19040,7 +19041,7 @@ pub struct GoogleCloudAiplatformV1ToolGoogleSearchSearchTypes {
 }
 
 /// Describes the options to customize dynamic retrieval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DynamicRetrievalConfig {
     /// Optional. The threshold to be used in dynamic retrieval. If not set, a system default value is used.
     #[serde(default, rename = "dynamicThreshold")]
@@ -19051,7 +19052,7 @@ pub struct GoogleCloudAiplatformV1DynamicRetrievalConfig {
 }
 
 /// Retrieve from data source powered by external API for grounding. The external API is not owned by Google, but need to follow the pre-defined API spec.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExternalApi {
     /// The authentication config to access the API. Deprecated. Please use auth_config instead.
     #[serde(default, rename = "apiAuth")]
@@ -19075,7 +19076,7 @@ pub struct GoogleCloudAiplatformV1ExternalApi {
 }
 
 /// Retrieve from Vertex AI Search datastore or engine for grounding. datastore and engine are mutually exclusive. See https://cloud.google.com/products/agent-builder
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1VertexAISearch {
     /// Specifications that define the specific DataStores to be searched, along with configurations for those data stores. This is only considered for Engines with multiple data stores. It should only be set if engine is used.
     #[serde(default, rename = "dataStoreSpecs")]
@@ -19096,7 +19097,7 @@ pub struct GoogleCloudAiplatformV1VertexAISearch {
 }
 
 /// Retrieve from Vertex RAG Store for grounding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1VertexRagStore {
     /// Optional. The representation of the rag source. It can be used to specify corpus only or ragfiles. Currently only support one corpus or multiple files from one corpus. In the future we may open up multiple corpora support.
     #[serde(default, rename = "ragResources")]
@@ -19114,7 +19115,7 @@ pub struct GoogleCloudAiplatformV1VertexRagStore {
 }
 
 /// Content of the rubric, defining the testable criteria.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RubricContent {
     /// Evaluation criteria based on a specific property.
     #[serde(default)]
@@ -19122,7 +19123,7 @@ pub struct GoogleCloudAiplatformV1RubricContent {
 }
 
 /// A review snippet that is used to generate the answer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GroundingChunkMapsPlaceAnswerSourcesReviewSnippet {
     /// A link to show the review on Google Maps.
     #[serde(default, rename = "googleMapsUri")]
@@ -19136,7 +19137,7 @@ pub struct GoogleCloudAiplatformV1GroundingChunkMapsPlaceAnswerSourcesReviewSnip
 }
 
 /// Represents where the chunk starts and ends in the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagChunkPageSpan {
     /// Page where chunk starts in the document. Inclusive. 1-indexed.
     #[serde(default, rename = "firstPage")]
@@ -19147,7 +19148,7 @@ pub struct GoogleCloudAiplatformV1RagChunkPageSpan {
 }
 
 /// DNS peering configuration. These configurations are used to create DNS peering zones in the Vertex tenant project VPC, enabling resolution of records within the specified domain hosted in the target network''s Cloud DNS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DnsPeeringConfig {
     /// Required. The DNS name suffix of the zone being peered to, e.g., "my-internal-domain.corp.". Must end with a dot.
     #[serde(default)]
@@ -19161,7 +19162,7 @@ pub struct GoogleCloudAiplatformV1DnsPeeringConfig {
 }
 
 /// The spec of a Container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ContainerSpec {
     /// The arguments to be passed when starting the container.
     #[serde(default)]
@@ -19178,7 +19179,7 @@ pub struct GoogleCloudAiplatformV1ContainerSpec {
 }
 
 /// Represents the spec of disk options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DiskSpec {
     /// Size in GB of the boot disk (default is 100GB).
     #[serde(default, rename = "bootDiskSizeGb")]
@@ -19189,7 +19190,7 @@ pub struct GoogleCloudAiplatformV1DiskSpec {
 }
 
 /// Represents a mount configuration for Lustre file system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1LustreMount {
     /// Required. The name of the Lustre filesystem.
     #[serde(default)]
@@ -19206,7 +19207,7 @@ pub struct GoogleCloudAiplatformV1LustreMount {
 }
 
 /// Specification of a single machine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MachineSpec {
     /// The number of accelerators to attach to the machine. For accelerator optimized machine types (https://cloud.google.com/compute/docs/accelerator-optimized-machines), One may set the accelerator_count from 1 to N for machine with N GPUs. If accelerator_count is less than or equal to N / 2, Vertex will co-schedule the replicas of the model into the same VM to save cost. For example, if the machine type is a3-highgpu-8g, which has 8 H100 GPUs, one can set accelerator_count to 1 to 8. If accelerator_count is 1, 2, 3, or 4, Vertex will co-schedule 8, 4, 2, or 2 replicas of the model into the same VM to save cost. When co-scheduling, CPU, memory and storage on the VM will be distributed to replicas on the VM. For example, one can expect a co-scheduled replica requesting 2 GPUs out of a 8-GPU VM will receive 25% of the CPU, memory and storage of the VM. Note that the feature is not compatible with multihost_gpu_node_count. When multihost_gpu_node_count is set, the co-scheduling will not be enabled.
     #[serde(default, rename = "acceleratorCount")]
@@ -19229,7 +19230,7 @@ pub struct GoogleCloudAiplatformV1MachineSpec {
 }
 
 /// Represents a mount configuration for Network File System (NFS) to mount.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1NfsMount {
     /// Required. Destination mount path. The NFS will be mounted for the user under /mnt/nfs/
     #[serde(default, rename = "mountPoint")]
@@ -19243,7 +19244,7 @@ pub struct GoogleCloudAiplatformV1NfsMount {
 }
 
 /// The spec of a Python packaged code.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PythonPackageSpec {
     /// Command line arguments to be passed to the Python task.
     #[serde(default)]
@@ -19263,7 +19264,7 @@ pub struct GoogleCloudAiplatformV1PythonPackageSpec {
 }
 
 /// A single conversation event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesExampleConversationSourceEvent
 {
     /// Required. The content of the event.
@@ -19272,7 +19273,7 @@ pub struct GoogleCloudAiplatformV1MemoryBankCustomizationConfigGenerateMemoriesE
 }
 
 /// A memory topic identifier. This will be used to label a Memory and to restrict which topics are eligible for generation or retrieval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MemoryTopicId {
     /// Optional. The custom memory topic label.
     #[serde(default, rename = "customMemoryTopicLabel")]
@@ -19283,7 +19284,7 @@ pub struct GoogleCloudAiplatformV1MemoryTopicId {
 }
 
 /// The detail of a container execution. It contains the job names of the lifecycle of a container execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PipelineTaskExecutorDetailContainerDetail {
     /// Output only. The names of the previously failed CustomJob for the main container executions. The list includes the all attempts in chronological order.
     #[serde(default, rename = "failedMainJobs")]
@@ -19300,7 +19301,7 @@ pub struct GoogleCloudAiplatformV1PipelineTaskExecutorDetailContainerDetail {
 }
 
 /// The detailed info for a custom job executor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PipelineTaskExecutorDetailCustomJobDetail {
     /// Output only. The names of the previously failed CustomJob. The list includes the all attempts in chronological order.
     #[serde(default, rename = "failedJobs")]
@@ -19311,7 +19312,7 @@ pub struct GoogleCloudAiplatformV1PipelineTaskExecutorDetailCustomJobDetail {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -19325,7 +19326,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// HttpHeader describes a custom header to be used in HTTP probes
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ProbeHttpHeader {
     /// The header field name. This will be canonicalized upon output, so case-variant names will be understood as the same header.
     #[serde(default)]
@@ -19336,7 +19337,7 @@ pub struct GoogleCloudAiplatformV1ProbeHttpHeader {
 }
 
 /// Spec for custom output.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CustomOutput {
     /// Output only. List of raw output strings.
     #[serde(default, rename = "rawOutputs")]
@@ -19344,7 +19345,7 @@ pub struct GoogleCloudAiplatformV1CustomOutput {
 }
 
 /// The configs for autorater. This is applicable to both EvaluateInstances and EvaluateDataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AutoraterConfig {
     /// Optional. The fully qualified name of the publisher model or tuned autorater endpoint to use. Publisher model format: projects/{project}/locations/{location}/publishers/*/models/* Tuned model endpoint format: projects/{project}/locations/{location}/endpoints/{endpoint}
     #[serde(default, rename = "autoraterModel")]
@@ -19361,7 +19362,7 @@ pub struct GoogleCloudAiplatformV1AutoraterConfig {
 }
 
 /// The Google Cloud Storage location for the input content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GcsSource {
     /// Required. Google Cloud Storage URI(-s) to the input file(s). May contain wildcards. For more information on wildcards, see https://cloud.google.com/storage/docs/wildcards.
     #[serde(default)]
@@ -19369,7 +19370,7 @@ pub struct GoogleCloudAiplatformV1GcsSource {
 }
 
 /// Noise sigma by features. Noise sigma represents the standard deviation of the gaussian kernel that will be used to add noise to interpolated inputs prior to computing gradients.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureNoiseSigma {
     /// Noise sigma per feature. No noise is added to features that are not set.
     #[serde(default, rename = "noiseSigma")]
@@ -19379,7 +19380,7 @@ pub struct GoogleCloudAiplatformV1FeatureNoiseSigma {
 }
 
 /// The generic reusable api auth config. Deprecated. Please use AuthConfig (google/cloud/aiplatform/master/auth.proto) instead.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ApiAuth {
     /// The API secret.
     #[serde(default, rename = "apiKeyConfig")]
@@ -19387,7 +19388,7 @@ pub struct GoogleCloudAiplatformV1ApiAuth {
 }
 
 /// Auth configuration to run the extension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AuthConfig {
     /// Config for API key auth.
     #[serde(default, rename = "apiKeyConfig")]
@@ -19412,7 +19413,7 @@ pub struct GoogleCloudAiplatformV1AuthConfig {
 }
 
 /// The search parameters to use for the ELASTIC_SEARCH spec.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExternalApiElasticSearchParams {
     /// The ElasticSearch index to use.
     #[serde(default)]
@@ -19426,7 +19427,7 @@ pub struct GoogleCloudAiplatformV1ExternalApiElasticSearchParams {
 }
 
 /// Define data stores within engine to filter on in a search call and configurations for those data stores. For more information, see https://cloud.google.com/generative-ai-app-builder/docs/reference/rpc/google.cloud.discoveryengine.v1#datastorespec
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1VertexAISearchDataStoreSpec {
     /// Full resource name of DataStore, such as Format: projects/{project}/locations/{location}/collections/{collection}/dataStores/{dataStore}
     #[serde(default, rename = "dataStore")]
@@ -19437,7 +19438,7 @@ pub struct GoogleCloudAiplatformV1VertexAISearchDataStoreSpec {
 }
 
 /// The definition of the Rag resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1VertexRagStoreRagResource {
     /// Optional. RagCorpora resource name. Format: projects/{project}/locations/{location}/ragCorpora/{rag_corpus}
     #[serde(default, rename = "ragCorpus")]
@@ -19448,7 +19449,7 @@ pub struct GoogleCloudAiplatformV1VertexRagStoreRagResource {
 }
 
 /// Specifies the context retrieval config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagRetrievalConfig {
     /// Optional. Config for filters.
     #[serde(default)]
@@ -19462,7 +19463,7 @@ pub struct GoogleCloudAiplatformV1RagRetrievalConfig {
 }
 
 /// Defines criteria based on a specific property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RubricContentProperty {
     /// Description of the property being evaluated. Example: "The model''s response is grammatically correct."
     #[serde(default)]
@@ -19470,7 +19471,7 @@ pub struct GoogleCloudAiplatformV1RubricContentProperty {
 }
 
 /// A ReservationAffinity can be used to configure a Vertex AI resource (e.g., a DeployedModel) to draw its Compute Engine resources from a Shared Reservation, or exclusively from on-demand capacity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReservationAffinity {
     /// Optional. Corresponds to the label key of a reservation resource. To target a SPECIFIC_RESERVATION by name, use compute.googleapis.com/reservation-name as the key and specify the name of your reservation as its value.
     #[serde(default)]
@@ -19484,7 +19485,7 @@ pub struct GoogleCloudAiplatformV1ReservationAffinity {
 }
 
 /// Represents an environment variable present in a Container or Python Module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1EnvVar {
     /// Required. Name of the environment variable. Must be a valid C identifier.
     #[serde(default)]
@@ -19495,7 +19496,7 @@ pub struct GoogleCloudAiplatformV1EnvVar {
 }
 
 /// The structured data content of a message. A Content message contains a role field, which indicates the producer of the content, and a parts field, which contains the multi-part data of the message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Content {
     /// Required. A list of Part objects that make up a single message. Parts of a message can have different MIME types. A Content message must have at least one Part.
     #[serde(default)]
@@ -19506,7 +19507,7 @@ pub struct GoogleCloudAiplatformV1Content {
 }
 
 /// Raw output.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RawOutput {
     /// Output only. Raw output string.
     #[serde(default, rename = "rawOutput")]
@@ -19514,7 +19515,7 @@ pub struct GoogleCloudAiplatformV1RawOutput {
 }
 
 /// Configuration for content generation. This message contains all the parameters that control how the model generates content. It allows you to influence the randomness, length, and structure of the output.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenerationConfig {
     /// Optional. If enabled, audio timestamps will be included in the request to the model. This can be useful for synchronizing audio with other modalities in the response.
     #[serde(default, rename = "audioTimestamp")]
@@ -19587,7 +19588,7 @@ pub struct GoogleCloudAiplatformV1GenerationConfig {
 }
 
 /// Noise sigma for a single feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureNoiseSigmaNoiseSigmaForFeature {
     /// The name of the input feature for which noise sigma is provided. The features are defined in explanation metadata inputs.
     #[serde(default)]
@@ -19598,7 +19599,7 @@ pub struct GoogleCloudAiplatformV1FeatureNoiseSigmaNoiseSigmaForFeature {
 }
 
 /// The API secret.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ApiAuthApiKeyConfig {
     /// Required. The SecretManager secret version resource name storing API key. e.g. projects/{project}/secrets/{secret}/versions/{version}
     #[serde(default, rename = "apiKeySecretVersion")]
@@ -19609,7 +19610,7 @@ pub struct GoogleCloudAiplatformV1ApiAuthApiKeyConfig {
 }
 
 /// Config for authentication with API key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AuthConfigApiKeyConfig {
     /// Optional. The name of the SecretManager secret version resource storing the API key. Format: projects/{project}/secrets/{secrete}/versions/{version} - If both api_key_secret and api_key_string are specified, this field takes precedence over api_key_string. - If specified, the secretmanager.versions.access permission should be granted to Vertex AI Extension Service Agent (https://cloud.google.com/vertex-ai/docs/general/access-control#service-agents) on the specified resource.
     #[serde(default, rename = "apiKeySecret")]
@@ -19626,7 +19627,7 @@ pub struct GoogleCloudAiplatformV1AuthConfigApiKeyConfig {
 }
 
 /// Config for Google Service Account Authentication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AuthConfigGoogleServiceAccountConfig {
     /// Optional. The service account that the extension execution service runs as. - If the service account is specified, the iam.serviceAccounts.getAccessToken permission should be granted to Vertex AI Extension Service Agent (https://cloud.google.com/vertex-ai/docs/general/access-control#service-agents) on the specified service account. - If not specified, the Vertex AI Extension Service Agent will be used to execute the Extension.
     #[serde(default, rename = "serviceAccount")]
@@ -19634,7 +19635,7 @@ pub struct GoogleCloudAiplatformV1AuthConfigGoogleServiceAccountConfig {
 }
 
 /// Config for HTTP Basic Authentication.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AuthConfigHttpBasicAuthConfig {
     /// Required. The name of the SecretManager secret version resource storing the base64 encoded credentials. Format: projects/{project}/secrets/{secrete}/versions/{version} - If specified, the secretmanager.versions.access permission should be granted to Vertex AI Extension Service Agent (https://cloud.google.com/vertex-ai/docs/general/access-control#service-agents) on the specified resource.
     #[serde(default, rename = "credentialSecret")]
@@ -19642,7 +19643,7 @@ pub struct GoogleCloudAiplatformV1AuthConfigHttpBasicAuthConfig {
 }
 
 /// Config for user oauth.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AuthConfigOauthConfig {
     /// Access token for extension endpoint. Only used to propagate token from [[ExecuteExtensionRequest.runtime_auth_config]] at request time.
     #[serde(default, rename = "accessToken")]
@@ -19653,7 +19654,7 @@ pub struct GoogleCloudAiplatformV1AuthConfigOauthConfig {
 }
 
 /// Config for user OIDC auth.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1AuthConfigOidcConfig {
     /// OpenID Connect formatted ID token for extension endpoint. Only used to propagate token from [[ExecuteExtensionRequest.runtime_auth_config]] at request time.
     #[serde(default, rename = "idToken")]
@@ -19664,7 +19665,7 @@ pub struct GoogleCloudAiplatformV1AuthConfigOidcConfig {
 }
 
 /// Config for filters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagRetrievalConfigFilter {
     /// Optional. String for metadata filtering.
     #[serde(default, rename = "metadataFilter")]
@@ -19678,7 +19679,7 @@ pub struct GoogleCloudAiplatformV1RagRetrievalConfigFilter {
 }
 
 /// Config for ranking and reranking.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagRetrievalConfigRanking {
     /// Optional. Config for LlmRanker.
     #[serde(default, rename = "llmRanker")]
@@ -19691,7 +19692,7 @@ pub struct GoogleCloudAiplatformV1RagRetrievalConfigRanking {
 }
 
 /// A datatype containing media that is part of a multi-part Content message. A Part consists of data which has an associated datatype. A Part can only contain one of the accepted types in Part.data. For media types that are not text, Part must have a fixed IANA MIME type identifying the type and subtype of the media if inline_data or file_data field is filled with raw bytes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Part {
     /// Optional. The result of executing the ExecutableCode.
     #[serde(default, rename = "codeExecutionResult")]
@@ -19729,7 +19730,7 @@ pub struct GoogleCloudAiplatformV1Part {
 }
 
 /// Configuration for image generation. This message allows you to control various aspects of image generation, such as the output format, aspect ratio, and whether the model can generate images of people.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ImageConfig {
     /// Optional. The desired aspect ratio for the generated images. The following aspect ratios are supported: "1:1" "2:3", "3:2" "3:4", "4:3" "4:5", "5:4" "9:16", "16:9" "21:9"
     #[serde(default, rename = "aspectRatio")]
@@ -19750,7 +19751,7 @@ pub struct GoogleCloudAiplatformV1ImageConfig {
 }
 
 /// Defines the schema of input and output data. This is a subset of the [OpenAPI 3.0 Schema Object](https://spec.openapis.org/oas/v3.0.3#schema-object).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Schema {
     /// Optional. If type is OBJECT, specifies how to handle properties not defined in properties. If it is a boolean false, no additional properties are allowed. If it is a schema, additional properties are allowed if they conform to the schema.
     #[serde(default, rename = "additionalProperties")]
@@ -19830,7 +19831,7 @@ pub struct GoogleCloudAiplatformV1Schema {
 }
 
 /// The configuration for routing the request to a specific model. This can be used to control which model is used for the generation, either automatically or by specifying a model name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenerationConfigRoutingConfig {
     /// In this mode, the model is selected automatically based on the content of the request.
     #[serde(default, rename = "autoMode")]
@@ -19844,7 +19845,7 @@ pub struct GoogleCloudAiplatformV1GenerationConfigRoutingConfig {
 }
 
 /// Configuration for speech generation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SpeechConfig {
     /// Optional. The language code (ISO 639-1) for the speech synthesis.
     #[serde(default, rename = "languageCode")]
@@ -19859,7 +19860,7 @@ pub struct GoogleCloudAiplatformV1SpeechConfig {
 }
 
 /// Configuration for the model''s thinking features. "Thinking" is a process where the model breaks down a complex task into smaller, manageable steps. This allows the model to reason about the task, plan its approach, and execute the plan to generate a high-quality response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenerationConfigThinkingConfig {
     /// Optional. If true, the model will include its thoughts in the response. "Thoughts" are the intermediate steps the model takes to arrive at the final response. They can provide insights into the model''s reasoning process and help with debugging. If this is true, thoughts are returned only when available.
     #[serde(default, rename = "includeThoughts")]
@@ -19873,7 +19874,7 @@ pub struct GoogleCloudAiplatformV1GenerationConfigThinkingConfig {
 }
 
 /// Config for LlmRanker.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagRetrievalConfigRankingLlmRanker {
     /// Optional. The model name used for ranking. See [Supported models](https://cloud.google.com/vertex-ai/generative-ai/docs/model-reference/inference#supported-models).
     #[serde(default, rename = "modelName")]
@@ -19881,7 +19882,7 @@ pub struct GoogleCloudAiplatformV1RagRetrievalConfigRankingLlmRanker {
 }
 
 /// Config for Rank Service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1RagRetrievalConfigRankingRankService {
     /// Optional. The model name of the rank service. Format: semantic-ranker-512@latest
     #[serde(default, rename = "modelName")]
@@ -19889,7 +19890,7 @@ pub struct GoogleCloudAiplatformV1RagRetrievalConfigRankingRankService {
 }
 
 /// Result of executing the ExecutableCode. Generated only when the CodeExecution tool is used.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1CodeExecutionResult {
     /// Required. Outcome of the code execution. // TODO: enum values: ["OUTCOME_UNSPECIFIED", "OUTCOME_OK", "OUTCOME_FAILED", "OUTCOME_DEADLINE_EXCEEDED"]
     #[serde(default)]
@@ -19900,7 +19901,7 @@ pub struct GoogleCloudAiplatformV1CodeExecutionResult {
 }
 
 /// Code generated by the model that is meant to be executed, and the result returned to the model. Generated when using the CodeExecution tool, in which the code will be automatically executed, and a corresponding CodeExecutionResult will also be generated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ExecutableCode {
     /// Required. The code to be executed.
     #[serde(default)]
@@ -19911,7 +19912,7 @@ pub struct GoogleCloudAiplatformV1ExecutableCode {
 }
 
 /// URI-based data. A FileData message contains a URI pointing to data of a specific media type. It is used to represent images, audio, and video stored in Google Cloud Storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FileData {
     /// Optional. The display name of the file. Used to provide a label or filename to distinguish files. This field is only returned in PromptMessage for prompt management. It is used in the Gemini calls only when server side tools (code_execution, google_search, and url_context) are enabled.
     #[serde(default, rename = "displayName")]
@@ -19925,7 +19926,7 @@ pub struct GoogleCloudAiplatformV1FileData {
 }
 
 /// A predicted FunctionCall returned from the model that contains a string representing the FunctionDeclaration.name and a structured JSON object containing the parameters and their values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FunctionCall {
     /// Optional. The function parameters and values in JSON object format. See FunctionDeclaration.parameters for parameter details.
     #[serde(default)]
@@ -19942,7 +19943,7 @@ pub struct GoogleCloudAiplatformV1FunctionCall {
 }
 
 /// The result output from a FunctionCall that contains a string representing the FunctionDeclaration.name and a structured JSON object containing any output from the function is used as context to the model. This should contain the result of a FunctionCall made based on model prediction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FunctionResponse {
     /// Required. The name of the function to call. Matches FunctionDeclaration.name and FunctionCall.name.
     #[serde(default)]
@@ -19959,7 +19960,7 @@ pub struct GoogleCloudAiplatformV1FunctionResponse {
 }
 
 /// A content blob. A Blob contains data of a specific media type. It is used to represent images, audio, and video.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Blob {
     /// Required. The raw bytes of the data.
     #[serde(default)]
@@ -19973,7 +19974,7 @@ pub struct GoogleCloudAiplatformV1Blob {
 }
 
 /// per part media resolution. Media resolution for the input media.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PartMediaResolution {
     /// The tokenization quality used for given media. // TODO: enum values: ["MEDIA_RESOLUTION_UNSPECIFIED", "MEDIA_RESOLUTION_LOW", "MEDIA_RESOLUTION_MEDIUM", "MEDIA_RESOLUTION_HIGH", "MEDIA_RESOLUTION_ULTRA_HIGH"]
     #[serde(default)]
@@ -19981,7 +19982,7 @@ pub struct GoogleCloudAiplatformV1PartMediaResolution {
 }
 
 /// Provides metadata for a video, including the start and end offsets for clipping and the frame rate.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1VideoMetadata {
     /// Optional. The end offset of the video.
     #[serde(default, rename = "endOffset")]
@@ -19995,7 +19996,7 @@ pub struct GoogleCloudAiplatformV1VideoMetadata {
 }
 
 /// The image output format for generated images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ImageConfigImageOutputOptions {
     /// Optional. The compression quality of the output image.
     #[serde(default, rename = "compressionQuality")]
@@ -20006,7 +20007,7 @@ pub struct GoogleCloudAiplatformV1ImageConfigImageOutputOptions {
 }
 
 /// The configuration for automated routing. When automated routing is specified, the routing will be determined by the pretrained routing model and customer provided model routing preference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenerationConfigRoutingConfigAutoRoutingMode {
     /// The model routing preference. // TODO: enum values: ["UNKNOWN", "PRIORITIZE_QUALITY", "BALANCED", "PRIORITIZE_COST"]
     #[serde(default, rename = "modelRoutingPreference")]
@@ -20014,7 +20015,7 @@ pub struct GoogleCloudAiplatformV1GenerationConfigRoutingConfigAutoRoutingMode {
 }
 
 /// The configuration for manual routing. When manual routing is specified, the model will be selected based on the model name provided.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1GenerationConfigRoutingConfigManualRoutingMode {
     /// The name of the model to use. Only public LLM models are accepted.
     #[serde(default, rename = "modelName")]
@@ -20022,7 +20023,7 @@ pub struct GoogleCloudAiplatformV1GenerationConfigRoutingConfigManualRoutingMode
 }
 
 /// Configuration for a multi-speaker text-to-speech request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1MultiSpeakerVoiceConfig {
     /// Required. A list of configurations for the voices of the speakers. Exactly two speaker voice configurations must be provided.
     #[serde(default, rename = "speakerVoiceConfigs")]
@@ -20031,7 +20032,7 @@ pub struct GoogleCloudAiplatformV1MultiSpeakerVoiceConfig {
 }
 
 /// Partial argument value of the function call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PartialArg {
     /// Optional. Represents a boolean value.
     #[serde(default, rename = "boolValue")]
@@ -20054,7 +20055,7 @@ pub struct GoogleCloudAiplatformV1PartialArg {
 }
 
 /// A datatype containing media that is part of a FunctionResponse message. A FunctionResponsePart consists of data which has an associated datatype. A FunctionResponsePart can only contain one of the accepted types in FunctionResponsePart.data. A FunctionResponsePart must have a fixed IANA MIME type identifying the type and subtype of the media if the inline_data field is filled with raw bytes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FunctionResponsePart {
     /// URI based data.
     #[serde(default, rename = "fileData")]
@@ -20065,7 +20066,7 @@ pub struct GoogleCloudAiplatformV1FunctionResponsePart {
 }
 
 /// Configuration for a single speaker in a multi-speaker setup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1SpeakerVoiceConfig {
     /// Required. The name of the speaker. This should be the same as the speaker name used in the prompt.
     #[serde(default)]
@@ -20076,7 +20077,7 @@ pub struct GoogleCloudAiplatformV1SpeakerVoiceConfig {
 }
 
 /// URI based data for function response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FunctionResponseFileData {
     /// Optional. Display name of the file data. Used to provide a label or filename to distinguish file datas. This field is only returned in PromptMessage for prompt management. It is currently used in the Gemini GenerateContent calls only when server side tools (code_execution, google_search, and url_context) are enabled.
     #[serde(default, rename = "displayName")]
@@ -20090,7 +20091,7 @@ pub struct GoogleCloudAiplatformV1FunctionResponseFileData {
 }
 
 /// Raw media bytes for function response. Text should not be sent as raw bytes, use the ''text'' field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FunctionResponseBlob {
     /// Required. Raw bytes.
     #[serde(default)]
@@ -20104,7 +20105,7 @@ pub struct GoogleCloudAiplatformV1FunctionResponseBlob {
 }
 
 /// Configuration for a voice.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1VoiceConfig {
     /// The configuration for a prebuilt voice.
     #[serde(default, rename = "prebuiltVoiceConfig")]
@@ -20116,7 +20117,7 @@ pub struct GoogleCloudAiplatformV1VoiceConfig {
 }
 
 /// Configuration for a prebuilt voice.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1PrebuiltVoiceConfig {
     /// The name of the prebuilt voice to use.
     #[serde(default, rename = "voiceName")]
@@ -20124,7 +20125,7 @@ pub struct GoogleCloudAiplatformV1PrebuiltVoiceConfig {
 }
 
 /// The configuration for the replicated voice to use.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1ReplicatedVoiceConfig {
     /// Optional. The mimetype of the voice sample. The only currently supported value is audio/wav. This represents 16-bit signed little-endian wav data, with a 24kHz sampling rate. mime_type will default to audio/wav if not set.
     #[serde(default, rename = "mimeType")]
@@ -20135,7 +20136,7 @@ pub struct GoogleCloudAiplatformV1ReplicatedVoiceConfig {
 }
 
 /// A list of boolean values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1BoolArray {
     /// A list of bool values.
     #[serde(default)]
@@ -20143,7 +20144,7 @@ pub struct GoogleCloudAiplatformV1BoolArray {
 }
 
 /// A list of double values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1DoubleArray {
     /// A list of double values.
     #[serde(default)]
@@ -20151,7 +20152,7 @@ pub struct GoogleCloudAiplatformV1DoubleArray {
 }
 
 /// Value for a feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureValue {
     /// A list of bool type feature value.
     #[serde(default, rename = "boolArrayValue")]
@@ -20193,7 +20194,7 @@ pub struct GoogleCloudAiplatformV1FeatureValue {
 }
 
 /// Metadata of feature value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1FeatureValueMetadata {
     /// Feature generation timestamp. Typically, it is provided by user at feature ingestion time. If not, feature store will use the system timestamp when the data is ingested into feature store. Legacy Feature Store: For streaming ingestion, the time, aligned by days, must be no older than five years (1825 days) and no later than one year (366 days) in the future.
     #[serde(default, rename = "generateTime")]
@@ -20201,7 +20202,7 @@ pub struct GoogleCloudAiplatformV1FeatureValueMetadata {
 }
 
 /// A list of int64 values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1Int64Array {
     /// A list of int64 values.
     #[serde(default)]
@@ -20209,7 +20210,7 @@ pub struct GoogleCloudAiplatformV1Int64Array {
 }
 
 /// One field of a Struct (or object) type feature value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StructFieldValue {
     /// Name of the field in the struct feature.
     #[serde(default)]
@@ -20220,7 +20221,7 @@ pub struct GoogleCloudAiplatformV1StructFieldValue {
 }
 
 /// Struct (or object) type feature value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StructValue {
     /// A list of field values.
     #[serde(default)]
@@ -20228,7 +20229,7 @@ pub struct GoogleCloudAiplatformV1StructValue {
 }
 
 /// Represents a single parameter to optimize.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StudySpecParameterSpec {
     /// The value spec for a ''CATEGORICAL'' parameter.
     #[serde(default, rename = "categoricalValueSpec")]
@@ -20264,7 +20265,7 @@ pub struct GoogleCloudAiplatformV1StudySpecParameterSpec {
 }
 
 /// Value specification for a parameter in CATEGORICAL type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StudySpecParameterSpecCategoricalValueSpec {
     /// A default value for a CATEGORICAL parameter that is assumed to be a relatively good starting point. Unset value signals that there is no offered starting point. Currently only supported by the Vertex AI Vizier service. Not supported by HyperparameterTuningJob or TrainingPipeline.
     #[serde(default, rename = "defaultValue")]
@@ -20275,7 +20276,7 @@ pub struct GoogleCloudAiplatformV1StudySpecParameterSpecCategoricalValueSpec {
 }
 
 /// Represents a parameter spec with condition from its parent parameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpec {
     /// Required. The spec for a conditional parameter.
     #[serde(default, rename = "parameterSpec")]
@@ -20292,7 +20293,7 @@ pub struct GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpec
 }
 
 /// Represents the spec to match categorical values from parent parameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecCategoricalValueCondition
 {
     /// Required. Matches values of the parent parameter of ''CATEGORICAL'' type. All values must exist in categorical_value_spec of parent parameter.
@@ -20301,7 +20302,7 @@ pub struct GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpec
 }
 
 /// Represents the spec to match discrete values from parent parameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecDiscreteValueCondition
 {
     /// Required. Matches values of the parent parameter of ''DISCRETE'' type. All values must exist in discrete_value_spec of parent parameter. The Epsilon of the value matching is 1e-10.
@@ -20310,7 +20311,7 @@ pub struct GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpec
 }
 
 /// Represents the spec to match integer values from parent parameter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpecIntValueCondition {
     /// Required. Matches values of the parent parameter of ''INTEGER'' type. All values must lie in integer_value_spec of parent parameter.
     #[serde(default)]
@@ -20318,7 +20319,7 @@ pub struct GoogleCloudAiplatformV1StudySpecParameterSpecConditionalParameterSpec
 }
 
 /// Value specification for a parameter in DISCRETE type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StudySpecParameterSpecDiscreteValueSpec {
     /// A default value for a DISCRETE parameter that is assumed to be a relatively good starting point. Unset value signals that there is no offered starting point. It automatically rounds to the nearest feasible discrete point. Currently only supported by the Vertex AI Vizier service. Not supported by HyperparameterTuningJob or TrainingPipeline.
     #[serde(default, rename = "defaultValue")]
@@ -20329,7 +20330,7 @@ pub struct GoogleCloudAiplatformV1StudySpecParameterSpecDiscreteValueSpec {
 }
 
 /// Value specification for a parameter in DOUBLE type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StudySpecParameterSpecDoubleValueSpec {
     /// A default value for a DOUBLE parameter that is assumed to be a relatively good starting point. Unset value signals that there is no offered starting point. Currently only supported by the Vertex AI Vizier service. Not supported by HyperparameterTuningJob or TrainingPipeline.
     #[serde(default, rename = "defaultValue")]
@@ -20343,7 +20344,7 @@ pub struct GoogleCloudAiplatformV1StudySpecParameterSpecDoubleValueSpec {
 }
 
 /// Value specification for a parameter in INTEGER type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudAiplatformV1StudySpecParameterSpecIntegerValueSpec {
     /// A default value for an INTEGER parameter that is assumed to be a relatively good starting point. Unset value signals that there is no offered starting point. Currently only supported by the Vertex AI Vizier service. Not supported by HyperparameterTuningJob or TrainingPipeline.
     #[serde(default, rename = "defaultValue")]

@@ -8,50 +8,51 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Empty message representing an administrator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Administrator {}
 
 /// Empty message representing an anonymous user or indicating the authenticated user should be anonymized.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnonymousUser {}
 
 /// Represents any user (including a logged out user).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Anyone {}
 
 /// A user whose account has since been deleted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletedUser {}
 
 /// A Drive item which is a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DriveFile {}
 
 /// An empty message indicating an object was edited.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Edit {}
 
 /// This item is deprecated; please see DriveFile instead.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct File {}
 
 /// A strategy that consolidates activities using the grouping rules from the legacy V1 Activity API. Similar actions occurring within a window of time can be grouped across multiple targets (such as moving a set of files at once) or multiple actors (such as several users editing the same item). Grouping rules for this strategy are specific to each type of action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Legacy {}
 
 /// An object was created from scratch.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct New {}
 
 /// A strategy that does no consolidation of individual activities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NoConsolidation {}
 
 /// The request message for querying Drive activity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryDriveActivityRequest {
     /// Return activities for this Drive folder, plus all children and descendants. The format is items/ITEM_ID.
     #[serde(default, rename = "ancestorName")]
@@ -74,7 +75,7 @@ pub struct QueryDriveActivityRequest {
 }
 
 /// Response message for querying Drive activity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryDriveActivityResponse {
     /// List of activity requested.
     #[serde(default)]
@@ -85,15 +86,15 @@ pub struct QueryDriveActivityResponse {
 }
 
 /// A user about whom nothing is currently known.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnknownUser {}
 
 /// An object was uploaded into Drive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Upload {}
 
 /// How the individual activities are consolidated. If a set of activities is related they can be consolidated into one combined activity, such as one actor performing the same action on multiple targets, or multiple actors performing the same action on a single target. The strategy defines the rules for which activities are related.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConsolidationStrategy {
     /// The individual activities are consolidated using the legacy strategy.
     #[serde(default)]
@@ -104,7 +105,7 @@ pub struct ConsolidationStrategy {
 }
 
 /// A single Drive activity comprising one or more Actions by one or more Actors on one or more Targets. Some Action groupings occur spontaneously, such as moving an item into a shared folder triggering a permission change. Other groupings of related Actions, such as multiple Actors editing one item or moving multiple files into a new folder, are controlled by the selection of a ConsolidationStrategy in the QueryDriveActivityRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DriveActivity {
     /// Details on all actions in this activity.
     #[serde(default)]
@@ -127,7 +128,7 @@ pub struct DriveActivity {
 }
 
 /// Information about the action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Action {
     /// The actor responsible for this action (or empty if all actors are responsible).
     #[serde(default)]
@@ -147,7 +148,7 @@ pub struct Action {
 }
 
 /// The actor of a Drive activity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Actor {
     /// An administrator.
     #[serde(default)]
@@ -167,7 +168,7 @@ pub struct Actor {
 }
 
 /// Data describing the type and additional information of an action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActionDetail {
     /// Label was changed.
     #[serde(default, rename = "appliedLabelChange")]
@@ -208,7 +209,7 @@ pub struct ActionDetail {
 }
 
 /// Information about the target of activity. For more information on how activity history is shared with users, see [Activity history visibility](https://developers.google.com/workspace/drive/activity/v2#activityhistory).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Target {
     /// The target is a shared drive.
     #[serde(default)]
@@ -225,7 +226,7 @@ pub struct Target {
 }
 
 /// Information about time ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeRange {
     /// The end of the time range.
     #[serde(default, rename = "endTime")]
@@ -236,7 +237,7 @@ pub struct TimeRange {
 }
 
 /// Information about an impersonation, where an admin acts on behalf of an end user. Information about the acting admin is not currently available.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Impersonation {
     /// The impersonated user.
     #[serde(default, rename = "impersonatedUser")]
@@ -244,7 +245,7 @@ pub struct Impersonation {
 }
 
 /// Event triggered by system operations instead of end users.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SystemEvent {
     /// The type of the system event that may triggered activity. // TODO: enum values: ["TYPE_UNSPECIFIED", "USER_DELETION", "TRASH_AUTO_PURGE"]
     #[serde(default, rename = "type")]
@@ -252,7 +253,7 @@ pub struct SystemEvent {
 }
 
 /// Label changes that were made on the Target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppliedLabelChange {
     /// Changes that were made to the Label on the Target.
     #[serde(default)]
@@ -260,7 +261,7 @@ pub struct AppliedLabelChange {
 }
 
 /// A change about comments on an object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Comment {
     /// A change on an assignment.
     #[serde(default)]
@@ -277,7 +278,7 @@ pub struct Comment {
 }
 
 /// An object was created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Create {
     /// If present, indicates the object was created by copying an existing Drive object.
     #[serde(default)]
@@ -291,7 +292,7 @@ pub struct Create {
 }
 
 /// An object was deleted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Delete {
     /// The type of delete action taken. // TODO: enum values: ["TYPE_UNSPECIFIED", "TRASH", "PERMANENT_DELETE"]
     #[serde(default, rename = "type")]
@@ -299,7 +300,7 @@ pub struct Delete {
 }
 
 /// A change in the object''s data leak prevention status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataLeakPreventionChange {
     /// The type of Data Leak Prevention (DLP) change. // TODO: enum values: ["TYPE_UNSPECIFIED", "FLAGGED", "CLEARED"]
     #[serde(default, rename = "type")]
@@ -307,7 +308,7 @@ pub struct DataLeakPreventionChange {
 }
 
 /// An object was moved.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Move {
     /// The added parent object(s).
     #[serde(default, rename = "addedParents")]
@@ -318,7 +319,7 @@ pub struct Move {
 }
 
 /// A change of the permission setting on an item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PermissionChange {
     /// The set of permissions added by this change.
     #[serde(default, rename = "addedPermissions")]
@@ -329,7 +330,7 @@ pub struct PermissionChange {
 }
 
 /// Activity in applications other than Drive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplicationReference {
     /// The reference type corresponding to this event. // TODO: enum values: ["UNSPECIFIED_REFERENCE_TYPE", "LINK", "DISCUSS"]
     #[serde(default, rename = "type")]
@@ -337,7 +338,7 @@ pub struct ApplicationReference {
 }
 
 /// An object was renamed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Rename {
     /// The new title of the drive object.
     #[serde(default, rename = "newTitle")]
@@ -348,7 +349,7 @@ pub struct Rename {
 }
 
 /// A deleted object was restored.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Restore {
     /// The type of restore action taken. // TODO: enum values: ["TYPE_UNSPECIFIED", "UNTRASH"]
     #[serde(default, rename = "type")]
@@ -356,7 +357,7 @@ pub struct Restore {
 }
 
 /// Information about settings changes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SettingsChange {
     /// The set of changes made to restrictions.
     #[serde(default, rename = "restrictionChanges")]
@@ -364,7 +365,7 @@ pub struct SettingsChange {
 }
 
 /// Information about a shared drive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Drive {
     /// The resource name of the shared drive. The format is COLLECTION_ID/DRIVE_ID. Clients should not assume a specific collection ID for this resource name.
     #[serde(default)]
@@ -378,7 +379,7 @@ pub struct Drive {
 }
 
 /// A comment on a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FileComment {
     /// The comment in the discussion thread. This identifier is an opaque string compatible with the Drive API; see https://developers.google.com/workspace/drive/v3/reference/comments/get
     #[serde(default, rename = "legacyCommentId")]
@@ -395,7 +396,7 @@ pub struct FileComment {
 }
 
 /// This item is deprecated; please see Drive instead.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamDrive {
     /// This field is deprecated; please see Drive.name instead.
     #[serde(default)]
@@ -409,7 +410,7 @@ pub struct TeamDrive {
 }
 
 /// A change made to a Label on the Target.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppliedLabelChangeDetail {
     /// Field Changes. Only present if types contains LABEL_FIELD_VALUE_CHANGED.
     #[serde(default, rename = "fieldChanges")]
@@ -426,7 +427,7 @@ pub struct AppliedLabelChangeDetail {
 }
 
 /// A comment with an assignment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Assignment {
     /// The user to whom the comment was assigned.
     #[serde(default, rename = "assignedUser")]
@@ -437,7 +438,7 @@ pub struct Assignment {
 }
 
 /// A regular posted comment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Post {
     /// The sub-type of this event. // TODO: enum values: ["SUBTYPE_UNSPECIFIED", "ADDED", "DELETED", "REPLY_ADDED", "REPLY_DELETED", "RESOLVED", "REOPENED"]
     #[serde(default)]
@@ -445,7 +446,7 @@ pub struct Post {
 }
 
 /// A suggestion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Suggestion {
     /// The sub-type of this event. // TODO: enum values: ["SUBTYPE_UNSPECIFIED", "ADDED", "DELETED", "REPLY_ADDED", "REPLY_DELETED", "ACCEPTED", "REJECTED", "ACCEPT_DELETED", "REJECT_DELETED"]
     #[serde(default)]
@@ -453,7 +454,7 @@ pub struct Suggestion {
 }
 
 /// An object was created by copying an existing object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Copy {
     /// The original object.
     #[serde(default, rename = "originalObject")]
@@ -461,7 +462,7 @@ pub struct Copy {
 }
 
 /// The permission setting of an object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Permission {
     /// If true, the item can be discovered (e.g. in the user''s "Shared with me" collection) without needing a link to the item.
     #[serde(default, rename = "allowDiscovery")]
@@ -484,7 +485,7 @@ pub struct Permission {
 }
 
 /// Information about restriction policy changes to a feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestrictionChange {
     /// The feature which had a change in restriction policy. // TODO: enum values: ["FEATURE_UNSPECIFIED", "SHARING_OUTSIDE_DOMAIN", "DIRECT_SHARING", "ITEM_DUPLICATION", "DRIVE_FILE_STREAM", "FILE_ORGANIZER_CAN_SHARE_FOLDERS", "READERS_CAN_DOWNLOAD", "WRITERS_CAN_DOWNLOAD"]
     #[serde(default)]
@@ -495,7 +496,7 @@ pub struct RestrictionChange {
 }
 
 /// A Drive item, such as a file or folder.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DriveItem {
     /// The Drive item is a file.
     #[serde(default, rename = "driveFile")]
@@ -524,7 +525,7 @@ pub struct DriveItem {
 }
 
 /// Change to a Field value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FieldValueChange {
     /// The human-readable display name for this field.
     #[serde(default, rename = "displayName")]
@@ -541,7 +542,7 @@ pub struct FieldValueChange {
 }
 
 /// A lightweight reference to the target of activity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetReference {
     /// The target is a shared drive.
     #[serde(default)]
@@ -555,7 +556,7 @@ pub struct TargetReference {
 }
 
 /// Information about a group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Group {
     /// The email address of the group.
     #[serde(default)]
@@ -566,7 +567,7 @@ pub struct Group {
 }
 
 /// Information about the owner of a Drive item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Owner {
     /// The domain of the Drive item owner.
     #[serde(default)]
@@ -583,7 +584,7 @@ pub struct Owner {
 }
 
 /// Contains a value of a Field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FieldValue {
     /// Date Field value.
     #[serde(default)]
@@ -612,7 +613,7 @@ pub struct FieldValue {
 }
 
 /// A lightweight reference to a Drive item, such as a file or folder.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DriveItemReference {
     /// The Drive item is a file.
     #[serde(default, rename = "driveFile")]
@@ -635,7 +636,7 @@ pub struct DriveItemReference {
 }
 
 /// Information about a domain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Domain {
     /// An opaque string used to identify this domain.
     #[serde(default, rename = "legacyId")]
@@ -646,7 +647,7 @@ pub struct Domain {
 }
 
 /// A lightweight reference to a shared drive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DriveReference {
     /// The resource name of the shared drive. The format is COLLECTION_ID/DRIVE_ID. Clients should not assume a specific collection ID for this resource name.
     #[serde(default)]
@@ -657,7 +658,7 @@ pub struct DriveReference {
 }
 
 /// This item is deprecated; please see DriveReference instead.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamDriveReference {
     /// This field is deprecated; please see DriveReference.name instead.
     #[serde(default)]
@@ -668,7 +669,7 @@ pub struct TeamDriveReference {
 }
 
 /// Information about an end user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct User {
     /// A user whose account has since been deleted.
     #[serde(default, rename = "deletedUser")]
@@ -682,7 +683,7 @@ pub struct User {
 }
 
 /// Wrapper for Date Field value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Date value.
     #[serde(default)]
@@ -690,7 +691,7 @@ pub struct Date {
 }
 
 /// Wrapper for Integer Field value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Integer {
     /// Integer value.
     #[serde(default)]
@@ -698,7 +699,7 @@ pub struct Integer {
 }
 
 /// Wrapper for SelectionList Field value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SelectionList {
     /// Selection values.
     #[serde(default)]
@@ -706,7 +707,7 @@ pub struct SelectionList {
 }
 
 /// Wrapper for Text List Field value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextList {
     /// Text values.
     #[serde(default)]
@@ -714,7 +715,7 @@ pub struct TextList {
 }
 
 /// Wrapper for UserList Field value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserList {
     /// User values.
     #[serde(default)]
@@ -722,7 +723,7 @@ pub struct UserList {
 }
 
 /// A Drive item which is a folder.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DriveFolder {
     /// The type of Drive folder. // TODO: enum values: ["TYPE_UNSPECIFIED", "MY_DRIVE_ROOT", "SHARED_DRIVE_ROOT", "STANDARD_FOLDER"]
     #[serde(default, rename = "type")]
@@ -730,7 +731,7 @@ pub struct DriveFolder {
 }
 
 /// This item is deprecated; please see DriveFolder instead.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Folder {
     /// This field is deprecated; please see DriveFolder.type instead. // TODO: enum values: ["TYPE_UNSPECIFIED", "MY_DRIVE_ROOT", "TEAM_DRIVE_ROOT", "STANDARD_FOLDER"]
     #[serde(default, rename = "type")]
@@ -738,7 +739,7 @@ pub struct Folder {
 }
 
 /// A known user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KnownUser {
     /// True if this is the user making the request.
     #[serde(default, rename = "isCurrentUser")]
@@ -749,7 +750,7 @@ pub struct KnownUser {
 }
 
 /// Wrapper for Selection Field value as combined value/display_name pair for selected choice.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Selection {
     /// Selection value as human-readable display string.
     #[serde(default, rename = "displayName")]
@@ -760,7 +761,7 @@ pub struct Selection {
 }
 
 /// Wrapper for Text Field value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Text {
     /// Value of Text Field.
     #[serde(default)]
@@ -768,7 +769,7 @@ pub struct Text {
 }
 
 /// Wrapper for User Field value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SingleUser {
     /// User value as email.
     #[serde(default)]

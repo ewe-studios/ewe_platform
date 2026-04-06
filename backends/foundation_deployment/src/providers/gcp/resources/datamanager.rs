@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Request to upload audience members to the provided destinations. Returns an IngestAudienceMembersResponse.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IngestAudienceMembersRequest {
     /// Required. The list of users to send to the specified destinations. At most 10000 AudienceMember resources can be sent in a single request.
     #[serde(default, rename = "audienceMembers")]
@@ -41,7 +42,7 @@ pub struct IngestAudienceMembersRequest {
 }
 
 /// Response from the IngestAudienceMembersRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IngestAudienceMembersResponse {
     /// The auto-generated ID of the request.
     #[serde(default, rename = "requestId")]
@@ -49,7 +50,7 @@ pub struct IngestAudienceMembersResponse {
 }
 
 /// Request to upload audience members to the provided destinations. Returns an IngestEventsResponse.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IngestEventsRequest {
     /// Optional. Request-level consent to apply to all users in the request. User-level consent overrides request-level consent, and can be specified in each Event.
     #[serde(default)]
@@ -72,7 +73,7 @@ pub struct IngestEventsRequest {
 }
 
 /// Response from the IngestEventsRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IngestEventsResponse {
     /// The auto-generated ID of the request.
     #[serde(default, rename = "requestId")]
@@ -80,7 +81,7 @@ pub struct IngestEventsResponse {
 }
 
 /// Response from the ListUserListDirectLicensesRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUserListDirectLicensesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -91,7 +92,7 @@ pub struct ListUserListDirectLicensesResponse {
 }
 
 /// Response from the ListUserListGlobalLicensesCustomerInfoRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUserListGlobalLicenseCustomerInfosResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -103,7 +104,7 @@ pub struct ListUserListGlobalLicenseCustomerInfosResponse {
 }
 
 /// Response from the ListUserListGlobalLicensesRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUserListGlobalLicensesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -114,7 +115,7 @@ pub struct ListUserListGlobalLicensesResponse {
 }
 
 /// Response message for ListUserLists.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUserListsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -125,7 +126,7 @@ pub struct ListUserListsResponse {
 }
 
 /// Request to remove users from an audience in the provided destinations. Returns a RemoveAudienceMembersResponse.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveAudienceMembersRequest {
     /// Required. The list of users to remove.
     #[serde(default, rename = "audienceMembers")]
@@ -145,7 +146,7 @@ pub struct RemoveAudienceMembersRequest {
 }
 
 /// Response from the RemoveAudienceMembersRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveAudienceMembersResponse {
     /// The auto-generated ID of the request.
     #[serde(default, rename = "requestId")]
@@ -153,7 +154,7 @@ pub struct RemoveAudienceMembersResponse {
 }
 
 /// Request message for DM API MarketingDataInsightsService.RetrieveInsights
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetrieveInsightsRequest {
     /// Required. Baseline for the insights requested.
     #[serde(default)]
@@ -164,7 +165,7 @@ pub struct RetrieveInsightsRequest {
 }
 
 /// Response message for DM API MarketingDataInsightsService.RetrieveInsights
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetrieveInsightsResponse {
     /// Contains the insights for the marketing data.
     #[serde(default, rename = "marketingDataInsights")]
@@ -172,7 +173,7 @@ pub struct RetrieveInsightsResponse {
 }
 
 /// Response from the RetrieveRequestStatusRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetrieveRequestStatusResponse {
     /// A list of request statuses per destination. The order of the statuses matches the order of the destinations in the original request.
     #[serde(default, rename = "requestStatusPerDestination")]
@@ -181,7 +182,7 @@ pub struct RetrieveRequestStatusResponse {
 }
 
 /// Response from the SearchPartnerLinksRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchPartnerLinksResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -192,7 +193,7 @@ pub struct SearchPartnerLinksResponse {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -206,7 +207,7 @@ pub struct Status {
 }
 
 /// The terms of service that the user has accepted/rejected.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TermsOfService {
     /// Optional. The Customer Match terms of service: https://support.google.com/adspolicy/answer/6299717. This must be accepted when ingesting UserData or MobileData. This field is not required for Partner Match User list. // TODO: enum values: ["TERMS_OF_SERVICE_STATUS_UNSPECIFIED", "ACCEPTED", "REJECTED"]
     #[serde(default, rename = "customerMatchTermsOfServiceStatus")]
@@ -214,7 +215,7 @@ pub struct TermsOfService {
 }
 
 /// An event representing a user interaction with an advertiser''s website or app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Event {
     /// Optional. Identifiers and other information used to match the conversion event with other online activity (such as ad clicks).
     #[serde(default, rename = "adIdentifiers")]
@@ -276,7 +277,7 @@ pub struct Event {
 }
 
 /// A user list direct license. This feature is only available to data partners.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserListDirectLicense {
     /// Output only. Name of client customer which the user list is being licensed to. This field is read-only.
     #[serde(default, rename = "clientAccountDisplayName")]
@@ -311,7 +312,7 @@ pub struct UserListDirectLicense {
 }
 
 /// Information about a customer of a user list global license. This will automatically be created by the system when a customer purchases a global license.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserListGlobalLicenseCustomerInfo {
     /// Output only. Name of client customer which the user list is being licensed to.
     #[serde(default, rename = "clientAccountDisplayName")]
@@ -349,7 +350,7 @@ pub struct UserListGlobalLicenseCustomerInfo {
 }
 
 /// A user list global license. This feature is only available to data partners.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserListGlobalLicense {
     /// Output only. Pricing history of this user list license. This field is read-only.
     #[serde(default, rename = "historicalPricings")]
@@ -378,7 +379,7 @@ pub struct UserListGlobalLicense {
 }
 
 /// A user list resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserList {
     /// Output only. The reason this account has been granted access to the list. // TODO: enum values: ["ACCESS_REASON_UNSPECIFIED", "OWNED", "SHARED", "LICENSED", "SUBSCRIBED", "AFFILIATED"]
     #[serde(default, rename = "accessReason")]
@@ -425,7 +426,7 @@ pub struct UserList {
 }
 
 /// The audience member to be operated on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AudienceMember {
     /// Optional. The consent setting for the user.
     #[serde(default)]
@@ -451,7 +452,7 @@ pub struct AudienceMember {
 }
 
 /// Encryption information for the data being ingested.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptionInfo {
     /// Amazon Web Services wrapped key information.
     #[serde(default, rename = "awsWrappedKeyInfo")]
@@ -462,7 +463,7 @@ pub struct EncryptionInfo {
 }
 
 /// Baseline criteria against which insights are compared.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Baseline {
     /// The baseline location of the request. Baseline location is an OR-list of the requested regions.
     #[serde(default, rename = "baselineLocation")]
@@ -473,7 +474,7 @@ pub struct Baseline {
 }
 
 /// Insights for marketing data. This feature is only available to data partners.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MarketingDataInsight {
     /// Insights for values of a given dimension.
     #[serde(default)]
@@ -484,7 +485,7 @@ pub struct MarketingDataInsight {
 }
 
 /// A request status per destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RequestStatusPerDestination {
     /// The status of the ingest audience members request.
     #[serde(default, rename = "audienceMembersIngestionStatus")]
@@ -510,7 +511,7 @@ pub struct RequestStatusPerDestination {
 }
 
 /// A partner link between an owning account and a partner account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartnerLink {
     /// Identifier. The name of the partner link. Format: accountTypes/{account_type}/accounts/{account}/partnerLinks/{partner_link}
     #[serde(default)]
@@ -527,7 +528,7 @@ pub struct PartnerLink {
 }
 
 /// Identifiers and other information used to match the conversion event with other online activity (such as ad clicks).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdIdentifiers {
     /// Optional. The click identifier for clicks associated with app events and originating from iOS devices starting with iOS14.
     #[serde(default)]
@@ -547,7 +548,7 @@ pub struct AdIdentifiers {
 }
 
 /// Event parameter for GA4 events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventParameter {
     /// Required. The name of the parameter to use.
     #[serde(default, rename = "parameterName")]
@@ -558,7 +559,7 @@ pub struct EventParameter {
 }
 
 /// The cart data associated with the event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CartData {
     /// Optional. The list of items associated with the event.
     #[serde(default)]
@@ -578,7 +579,7 @@ pub struct CartData {
 }
 
 /// Custom variable for ads conversions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomVariable {
     /// Optional. Reference string used to determine which of the Event.destination_references the custom variable should be sent to. If empty, the Event.destination_references will be used.
     #[serde(default, rename = "destinationReferences")]
@@ -592,7 +593,7 @@ pub struct CustomVariable {
 }
 
 /// Experimental field representing unofficial fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExperimentalField {
     /// Optional. The name of the field to use.
     #[serde(default)]
@@ -603,7 +604,7 @@ pub struct ExperimentalField {
 }
 
 /// Advertiser-assessed information about the user at the time that the event happened. See https://support.google.com/google-ads/answer/14007601 for more details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserProperties {
     /// Optional. A bucket of any additional [user properties](https://developers.google.com/analytics/devguides/collection/protocol/ga4/user-properties) for the user associated with this event.
     #[serde(default, rename = "additionalUserProperties")]
@@ -617,7 +618,7 @@ pub struct UserProperties {
 }
 
 /// A user list license pricing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserListLicensePricing {
     /// Output only. The buyer approval state of this pricing. This field is read-only. // TODO: enum values: ["USER_LIST_PRICING_BUYER_APPROVAL_STATE_UNSPECIFIED", "PENDING", "APPROVED", "REJECTED"]
     #[serde(default, rename = "buyerApprovalState")]
@@ -649,7 +650,7 @@ pub struct UserListLicensePricing {
 }
 
 /// Metrics related to a user list license.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserListLicenseMetrics {
     /// Output only. The number of clicks for the user list license.
     #[serde(default, rename = "clickCount")]
@@ -669,7 +670,7 @@ pub struct UserListLicenseMetrics {
 }
 
 /// Represents a user list that is populated by user provided data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IngestedUserListInfo {
     /// Optional. Additional information when CONTACT_ID is one of the upload_key_types.
     #[serde(default, rename = "contactIdInfo")]
@@ -695,7 +696,7 @@ pub struct IngestedUserListInfo {
 }
 
 /// Estimated number of members in this user list in different target networks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SizeInfo {
     /// Output only. Estimated number of members in this user list, on the Google Display Network.
     #[serde(default, rename = "displayNetworkMembersCount")]
@@ -706,7 +707,7 @@ pub struct SizeInfo {
 }
 
 /// Eligibility information for different target networks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetNetworkInfo {
     /// Output only. Indicates this user list is eligible for Google Display Network.
     #[serde(default, rename = "eligibleForDisplay")]
@@ -717,7 +718,7 @@ pub struct TargetNetworkInfo {
 }
 
 /// [Digital Markets Act (DMA)](//digital-markets-act.ec.europa.eu/index_en) consent settings for the user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Consent {
     /// Optional. Represents if the user consents to ad personalization. // TODO: enum values: ["CONSENT_STATUS_UNSPECIFIED", "CONSENT_GRANTED", "CONSENT_DENIED"]
     #[serde(default, rename = "adPersonalization")]
@@ -728,7 +729,7 @@ pub struct Consent {
 }
 
 /// Mobile IDs for the audience. At least one mobile ID is required.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MobileData {
     /// Required. The list of mobile device IDs (advertising ID/IDFA). At most 10 mobileIds can be provided in a single AudienceMember.
     #[serde(default, rename = "mobileIds")]
@@ -736,7 +737,7 @@ pub struct MobileData {
 }
 
 /// [PAIR](//support.google.com/admanager/answer/15067908) IDs for the audience. At least one PAIR ID is required. This feature is only available to data partners.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PairData {
     /// Required. Cleanroom-provided PII data, hashed with SHA256, and encrypted with an EC commutative cipher using publisher key for the [PAIR]((//support.google.com/admanager/answer/15067908)) user list. At most 10 pairIds can be provided in a single AudienceMember.
     #[serde(default, rename = "pairIds")]
@@ -744,7 +745,7 @@ pub struct PairData {
 }
 
 /// Publisher provided identifiers data holding the ppids. At least one ppid is required. This feature is only available to data partners.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PpidData {
     /// Required. The list of publisher provided identifiers for a user.
     #[serde(default)]
@@ -752,7 +753,7 @@ pub struct PpidData {
 }
 
 /// Data that identifies the user. At least one identifier is required.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserData {
     /// Required. The identifiers for the user. It''s possible to provide multiple instances of the same type of data (for example, multiple email addresses). To increase the likelihood of a match, provide as many identifiers as possible. At most 10 userIdentifiers can be provided in a single AudienceMember or Event.
     #[serde(default, rename = "userIdentifiers")]
@@ -760,7 +761,7 @@ pub struct UserData {
 }
 
 /// User id data holding the user id.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserIdData {
     /// Required. A unique identifier for a user, as defined by the advertiser.
     #[serde(default, rename = "userId")]
@@ -768,7 +769,7 @@ pub struct UserIdData {
 }
 
 /// A data encryption key wrapped by an AWS KMS key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AwsWrappedKeyInfo {
     /// Required. The base64 encoded encrypted data encryption key.
     #[serde(default, rename = "encryptedDek")]
@@ -785,7 +786,7 @@ pub struct AwsWrappedKeyInfo {
 }
 
 /// Information about the Google Cloud Platform wrapped key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GcpWrappedKeyInfo {
     /// Required. The base64 encoded encrypted data encryption key.
     #[serde(default, rename = "encryptedDek")]
@@ -802,7 +803,7 @@ pub struct GcpWrappedKeyInfo {
 }
 
 /// The baseline location of the request. Baseline location is on OR-list of ISO 3166-1 alpha-2 region codes of the requested regions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// List of ISO 3166-1 alpha-2 region codes.
     #[serde(default, rename = "regionCodes")]
@@ -810,7 +811,7 @@ pub struct Location {
 }
 
 /// Insights for a collection of related attributes of the same dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MarketingDataInsightsAttribute {
     /// Age range of the audience for which the lift is provided. // TODO: enum values: ["AGE_RANGE_UNSPECIFIED", "AGE_RANGE_UNKNOWN", "AGE_RANGE_18_24", "AGE_RANGE_25_34", "AGE_RANGE_35_44", "AGE_RANGE_45_54", "AGE_RANGE_55_64", "AGE_RANGE_65_UP"]
     #[serde(default, rename = "ageRange")]
@@ -827,7 +828,7 @@ pub struct MarketingDataInsightsAttribute {
 }
 
 /// The status of the ingest audience members request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IngestAudienceMembersStatus {
     /// The status of the mobile data ingestion to the destination.
     #[serde(default, rename = "mobileDataIngestionStatus")]
@@ -847,7 +848,7 @@ pub struct IngestAudienceMembersStatus {
 }
 
 /// The status of the remove audience members request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveAudienceMembersStatus {
     /// The status of the mobile data removal from the destination.
     #[serde(default, rename = "mobileDataRemovalStatus")]
@@ -867,7 +868,7 @@ pub struct RemoveAudienceMembersStatus {
 }
 
 /// The Google product you''re sending data to. For example, a Google Ads account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Destination {
     /// Optional. An account that the calling user''s login_account has access to, through an established account link. For example, a data partner''s login_account might have access to a client''s linked_account. The partner might use this field to send data from the linked_account to another operating_account.
     #[serde(default, rename = "linkedAccount")]
@@ -887,7 +888,7 @@ pub struct Destination {
 }
 
 /// Error counts for each type of error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorInfo {
     /// A list of errors and counts per error reason. May not be populated in all cases.
     #[serde(default, rename = "errorCounts")]
@@ -895,7 +896,7 @@ pub struct ErrorInfo {
 }
 
 /// The status of the events ingestion to the destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IngestEventsStatus {
     /// The total count of events sent in the upload request. Includes all events in the request, regardless of whether they were successfully ingested or not.
     #[serde(default, rename = "recordCount")]
@@ -903,7 +904,7 @@ pub struct IngestEventsStatus {
 }
 
 /// Warning counts for each type of warning.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WarningInfo {
     /// A list of warnings and counts per warning reason.
     #[serde(default, rename = "warningCounts")]
@@ -911,7 +912,7 @@ pub struct WarningInfo {
 }
 
 /// Information about the device being used (if any) when the event happened.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeviceInfo {
     /// Optional. The IP address of the device for the given context. **Note:** Google Ads does not support IP address matching for end users in the European Economic Area (EEA), United Kingdom (UK), or Switzerland (CH). Add logic to conditionally exclude sharing IP addresses from users from these regions and ensure that you provide users with clear and comprehensive information about the data you collect on your sites, apps, and other properties and get consent where required by law or any applicable Google policies. See the [About offline conversion imports](https://support.google.com/google-ads/answer/2998031) page for more details.
     #[serde(default, rename = "ipAddress")]
@@ -922,7 +923,7 @@ pub struct DeviceInfo {
 }
 
 /// Represents an item in the cart associated with the event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Item {
     /// Optional. A bucket of any [event parameters related to an item](https://developers.google.com/analytics/devguides/collection/protocol/ga4/reference/events) to be included within the event that were not already specified using other structured fields.
     #[serde(default, rename = "additionalItemParameters")]
@@ -942,7 +943,7 @@ pub struct Item {
 }
 
 /// A bucket of any additional [user properties](https://developers.google.com/analytics/devguides/collection/protocol/ga4/user-properties) for the user associated with this event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserProperty {
     /// Required. The name of the user property to use.
     #[serde(default, rename = "propertyName")]
@@ -953,7 +954,7 @@ pub struct UserProperty {
 }
 
 /// Additional information when CONTACT_ID is one of the upload_key_types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContactIdInfo {
     /// Optional. Immutable. Source of the upload data // TODO: enum values: ["DATA_SOURCE_TYPE_UNSPECIFIED", "DATA_SOURCE_TYPE_FIRST_PARTY", "DATA_SOURCE_TYPE_THIRD_PARTY_CREDIT_BUREAU", "DATA_SOURCE_TYPE_THIRD_PARTY_VOTER_FILE", "DATA_SOURCE_TYPE_THIRD_PARTY_PARTNER_DATA"]
     #[serde(default, rename = "dataSourceType")]
@@ -964,7 +965,7 @@ pub struct ContactIdInfo {
 }
 
 /// Additional information when MOBILE_ID is one of the upload_key_types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MobileIdInfo {
     /// Required. Immutable. A string that uniquely identifies a mobile application from which the data was collected.
     #[serde(default, rename = "appId")]
@@ -978,7 +979,7 @@ pub struct MobileIdInfo {
 }
 
 /// Additional information when PAIR_ID is one of the upload_key_types. This feature is only available to data partners.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PairIdInfo {
     /// Optional. The count of the advertiser''s first party data records that have been uploaded to a clean room provider. This does not signify the size of a PAIR user list.
     #[serde(default, rename = "advertiserIdentifierCount")]
@@ -998,7 +999,7 @@ pub struct PairIdInfo {
 }
 
 /// Additional information for partner audiences. This feature is only available to data partners.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartnerAudienceInfo {
     /// Optional. The commerce partner name. Only allowed if partner_audience_source is COMMERCE_AUDIENCE.
     #[serde(default, rename = "commercePartner")]
@@ -1009,7 +1010,7 @@ pub struct PartnerAudienceInfo {
 }
 
 /// Additional information when PSEUDONYMOUS_ID is one of the upload_key_types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PseudonymousIdInfo {
     /// Optional. Immutable. The number of billable records (e.g. uploaded or matched).
     #[serde(default, rename = "billableRecordCount")]
@@ -1020,7 +1021,7 @@ pub struct PseudonymousIdInfo {
 }
 
 /// Additional information when USER_ID is one of the upload_key_types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserIdInfo {
     /// Optional. Immutable. Source of the upload data. // TODO: enum values: ["DATA_SOURCE_TYPE_UNSPECIFIED", "DATA_SOURCE_TYPE_FIRST_PARTY", "DATA_SOURCE_TYPE_THIRD_PARTY_CREDIT_BUREAU", "DATA_SOURCE_TYPE_THIRD_PARTY_VOTER_FILE", "DATA_SOURCE_TYPE_THIRD_PARTY_PARTNER_DATA"]
     #[serde(default, rename = "dataSourceType")]
@@ -1028,7 +1029,7 @@ pub struct UserIdInfo {
 }
 
 /// A single identifier for the user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserIdentifier {
     /// The known components of a user''s address. Holds a grouping of identifiers that are matched all at once.
     #[serde(default)]
@@ -1042,7 +1043,7 @@ pub struct UserIdentifier {
 }
 
 /// The status of the mobile data ingestion to the destination containing stats related to the ingestion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IngestMobileDataStatus {
     /// The total count of mobile ids sent in the upload request for the destination. Includes all mobile ids in the request, regardless of whether they were successfully ingested or not.
     #[serde(default, rename = "mobileIdCount")]
@@ -1053,7 +1054,7 @@ pub struct IngestMobileDataStatus {
 }
 
 /// The status of the pair data ingestion to the destination containing stats related to the ingestion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IngestPairDataStatus {
     /// The total count of pair ids sent in the upload request for the destination. Includes all pair ids in the request, regardless of whether they were successfully ingested or not.
     #[serde(default, rename = "pairIdCount")]
@@ -1064,7 +1065,7 @@ pub struct IngestPairDataStatus {
 }
 
 /// The status of the ppid data ingestion to the destination containing stats related to the ingestion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IngestPpidDataStatus {
     /// The total count of ppids sent in the upload request for the destination. Includes all ppids in the request, regardless of whether they were successfully ingested or not.
     #[serde(default, rename = "ppidCount")]
@@ -1075,7 +1076,7 @@ pub struct IngestPpidDataStatus {
 }
 
 /// The status of the user data ingestion to the destination containing stats related to the ingestion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IngestUserDataStatus {
     /// The total count of audience members sent in the upload request for the destination. Includes all audience members in the request, regardless of whether they were successfully ingested or not.
     #[serde(default, rename = "recordCount")]
@@ -1089,7 +1090,7 @@ pub struct IngestUserDataStatus {
 }
 
 /// The status of the user id data ingestion to the destination containing stats related to the ingestion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IngestUserIdDataStatus {
     /// The total count of audience members sent in the upload request for the destination. Includes all audience members in the request, regardless of whether they were successfully ingested or not.
     #[serde(default, rename = "recordCount")]
@@ -1100,7 +1101,7 @@ pub struct IngestUserIdDataStatus {
 }
 
 /// The status of the mobile data removal from the destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveMobileDataStatus {
     /// The total count of mobile Ids sent in the removal request. Includes all mobile ids in the request, regardless of whether they were successfully removed or not.
     #[serde(default, rename = "mobileIdCount")]
@@ -1111,7 +1112,7 @@ pub struct RemoveMobileDataStatus {
 }
 
 /// The status of the pair data removal from the destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemovePairDataStatus {
     /// The total count of pair ids sent in the removal request. Includes all pair ids in the request, regardless of whether they were successfully removed or not.
     #[serde(default, rename = "pairIdCount")]
@@ -1122,7 +1123,7 @@ pub struct RemovePairDataStatus {
 }
 
 /// The status of the ppid data removal from the destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemovePpidDataStatus {
     /// The total count of ppids sent in the removal request. Includes all ppids in the request, regardless of whether they were successfully removed or not.
     #[serde(default, rename = "ppidCount")]
@@ -1133,7 +1134,7 @@ pub struct RemovePpidDataStatus {
 }
 
 /// The status of the user data removal from the destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveUserDataStatus {
     /// The total count of audience members sent in the removal request. Includes all audience members in the request, regardless of whether they were successfully removed or not.
     #[serde(default, rename = "recordCount")]
@@ -1144,7 +1145,7 @@ pub struct RemoveUserDataStatus {
 }
 
 /// The status of the user id data removal from the destination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveUserIdDataStatus {
     /// The total count of audience members sent in the removal request. Includes all audience members in the request, regardless of whether they were successfully removed or not.
     #[serde(default, rename = "recordCount")]
@@ -1155,7 +1156,7 @@ pub struct RemoveUserIdDataStatus {
 }
 
 /// Represents a specific account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductAccount {
     /// Required. The ID of the account. For example, your Google Ads account ID.
     #[serde(default, rename = "accountId")]
@@ -1169,7 +1170,7 @@ pub struct ProductAccount {
 }
 
 /// The error count for a given error reason.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ErrorCount {
     /// The error reason of the failed records. // TODO: enum values: ["PROCESSING_ERROR_REASON_UNSPECIFIED", "PROCESSING_ERROR_REASON_INVALID_CUSTOM_VARIABLE", "PROCESSING_ERROR_REASON_CUSTOM_VARIABLE_NOT_ENABLED", "PROCESSING_ERROR_REASON_EVENT_TOO_OLD", "PROCESSING_ERROR_REASON_DENIED_CONSENT", "PROCESSING_ERROR_REASON_NO_CONSENT", "PROCESSING_ERROR_REASON_UNKNOWN_CONSENT", "PROCESSING_ERROR_REASON_DUPLICATE_GCLID", "PROCESSING_ERROR_REASON_DUPLICATE_TRANSACTION_ID", "PROCESSING_ERROR_REASON_INVALID_GBRAID", "PROCESSING_ERROR_REASON_INVALID_GCLID", "PROCESSING_ERROR_REASON_INVALID_MERCHANT_ID", "PROCESSING_ERROR_REASON_INVALID_WBRAID", "PROCESSING_ERROR_REASON_INTERNAL_ERROR", "PROCESSING_ERROR_REASON_DESTINATION_ACCOUNT_ENHANCED_CONVERSIONS_TERMS_NOT_SIGNED", "PROCESSING_ERROR_REASON_INVALID_EVENT", "PROCESSING_ERROR_REASON_INSUFFICIENT_MATCHED_TRANSACTIONS", "PROCESSING_ERROR_REASON_INSUFFICIENT_TRANSACTIONS", "PROCESSING_ERROR_REASON_INVALID_FORMAT", "PROCESSING_ERROR_REASON_DECRYPTION_ERROR", "PROCESSING_ERROR_REASON_DEK_DECRYPTION_ERROR", "PROCESSING_ERROR_REASON_INVALID_WIP", "PROCESSING_ERROR_REASON_INVALID_KEK", "PROCESSING_ERROR_REASON_WIP_AUTH_FAILED", "PROCESSING_ERROR_REASON_KEK_PERMISSION_DENIED", "PROCESSING_ERROR_REASON_AWS_AUTH_FAILED", "PROCESSING_ERROR_REASON_USER_IDENTIFIER_DECRYPTION_ERROR", "PROCESSING_ERROR_OPERATING_ACCOUNT_MISMATCH_FOR_AD_IDENTIFIER"]
     #[serde(default)]
@@ -1180,7 +1181,7 @@ pub struct ErrorCount {
 }
 
 /// The warning count for a given warning reason.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WarningCount {
     /// The warning reason. // TODO: enum values: ["PROCESSING_WARNING_REASON_UNSPECIFIED", "PROCESSING_WARNING_REASON_KEK_PERMISSION_DENIED", "PROCESSING_WARNING_REASON_DEK_DECRYPTION_ERROR", "PROCESSING_WARNING_REASON_DECRYPTION_ERROR", "PROCESSING_WARNING_REASON_WIP_AUTH_FAILED", "PROCESSING_WARNING_REASON_INVALID_WIP", "PROCESSING_WARNING_REASON_INVALID_KEK", "PROCESSING_WARNING_REASON_USER_IDENTIFIER_DECRYPTION_ERROR", "PROCESSING_WARNING_REASON_INTERNAL_ERROR", "PROCESSING_WARNING_REASON_AWS_AUTH_FAILED"]
     #[serde(default)]
@@ -1191,7 +1192,7 @@ pub struct WarningCount {
 }
 
 /// A bucket of any [event parameters related to an item](https://developers.google.com/analytics/devguides/collection/protocol/ga4/reference/events) to be included within the event that were not already specified using other structured fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ItemParameter {
     /// Required. The name of the parameter to use.
     #[serde(default, rename = "parameterName")]
@@ -1202,7 +1203,7 @@ pub struct ItemParameter {
 }
 
 /// Address information for the user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddressInfo {
     /// Required. Family (last) name of the user, all lowercase, with no punctuation, no leading or trailing whitespace, and hashed as SHA-256.
     #[serde(default, rename = "familyName")]

@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A request to determine whether the user has valid credentials. This method is used to limit the number of OAuth popups in the user interface. The user id is inferred from the API call context. If the data source has the Google+ authorization type, this method returns false, as it cannot be determined whether the credentials are already valid merely based on the user id.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckValidCredsRequest {}
 
 /// A response indicating whether the credentials exist and are valid.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckValidCredsResponse {
     /// If set to true, the credentials exist and are valid.
     #[serde(default, rename = "hasValidCreds")]
@@ -23,11 +24,11 @@ pub struct CheckValidCredsResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// A request to enroll a set of data sources so they are visible in the BigQuery UI''s Transfer tab.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnrollDataSourcesRequest {
     /// Data sources that are enrolled. It is required to provide at least one data source id.
     #[serde(default, rename = "dataSourceIds")]
@@ -35,7 +36,7 @@ pub struct EnrollDataSourcesRequest {
 }
 
 /// Returns list of supported data sources and their metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDataSourcesResponse {
     /// List of supported data sources and their transfer settings.
     #[serde(default, rename = "dataSources")]
@@ -46,7 +47,7 @@ pub struct ListDataSourcesResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -57,7 +58,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The returned list of pipelines in the project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTransferConfigsResponse {
     /// Output only. The next-pagination token. For multiple-page list results, this token can be used as the ListTransferConfigsRequest.page_token to request the next page of list results.
     #[serde(default, rename = "nextPageToken")]
@@ -68,7 +69,7 @@ pub struct ListTransferConfigsResponse {
 }
 
 /// The returned list transfer run messages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTransferLogsResponse {
     /// Output only. The next-pagination token. For multiple-page list results, this token can be used as the GetTransferRunLogRequest.page_token to request the next page of list results.
     #[serde(default, rename = "nextPageToken")]
@@ -79,7 +80,7 @@ pub struct ListTransferLogsResponse {
 }
 
 /// Response for the ListTransferResources RPC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTransferResourcesResponse {
     /// Output only. A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -90,7 +91,7 @@ pub struct ListTransferResourcesResponse {
 }
 
 /// The returned list of pipelines in the project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTransferRunsResponse {
     /// Output only. The next-pagination token. For multiple-page list results, this token can be used as the ListTransferRunsRequest.page_token to request the next page of list results.
     #[serde(default, rename = "nextPageToken")]
@@ -101,11 +102,11 @@ pub struct ListTransferRunsResponse {
 }
 
 /// Options customizing manual transfers schedule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManualSchedule {}
 
 /// A request to schedule transfer runs for a time range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScheduleTransferRunsRequest {
     /// Required. End time of the range of transfer runs. For example, "2017-05-30T00:00:00+00:00".
     #[serde(default, rename = "endTime")]
@@ -116,7 +117,7 @@ pub struct ScheduleTransferRunsRequest {
 }
 
 /// A response to schedule transfer runs for a time range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScheduleTransferRunsResponse {
     /// The transfer runs that were scheduled.
     #[serde(default)]
@@ -124,7 +125,7 @@ pub struct ScheduleTransferRunsResponse {
 }
 
 /// A request to start manual transfer runs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartManualTransferRunsRequest {
     /// A run_time timestamp for historical data files or reports that are scheduled to be transferred by the scheduled transfer run. requested_run_time must be a past time and cannot include future time values.
     #[serde(default, rename = "requestedRunTime")]
@@ -135,7 +136,7 @@ pub struct StartManualTransferRunsRequest {
 }
 
 /// A response to start manual transfer runs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StartManualTransferRunsResponse {
     /// The transfer runs that were created.
     #[serde(default)]
@@ -143,7 +144,7 @@ pub struct StartManualTransferRunsResponse {
 }
 
 /// A request to unenroll a set of data sources so they are no longer visible in the BigQuery UI''s Transfer tab.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnenrollDataSourcesRequest {
     /// Data sources that are unenrolled. It is required to provide at least one data source id.
     #[serde(default, rename = "dataSourceIds")]
@@ -151,7 +152,7 @@ pub struct UnenrollDataSourcesRequest {
 }
 
 /// Defines the properties and custom parameters for a data source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataSource {
     /// Indicates the type of authorization. // TODO: enum values: ["AUTHORIZATION_TYPE_UNSPECIFIED", "AUTHORIZATION_CODE", "GOOGLE_PLUS_AUTHORIZATION_CODE", "FIRST_PARTY_OAUTH"]
     #[serde(default, rename = "authorizationType")]
@@ -210,7 +211,7 @@ pub struct DataSource {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -230,7 +231,7 @@ pub struct Location {
 }
 
 /// Represents a data transfer configuration. A transfer configuration contains all metadata needed to perform a data transfer. For example, destination_dataset_id specifies where data should be stored. When a new transfer configuration is created, the specified destination_dataset_id is created when needed and shared with the appropriate data source service account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferConfig {
     /// The number of days to look back to automatically refresh the data. For example, if data_refresh_window_days = 10, then every day BigQuery reingests data for [today-10, today-1], rather than ingesting data for just [today-1]. Only valid if the data source supports the feature. Set the value to 0 to use the default value.
     #[serde(default, rename = "dataRefreshWindowDays")]
@@ -298,7 +299,7 @@ pub struct TransferConfig {
 }
 
 /// Represents a user facing message for a particular data transfer run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferMessage {
     /// Message text.
     #[serde(default, rename = "messageText")]
@@ -312,7 +313,7 @@ pub struct TransferMessage {
 }
 
 /// Resource(table/partition) that is being transferred.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferResource {
     /// Optional. Resource destination. // TODO: enum values: ["RESOURCE_DESTINATION_UNSPECIFIED", "RESOURCE_DESTINATION_BIGQUERY", "RESOURCE_DESTINATION_DATAPROC_METASTORE", "RESOURCE_DESTINATION_BIGLAKE_METASTORE", "RESOURCE_DESTINATION_BIGLAKE_REST_CATALOG", "RESOURCE_DESTINATION_BIGLAKE_HIVE_CATALOG"]
     #[serde(default)]
@@ -341,7 +342,7 @@ pub struct TransferResource {
 }
 
 /// A specification for a time range, this will request transfer runs with run_time between start_time (inclusive) and end_time (exclusive).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeRange {
     /// End time of the range of transfer runs. For example, "2017-05-30T00:00:00+00:00". The end_time must not be in the future. Creates transfer runs where run_time is in the range between start_time (inclusive) and end_time (exclusive).
     #[serde(default, rename = "endTime")]
@@ -352,7 +353,7 @@ pub struct TimeRange {
 }
 
 /// Represents a data transfer run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferRun {
     /// Output only. Data source id.
     #[serde(default, rename = "dataSourceId")]
@@ -402,7 +403,7 @@ pub struct TransferRun {
 }
 
 /// A parameter used to define custom fields in a data source definition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataSourceParameter {
     /// All possible values for the parameter.
     #[serde(default, rename = "allowedValues")]
@@ -458,7 +459,7 @@ pub struct DataSourceParameter {
 }
 
 /// Represents the encryption configuration for a transfer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptionConfiguration {
     /// The name of the KMS key used for encrypting BigQuery data.
     #[serde(default, rename = "kmsKeyName")]
@@ -466,7 +467,7 @@ pub struct EncryptionConfiguration {
 }
 
 /// Information about a user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserInfo {
     /// E-mail address of the user.
     #[serde(default)]
@@ -474,7 +475,7 @@ pub struct UserInfo {
 }
 
 /// Options customizing the data transfer schedule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScheduleOptions {
     /// If true, automatic scheduling of data transfer runs for this configuration will be disabled. The runs can be started on ad-hoc basis using StartManualTransferRuns API. When automatic scheduling is disabled, the TransferConfig.schedule field will be ignored.
     #[serde(default, rename = "disableAutoScheduling")]
@@ -488,7 +489,7 @@ pub struct ScheduleOptions {
 }
 
 /// V2 options customizing different types of data transfer schedule. This field supports existing time-based and manual transfer schedule. Also supports Event-Driven transfer schedule. ScheduleOptionsV2 cannot be used together with ScheduleOptions/Schedule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ScheduleOptionsV2 {
     /// Event driven transfer schedule options. If set, the transfer will be scheduled upon events arrial.
     #[serde(default, rename = "eventDrivenSchedule")]
@@ -502,7 +503,7 @@ pub struct ScheduleOptionsV2 {
 }
 
 /// Details about the hierarchy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HierarchyDetail {
     /// Optional. Partition details related to hierarchy.
     #[serde(default, rename = "partitionDetail")]
@@ -513,7 +514,7 @@ pub struct HierarchyDetail {
 }
 
 /// Basic information about a transfer run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferRunBrief {
     /// Optional. Run URI. Format projects/{project}/locations/{location}/transferConfigs/{config}/run/{run}
     #[serde(default)]
@@ -524,7 +525,7 @@ pub struct TransferRunBrief {
 }
 
 /// Status details of the resource being transferred.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferResourceStatusDetail {
     /// Output only. Percentage of the transfer completed. Valid values: 0-100.
     #[serde(default, rename = "completedPercentage")]
@@ -541,7 +542,7 @@ pub struct TransferResourceStatusDetail {
 }
 
 /// Represents preferences for sending email notifications for transfer run events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmailPreferences {
     /// If true, email notifications will be sent on transfer run failures.
     #[serde(default, rename = "enableFailureEmail")]
@@ -549,7 +550,7 @@ pub struct EmailPreferences {
 }
 
 /// Options customizing EventDriven transfers schedule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventDrivenSchedule {
     /// Pub/Sub subscription name used to receive events. Only Google Cloud Storage data source support this option. Format: projects/{project}/subscriptions/{subscription}
     #[serde(default, rename = "pubsubSubscription")]
@@ -557,7 +558,7 @@ pub struct EventDrivenSchedule {
 }
 
 /// Options customizing the time based transfer schedule. Options are migrated from the original ScheduleOptions message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeBasedSchedule {
     /// Defines time to stop scheduling transfer runs. A transfer run cannot be scheduled at or after the end time. The end time can be changed at any moment.
     #[serde(default, rename = "endTime")]
@@ -571,7 +572,7 @@ pub struct TimeBasedSchedule {
 }
 
 /// Partition details related to hierarchy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartitionDetail {
     /// Optional. Name of the table which has the partitions.
     #[serde(default)]
@@ -579,7 +580,7 @@ pub struct PartitionDetail {
 }
 
 /// Table details related to hierarchy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableDetail {
     /// Optional. Total number of partitions being tracked within the table.
     #[serde(default, rename = "partitionCount")]
@@ -587,7 +588,7 @@ pub struct TableDetail {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -601,7 +602,7 @@ pub struct Status {
 }
 
 /// Status summary of the resource being transferred.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferStatusSummary {
     /// Optional. List of transfer status metrics.
     #[serde(default)]
@@ -612,7 +613,7 @@ pub struct TransferStatusSummary {
 }
 
 /// Metrics for tracking the transfer status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TransferStatusMetric {
     /// Optional. Number of units transferred successfully.
     #[serde(default)]

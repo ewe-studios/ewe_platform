@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Response to the QueryActivity method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicyanalyzerV1QueryActivityResponse {
     /// The set of activities that match the filter included in the request.
     #[serde(default)]
@@ -22,7 +23,7 @@ pub struct GoogleCloudPolicyanalyzerV1QueryActivityResponse {
 }
 
 /// Represents Activity on a GCP resource over specific observation period.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicyanalyzerV1Activity {
     /// A struct of custom fields to explain the activity.
     #[serde(default)]
@@ -39,7 +40,7 @@ pub struct GoogleCloudPolicyanalyzerV1Activity {
 }
 
 /// Represents data observation period.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudPolicyanalyzerV1ObservationPeriod {
     /// The observation end time. The time in this timestamp is always 07:00:00Z.
     #[serde(default, rename = "endTime")]

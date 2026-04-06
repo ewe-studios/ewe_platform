@@ -8,18 +8,19 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request message for CancelSubmission.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelSubmissionRequest {}
 
 /// Response message for CancelSubmission.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelSubmissionResponse {}
 
 /// Response message for FetchItemStatus.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchItemStatusResponse {
     /// Output only. The ID of the item.
     #[serde(default, rename = "itemId")]
@@ -48,7 +49,7 @@ pub struct FetchItemStatusResponse {
 }
 
 /// Request message for PublishItem.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublishItemRequest {
     /// Optional. Additional deploy information including the desired initial percentage rollout. Defaults to the current value saved in the developer dashboard if unset.
     #[serde(default, rename = "deployInfos")]
@@ -62,7 +63,7 @@ pub struct PublishItemRequest {
 }
 
 /// Response message for PublishItem.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublishItemResponse {
     /// Output only. The ID of the item.
     #[serde(default, rename = "itemId")]
@@ -76,7 +77,7 @@ pub struct PublishItemResponse {
 }
 
 /// Request message for SetPublishedDeployPercentage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetPublishedDeployPercentageRequest {
     /// Required. Unscaled percentage value for the publised revision (nonnegative number between 0 and 100). It must be larger than the existing target percentage.
     #[serde(default, rename = "deployPercentage")]
@@ -84,15 +85,15 @@ pub struct SetPublishedDeployPercentageRequest {
 }
 
 /// Response message for SetPublishedDeployPercentage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetPublishedDeployPercentageResponse {}
 
 /// Request message for UploadItemPackage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadItemPackageRequest {}
 
 /// Response message for UploadItemPackage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadItemPackageResponse {
     /// The extension version provided in the manifest of the uploaded package. This will not be set if the upload is still in progress (upload_state is UPLOAD_IN_PROGRESS).
     #[serde(default, rename = "crxVersion")]
@@ -109,7 +110,7 @@ pub struct UploadItemPackageResponse {
 }
 
 /// Details on the status of an item revision.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ItemRevisionStatus {
     /// Details on the package of the item
     #[serde(default, rename = "distributionChannels")]
@@ -120,7 +121,7 @@ pub struct ItemRevisionStatus {
 }
 
 /// Deployment information for a specific release channel. Used in requests to update deployment parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeployInfo {
     /// Required. The current deploy percentage for the release channel (nonnegative number between 0 and 100).
     #[serde(default, rename = "deployPercentage")]
@@ -128,7 +129,7 @@ pub struct DeployInfo {
 }
 
 /// Deployment information for a specific release channel
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DistributionChannel {
     /// The extension version provided in the manifest of the uploaded package.
     #[serde(default, rename = "crxVersion")]

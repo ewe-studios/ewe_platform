@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request message for deleting an Execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2CancelExecutionRequest {
     /// A system-generated fingerprint for this version of the resource. This may be used to detect modification conflict during updates.
     #[serde(default)]
@@ -22,11 +23,11 @@ pub struct GoogleCloudRunV2CancelExecutionRequest {
 }
 
 /// Build the source using Docker. This means the source has a Dockerfile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2DockerBuild {}
 
 /// Request message for exporting Cloud Run image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2ExportImageRequest {
     /// Required. The export destination url (the Artifact Registry repo).
     #[serde(default, rename = "destinationRepo")]
@@ -34,7 +35,7 @@ pub struct GoogleCloudRunV2ExportImageRequest {
 }
 
 /// ExportImageResponse contains an operation Id to track the image export operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2ExportImageResponse {
     /// An operation ID used to track the status of image exports tied to the original pod ID in the request.
     #[serde(default, rename = "operationId")]
@@ -42,7 +43,7 @@ pub struct GoogleCloudRunV2ExportImageResponse {
 }
 
 /// ExportStatusResponse contains the status of image export operation, with the status of each image export job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2ExportStatusResponse {
     /// The status of each image export job.
     #[serde(default, rename = "imageExportStatuses")]
@@ -57,7 +58,7 @@ pub struct GoogleCloudRunV2ExportStatusResponse {
 }
 
 /// Response message containing a list of Executions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2ListExecutionsResponse {
     /// The resulting list of Executions.
     #[serde(default)]
@@ -68,7 +69,7 @@ pub struct GoogleCloudRunV2ListExecutionsResponse {
 }
 
 /// Response message containing a list of Instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2ListInstancesResponse {
     /// The resulting list of Instances.
     #[serde(default)]
@@ -79,7 +80,7 @@ pub struct GoogleCloudRunV2ListInstancesResponse {
 }
 
 /// Response message containing a list of Jobs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2ListJobsResponse {
     /// The resulting list of Jobs.
     #[serde(default)]
@@ -90,7 +91,7 @@ pub struct GoogleCloudRunV2ListJobsResponse {
 }
 
 /// Response message containing a list of Revisions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2ListRevisionsResponse {
     /// A token indicating there are more items than page_size. Use it in the next ListRevisions request to continue.
     #[serde(default, rename = "nextPageToken")]
@@ -101,7 +102,7 @@ pub struct GoogleCloudRunV2ListRevisionsResponse {
 }
 
 /// Response message containing a list of Services.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2ListServicesResponse {
     /// A token indicating there are more items than page_size. Use it in the next ListServices request to continue.
     #[serde(default, rename = "nextPageToken")]
@@ -115,7 +116,7 @@ pub struct GoogleCloudRunV2ListServicesResponse {
 }
 
 /// Response message containing a list of Tasks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2ListTasksResponse {
     /// A token indicating there are more items than page_size. Use it in the next ListTasks request to continue.
     #[serde(default, rename = "nextPageToken")]
@@ -126,7 +127,7 @@ pub struct GoogleCloudRunV2ListTasksResponse {
 }
 
 /// Response message containing a list of WorkerPools.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2ListWorkerPoolsResponse {
     /// A token indicating there are more items than page_size. Use it in the next ListWorkerPools request to continue.
     #[serde(default, rename = "nextPageToken")]
@@ -137,7 +138,7 @@ pub struct GoogleCloudRunV2ListWorkerPoolsResponse {
 }
 
 /// Metadata represents the JSON encoded generated customer metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2Metadata {
     /// JSON encoded Google-generated Customer Metadata for a given resource/project.
     #[serde(default)]
@@ -145,7 +146,7 @@ pub struct GoogleCloudRunV2Metadata {
 }
 
 /// Request message to create a new Execution of a Job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2RunJobRequest {
     /// A system-generated fingerprint for this version of the resource. May be used to detect modification conflict during updates.
     #[serde(default)]
@@ -159,7 +160,7 @@ pub struct GoogleCloudRunV2RunJobRequest {
 }
 
 /// Request message for starting an Instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2StartInstanceRequest {
     /// Optional. A system-generated fingerprint for this version of the resource. This may be used to detect modification conflict during updates.
     #[serde(default)]
@@ -170,7 +171,7 @@ pub struct GoogleCloudRunV2StartInstanceRequest {
 }
 
 /// Request message for deleting an Instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2StopInstanceRequest {
     /// Optional. A system-generated fingerprint for this version of the resource. This may be used to detect modification conflict during updates.
     #[serde(default)]
@@ -181,7 +182,7 @@ pub struct GoogleCloudRunV2StopInstanceRequest {
 }
 
 /// Request message for submitting a Build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2SubmitBuildRequest {
     /// Build the source using Buildpacks.
     #[serde(default, rename = "buildpackBuild")]
@@ -216,7 +217,7 @@ pub struct GoogleCloudRunV2SubmitBuildRequest {
 }
 
 /// Response message for submitting a Build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2SubmitBuildResponse {
     /// URI of the base builder image in Artifact Registry being used in the build. Used to opt into automatic base image updates.
     #[serde(default, rename = "baseImageUri")]
@@ -230,7 +231,7 @@ pub struct GoogleCloudRunV2SubmitBuildResponse {
 }
 
 /// Metadata for build operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1BuildOperationMetadata {
     /// The build that the operation is tracking.
     #[serde(default)]
@@ -238,7 +239,7 @@ pub struct GoogleDevtoolsCloudbuildV1BuildOperationMetadata {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -249,7 +250,7 @@ pub struct GoogleIamV1SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -257,7 +258,7 @@ pub struct GoogleIamV1TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -265,7 +266,7 @@ pub struct GoogleIamV1TestIamPermissionsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -279,7 +280,7 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// The request message for Operations.WaitOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningWaitOperationRequest {
     /// The maximum duration to wait before timing out. If left blank, the wait will be at most the time permitted by the underlying HTTP/RPC protocol. If RPC context deadline is also specified, the shorter one will be used.
     #[serde(default)]
@@ -287,15 +288,15 @@ pub struct GoogleLongrunningWaitOperationRequest {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// This is proto2''s version of MessageSet. DEPRECATED: DO NOT USE FOR NEW FIELDS. If you are using editions or proto2, please make your own extendable messages for your use case. If you are using proto3, please use Any instead. MessageSet was the implementation of extensions for proto1. When proto2 was introduced, extensions were implemented as a first-class feature. This schema for MessageSet was meant to be a "bridge" solution to migrate MessageSet-bearing messages from proto1 to proto2. This schema has been open-sourced only to facilitate the migration of Google products with MessageSet-bearing messages to open-source environments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Proto2BridgeMessageSet {}
 
 /// The status of an image export job.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2ImageExportStatus {
     /// Output only. Has the image export job finished (regardless of successful or failure). // TODO: enum values: ["EXPORT_JOB_STATE_UNSPECIFIED", "IN_PROGRESS", "FINISHED"]
     #[serde(default, rename = "exportJobState")]
@@ -312,7 +313,7 @@ pub struct GoogleCloudRunV2ImageExportStatus {
 }
 
 /// Execution represents the configuration of a single execution. A execution an immutable resource that references a container image which is run to completion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2Execution {
     /// Output only. Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects.
     #[serde(default)]
@@ -407,7 +408,7 @@ pub struct GoogleCloudRunV2Execution {
 }
 
 /// A Cloud Run Instance represents a single group of containers running in a region.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2Instance {
     #[serde(default)]
     pub annotations: ::core::option::Option<serde_json::Value>,
@@ -524,7 +525,7 @@ pub struct GoogleCloudRunV2Instance {
 }
 
 /// Job represents the configuration of a single job, which references a container image that is run to completion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2Job {
     /// Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects. Cloud Run API v2 does not support annotations with run.googleapis.com, cloud.googleapis.com, serving.knative.dev, or autoscaling.knative.dev namespaces, and they will be rejected on new resources. All system annotations in v1 now have a corresponding field in v2 Job. This field follows Kubernetes annotations'' namespacing, limits, and rules.
     #[serde(default)]
@@ -607,7 +608,7 @@ pub struct GoogleCloudRunV2Job {
 }
 
 /// A Revision is an immutable snapshot of code and configuration. A Revision references a container image. Revisions are only created by updates to its parent Service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2Revision {
     /// Output only. Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects.
     #[serde(default)]
@@ -720,7 +721,7 @@ pub struct GoogleCloudRunV2Revision {
 }
 
 /// Service acts as a top-level container that manages a set of configurations and revision templates which implement a network service. Service exists to provide a singular abstraction which can be access controlled, reasoned about, and which encapsulates software lifecycle decisions such as rollout policy and team resource ownership.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2Service {
     /// Optional. Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects. Cloud Run API v2 does not support annotations with run.googleapis.com, cloud.googleapis.com, serving.knative.dev, or autoscaling.knative.dev namespaces, and they will be rejected in new resources. All system annotations in v1 now have a corresponding field in v2 Service. This field follows Kubernetes annotations'' namespacing, limits, and rules.
     #[serde(default)]
@@ -840,7 +841,7 @@ pub struct GoogleCloudRunV2Service {
 }
 
 /// Task represents a single run of a container to completion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2Task {
     /// Output only. Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects.
     #[serde(default)]
@@ -944,7 +945,7 @@ pub struct GoogleCloudRunV2Task {
 }
 
 /// WorkerPool acts as a top-level container that manages a set of configurations and revision templates which implement a pull-based workload. WorkerPool exists to provide a singular abstraction which can be access controlled, reasoned about, and which encapsulates software lifecycle decisions such as rollout policy and team resource ownership.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2WorkerPool {
     /// Optional. Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects. Cloud Run API v2 does not support annotations with run.googleapis.com, cloud.googleapis.com, serving.knative.dev, or autoscaling.knative.dev namespaces, and they will be rejected in new resources. All system annotations in v1 now have a corresponding field in v2 WorkerPool. This field follows Kubernetes annotations'' namespacing, limits, and rules.
     #[serde(default)]
@@ -1040,7 +1041,7 @@ pub struct GoogleCloudRunV2WorkerPool {
 }
 
 /// RunJob Overrides that contains Execution fields to be overridden.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2Overrides {
     /// Per container override specification.
     #[serde(default, rename = "containerOverrides")]
@@ -1055,7 +1056,7 @@ pub struct GoogleCloudRunV2Overrides {
 }
 
 /// Build the source using Buildpacks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2BuildpacksBuild {
     /// Optional. The base image to use for the build.
     #[serde(default, rename = "baseImage")]
@@ -1081,7 +1082,7 @@ pub struct GoogleCloudRunV2BuildpacksBuild {
 }
 
 /// Location of the source in an archive file in Google Cloud Storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2StorageSource {
     /// Required. Google Cloud Storage bucket containing the source (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)).
     #[serde(default)]
@@ -1095,7 +1096,7 @@ pub struct GoogleCloudRunV2StorageSource {
 }
 
 /// A build resource in the Cloud Build API. At a high level, a Build describes where to find source code, how to build it (for example, the builder image to run on the source), and where to store the built artifacts. Fields can include the following variables, which will be expanded when the build is created: - $PROJECT_ID: the project ID of the build. - $PROJECT_NUMBER: the project number of the build. - $LOCATION: the location/region of the build. - $BUILD_ID: the autogenerated ID of the build. - $REPO_NAME: the source repository name specified by RepoSource. - $BRANCH_NAME: the branch name specified by RepoSource. - $TAG_NAME: the tag name specified by RepoSource. - $REVISION_ID or $COMMIT_SHA: the commit SHA specified by RepoSource or resolved from the specified branch or tag. - $SHORT_SHA: first 7 characters of $REVISION_ID or $COMMIT_SHA.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1Build {
     /// Output only. Describes this build''s approval configuration, status, and result.
     #[serde(default)]
@@ -1193,7 +1194,7 @@ pub struct GoogleDevtoolsCloudbuildV1Build {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -1210,7 +1211,7 @@ pub struct GoogleIamV1Policy {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -1230,7 +1231,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// Wire-format for a Status object
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UtilStatusProto {
     /// copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional int32 canonical_code = 6;
     #[serde(default, rename = "canonicalCode")]
@@ -1250,7 +1251,7 @@ pub struct UtilStatusProto {
 }
 
 /// ContainerStatus holds the information of container name and image digest value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2ContainerStatus {
     /// ImageDigest holds the resolved digest for the image specified and resolved during the creation of Revision. This field holds the digest value regardless of whether a tag or digest was originally specified in the Container object.
     #[serde(default, rename = "imageDigest")]
@@ -1261,7 +1262,7 @@ pub struct GoogleCloudRunV2ContainerStatus {
 }
 
 /// Reference to an Execution. Use /Executions.GetExecution with the given name to get full execution including the latest status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2ExecutionReference {
     /// Status for the execution completion. // TODO: enum values: ["COMPLETION_STATUS_UNSPECIFIED", "EXECUTION_SUCCEEDED", "EXECUTION_FAILED", "EXECUTION_RUNNING", "EXECUTION_PENDING", "EXECUTION_CANCELLED"]
     #[serde(default, rename = "completionStatus")]
@@ -1281,7 +1282,7 @@ pub struct GoogleCloudRunV2ExecutionReference {
 }
 
 /// ExecutionTemplate describes the data an execution should have when created from a template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2ExecutionTemplate {
     /// Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects. Cloud Run API v2 does not support annotations with run.googleapis.com, cloud.googleapis.com, serving.knative.dev, or autoscaling.knative.dev namespaces, and they will be rejected. All system annotations in v1 now have a corresponding field in v2 ExecutionTemplate. This field follows Kubernetes annotations'' namespacing, limits, and rules.
     #[serde(default)]
@@ -1307,7 +1308,7 @@ pub struct GoogleCloudRunV2ExecutionTemplate {
 }
 
 /// Effective settings for the current revision
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2RevisionScalingStatus {
     /// The current number of min instances provisioned for this revision.
     #[serde(default, rename = "desiredMinInstanceCount")]
@@ -1315,7 +1316,7 @@ pub struct GoogleCloudRunV2RevisionScalingStatus {
 }
 
 /// Describes the Build step of the function that builds a container from the given source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2BuildConfig {
     /// Optional. The base image used to build the function.
     #[serde(default, rename = "baseImage")]
@@ -1347,7 +1348,7 @@ pub struct GoogleCloudRunV2BuildConfig {
 }
 
 /// Settings for multi-region deployment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2MultiRegionSettings {
     /// Optional. System-generated unique id for the multi-region Service.
     #[serde(default, rename = "multiRegionId")]
@@ -1358,7 +1359,7 @@ pub struct GoogleCloudRunV2MultiRegionSettings {
 }
 
 /// Scaling settings applied at the service level rather than at the revision level.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2ServiceScaling {
     /// Optional. total instance count for the service in manual scaling mode. This number of instances is divided among all revisions with specified traffic based on the percent of traffic they are receiving.
     #[serde(default, rename = "manualInstanceCount")]
@@ -1375,7 +1376,7 @@ pub struct GoogleCloudRunV2ServiceScaling {
 }
 
 /// RevisionTemplate describes the data a revision should have when created from a template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2RevisionTemplate {
     /// Optional. Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects. Cloud Run API v2 does not support annotations with run.googleapis.com, cloud.googleapis.com, serving.knative.dev, or autoscaling.knative.dev namespaces, and they will be rejected. All system annotations in v1 now have a corresponding field in v2 RevisionTemplate. This field follows Kubernetes annotations'' namespacing, limits, and rules.
     #[serde(default)]
@@ -1443,7 +1444,7 @@ pub struct GoogleCloudRunV2RevisionTemplate {
 }
 
 /// Holds a single traffic routing entry for the Service. Allocations can be done to a specific Revision name, or pointing to the latest Ready Revision.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2TrafficTarget {
     /// Specifies percent of the traffic to this Revision. This defaults to zero if unspecified.
     #[serde(default)]
@@ -1460,7 +1461,7 @@ pub struct GoogleCloudRunV2TrafficTarget {
 }
 
 /// Represents the observed state of a single TrafficTarget entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2TrafficTargetStatus {
     /// Specifies percent of the traffic to this Revision.
     #[serde(default)]
@@ -1480,7 +1481,7 @@ pub struct GoogleCloudRunV2TrafficTargetStatus {
 }
 
 /// Result of a task attempt.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2TaskAttemptResult {
     /// Output only. The exit code of this attempt. This may be unset if the container was unable to exit cleanly with a code due to some other failure. See status field for possible failure details. At most one of exit_code or term_signal will be set.
     #[serde(default, rename = "exitCode")]
@@ -1494,7 +1495,7 @@ pub struct GoogleCloudRunV2TaskAttemptResult {
 }
 
 /// Settings for Binary Authorization feature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2BinaryAuthorization {
     /// Optional. If present, indicates to use Breakglass using this justification. If use_default is False, then it must be empty. For more information on breakglass, see https://cloud.google.com/binary-authorization/docs/using-breakglass
     #[serde(default, rename = "breakglassJustification")]
@@ -1508,7 +1509,7 @@ pub struct GoogleCloudRunV2BinaryAuthorization {
 }
 
 /// Defines a status condition for a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2Condition {
     /// Output only. A reason for the execution condition. // TODO: enum values: ["EXECUTION_REASON_UNDEFINED", "JOB_STATUS_SERVICE_POLLING_ERROR", "NON_ZERO_EXIT_CODE", "CANCELLED", "CANCELLING", "DELETED", "DELAYED_START_PENDING"]
     #[serde(default, rename = "executionReason")]
@@ -1537,7 +1538,7 @@ pub struct GoogleCloudRunV2Condition {
 }
 
 /// Represents the observed state of a single InstanceSplit entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2InstanceSplitStatus {
     /// Specifies percent of the instance split to this Revision.
     #[serde(default)]
@@ -1551,7 +1552,7 @@ pub struct GoogleCloudRunV2InstanceSplitStatus {
 }
 
 /// Holds a single instance split entry for the Worker. Allocations can be done to a specific Revision name, or pointing to the latest Ready Revision.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2InstanceSplit {
     /// Specifies percent of the instance split to this Revision. This defaults to zero if unspecified.
     #[serde(default)]
@@ -1565,7 +1566,7 @@ pub struct GoogleCloudRunV2InstanceSplit {
 }
 
 /// Worker pool scaling settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2WorkerPoolScaling {
     /// Optional. The total number of instances in manual scaling mode.
     #[serde(default, rename = "manualInstanceCount")]
@@ -1573,7 +1574,7 @@ pub struct GoogleCloudRunV2WorkerPoolScaling {
 }
 
 /// WorkerPoolRevisionTemplate describes the data a worker pool revision should have when created from a template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2WorkerPoolRevisionTemplate {
     /// Optional. Unstructured key value map that may be set by external tools to store and arbitrary metadata. They are not queryable and should be preserved when modifying objects. Cloud Run API v2 does not support annotations with run.googleapis.com, cloud.googleapis.com, serving.knative.dev, or autoscaling.knative.dev namespaces, and they will be rejected. All system annotations in v1 now have a corresponding field in v2 WorkerPoolRevisionTemplate. This field follows Kubernetes annotations'' namespacing, limits, and rules.
     #[serde(default)]
@@ -1623,7 +1624,7 @@ pub struct GoogleCloudRunV2WorkerPoolRevisionTemplate {
 }
 
 /// Per-container override specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2ContainerOverride {
     /// Optional. Arguments to the entrypoint. Will replace existing args for override.
     #[serde(default)]
@@ -1640,7 +1641,7 @@ pub struct GoogleCloudRunV2ContainerOverride {
 }
 
 /// BuildApproval describes a build''s approval configuration, state, and result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1BuildApproval {
     /// Output only. Configuration for manual approval of this build.
     #[serde(default)]
@@ -1654,7 +1655,7 @@ pub struct GoogleDevtoolsCloudbuildV1BuildApproval {
 }
 
 /// Artifacts produced by a build that should be uploaded upon successful completion of all build steps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1Artifacts {
     /// Optional. A list of generic artifacts to be uploaded to Artifact Registry upon successful completion of all build steps. If any artifacts fail to be pushed, the build is marked FAILURE.
     #[serde(default, rename = "genericArtifacts")]
@@ -1686,7 +1687,7 @@ pub struct GoogleDevtoolsCloudbuildV1Artifacts {
 }
 
 /// Secrets and secret environment variables.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1Secrets {
     /// Secrets encrypted with KMS key and the associated secret environment variable.
     #[serde(default)]
@@ -1698,7 +1699,7 @@ pub struct GoogleDevtoolsCloudbuildV1Secrets {
 }
 
 /// A dependency that the Cloud Build worker will fetch before executing user steps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1Dependency {
     /// If set to true disable all dependency fetching (ignoring the default source as well).
     #[serde(default)]
@@ -1713,7 +1714,7 @@ pub struct GoogleDevtoolsCloudbuildV1Dependency {
 }
 
 /// A fatal problem encountered during the execution of the build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1FailureInfo {
     /// Explains the failure issue in more detail using hard-coded text.
     #[serde(default)]
@@ -1724,7 +1725,7 @@ pub struct GoogleDevtoolsCloudbuildV1FailureInfo {
 }
 
 /// GitConfig is a configuration for git operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1GitConfig {
     /// Configuration for HTTP related git operations.
     #[serde(default)]
@@ -1732,7 +1733,7 @@ pub struct GoogleDevtoolsCloudbuildV1GitConfig {
 }
 
 /// Optional arguments to enable specific features of builds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1BuildOptions {
     /// Option to include built-in and custom substitutions as env variables for all build steps.
     #[serde(default, rename = "automapSubstitutions")]
@@ -1788,7 +1789,7 @@ pub struct GoogleDevtoolsCloudbuildV1BuildOptions {
 }
 
 /// Artifacts created by the build pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1Results {
     /// Path to the artifact manifest for non-container artifacts uploaded to Cloud Storage. Only populated when artifacts are uploaded to Cloud Storage.
     #[serde(default, rename = "artifactManifest")]
@@ -1831,7 +1832,7 @@ pub struct GoogleDevtoolsCloudbuildV1Results {
 }
 
 /// Pairs a set of secret environment variables containing encrypted values with the Cloud KMS key to use to decrypt the value. Note: Use kmsKeyName with available_secrets instead of using kmsKeyName with secret. For instructions see: https://cloud.google.com/cloud-build/docs/securing-builds/use-encrypted-credentials.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1Secret {
     /// Cloud KMS key name to use to decrypt these envs.
     #[serde(default, rename = "kmsKeyName")]
@@ -1842,7 +1843,7 @@ pub struct GoogleDevtoolsCloudbuildV1Secret {
 }
 
 /// Location of the source in a supported storage service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1Source {
     /// Optional. If provided, get the source from this 2nd-gen Google Cloud Build repository resource.
     #[serde(default, rename = "connectedRepository")]
@@ -1867,7 +1868,7 @@ pub struct GoogleDevtoolsCloudbuildV1Source {
 }
 
 /// Provenance of the source. Ways to find the original source, or verify that some source was used for this build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1SourceProvenance {
     /// Output only. Hash(es) of the build source, which can be used to verify that the original source integrity was maintained in the build. Note that FileHashes will only be populated if BuildOptions has requested a SourceProvenanceHash. The keys to this map are file paths used as build source and the values contain the hash values for those files. If the build source came in a single package such as a gzipped tarfile (.tar.gz), the FileHash will be for the single path to that file.
     #[serde(default, rename = "fileHashes")]
@@ -1892,7 +1893,7 @@ pub struct GoogleDevtoolsCloudbuildV1SourceProvenance {
 }
 
 /// A step in the build pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1BuildStep {
     /// Allow this build step to fail without failing the entire build if and only if the exit code is one of the specified codes. If allow_failure is also specified, this field will take precedence.
     #[serde(default, rename = "allowExitCodes")]
@@ -1951,7 +1952,7 @@ pub struct GoogleDevtoolsCloudbuildV1BuildStep {
 }
 
 /// A non-fatal problem encountered during the execution of the build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1Warning {
     /// The priority for this warning. // TODO: enum values: ["PRIORITY_UNSPECIFIED", "INFO", "WARNING", "ALERT"]
     #[serde(default)]
@@ -1962,7 +1963,7 @@ pub struct GoogleDevtoolsCloudbuildV1Warning {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -1973,7 +1974,7 @@ pub struct GoogleIamV1AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -1987,7 +1988,7 @@ pub struct GoogleIamV1Binding {
 }
 
 /// TaskTemplate describes the data a task should have when created from a template.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2TaskTemplate {
     /// Holds the single container that defines the unit of execution for this task.
     #[serde(default)]
@@ -2022,7 +2023,7 @@ pub struct GoogleCloudRunV2TaskTemplate {
 }
 
 /// Settings for revision-level scaling settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2RevisionScaling {
     /// Optional. Determines a threshold for concurrency utilization before scaling begins. Accepted values are between 0.1 and 0.95 (inclusive) or 0.0 to disable concurrency utilization as threshold for scaling. CPU and concurrency scaling cannot both be disabled.
     #[serde(default, rename = "concurrencyUtilization")]
@@ -2039,7 +2040,7 @@ pub struct GoogleCloudRunV2RevisionScaling {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -2053,7 +2054,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// Settings for Cloud Service Mesh. For more information see https://cloud.google.com/service-mesh/docs/overview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2ServiceMesh {
     /// The Mesh resource name. Format: projects/{project}/locations/global/meshes/{mesh}, where {project} can be project id or number.
     #[serde(default)]
@@ -2061,7 +2062,7 @@ pub struct GoogleCloudRunV2ServiceMesh {
 }
 
 /// ApprovalConfig describes configuration for manual approval of a build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1ApprovalConfig {
     /// Whether or not approval is needed. If this is set on a build, it will become pending when created, and will need to be explicitly approved to start.
     #[serde(default, rename = "approvalRequired")]
@@ -2069,7 +2070,7 @@ pub struct GoogleDevtoolsCloudbuildV1ApprovalConfig {
 }
 
 /// ApprovalResult describes the decision and associated metadata of a manual approval of a build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1ApprovalResult {
     /// Output only. The time when the approval decision was made.
     #[serde(default, rename = "approvalTime")]
@@ -2089,7 +2090,7 @@ pub struct GoogleDevtoolsCloudbuildV1ApprovalResult {
 }
 
 /// Generic artifact to upload to Artifact Registry upon successful completion of all build steps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1GenericArtifact {
     /// Required. Path to the generic artifact in the build''s workspace to be uploaded to Artifact Registry.
     #[serde(default)]
@@ -2100,7 +2101,7 @@ pub struct GoogleDevtoolsCloudbuildV1GenericArtifact {
 }
 
 /// Go module to upload to Artifact Registry upon successful completion of all build steps. A module refers to all dependencies in a go.mod file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1GoModule {
     /// Optional. The Go module''s "module path". e.g. example.com/foo/v2
     #[serde(default, rename = "modulePath")]
@@ -2123,7 +2124,7 @@ pub struct GoogleDevtoolsCloudbuildV1GoModule {
 }
 
 /// A Maven artifact to upload to Artifact Registry upon successful completion of all build steps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1MavenArtifact {
     /// Maven artifactId value used when uploading the artifact to Artifact Registry.
     #[serde(default, rename = "artifactId")]
@@ -2146,7 +2147,7 @@ pub struct GoogleDevtoolsCloudbuildV1MavenArtifact {
 }
 
 /// Npm package to upload to Artifact Registry upon successful completion of all build steps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1NpmPackage {
     /// Optional. Path to the package.json. e.g. workspace/path/to/package Only one of archive or package_path can be specified.
     #[serde(default, rename = "packagePath")]
@@ -2157,7 +2158,7 @@ pub struct GoogleDevtoolsCloudbuildV1NpmPackage {
 }
 
 /// Files in the workspace to upload to Cloud Storage upon successful completion of all build steps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1ArtifactObjects {
     /// Cloud Storage bucket and optional object path, in the form "gs://bucket/path/to/somewhere/". (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)). Files in the workspace matching any path pattern will be uploaded to Cloud Storage with this location as a prefix.
     #[serde(default)]
@@ -2171,7 +2172,7 @@ pub struct GoogleDevtoolsCloudbuildV1ArtifactObjects {
 }
 
 /// OCI image to upload to Artifact Registry upon successful completion of all build steps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1Oci {
     /// Required. Path on the local file system where to find the container to upload. e.g. /workspace/my-image.tar
     #[serde(default)]
@@ -2185,7 +2186,7 @@ pub struct GoogleDevtoolsCloudbuildV1Oci {
 }
 
 /// Python package to upload to Artifact Registry upon successful completion of all build steps. A package can encapsulate multiple objects to be uploaded to a single repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1PythonPackage {
     /// Path globs used to match files in the build''s workspace. For Python/ Twine, this is usually dist/*, and sometimes additionally an .asc file.
     #[serde(default)]
@@ -2196,7 +2197,7 @@ pub struct GoogleDevtoolsCloudbuildV1PythonPackage {
 }
 
 /// Pairs a set of secret environment variables mapped to encrypted values with the Cloud KMS key to use to decrypt the value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1InlineSecret {
     /// Map of environment variable name to its encrypted value. Secret environment variables must be unique across all of a build''s secrets, and must be used by at least one build step. Values can be at most 64 KB in size. There can be at most 100 secret values across all of a build''s secrets.
     #[serde(default, rename = "envMap")]
@@ -2207,7 +2208,7 @@ pub struct GoogleDevtoolsCloudbuildV1InlineSecret {
 }
 
 /// Pairs a secret environment variable with a SecretVersion in Secret Manager.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1SecretManagerSecret {
     /// Environment variable name to associate with the secret. Secret environment variables must be unique across all of a build''s secrets, and must be used by at least one build step.
     #[serde(default)]
@@ -2218,7 +2219,7 @@ pub struct GoogleDevtoolsCloudbuildV1SecretManagerSecret {
 }
 
 /// Represents a generic artifact as a build dependency.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1GenericArtifactDependency {
     /// Required. Where the artifact files should be placed on the worker.
     #[serde(default, rename = "destPath")]
@@ -2229,7 +2230,7 @@ pub struct GoogleDevtoolsCloudbuildV1GenericArtifactDependency {
 }
 
 /// Represents a git repository as a build dependency.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1GitSourceDependency {
     /// Optional. How much history should be fetched for the build (default 1, -1 for all history).
     #[serde(default)]
@@ -2249,7 +2250,7 @@ pub struct GoogleDevtoolsCloudbuildV1GitSourceDependency {
 }
 
 /// HttpConfig is a configuration for HTTP related git operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1HttpConfig {
     /// SecretVersion resource of the HTTP proxy URL. The Service Account used in the build (either the default Service Account or user-specified Service Account) should have secretmanager.versions.access permissions on this secret. The proxy URL should be in format protocol://@]proxyhost[:port].
     #[serde(default, rename = "proxySecretVersionName")]
@@ -2257,7 +2258,7 @@ pub struct GoogleDevtoolsCloudbuildV1HttpConfig {
 }
 
 /// Details about how a build should be executed on a WorkerPool. See [running builds in a private pool](https://cloud.google.com/build/docs/private-pools/run-builds-in-private-pool) for more information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1PoolOption {
     /// The WorkerPool resource to execute the build on. You must have cloudbuild.workerpools.use on the project hosting the WorkerPool. Format projects/{project}/locations/{location}/workerPools/{workerPoolId}
     #[serde(default)]
@@ -2265,7 +2266,7 @@ pub struct GoogleDevtoolsCloudbuildV1PoolOption {
 }
 
 /// A generic artifact uploaded to Artifact Registry using the GenericArtifact directive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1UploadedGenericArtifact {
     /// Output only. The hash of the whole artifact.
     #[serde(default, rename = "artifactFingerprint")]
@@ -2285,7 +2286,7 @@ pub struct GoogleDevtoolsCloudbuildV1UploadedGenericArtifact {
 }
 
 /// A Go module artifact uploaded to Artifact Registry using the GoModule directive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1UploadedGoModule {
     /// Output only. Path to the artifact in Artifact Registry.
     #[serde(default, rename = "artifactRegistryPackage")]
@@ -2302,7 +2303,7 @@ pub struct GoogleDevtoolsCloudbuildV1UploadedGoModule {
 }
 
 /// An image built by the pipeline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1BuiltImage {
     /// Output only. Path to the artifact in Artifact Registry.
     #[serde(default, rename = "artifactRegistryPackage")]
@@ -2322,7 +2323,7 @@ pub struct GoogleDevtoolsCloudbuildV1BuiltImage {
 }
 
 /// A Maven artifact uploaded using the MavenArtifact directive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1UploadedMavenArtifact {
     /// Output only. Path to the artifact in Artifact Registry.
     #[serde(default, rename = "artifactRegistryPackage")]
@@ -2339,7 +2340,7 @@ pub struct GoogleDevtoolsCloudbuildV1UploadedMavenArtifact {
 }
 
 /// An npm package uploaded to Artifact Registry using the NpmPackage directive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1UploadedNpmPackage {
     /// Output only. Path to the artifact in Artifact Registry.
     #[serde(default, rename = "artifactRegistryPackage")]
@@ -2356,7 +2357,7 @@ pub struct GoogleDevtoolsCloudbuildV1UploadedNpmPackage {
 }
 
 /// Artifact uploaded using the PythonPackage directive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1UploadedPythonPackage {
     /// Output only. Path to the artifact in Artifact Registry.
     #[serde(default, rename = "artifactRegistryPackage")]
@@ -2373,7 +2374,7 @@ pub struct GoogleDevtoolsCloudbuildV1UploadedPythonPackage {
 }
 
 /// This config defines the location of a source through Developer Connect.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1DeveloperConnectConfig {
     /// Required. Directory, relative to the source root, in which to run the build.
     #[serde(default)]
@@ -2387,7 +2388,7 @@ pub struct GoogleDevtoolsCloudbuildV1DeveloperConnectConfig {
 }
 
 /// Location of the source in a 2nd-gen Google Cloud Build repository resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1ConnectedRepository {
     /// Optional. Directory, relative to the source root, in which to run the build.
     #[serde(default)]
@@ -2401,7 +2402,7 @@ pub struct GoogleDevtoolsCloudbuildV1ConnectedRepository {
 }
 
 /// Location of the source in any accessible Git repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1GitSource {
     /// Optional. Directory, relative to the source root, in which to run the build. This must be a relative path. If a step''s dir is specified and is an absolute path, this value is ignored for that step''s execution.
     #[serde(default)]
@@ -2415,7 +2416,7 @@ pub struct GoogleDevtoolsCloudbuildV1GitSource {
 }
 
 /// Location of the source in a Google Cloud Source Repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1RepoSource {
     /// Regex matching branches to build. The syntax of the regular expressions accepted is the syntax accepted by RE2 and described at https://github.com/google/re2/wiki/Syntax
     #[serde(default, rename = "branchName")]
@@ -2444,7 +2445,7 @@ pub struct GoogleDevtoolsCloudbuildV1RepoSource {
 }
 
 /// Location of the source in an archive file in Cloud Storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1StorageSource {
     /// Cloud Storage bucket containing the source (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)).
     #[serde(default)]
@@ -2461,7 +2462,7 @@ pub struct GoogleDevtoolsCloudbuildV1StorageSource {
 }
 
 /// Location of the source manifest in Cloud Storage. This feature is in Preview; see description [here](https://github.com/GoogleCloudPlatform/cloud-builders/tree/master/gcs-fetcher).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1StorageSourceManifest {
     /// Required. Cloud Storage bucket containing the source manifest (see [Bucket Name Requirements](https://cloud.google.com/storage/docs/bucket-naming#requirements)).
     #[serde(default)]
@@ -2475,7 +2476,7 @@ pub struct GoogleDevtoolsCloudbuildV1StorageSourceManifest {
 }
 
 /// Volume describes a Docker container volume which is mounted into build steps in order to persist files across build step execution.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1Volume {
     /// Name of the volume to mount. Volume names must be unique per build step and must be valid names for Docker volumes. Each named volume must be used by at least two build steps.
     #[serde(default)]
@@ -2486,7 +2487,7 @@ pub struct GoogleDevtoolsCloudbuildV1Volume {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleIamV1AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -2497,7 +2498,7 @@ pub struct GoogleIamV1AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeExpr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -2514,7 +2515,7 @@ pub struct GoogleTypeExpr {
 }
 
 /// A single application container. This specifies both the container to run, the command to run in the container and the arguments to supply to it. Note that additional arguments can be supplied by the system to the container at runtime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2Container {
     /// Arguments to the entrypoint. The docker image''s CMD is used if this is not provided.
     #[serde(default)]
@@ -2567,7 +2568,7 @@ pub struct GoogleCloudRunV2Container {
 }
 
 /// Hardware constraints configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2NodeSelector {
     /// Required. GPU accelerator type to attach to an instance.
     #[serde(default)]
@@ -2575,7 +2576,7 @@ pub struct GoogleCloudRunV2NodeSelector {
 }
 
 /// Volume represents a named volume in a container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2Volume {
     /// For Cloud SQL volumes, contains the specific instances that should be mounted. Visit https://cloud.google.com/sql/docs/mysql/connect-run for more information on how to connect Cloud SQL and Cloud Run.
     #[serde(default, rename = "cloudSqlInstance")]
@@ -2598,7 +2599,7 @@ pub struct GoogleCloudRunV2Volume {
 }
 
 /// VPC Access settings. For more information on sending traffic to a VPC network, visit https://cloud.google.com/run/docs/configuring/connecting-vpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2VpcAccess {
     /// VPC Access connector name. Format: projects/{project}/locations/{location}/connectors/{connector}, where {project} can be project id or number. For more information on sending traffic to a VPC network via a connector, visit https://cloud.google.com/run/docs/configuring/vpc-connectors.
     #[serde(default)]
@@ -2613,7 +2614,7 @@ pub struct GoogleCloudRunV2VpcAccess {
 }
 
 /// A repository for a git source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1GitSourceRepository {
     /// The Developer Connect Git repository link formatted as projects/*/locations/*/connections/*/gitRepositoryLink/*
     #[serde(default, rename = "developerConnect")]
@@ -2624,7 +2625,7 @@ pub struct GoogleDevtoolsCloudbuildV1GitSourceRepository {
 }
 
 /// Container message for hashes of byte content of files, used in SourceProvenance messages to verify integrity of source input to the build.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1FileHashes {
     /// Collection of file hashes.
     #[serde(default, rename = "fileHash")]
@@ -2632,7 +2633,7 @@ pub struct GoogleDevtoolsCloudbuildV1FileHashes {
 }
 
 /// Start and end times for a build execution phase.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1TimeSpan {
     /// End of time span.
     #[serde(default, rename = "endTime")]
@@ -2643,7 +2644,7 @@ pub struct GoogleDevtoolsCloudbuildV1TimeSpan {
 }
 
 /// Build information of the image.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2BuildInfo {
     /// Output only. Entry point of the function when the image is a Cloud Run function.
     #[serde(default, rename = "functionTarget")]
@@ -2654,7 +2655,7 @@ pub struct GoogleCloudRunV2BuildInfo {
 }
 
 /// EnvVar represents an environment variable present in a Container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2EnvVar {
     /// Required. Name of the environment variable. Must not exceed 32768 characters.
     #[serde(default)]
@@ -2668,7 +2669,7 @@ pub struct GoogleCloudRunV2EnvVar {
 }
 
 /// Probe describes a health check to be performed against a container to determine whether it is alive or ready to receive traffic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2Probe {
     /// Optional. Minimum consecutive failures for the probe to be considered failed after having succeeded. Defaults to 3. Minimum value is 1.
     #[serde(default, rename = "failureThreshold")]
@@ -2694,7 +2695,7 @@ pub struct GoogleCloudRunV2Probe {
 }
 
 /// ContainerPort represents a network port in a single container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2ContainerPort {
     /// Port number the container listens on. This must be a valid TCP port number, 0 &lt; container_port &lt; 65536.
     #[serde(default, rename = "containerPort")]
@@ -2705,7 +2706,7 @@ pub struct GoogleCloudRunV2ContainerPort {
 }
 
 /// ResourceRequirements describes the compute resource requirements.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2ResourceRequirements {
     /// Determines whether CPU is only allocated during requests (true by default). However, if ResourceRequirements is set, the caller must explicitly set this field to true to preserve the default behavior.
     #[serde(default, rename = "cpuIdle")]
@@ -2719,7 +2720,7 @@ pub struct GoogleCloudRunV2ResourceRequirements {
 }
 
 /// Source type for the container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2SourceCode {
     /// The source is a Cloud Storage bucket.
     #[serde(default, rename = "cloudStorageSource")]
@@ -2730,7 +2731,7 @@ pub struct GoogleCloudRunV2SourceCode {
 }
 
 /// VolumeMount describes a mounting of a Volume within a container.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2VolumeMount {
     /// Required. Path within the container at which the volume should be mounted. Must not contain '':''. For Cloud SQL volumes, it can be left empty, or must otherwise be /cloudsql. All instances defined in the Volume will be available as /cloudsql/[instance]. For more information on Cloud SQL volumes, visit https://cloud.google.com/sql/docs/mysql/connect-run
     #[serde(default, rename = "mountPath")]
@@ -2744,7 +2745,7 @@ pub struct GoogleCloudRunV2VolumeMount {
 }
 
 /// Represents a set of Cloud SQL instances. Each one will be available under /cloudsql/[instance]. Visit https://cloud.google.com/sql/docs/mysql/connect-run for more information on how to connect Cloud SQL and Cloud Run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2CloudSqlInstance {
     /// A list of Cloud SQL instance connection names. Cloud Run uses these to establish connections to the specified Cloud SQL instances. While the SQL instance name itself is unique within a project, the full connection name requires the location for proper routing. Format: {project}:{location}:{instance} Example: my-project:us-central1:my-instance You can find this value on the instance''s **Overview** page in the Google Cloud console or by using the following gcloud command: sh gcloud sql instances describe INSTANCE_NAME \ --format=''value(connectionName)''  Visit https://cloud.google.com/sql/docs/mysql/connect-run for more information on how to connect Cloud SQL and Cloud Run.
     #[serde(default)]
@@ -2752,7 +2753,7 @@ pub struct GoogleCloudRunV2CloudSqlInstance {
 }
 
 /// In memory (tmpfs) ephemeral storage. It is ephemeral in the sense that when the sandbox is taken down, the data is destroyed with it (it does not persist across sandbox runs).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2EmptyDirVolumeSource {
     /// The medium on which the data is stored. Acceptable values today is only MEMORY or none. When none, the default will currently be backed by memory but could change over time. +optional // TODO: enum values: ["MEDIUM_UNSPECIFIED", "MEMORY", "DISK"]
     #[serde(default)]
@@ -2763,7 +2764,7 @@ pub struct GoogleCloudRunV2EmptyDirVolumeSource {
 }
 
 /// Represents a volume backed by a Cloud Storage bucket using Cloud Storage FUSE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2gCSVolumeSource {
     /// Cloud Storage Bucket name.
     #[serde(default)]
@@ -2777,7 +2778,7 @@ pub struct GoogleCloudRunV2gCSVolumeSource {
 }
 
 /// Represents an NFS mount.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2nFSVolumeSource {
     /// Path that is exported by the NFS server.
     #[serde(default)]
@@ -2791,7 +2792,7 @@ pub struct GoogleCloudRunV2nFSVolumeSource {
 }
 
 /// The secret''s value will be presented as the content of a file whose name is defined in the item path. If no items are defined, the name of the file is the secret.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2SecretVolumeSource {
     /// Integer representation of mode bits to use on created files by default. Must be a value between 0000 and 0777 (octal), defaulting to 0444. Directories within the path are not affected by this setting. Notes * Internally, a umask of 0222 will be applied to any non-zero value. * This is an integer representation of the mode bits. So, the octal integer value should look exactly as the chmod numeric notation with a leading zero. Some examples: for chmod 640 (u=rw,g=r), set to 0640 (octal) or 416 (base-10). For chmod 755 (u=rwx,g=rx,o=rx), set to 0755 (octal) or 493 (base-10). * This might be in conflict with other options that affect the file mode, like fsGroup, and the result can be other mode bits set. This might be in conflict with other options that affect the file mode, like fsGroup, and as a result, other mode bits could be set.
     #[serde(default, rename = "defaultMode")]
@@ -2805,7 +2806,7 @@ pub struct GoogleCloudRunV2SecretVolumeSource {
 }
 
 /// Direct VPC egress settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2NetworkInterface {
     /// Optional. The VPC network that the Cloud Run resource will be able to send traffic to. At least one of network or subnetwork must be specified. If both network and subnetwork are specified, the given VPC subnetwork must belong to the given VPC network. If network is not specified, it will be looked up from the subnetwork.
     #[serde(default)]
@@ -2819,7 +2820,7 @@ pub struct GoogleCloudRunV2NetworkInterface {
 }
 
 /// Container message for hash values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleDevtoolsCloudbuildV1Hash {
     /// The type of hash that was performed. // TODO: enum values: ["NONE", "SHA256", "MD5", "GO_MODULE_H1", "SHA512", "DIRSUM_SHA256"]
     #[serde(default, rename = "type")]
@@ -2830,7 +2831,7 @@ pub struct GoogleDevtoolsCloudbuildV1Hash {
 }
 
 /// EnvVarSource represents a source for the value of an EnvVar.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2EnvVarSource {
     /// Selects a secret and a specific version from Cloud Secret Manager.
     #[serde(default, rename = "secretKeyRef")]
@@ -2838,7 +2839,7 @@ pub struct GoogleCloudRunV2EnvVarSource {
 }
 
 /// GRPCAction describes an action involving a GRPC port.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2gRPCAction {
     /// Optional. Port number of the gRPC service. Number must be in the range 1 to 65535. If not specified, defaults to the exposed port of the container, which is the value of container.ports[0].containerPort.
     #[serde(default)]
@@ -2849,7 +2850,7 @@ pub struct GoogleCloudRunV2gRPCAction {
 }
 
 /// HTTPGetAction describes an action based on HTTP Get requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2hTTPGetAction {
     /// Optional. Custom headers to set in the request. HTTP allows repeated headers.
     #[serde(default, rename = "httpHeaders")]
@@ -2863,7 +2864,7 @@ pub struct GoogleCloudRunV2hTTPGetAction {
 }
 
 /// TCPSocketAction describes an action based on opening a socket
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2tCPSocketAction {
     /// Optional. Port number to access on the container. Must be in the range 1 to 65535. If not specified, defaults to the exposed port of the container, which is the value of container.ports[0].containerPort.
     #[serde(default)]
@@ -2871,7 +2872,7 @@ pub struct GoogleCloudRunV2tCPSocketAction {
 }
 
 /// Cloud Storage source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2CloudStorageSource {
     /// Required. The Cloud Storage bucket name.
     #[serde(default)]
@@ -2885,7 +2886,7 @@ pub struct GoogleCloudRunV2CloudStorageSource {
 }
 
 /// Inlined source.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2InlinedSource {
     /// Required. Input only. The source code.
     #[serde(default)]
@@ -2893,7 +2894,7 @@ pub struct GoogleCloudRunV2InlinedSource {
 }
 
 /// VersionToPath maps a specific version of a secret to a relative file to mount to, relative to VolumeMount''s mount_path.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2VersionToPath {
     /// Integer octal mode bits to use on this file, must be a value between 01 and 0777 (octal). If 0 or not set, the Volume''s default mode will be used. Notes * Internally, a umask of 0222 will be applied to any non-zero value. * This is an integer representation of the mode bits. So, the octal integer value should look exactly as the chmod numeric notation with a leading zero. Some examples: for chmod 640 (u=rw,g=r), set to 0640 (octal) or 416 (base-10). For chmod 755 (u=rwx,g=rx,o=rx), set to 0755 (octal) or 493 (base-10). * This might be in conflict with other options that affect the file mode, like fsGroup, and the result can be other mode bits set.
     #[serde(default)]
@@ -2907,7 +2908,7 @@ pub struct GoogleCloudRunV2VersionToPath {
 }
 
 /// SecretEnvVarSource represents a source for the value of an EnvVar.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2SecretKeySelector {
     /// Required. The name of the secret in Cloud Secret Manager. Format: {secret_name} if the secret is in the same project. projects/{project}/secrets/{secret_name} if the secret is in a different project.
     #[serde(default)]
@@ -2918,7 +2919,7 @@ pub struct GoogleCloudRunV2SecretKeySelector {
 }
 
 /// HTTPHeader describes a custom header to be used in HTTP probes
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2hTTPHeader {
     /// Required. The header field name
     #[serde(default)]
@@ -2929,7 +2930,7 @@ pub struct GoogleCloudRunV2hTTPHeader {
 }
 
 /// Source file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRunV2SourceFile {
     /// Required. Input only. Represents the exact, literal, and complete source code of the file. Placeholders like ... or comments such as # [rest of code] should NEVER be used as omission. Every character in this field will be built into the final container. Any omission will result in a broken application.
     #[serde(default)]

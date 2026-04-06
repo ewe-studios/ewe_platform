@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request message for google.bigtable.admin.v2.BigtableTableAdmin.CheckConsistency
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckConsistencyRequest {
     /// Required. The token created using GenerateConsistencyToken for the Table.
     #[serde(default, rename = "consistencyToken")]
@@ -25,7 +26,7 @@ pub struct CheckConsistencyRequest {
 }
 
 /// Response message for google.bigtable.admin.v2.BigtableTableAdmin.CheckConsistency
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckConsistencyResponse {
     /// True only if the token is consistent. A token is consistent if replication has caught up with the restrictions specified in the request.
     #[serde(default)]
@@ -33,7 +34,7 @@ pub struct CheckConsistencyResponse {
 }
 
 /// The state of a table''s data in a particular cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterState {
     /// Output only. The encryption information for the table in this cluster. If the encryption key protecting this resource is customer managed, then its version can be rotated in Cloud Key Management Service (Cloud KMS). The primary version of the key and its status will be reflected here when changes propagate from Cloud KMS.
     #[serde(default, rename = "encryptionInfo")]
@@ -44,7 +45,7 @@ pub struct ClusterState {
 }
 
 /// Metadata type for the google.longrunning.Operation returned by CopyBackup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CopyBackupMetadata {
     /// The name of the backup being created through the copy operation. Values are of the form projects//instances//clusters//backups/.
     #[serde(default)]
@@ -58,7 +59,7 @@ pub struct CopyBackupMetadata {
 }
 
 /// The request for CopyBackup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CopyBackupRequest {
     /// Required. The id of the new backup. The backup_id along with parent are combined as {parent}/backups/{backup_id} to create the full backup name, of the form: projects/{project}/instances/{instance}/clusters/{cluster}/backups/{backup_id}. This string must be between 1 and 50 characters in length and match the regex _a-zA-Z0-9*.
     #[serde(default, rename = "backupId")]
@@ -72,7 +73,7 @@ pub struct CopyBackupRequest {
 }
 
 /// The metadata for the Operation returned by CreateAuthorizedView.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateAuthorizedViewMetadata {
     /// The time at which the operation failed or was completed successfully.
     #[serde(default, rename = "finishTime")]
@@ -86,7 +87,7 @@ pub struct CreateAuthorizedViewMetadata {
 }
 
 /// Metadata type for the operation returned by CreateBackup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateBackupMetadata {
     /// If set, the time at which this operation finished or was cancelled. DEPRECATED: Use finish_time instead.
     #[serde(default, rename = "endTime")]
@@ -109,7 +110,7 @@ pub struct CreateBackupMetadata {
 }
 
 /// The metadata for the Operation returned by CreateCluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateClusterMetadata {
     /// The time at which the operation failed or was completed successfully.
     #[serde(default, rename = "finishTime")]
@@ -126,7 +127,7 @@ pub struct CreateClusterMetadata {
 }
 
 /// The metadata for the Operation returned by CreateInstance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateInstanceMetadata {
     /// The time at which the operation failed or was completed successfully.
     #[serde(default, rename = "finishTime")]
@@ -140,7 +141,7 @@ pub struct CreateInstanceMetadata {
 }
 
 /// The metadata for the Operation returned by CreateLogicalView.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateLogicalViewMetadata {
     /// DEPRECATED: Use finish_time instead.
     #[serde(default, rename = "endTime")]
@@ -160,7 +161,7 @@ pub struct CreateLogicalViewMetadata {
 }
 
 /// The metadata for the Operation returned by CreateMaterializedView.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateMaterializedViewMetadata {
     /// If set, the time at which this operation finished or was canceled. DEPRECATED: Use finish_time instead.
     #[serde(default, rename = "endTime")]
@@ -180,7 +181,7 @@ pub struct CreateMaterializedViewMetadata {
 }
 
 /// The metadata for the Operation returned by CreateSchemaBundle.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateSchemaBundleMetadata {
     /// The time at which the operation failed or was completed successfully.
     #[serde(default, rename = "finishTime")]
@@ -194,7 +195,7 @@ pub struct CreateSchemaBundleMetadata {
 }
 
 /// Request message for google.bigtable.admin.v2.BigtableTableAdmin.CreateTable
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateTableRequest {
     /// The optional list of row keys that will be used to initially split the table into several tablets (tablets are similar to HBase regions). Given two split keys, s1 and s2, three tablets will be created, spanning the key ranges: [, s1), [s1, s2), [s2, ). Example: * Row keys := ["a", "apple", "custom", "customer_1", "customer_2", "other", "zz"] * initial_split_keys := ["apple", "customer_1", "customer_2", "other"] * Key assignment: - Tablet 1 [, apple) =&gt; {"a"}. - Tablet 2 [apple, customer_1) =&gt; {"apple", "custom"}. - Tablet 3 [customer_1, customer_2) =&gt; {"customer_1"}. - Tablet 4 [customer_2, other) =&gt; {"customer_2"}. - Tablet 5 [other, ) =&gt; {"other", "zz"}.
     #[serde(default, rename = "initialSplits")]
@@ -208,11 +209,11 @@ pub struct CreateTableRequest {
 }
 
 /// Checks that all writes before the consistency token was generated in the same cluster are readable by Databoost.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataBoostReadLocalWrites {}
 
 /// Request message for google.bigtable.admin.v2.BigtableTableAdmin.DropRowRange
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DropRowRangeRequest {
     /// Delete all rows in the table. Setting this to false is a no-op.
     #[serde(default, rename = "deleteAllDataFromTable")]
@@ -223,15 +224,15 @@ pub struct DropRowRangeRequest {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Request message for google.bigtable.admin.v2.BigtableTableAdmin.GenerateConsistencyToken
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateConsistencyTokenRequest {}
 
 /// Response message for google.bigtable.admin.v2.BigtableTableAdmin.GenerateConsistencyToken
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GenerateConsistencyTokenResponse {
     /// The generated consistency token.
     #[serde(default, rename = "consistencyToken")]
@@ -239,7 +240,7 @@ pub struct GenerateConsistencyTokenResponse {
 }
 
 /// Request message for GetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetIamPolicyRequest {
     /// OPTIONAL: A GetPolicyOptions object for specifying options to GetIamPolicy.
     #[serde(default)]
@@ -247,7 +248,7 @@ pub struct GetIamPolicyRequest {
 }
 
 /// Subsets of a column family that are included in this AuthorizedView.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2AuthorizedViewFamilySubsets {
     /// Prefixes for qualifiers to be included in the AuthorizedView. Every qualifier starting with one of these prefixes is included in the AuthorizedView. To provide access to all qualifiers, include the empty string as a prefix ("").
     #[serde(default, rename = "qualifierPrefixes")]
@@ -258,7 +259,7 @@ pub struct GoogleBigtableAdminV2AuthorizedViewFamilySubsets {
 }
 
 /// The state of a materialized view''s data in a particular cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2MaterializedViewClusterState {
     /// Output only. The state of the materialized view in this cluster. // TODO: enum values: ["STATE_NOT_KNOWN", "INITIALIZING", "READY"]
     #[serde(default, rename = "replicationState")]
@@ -266,47 +267,47 @@ pub struct GoogleBigtableAdminV2MaterializedViewClusterState {
 }
 
 /// Computes an approximate unique count over the input values. When using raw data as input, be careful to use a consistent encoding. Otherwise the same value encoded differently could count more than once, or two distinct values could count as identical. Input: Any, or omit for Raw State: TBD Special state conversions: Int64 (the unique count estimate)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeAggregateHyperLogLogPlusPlusUniqueCount {}
 
 /// Computes the max of the input values. Allowed input: Int64 State: same as input
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeAggregateMax {}
 
 /// Computes the min of the input values. Allowed input: Int64 State: same as input
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeAggregateMin {}
 
 /// Computes the sum of the input values. Allowed input: Int64 State: same as input
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeAggregateSum {}
 
 /// Defines rules used to convert to or from lower level types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeBoolEncoding {}
 
 /// Date Values of type Date are stored in Value.date_value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeDate {}
 
 /// Float32 Values of type Float32 are stored in Value.float_value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeFloat32 {}
 
 /// Float64 Values of type Float64 are stored in Value.float_value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeFloat64 {}
 
 /// A geography type, representing a point or region on Earth. The value is stored in Value.bytes_value as Well-Known Binary (WKB) bytes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeGeography {}
 
 /// Encodes the value in a variable length binary format of up to 10 bytes. Values that are closer to zero use fewer bytes. Sorted mode: all values are supported. Distinct mode: all values are supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeInt64EncodingOrderedCodeBytes {}
 
 /// String Values of type String are stored in Value.string_value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeString {
     /// The encoding to use when converting to or from lower level types.
     #[serde(default)]
@@ -314,7 +315,7 @@ pub struct GoogleBigtableAdminV2TypeString {
 }
 
 /// Rules used to convert to or from lower level types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeStringEncoding {
     /// Use Utf8Bytes encoding.
     #[serde(default, rename = "utf8Bytes")]
@@ -325,7 +326,7 @@ pub struct GoogleBigtableAdminV2TypeStringEncoding {
 }
 
 /// UTF-8 encoding. Sorted mode: - All values are supported. - Code point order is preserved. Distinct mode: all values are supported. Compatible with: - BigQuery TEXT encoding - HBase Bytes.toBytes - Java String#getBytes(StandardCharsets.UTF_8)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeStringEncodingUtf8Bytes {
     /// Single-character escape sequence used to support NULL values. If set, allows NULL values to be encoded as the empty string "". The actual empty string, or any value where every character equals null_escape_char, has one more null_escape_char appended. If null_escape_char is set and does not equal the ASCII null character 0x00, then the encoding will not support sorted mode. .
     #[serde(default, rename = "nullEscapeChar")]
@@ -333,19 +334,19 @@ pub struct GoogleBigtableAdminV2TypeStringEncodingUtf8Bytes {
 }
 
 /// Deprecated: prefer the equivalent Utf8Bytes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeStringEncodingUtf8Raw {}
 
 /// Fields are encoded independently, then escaped and delimited by appling the following rules in order: - While the last remaining field is ASC or UNSPECIFIED, and encodes to the empty string "", remove it. - In each remaining field, replace all null bytes 0x00 with the fixed byte pair {0x00, 0xFF}. - If any remaining field encodes to the empty string "", replace it with the fixed byte pair {0x00, 0x00}. - Append the fixed byte pair {0x00, 0x01} to each remaining field, except for the last remaining field if it is ASC. - Bitwise negate all DESC fields. - Concatenate the results, or emit the fixed byte pair {0x00, 0x00} if there are no remaining fields to concatenate. Examples:  - STRUCT() -&gt; "\00\00" - STRUCT("") -&gt; "\00\00" - STRUCT("", "") -&gt; "\00\00" - STRUCT("", "B") -&gt; "\00\00" + "\00\01" + "B" - STRUCT("A", "") -&gt; "A" - STRUCT("", "B", "") -&gt; "\00\00" + "\00\01" + "B" - STRUCT("A", "", "C") -&gt; "A" + "\00\01" + "\00\00" + "\00\01" + "C"  Examples for struct with DESC fields:  - STRUCT("" DESC) -&gt; "\xFF\xFF" + "\xFF\xFE" - STRUCT("" DESC, "") -&gt; "\xFF\xFF" + "\xFF\xFE" - STRUCT("" DESC, "", "") -&gt; "\xFF\xFF" + "\xFF\xFE" - STRUCT("" DESC, "A") -&gt; "\xFF\xFF" + "\xFF\xFE" + "A" - STRUCT("A", "" DESC, "") -&gt; "A" + "\00\01" + "\xFF\xFF" + "\xFF\xFE" - STRUCT("", "A" DESC) -&gt; "\x00\x00" + "\x00\x01" + "\xBE" + "\xFF\xFE"  Since null bytes are always escaped, this encoding can cause size blowup for encodings like Int64.BigEndianBytes that are likely to produce many such bytes. Sorted mode: - Fields are encoded in sorted mode. - All values supported by the field encodings are allowed. - Fields with unset or UNSPECIFIED order are treated as ASC. - Element-wise order is preserved: A &lt; B if A[0] &lt; B[0], or if A[0] == B[0] && A[1] &lt; B[1], etc. Strict prefixes sort first. Distinct mode: - Fields are encoded in distinct mode. - All values supported by the field encodings are allowed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeStructEncodingOrderedCodeBytes {}
 
 /// Uses the encoding of fields[0].type as-is. Only valid if fields.size == 1. This encoding does not support DESC field ordering.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeStructEncodingSingleton {}
 
 /// Response message for BigtableInstanceAdmin.ListAppProfiles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAppProfilesResponse {
     /// The list of requested app profiles.
     #[serde(default, rename = "appProfiles")]
@@ -359,7 +360,7 @@ pub struct ListAppProfilesResponse {
 }
 
 /// Response message for google.bigtable.admin.v2.BigtableTableAdmin.ListAuthorizedViews
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAuthorizedViewsResponse {
     /// The AuthorizedViews present in the requested table.
     #[serde(default, rename = "authorizedViews")]
@@ -370,7 +371,7 @@ pub struct ListAuthorizedViewsResponse {
 }
 
 /// The response for ListBackups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBackupsResponse {
     /// The list of matching backups.
     #[serde(default)]
@@ -381,7 +382,7 @@ pub struct ListBackupsResponse {
 }
 
 /// Response message for BigtableInstanceAdmin.ListClusters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListClustersResponse {
     /// The list of requested clusters.
     #[serde(default)]
@@ -395,7 +396,7 @@ pub struct ListClustersResponse {
 }
 
 /// Response message for BigtableInstanceAdmin.ListHotTablets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListHotTabletsResponse {
     /// List of hot tablets in the tables of the requested cluster that fall within the requested time range. Hot tablets are ordered by node cpu usage percent. If there are multiple hot tablets that correspond to the same tablet within a 15-minute interval, only the hot tablet with the highest node cpu usage will be included in the response.
     #[serde(default, rename = "hotTablets")]
@@ -406,7 +407,7 @@ pub struct ListHotTabletsResponse {
 }
 
 /// Response message for BigtableInstanceAdmin.ListInstances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListInstancesResponse {
     /// Locations from which Instance information could not be retrieved, due to an outage or some other transient condition. Instances whose Clusters are all in one of the failed locations may be missing from instances, and Instances with at least one Cluster in a failed location may only have partial information returned. Values are of the form projects//locations/
     #[serde(default, rename = "failedLocations")]
@@ -420,7 +421,7 @@ pub struct ListInstancesResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -431,7 +432,7 @@ pub struct ListLocationsResponse {
 }
 
 /// Response message for BigtableInstanceAdmin.ListLogicalViews.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLogicalViewsResponse {
     /// The list of requested logical views.
     #[serde(default, rename = "logicalViews")]
@@ -442,7 +443,7 @@ pub struct ListLogicalViewsResponse {
 }
 
 /// Response message for BigtableInstanceAdmin.ListMaterializedViews.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMaterializedViewsResponse {
     /// The list of requested materialized views.
     #[serde(default, rename = "materializedViews")]
@@ -453,7 +454,7 @@ pub struct ListMaterializedViewsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -467,7 +468,7 @@ pub struct ListOperationsResponse {
 }
 
 /// The response for ListSchemaBundles.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSchemaBundlesResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -478,7 +479,7 @@ pub struct ListSchemaBundlesResponse {
 }
 
 /// Response message for google.bigtable.admin.v2.BigtableTableAdmin.ListTables
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTablesResponse {
     /// Set if not all tables could be returned in a single response. Pass this value to page_token in another request to get the next page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -489,7 +490,7 @@ pub struct ListTablesResponse {
 }
 
 /// Request message for google.bigtable.admin.v2.BigtableTableAdmin.ModifyColumnFamilies
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModifyColumnFamiliesRequest {
     /// Optional. If true, ignore safety checks when modifying the column families.
     #[serde(default, rename = "ignoreWarnings")]
@@ -500,7 +501,7 @@ pub struct ModifyColumnFamiliesRequest {
 }
 
 /// Metadata type for the long-running operation used to track the progress of optimizations performed on a newly restored table. This long-running operation is automatically created by the system after the successful completion of a table restore, and cannot be cancelled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OptimizeRestoredTableMetadata {
     /// Name of the restored table being optimized.
     #[serde(default)]
@@ -511,7 +512,7 @@ pub struct OptimizeRestoredTableMetadata {
 }
 
 /// The metadata for the Operation returned by PartialUpdateCluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartialUpdateClusterMetadata {
     /// The time at which the operation failed or was completed successfully.
     #[serde(default, rename = "finishTime")]
@@ -525,7 +526,7 @@ pub struct PartialUpdateClusterMetadata {
 }
 
 /// Metadata type for the long-running operation returned by RestoreTable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestoreTableMetadata {
     #[serde(default, rename = "backupInfo")]
     pub backup_info: ::core::option::Option<BackupInfo>,
@@ -544,7 +545,7 @@ pub struct RestoreTableMetadata {
 }
 
 /// The request for RestoreTable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestoreTableRequest {
     /// Name of the backup from which to restore. Values are of the form projects//instances//clusters//backups/.
     #[serde(default)]
@@ -555,11 +556,11 @@ pub struct RestoreTableRequest {
 }
 
 /// If enabled, Bigtable will route the request based on the row key of the request, rather than randomly. Instead, each row key will be assigned to a cluster, and will stick to that cluster. If clusters are added or removed, then this may affect which row keys stick to which clusters. To avoid this, users can use a cluster group to specify which clusters are to be used. In this case, new clusters that are not a part of the cluster group will not be routed to, and routing will be unaffected by the new cluster. Moreover, clusters specified in the cluster group cannot be deleted unless removed from the cluster group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RowAffinity {}
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -570,11 +571,11 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Checks that all writes before the consistency token was generated are replicated in every cluster and readable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StandardReadRemoteWrites {}
 
 /// Progress info for copying a table''s data to the new cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableProgress {
     /// Estimate of the number of bytes copied so far for this table. This will eventually reach ''estimated_size_bytes'' unless the table copy is CANCELLED.
     #[serde(default, rename = "estimatedCopiedBytes")]
@@ -588,7 +589,7 @@ pub struct TableProgress {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -596,7 +597,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -604,7 +605,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// Metadata type for the operation returned by google.bigtable.admin.v2.BigtableTableAdmin.UndeleteTable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UndeleteTableMetadata {
     /// If set, the time at which this operation finished or was cancelled. DEPRECATED: Use finish_time instead.
     #[serde(default, rename = "endTime")]
@@ -624,15 +625,15 @@ pub struct UndeleteTableMetadata {
 }
 
 /// Request message for google.bigtable.admin.v2.BigtableTableAdmin.UndeleteTable
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UndeleteTableRequest {}
 
 /// The metadata for the Operation returned by UpdateAppProfile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateAppProfileMetadata {}
 
 /// Metadata for the google.longrunning.Operation returned by UpdateAuthorizedView.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateAuthorizedViewMetadata {
     /// The time at which the operation failed or was completed successfully.
     #[serde(default, rename = "finishTime")]
@@ -646,7 +647,7 @@ pub struct UpdateAuthorizedViewMetadata {
 }
 
 /// The metadata for the Operation returned by UpdateCluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateClusterMetadata {
     /// The time at which the operation failed or was completed successfully.
     #[serde(default, rename = "finishTime")]
@@ -660,7 +661,7 @@ pub struct UpdateClusterMetadata {
 }
 
 /// The metadata for the Operation returned by UpdateInstance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateInstanceMetadata {
     /// The time at which the operation failed or was completed successfully.
     #[serde(default, rename = "finishTime")]
@@ -674,7 +675,7 @@ pub struct UpdateInstanceMetadata {
 }
 
 /// The metadata for the Operation returned by UpdateLogicalView.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateLogicalViewMetadata {
     /// DEPRECATED: Use finish_time instead.
     #[serde(default, rename = "endTime")]
@@ -694,7 +695,7 @@ pub struct UpdateLogicalViewMetadata {
 }
 
 /// The metadata for the Operation returned by UpdateSchemaBundle.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateSchemaBundleMetadata {
     /// The time at which the operation failed or was completed successfully.
     #[serde(default, rename = "finishTime")]
@@ -708,7 +709,7 @@ pub struct UpdateSchemaBundleMetadata {
 }
 
 /// Metadata type for the operation returned by UpdateTable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateTableMetadata {
     /// If set, the time at which this operation finished or was canceled. DEPRECATED: Use finish_time instead.
     #[serde(default, rename = "endTime")]
@@ -728,7 +729,7 @@ pub struct UpdateTableMetadata {
 }
 
 /// The request for CreateAuthorizedView
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateAuthorizedViewRequest {
     /// Required. The AuthorizedView to create.
     #[serde(default, rename = "authorizedView")]
@@ -742,7 +743,7 @@ pub struct CreateAuthorizedViewRequest {
 }
 
 /// Request message for BigtableInstanceAdmin.CreateCluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateClusterRequest {
     /// Required. The cluster to be created. Fields marked OutputOnly must be left blank.
     #[serde(default)]
@@ -756,7 +757,7 @@ pub struct CreateClusterRequest {
 }
 
 /// Request message for BigtableInstanceAdmin.CreateInstance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateInstanceRequest {
     /// Required. The clusters to be created within the instance, mapped by desired cluster ID, e.g., just mycluster rather than projects/myproject/instances/myinstance/clusters/mycluster. Fields marked OutputOnly must be left blank.
     #[serde(default)]
@@ -773,7 +774,7 @@ pub struct CreateInstanceRequest {
 }
 
 /// Request message for BigtableInstanceAdmin.CreateLogicalView.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateLogicalViewRequest {
     /// Required. The logical view to create.
     #[serde(default, rename = "logicalView")]
@@ -787,7 +788,7 @@ pub struct CreateLogicalViewRequest {
 }
 
 /// Request message for BigtableInstanceAdmin.CreateMaterializedView.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateMaterializedViewRequest {
     /// Required. The materialized view to create.
     #[serde(default, rename = "materializedView")]
@@ -801,7 +802,7 @@ pub struct CreateMaterializedViewRequest {
 }
 
 /// An initial split point for a newly created table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Split {
     /// Row key to use as an initial tablet boundary.
     #[serde(default)]
@@ -809,7 +810,7 @@ pub struct Split {
 }
 
 /// Encapsulates settings provided to GetIamPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetPolicyOptions {
     /// Optional. The maximum policy version that will be used to format the policy. Valid values are 0, 1, and 3. Requests specifying an invalid value will be rejected. Requests for policies with any conditional role bindings must specify version 3. Policies with no conditional role bindings may specify any valid value or leave the field unset. The policy in the response might use the policy version that you specified, or it might use a lower policy version. For example, if you specify version 3, but the policy has no conditional role bindings, the response uses version 1. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default, rename = "requestedPolicyVersion")]
@@ -817,7 +818,7 @@ pub struct GetPolicyOptions {
 }
 
 /// A configuration object describing how Cloud Bigtable should treat traffic from a particular end user application.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppProfile {
     /// Specifies that this app profile is intended for read-only usage via the Data Boost feature.
     #[serde(default, rename = "dataBoostIsolationReadOnly")]
@@ -846,7 +847,7 @@ pub struct AppProfile {
 }
 
 /// A backup of a Cloud Bigtable table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Backup {
     /// Indicates the backup type of the backup. // TODO: enum values: ["BACKUP_TYPE_UNSPECIFIED", "STANDARD", "HOT"]
     #[serde(default, rename = "backupType")]
@@ -884,7 +885,7 @@ pub struct Backup {
 }
 
 /// A tablet is a defined by a start and end key and is explained in https://cloud.google.com/bigtable/docs/overview#architecture and https://cloud.google.com/bigtable/docs/performance#optimization. A Hot tablet is a tablet that exhibits high average cpu usage during the time interval from start time to end time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HotTablet {
     /// Tablet End Key (inclusive).
     #[serde(default, rename = "endKey")]
@@ -910,7 +911,7 @@ pub struct HotTablet {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -930,7 +931,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -950,7 +951,7 @@ pub struct Operation {
 }
 
 /// A named collection of related schemas.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SchemaBundle {
     /// Optional. The etag for this schema bundle. This may be sent on update and delete requests to ensure the client has an up-to-date value before proceeding. The server returns an ABORTED error on a mismatched etag.
     #[serde(default)]
@@ -964,7 +965,7 @@ pub struct SchemaBundle {
 }
 
 /// A collection of user data indexed by row, column, and timestamp. Each table is served using the resources of its parent cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Table {
     /// If specified, automated backups are enabled for this table. Otherwise, automated backups are disabled.
     #[serde(default, rename = "automatedBackupPolicy")]
@@ -1002,7 +1003,7 @@ pub struct Table {
 }
 
 /// A create, update, or delete of a particular column family.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Modification {
     /// Create a new column family with the specified schema, or fail if one already exists with the given ID.
     #[serde(default)]
@@ -1022,7 +1023,7 @@ pub struct Modification {
 }
 
 /// Request message for BigtableInstanceAdmin.PartialUpdateCluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartialUpdateClusterRequest {
     /// Required. The Cluster which contains the partial updates to be applied, subject to the update_mask.
     #[serde(default)]
@@ -1033,7 +1034,7 @@ pub struct PartialUpdateClusterRequest {
 }
 
 /// Encapsulates progress related information for a Cloud Bigtable long running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationProgress {
     /// If set, the time at which this operation failed or was completed successfully.
     #[serde(default, rename = "endTime")]
@@ -1047,7 +1048,7 @@ pub struct OperationProgress {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -1064,7 +1065,7 @@ pub struct Policy {
 }
 
 /// The request for UpdateAuthorizedView.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateAuthorizedViewRequest {
     /// Required. The AuthorizedView to update. The name in authorized_view is used to identify the AuthorizedView. AuthorizedView name must in this format: projects/{project}/instances/{instance}/tables/{table}/authorizedViews/{authorized_view}.
     #[serde(default, rename = "authorizedView")]
@@ -1078,7 +1079,7 @@ pub struct UpdateAuthorizedViewRequest {
 }
 
 /// Request message for BigtableInstanceAdmin.PartialUpdateInstance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartialUpdateInstanceRequest {
     /// Required. The Instance which will (partially) replace the current value.
     #[serde(default)]
@@ -1089,7 +1090,7 @@ pub struct PartialUpdateInstanceRequest {
 }
 
 /// Request message for BigtableInstanceAdmin.UpdateLogicalView.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateLogicalViewRequest {
     /// Required. The logical view to update. The logical view''s name field is used to identify the view to update. Format: projects/{project}/instances/{instance}/logicalViews/{logical_view}.
     #[serde(default, rename = "logicalView")]
@@ -1100,7 +1101,7 @@ pub struct UpdateLogicalViewRequest {
 }
 
 /// A materialized view object that can be referenced in SQL queries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaterializedView {
     /// Output only. Map from cluster ID to per-cluster materialized view state. If it could not be determined whether or not the materialized view has data in a particular cluster (for example, if its zone is unavailable), then there will be an entry for the cluster with STATE_NOT_KNOWN state. Views: REPLICATION_VIEW, FULL.
     #[serde(default, rename = "clusterStates")]
@@ -1120,7 +1121,7 @@ pub struct MaterializedView {
 }
 
 /// Data Boost is a serverless compute capability that lets you run high-throughput read jobs and queries on your Bigtable data, without impacting the performance of the clusters that handle your application traffic. Data Boost supports read-only use cases with single-cluster routing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataBoostIsolationReadOnly {
     /// The Compute Billing Owner for this Data Boost App Profile. // TODO: enum values: ["COMPUTE_BILLING_OWNER_UNSPECIFIED", "HOST_PAYS"]
     #[serde(default, rename = "computeBillingOwner")]
@@ -1128,7 +1129,7 @@ pub struct DataBoostIsolationReadOnly {
 }
 
 /// Read/write requests are routed to the nearest cluster in the instance, and will fail over to the nearest cluster that is available in the event of transient errors or delays. Clusters in a region are considered equidistant. Choosing this option sacrifices read-your-writes consistency to improve availability.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MultiClusterRoutingUseAny {
     /// The set of clusters to route to. The order is ignored; clusters will be tried in order of distance. If left empty, all clusters are eligible.
     #[serde(default, rename = "clusterIds")]
@@ -1139,7 +1140,7 @@ pub struct MultiClusterRoutingUseAny {
 }
 
 /// Unconditionally routes all read/write requests to a specific cluster. This option preserves read-your-writes consistency but does not improve availability.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SingleClusterRouting {
     /// Whether or not CheckAndMutateRow and ReadModifyWriteRow requests are allowed by this app profile. It is unsafe to send these requests to the same table/row/column in multiple clusters.
     #[serde(default, rename = "allowTransactionalWrites")]
@@ -1150,7 +1151,7 @@ pub struct SingleClusterRouting {
 }
 
 /// Standard options for isolating this app profile''s traffic from other use cases.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StandardIsolation {
     /// The priority of requests sent using this app profile. // TODO: enum values: ["PRIORITY_UNSPECIFIED", "PRIORITY_LOW", "PRIORITY_MEDIUM", "PRIORITY_HIGH"]
     #[serde(default)]
@@ -1158,7 +1159,7 @@ pub struct StandardIsolation {
 }
 
 /// Encryption information for a given resource. If this resource is protected with customer managed encryption, the in-use Cloud Key Management Service (Cloud KMS) key version is specified along with its status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptionInfo {
     /// Output only. The status of encrypt/decrypt calls on underlying data for this resource. Regardless of status, the existing data is always encrypted at rest.
     #[serde(default, rename = "encryptionStatus")]
@@ -1172,7 +1173,7 @@ pub struct EncryptionInfo {
 }
 
 /// Represents a protobuf schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProtoSchema {
     /// Required. Contains a protobuf-serialized [google.protobuf.FileDescriptorSet](https://github.com/protocolbuffers/protobuf/blob/main/src/google/protobuf/descriptor.proto), which could include multiple proto files. To generate it, [install](https://grpc.io/docs/protoc-installation/) and run protoc with --include_imports and --descriptor_set_out. For example, to generate for moon/shot/app.proto, run  $protoc --proto_path=/app_path --proto_path=/lib_path \ --include_imports \ --descriptor_set_out=descriptors.pb \ moon/shot/app.proto  For more details, see protobuffer [self description](https://developers.google.com/protocol-buffers/docs/techniques#self-description).
     #[serde(default, rename = "protoDescriptors")]
@@ -1180,7 +1181,7 @@ pub struct ProtoSchema {
 }
 
 /// Defines an automated backup policy for a table
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutomatedBackupPolicy {
     /// How frequently automated backups should occur. The only supported value at this time is 24 hours. An undefined frequency is treated as 24 hours.
     #[serde(default)]
@@ -1191,7 +1192,7 @@ pub struct AutomatedBackupPolicy {
 }
 
 /// Change stream configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChangeStreamConfig {
     /// How long the change stream should be retained. Change stream data older than the retention period will not be returned when reading the change stream from the table. Values must be at least 1 day and at most 7 days, and will be truncated to microsecond granularity.
     #[serde(default, rename = "retentionPeriod")]
@@ -1199,7 +1200,7 @@ pub struct ChangeStreamConfig {
 }
 
 /// Information about a table restore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestoreInfo {
     /// Information about the backup used to restore the table. The backup may no longer exist.
     #[serde(default, rename = "backupInfo")]
@@ -1210,7 +1211,7 @@ pub struct RestoreInfo {
 }
 
 /// Approximate statistics related to a table. These statistics are calculated infrequently, while simultaneously, data in the table can change rapidly. Thus the values reported here (e.g. row count) are very likely out-of date, even the instant they are received in this API. Thus, only treat these values as approximate. IMPORTANT: Everything below is approximate, unless otherwise specified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TableStats {
     /// How many cells are present per column (column family, column qualifier) combinations, averaged over all columns in all rows in the table. e.g. A table with 2 rows: * A row with 3 cells in "family:col" and 1 cell in "other:col" (4 cells / 2 columns) * A row with 1 cell in "family:col", 7 cells in "family:other_col", and 7 cells in "other:data" (15 cells / 3 columns) would report (4 + 15)/(2 + 3) = 3.8 in this field.
     #[serde(default, rename = "averageCellsPerColumn")]
@@ -1227,7 +1228,7 @@ pub struct TableStats {
 }
 
 /// Config for tiered storage. A valid config must have a valid TieredStorageRule. Otherwise the whole TieredStorageConfig must be unset. By default all data is stored in the SSD tier (only SSD instances can configure tiered storage).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TieredStorageConfig {
     /// Rule to specify what data is stored in the infrequent access(IA) tier. The IA tier allows storing more data per node with reduced performance.
     #[serde(default, rename = "infrequentAccess")]
@@ -1235,7 +1236,7 @@ pub struct TieredStorageConfig {
 }
 
 /// A set of columns within a table which share a common configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ColumnFamily {
     /// Garbage collection rule specified as a protobuf. Must serialize to at most 500 bytes. NOTE: Garbage collection executes opportunistically in the background, and so it''s possible for reads to return a cell even if it matches the active GC expression for its family.
     #[serde(default, rename = "gcRule")]
@@ -1249,7 +1250,7 @@ pub struct ColumnFamily {
 }
 
 /// A resizable group of nodes in a particular cloud location, capable of serving all Tables in the parent Instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Cluster {
     /// Configuration for this cluster.
     #[serde(default, rename = "clusterConfig")]
@@ -1278,7 +1279,7 @@ pub struct Cluster {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -1289,7 +1290,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -1303,7 +1304,7 @@ pub struct Binding {
 }
 
 /// An Authorized View of a Cloud Bigtable Table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuthorizedView {
     /// Set to true to make the AuthorizedView protected against deletion. The parent Table and containing Instance cannot be deleted if an AuthorizedView has this bit set.
     #[serde(default, rename = "deletionProtection")]
@@ -1320,7 +1321,7 @@ pub struct AuthorizedView {
 }
 
 /// A collection of Bigtable Tables and the resources that serve them. All tables in an instance are served from all Clusters in the instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Instance {
     /// Output only. A commit timestamp representing when this Instance was created. For instances created before this field was added (August 2021), this value is seconds: 0, nanos: 1.
     #[serde(default, rename = "createTime")]
@@ -1355,7 +1356,7 @@ pub struct Instance {
 }
 
 /// A SQL logical view object that can be referenced in SQL queries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogicalView {
     /// Optional. Set to true to make the LogicalView protected against deletion.
     #[serde(default, rename = "deletionProtection")]
@@ -1372,7 +1373,7 @@ pub struct LogicalView {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1386,7 +1387,7 @@ pub struct Status {
 }
 
 /// Information about a backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupInfo {
     /// Output only. Name of the backup.
     #[serde(default)]
@@ -1406,7 +1407,7 @@ pub struct BackupInfo {
 }
 
 /// Rule to specify what data is stored in a storage tier.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TieredStorageRule {
     /// Include cells older than the given age. For the infrequent access tier, this value must be at least 30 days.
     #[serde(default, rename = "includeIfOlderThan")]
@@ -1414,7 +1415,7 @@ pub struct TieredStorageRule {
 }
 
 /// Approximate statistics related to a single column family within a table. This information may change rapidly, interpreting these values at a point in time may already preset out-of-date information. Everything below is approximate, unless otherwise specified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ColumnFamilyStats {
     /// How many cells are present per column qualifier in this column family, averaged over all rows containing any column in the column family. e.g. For column family "family" in a table with 3 rows: * A row with 3 cells in "family:col" and 1 cell in "other:col" (3 cells / 1 column in "family") * A row with 1 cell in "family:col", 7 cells in "family:other_col", and 7 cells in "other:data" (8 cells / 2 columns in "family") * A row with 3 cells in "other:col" (0 columns in "family", "family" not present) would report (3 + 8 + 0)/(1 + 2 + 0) = 3.66 in this field.
     #[serde(default, rename = "averageCellsPerColumn")]
@@ -1428,7 +1429,7 @@ pub struct ColumnFamilyStats {
 }
 
 /// Configuration for a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterConfig {
     /// Autoscaling configuration for this cluster.
     #[serde(default, rename = "clusterAutoscalingConfig")]
@@ -1436,7 +1437,7 @@ pub struct ClusterConfig {
 }
 
 /// Cloud Key Management Service (Cloud KMS) settings for a CMEK-protected cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptionConfig {
     /// Describes the Cloud KMS encryption key that will be used to protect the destination Bigtable cluster. The requirements for this key are: 1) The Cloud Bigtable service account associated with the project that contains this cluster must be granted the cloudkms.cryptoKeyEncrypterDecrypter role on the CMEK key. 2) Only regional keys can be used and the region of the CMEK key must match the region of the cluster. Values are of the form projects/{project}/locations/{location}/keyRings/{keyring}/cryptoKeys/{key}
     #[serde(default, rename = "kmsKeyName")]
@@ -1444,7 +1445,7 @@ pub struct EncryptionConfig {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -1455,7 +1456,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -1472,7 +1473,7 @@ pub struct Expr {
 }
 
 /// Defines a simple AuthorizedView that is a subset of the underlying Table.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2AuthorizedViewSubsetView {
     /// Map from column family name to the columns in this family to be included in the AuthorizedView.
     #[serde(default, rename = "familySubsets")]
@@ -1483,7 +1484,7 @@ pub struct GoogleBigtableAdminV2AuthorizedViewSubsetView {
 }
 
 /// Autoscaling config for a cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterAutoscalingConfig {
     /// Required. Autoscaling limits for this cluster.
     #[serde(default, rename = "autoscalingLimits")]
@@ -1494,7 +1495,7 @@ pub struct ClusterAutoscalingConfig {
 }
 
 /// Limits for the number of nodes a Cluster can autoscale up/down to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoscalingLimits {
     /// Required. Maximum number of nodes to scale up to.
     #[serde(default, rename = "maxServeNodes")]
@@ -1505,7 +1506,7 @@ pub struct AutoscalingLimits {
 }
 
 /// The Autoscaling targets for a Cluster. These determine the recommended nodes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AutoscalingTargets {
     /// The cpu utilization that the Autoscaler should be trying to achieve. This number is on a scale from 0 (no utilization) to 100 (total utilization), and is limited between 10 and 80, otherwise it will return INVALID_ARGUMENT error.
     #[serde(default, rename = "cpuUtilizationPercent")]
@@ -1516,7 +1517,7 @@ pub struct AutoscalingTargets {
 }
 
 /// Rule for determining which cells to delete during garbage collection.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GcRule {
     /// Delete cells that would be deleted by every nested rule.
     #[serde(default)]
@@ -1533,7 +1534,7 @@ pub struct GcRule {
 }
 
 /// A value that combines incremental updates into a summarized value. Data is never directly written or read using type Aggregate. Writes provide either the input_type or state_type, and reads always return the state_type .
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeAggregate {
     /// HyperLogLogPlusPlusUniqueCount aggregator.
     #[serde(default, rename = "hllppUniqueCount")]
@@ -1556,7 +1557,7 @@ pub struct GoogleBigtableAdminV2TypeAggregate {
 }
 
 /// An ordered list of elements of a given type. Values of type Array are stored in Value.array_value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeArray {
     /// The type of the elements in the array. This must not be Array.
     #[serde(default, rename = "elementType")]
@@ -1564,7 +1565,7 @@ pub struct GoogleBigtableAdminV2TypeArray {
 }
 
 /// bool Values of type Bool are stored in Value.bool_value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeBool {
     /// Specifies the encoding to use when converting to or from lower level types.
     #[serde(default)]
@@ -1572,7 +1573,7 @@ pub struct GoogleBigtableAdminV2TypeBool {
 }
 
 /// Bytes Values of type Bytes are stored in Value.bytes_value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeBytes {
     /// The encoding to use when converting to or from lower level types.
     #[serde(default)]
@@ -1580,7 +1581,7 @@ pub struct GoogleBigtableAdminV2TypeBytes {
 }
 
 /// Rules used to convert to or from lower level types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeBytesEncoding {
     /// Use Raw encoding.
     #[serde(default)]
@@ -1588,7 +1589,7 @@ pub struct GoogleBigtableAdminV2TypeBytesEncoding {
 }
 
 /// Leaves the value as-is. Sorted mode: all values are supported. Distinct mode: all values are supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeBytesEncodingRaw {
     /// If set, allows NULL values to be encoded as the empty string "". The actual empty string, or any value which only contains the null byte 0x00, has one more null byte appended.
     #[serde(default, rename = "escapeNulls")]
@@ -1596,7 +1597,7 @@ pub struct GoogleBigtableAdminV2TypeBytesEncodingRaw {
 }
 
 /// A protobuf enum type. Values of type Enum are stored in Value.int_value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeEnum {
     /// The fully qualified name of the protobuf enum message, including package. In the format of "foo.bar.EnumMessage".
     #[serde(default, rename = "enumName")]
@@ -1607,7 +1608,7 @@ pub struct GoogleBigtableAdminV2TypeEnum {
 }
 
 /// Int64 Values of type Int64 are stored in Value.int_value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeInt64 {
     /// The encoding to use when converting to or from lower level types.
     #[serde(default)]
@@ -1615,7 +1616,7 @@ pub struct GoogleBigtableAdminV2TypeInt64 {
 }
 
 /// Rules used to convert to or from lower level types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeInt64Encoding {
     /// Use BigEndianBytes encoding.
     #[serde(default, rename = "bigEndianBytes")]
@@ -1628,7 +1629,7 @@ pub struct GoogleBigtableAdminV2TypeInt64Encoding {
 }
 
 /// Encodes the value as an 8-byte big-endian two''s complement value. Sorted mode: non-negative values are supported. Distinct mode: all values are supported. Compatible with: - BigQuery BINARY encoding - HBase Bytes.toBytes - Java ByteBuffer.putLong() with ByteOrder.BIG_ENDIAN
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeInt64EncodingBigEndianBytes {
     /// Deprecated: ignored if set.
     #[serde(default, rename = "bytesType")]
@@ -1636,7 +1637,7 @@ pub struct GoogleBigtableAdminV2TypeInt64EncodingBigEndianBytes {
 }
 
 /// A mapping of keys to values of a given type. Values of type Map are stored in a Value.array_value where each entry is another Value.array_value with two elements (the key and the value, in that order). Normally encoded Map values won''t have repeated keys, however, clients are expected to handle the case in which they do. If the same key appears multiple times, the _last_ value takes precedence.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeMap {
     /// The type of a map key. Only Bytes, String, and Int64 are allowed as key types.
     #[serde(default, rename = "keyType")]
@@ -1647,7 +1648,7 @@ pub struct GoogleBigtableAdminV2TypeMap {
 }
 
 /// A protobuf message type. Values of type Proto are stored in Value.bytes_value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeProto {
     /// The fully qualified name of the protobuf message, including package. In the format of "foo.bar.Message".
     #[serde(default, rename = "messageName")]
@@ -1658,7 +1659,7 @@ pub struct GoogleBigtableAdminV2TypeProto {
 }
 
 /// A structured data value, consisting of fields which map to dynamically typed values. Values of type Struct are stored in Value.array_value where entries are in the same order and number as field_types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeStruct {
     /// The encoding to use when converting to or from lower level types.
     #[serde(default)]
@@ -1670,7 +1671,7 @@ pub struct GoogleBigtableAdminV2TypeStruct {
 }
 
 /// Rules used to convert to or from lower level types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeStructEncoding {
     /// Use DelimitedBytes encoding.
     #[serde(default, rename = "delimitedBytes")]
@@ -1686,7 +1687,7 @@ pub struct GoogleBigtableAdminV2TypeStructEncoding {
 }
 
 /// Fields are encoded independently and concatenated with a configurable delimiter in between. A struct with no fields defined is encoded as a single delimiter. Sorted mode: - Fields are encoded in sorted mode. - Encoded field values must not contain any bytes &lt;= delimiter[0] - Element-wise order is preserved: A &lt; B if A[0] &lt; B[0], or if A[0] == B[0] && A[1] &lt; B[1], etc. Strict prefixes sort first. - This encoding does not support DESC field ordering. Distinct mode: - Fields are encoded in distinct mode. - Encoded field values must not contain delimiter[0].
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeStructEncodingDelimitedBytes {
     /// Byte sequence used to delimit concatenated fields. The delimiter must contain at least 1 character and at most 50 characters.
     #[serde(default)]
@@ -1694,7 +1695,7 @@ pub struct GoogleBigtableAdminV2TypeStructEncodingDelimitedBytes {
 }
 
 /// A struct field and its type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeStructField {
     /// The field name (optional). Fields without a field_name are considered anonymous and cannot be referenced by name.
     #[serde(default, rename = "fieldName")]
@@ -1705,7 +1706,7 @@ pub struct GoogleBigtableAdminV2TypeStructField {
 }
 
 /// Timestamp Values of type Timestamp are stored in Value.timestamp_value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeTimestamp {
     /// The encoding to use when converting to or from lower level types.
     #[serde(default)]
@@ -1714,7 +1715,7 @@ pub struct GoogleBigtableAdminV2TypeTimestamp {
 }
 
 /// Rules used to convert to or from lower level types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleBigtableAdminV2TypeTimestampEncoding {
     /// Encodes the number of microseconds since the Unix epoch using the given Int64 encoding. Values must be microsecond-aligned. Compatible with: - Java Instant.truncatedTo() with ChronoUnit.MICROS
     #[serde(default, rename = "unixMicrosInt64")]
@@ -1723,7 +1724,7 @@ pub struct GoogleBigtableAdminV2TypeTimestampEncoding {
 }
 
 /// A GcRule which deletes cells matching all of the given rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Intersection {
     /// Only delete cells which would be deleted by every element of rules.
     #[serde(default)]
@@ -1731,7 +1732,7 @@ pub struct Intersection {
 }
 
 /// Type represents the type of data that is written to, read from, or stored in Bigtable. It is heavily based on the GoogleSQL standard to help maintain familiarity and consistency across products and features. For compatibility with Bigtable''s existing untyped APIs, each Type includes an Encoding which describes how to convert to or from the underlying data. Each encoding can operate in one of two modes: - Sorted: In this mode, Bigtable guarantees that Encode(X) &lt;= Encode(Y) if and only if X &lt;= Y. This is useful anywhere sort order is important, for example when encoding keys. - Distinct: In this mode, Bigtable guarantees that if X != Y then Encode(X) != Encode(Y). However, the converse is not guaranteed. For example, both {''foo'': ''1'', ''bar'': ''2''} and {''bar'': ''2'', ''foo'': ''1''} are valid encodings of the same JSON value. The API clearly documents which mode is used wherever an encoding can be configured. Each encoding also documents which values are supported in which modes. For example, when encoding INT64 as a numeric STRING, negative numbers cannot be encoded in sorted mode. This is because INT64(1) &gt; INT64(-1), but STRING("-00001") &gt; STRING("00001").
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Type {
     /// Aggregate
     #[serde(default, rename = "aggregateType")]
@@ -1783,7 +1784,7 @@ pub struct Type {
 }
 
 /// A GcRule which deletes cells matching any of the given rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Union {
     /// Delete cells which would be deleted by any element of rules.
     #[serde(default)]

@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request message to create multiple resource value configs
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchCreateResourceValueConfigsRequest {
     /// Required. The resource value configs to be created.
     #[serde(default)]
@@ -19,7 +20,7 @@ pub struct BatchCreateResourceValueConfigsRequest {
 }
 
 /// Response message for BatchCreateResourceValueConfigs
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchCreateResourceValueConfigsResponse {
     /// The resource value configs created
     #[serde(default, rename = "resourceValueConfigs")]
@@ -28,7 +29,7 @@ pub struct BatchCreateResourceValueConfigsResponse {
 }
 
 /// Request message for bulk findings update. Note: 1. If multiple bulk update requests match the same resource, the order in which they get executed is not defined. 2. Once a bulk operation is started, there is no way to stop it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkMuteFindingsRequest {
     /// Expression that identifies findings that should be updated. The expression is a list of zero or more restrictions combined via logical operators AND and OR. Parentheses are supported, and OR has higher precedence than AND. Restrictions have the form   and may have a - character in front of them to indicate negation. The fields map to those defined in the corresponding resource. The supported operators are: * = for all value types. * &gt;, &lt;, &gt;=, &lt;= for integer values. * :, meaning substring matching, for strings. The supported value types are: * string literals in quotes. * integer literals without quotes. * boolean literals true and false without quotes.
     #[serde(default)]
@@ -42,7 +43,7 @@ pub struct BulkMuteFindingsRequest {
 }
 
 /// Details about specific contacts
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContactDetails {
     /// A list of contacts
     #[serde(default)]
@@ -50,11 +51,11 @@ pub struct ContactDetails {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// The LRO metadata for a ExportFindings request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportFindingsMetadata {
     /// Required. The destination BigQuery dataset to export findings to.
     #[serde(default, rename = "bigQueryDestination")]
@@ -65,11 +66,11 @@ pub struct ExportFindingsMetadata {
 }
 
 /// The response to a ExportFindings request. Contains the LRO information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportFindingsResponse {}
 
 /// Request message for GetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetIamPolicyRequest {
     /// OPTIONAL: A GetPolicyOptions object for specifying options to GetIamPolicy.
     #[serde(default)]
@@ -77,11 +78,11 @@ pub struct GetIamPolicyRequest {
 }
 
 /// The response to a BulkMute request. Contains the LRO information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1BulkMuteFindingsResponse {}
 
 /// Representation of third party SIEM/SOAR fields within SCC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1ExternalSystem {
     /// References primary/secondary etc assignees in the external system.
     #[serde(default)]
@@ -119,7 +120,7 @@ pub struct GoogleCloudSecuritycenterV1ExternalSystem {
 }
 
 /// Cloud SCC''s Notification
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1NotificationMessage {
     /// If it''s a Finding based notification config, this field will be populated.
     #[serde(default)]
@@ -133,7 +134,7 @@ pub struct GoogleCloudSecuritycenterV1NotificationMessage {
 }
 
 /// Response of asset discovery run
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1RunAssetDiscoveryResponse {
     /// The duration between asset discovery run start and end
     #[serde(default)]
@@ -144,7 +145,7 @@ pub struct GoogleCloudSecuritycenterV1RunAssetDiscoveryResponse {
 }
 
 /// Response of asset discovery run
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1beta1RunAssetDiscoveryResponse {
     /// The duration between asset discovery run start and end
     #[serde(default)]
@@ -155,7 +156,7 @@ pub struct GoogleCloudSecuritycenterV1beta1RunAssetDiscoveryResponse {
 }
 
 /// Security Command Center''s Notification
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1p1beta1NotificationMessage {
     /// If it''s a Finding based notification config, this field will be populated.
     #[serde(default)]
@@ -169,7 +170,7 @@ pub struct GoogleCloudSecuritycenterV1p1beta1NotificationMessage {
 }
 
 /// Response of asset discovery run
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1p1beta1RunAssetDiscoveryResponse {
     /// The duration between asset discovery run start and end
     #[serde(default)]
@@ -180,7 +181,7 @@ pub struct GoogleCloudSecuritycenterV1p1beta1RunAssetDiscoveryResponse {
 }
 
 /// Configures how to deliver Findings to BigQuery Instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2BigQueryExport {
     /// Output only. The time at which the BigQuery export was created. This field is set by the server and will be ignored if provided on export on creation.
     #[serde(default, rename = "createTime")]
@@ -212,11 +213,11 @@ pub struct GoogleCloudSecuritycenterV2BigQueryExport {
 }
 
 /// The response to a BulkMute request. Contains the LRO information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2BulkMuteFindingsResponse {}
 
 /// Details about specific contacts
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2ContactDetails {
     /// A list of contacts
     #[serde(default)]
@@ -224,7 +225,7 @@ pub struct GoogleCloudSecuritycenterV2ContactDetails {
 }
 
 /// Representation of third party SIEM/SOAR fields within SCC.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2ExternalSystem {
     /// References primary/secondary etc assignees in the external system.
     #[serde(default)]
@@ -262,7 +263,7 @@ pub struct GoogleCloudSecuritycenterV2ExternalSystem {
 }
 
 /// Security Command Center Issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Issue {
     /// Output only. The time the issue was created.
     #[serde(default, rename = "createTime")]
@@ -321,7 +322,7 @@ pub struct GoogleCloudSecuritycenterV2Issue {
 }
 
 /// A mute config is a Cloud SCC resource that contains the configuration to mute create/update events of findings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2MuteConfig {
     /// Output only. The time at which the mute config was created. This field is set by the server and will be ignored if provided on config creation.
     #[serde(default, rename = "createTime")]
@@ -353,7 +354,7 @@ pub struct GoogleCloudSecuritycenterV2MuteConfig {
 }
 
 /// Cloud SCC''s Notification
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2NotificationMessage {
     /// If it''s a Finding based notification config, this field will be populated.
     #[serde(default)]
@@ -367,7 +368,7 @@ pub struct GoogleCloudSecuritycenterV2NotificationMessage {
 }
 
 /// A resource value configuration (RVC) is a mapping configuration of user''s resources to resource values. Used in Attack path simulations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2ResourceValueConfig {
     /// Cloud provider this configuration applies to // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
     #[serde(default, rename = "cloudProvider")]
@@ -406,7 +407,7 @@ pub struct GoogleCloudSecuritycenterV2ResourceValueConfig {
 }
 
 /// Request message for grouping by assets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GroupAssetsRequest {
     /// When compare_duration is set, the GroupResult''s "state_change" property is updated to indicate whether the asset was added, removed, or remained present during the compare_duration period of time that precedes the read_time. This is the time between (read_time - compare_duration) and read_time. The state change value is derived based on the presence of the asset at the two points in time. Intermediate state changes between the two times don''t affect the result. For example, the results aren''t affected if the asset is removed and re-created again. Possible "state_change" values when compare_duration is specified: * "ADDED": indicates that the asset was not present at the start of compare_duration, but present at reference_time. * "REMOVED": indicates that the asset was present at the start of compare_duration, but not present at reference_time. * "ACTIVE": indicates that the asset was present at both the start and the end of the time period defined by compare_duration and reference_time. If compare_duration is not specified, then the only possible state_change is "UNUSED", which will be the state_change set for all assets present at read_time. If this field is set then state_change must be a specified field in group_by.
     #[serde(default, rename = "compareDuration")]
@@ -429,7 +430,7 @@ pub struct GroupAssetsRequest {
 }
 
 /// Response message for grouping by assets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GroupAssetsResponse {
     /// Group results. There exists an element for each existing unique combination of property/values. The element contains a count for the number of times those specific property/values appear.
     #[serde(default, rename = "groupByResults")]
@@ -446,7 +447,7 @@ pub struct GroupAssetsResponse {
 }
 
 /// Request message for grouping by findings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GroupFindingsRequest {
     /// When compare_duration is set, the GroupResult''s "state_change" attribute is updated to indicate whether the finding had its state changed, the finding''s state remained unchanged, or if the finding was added during the compare_duration period of time that precedes the read_time. This is the time between (read_time - compare_duration) and read_time. The state_change value is derived based on the presence and state of the finding at the two points in time. Intermediate state changes between the two times don''t affect the result. For example, the results aren''t affected if the finding is made inactive and then active again. Possible "state_change" values when compare_duration is specified: * "CHANGED": indicates that the finding was present and matched the given filter at the start of compare_duration, but changed its state at read_time. * "UNCHANGED": indicates that the finding was present and matched the given filter at the start of compare_duration and did not change state at read_time. * "ADDED": indicates that the finding did not match the given filter or was not present at the start of compare_duration, but was present at read_time. * "REMOVED": indicates that the finding was present and matched the filter at the start of compare_duration, but did not match the filter at read_time. If compare_duration is not specified, then the only possible state_change is "UNUSED", which will be the state_change set for all findings present at read_time. If this field is set then state_change must be a specified field in group_by.
     #[serde(default, rename = "compareDuration")]
@@ -469,7 +470,7 @@ pub struct GroupFindingsRequest {
 }
 
 /// Response message for group by findings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GroupFindingsResponse {
     /// Group results. There exists an element for each existing unique combination of property/values. The element contains a count for the number of times those specific property/values appear.
     #[serde(default, rename = "groupByResults")]
@@ -486,7 +487,7 @@ pub struct GroupFindingsResponse {
 }
 
 /// Response message for listing assets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAssetsResponse {
     /// Assets matching the list request.
     #[serde(default, rename = "listAssetsResults")]
@@ -503,7 +504,7 @@ pub struct ListAssetsResponse {
 }
 
 /// Response message for listing the attack paths for a given simulation or valued resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAttackPathsResponse {
     /// The attack paths that the attack path simulation identified.
     #[serde(default, rename = "attackPaths")]
@@ -514,7 +515,7 @@ pub struct ListAttackPathsResponse {
 }
 
 /// Response message for listing BigQuery exports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBigQueryExportsResponse {
     /// The BigQuery exports from the specified parent.
     #[serde(default, rename = "bigQueryExports")]
@@ -526,7 +527,7 @@ pub struct ListBigQueryExportsResponse {
 }
 
 /// Response for listing current and descendant resident Event Threat Detection custom modules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDescendantEventThreatDetectionCustomModulesResponse {
     /// Custom modules belonging to the requested parent.
     #[serde(default, rename = "eventThreatDetectionCustomModules")]
@@ -538,7 +539,7 @@ pub struct ListDescendantEventThreatDetectionCustomModulesResponse {
 }
 
 /// Response message for listing descendant Security Health Analytics custom modules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDescendantSecurityHealthAnalyticsCustomModulesResponse {
     /// If not empty, indicates that there may be more custom modules to be returned.
     #[serde(default, rename = "nextPageToken")]
@@ -551,7 +552,7 @@ pub struct ListDescendantSecurityHealthAnalyticsCustomModulesResponse {
 }
 
 /// Response for listing EffectiveEventThreatDetectionCustomModules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListEffectiveEventThreatDetectionCustomModulesResponse {
     /// Effective custom modules belonging to the requested parent.
     #[serde(default, rename = "effectiveEventThreatDetectionCustomModules")]
@@ -563,7 +564,7 @@ pub struct ListEffectiveEventThreatDetectionCustomModulesResponse {
 }
 
 /// Response message for listing effective Security Health Analytics custom modules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListEffectiveSecurityHealthAnalyticsCustomModulesResponse {
     /// Effective custom modules belonging to the requested parent.
     #[serde(default, rename = "effectiveSecurityHealthAnalyticsCustomModules")]
@@ -576,7 +577,7 @@ pub struct ListEffectiveSecurityHealthAnalyticsCustomModulesResponse {
 }
 
 /// Response for listing Event Threat Detection custom modules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListEventThreatDetectionCustomModulesResponse {
     /// Custom modules belonging to the requested parent.
     #[serde(default, rename = "eventThreatDetectionCustomModules")]
@@ -588,7 +589,7 @@ pub struct ListEventThreatDetectionCustomModulesResponse {
 }
 
 /// Response message for listing findings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListFindingsResponse {
     /// Findings matching the list request.
     #[serde(default, rename = "listFindingsResults")]
@@ -605,7 +606,7 @@ pub struct ListFindingsResponse {
 }
 
 /// Response message for listing mute configs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMuteConfigsResponse {
     /// The mute configs from the specified parent.
     #[serde(default, rename = "muteConfigs")]
@@ -617,7 +618,7 @@ pub struct ListMuteConfigsResponse {
 }
 
 /// Response message for listing notification configs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListNotificationConfigsResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results.
     #[serde(default, rename = "nextPageToken")]
@@ -628,7 +629,7 @@ pub struct ListNotificationConfigsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -642,7 +643,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response message to list resource value configs
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListResourceValueConfigsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is empty, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -654,7 +655,7 @@ pub struct ListResourceValueConfigsResponse {
 }
 
 /// Response message for listing Security Health Analytics custom modules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSecurityHealthAnalyticsCustomModulesResponse {
     /// If not empty, indicates that there may be more custom modules to be returned.
     #[serde(default, rename = "nextPageToken")]
@@ -667,7 +668,7 @@ pub struct ListSecurityHealthAnalyticsCustomModulesResponse {
 }
 
 /// Response message for listing sources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSourcesResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results.
     #[serde(default, rename = "nextPageToken")]
@@ -678,7 +679,7 @@ pub struct ListSourcesResponse {
 }
 
 /// Response message for listing the valued resources for a given simulation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListValuedResourcesResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results.
     #[serde(default, rename = "nextPageToken")]
@@ -692,7 +693,7 @@ pub struct ListValuedResourcesResponse {
 }
 
 /// User specified settings that are attached to the Security Command Center organization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrganizationSettings {
     /// The configuration used for Asset Discovery runs.
     #[serde(default, rename = "assetDiscoveryConfig")]
@@ -706,11 +707,11 @@ pub struct OrganizationSettings {
 }
 
 /// Request message for running asset discovery for an organization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RunAssetDiscoveryRequest {}
 
 /// Request message for updating a finding''s state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetFindingStateRequest {
     /// Optional. The time at which the updated state takes effect. If unset, defaults to the request time.
     #[serde(default, rename = "startTime")]
@@ -721,7 +722,7 @@ pub struct SetFindingStateRequest {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -732,7 +733,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Request message for updating a finding''s mute status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetMuteRequest {
     /// Required. The desired state of the Mute. // TODO: enum values: ["MUTE_UNSPECIFIED", "MUTED", "UNMUTED", "UNDEFINED"]
     #[serde(default)]
@@ -740,7 +741,7 @@ pub struct SetMuteRequest {
 }
 
 /// Request message to simulate a CustomConfig against a given test resource. Maximum size of the request is 4 MB by default.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SimulateSecurityHealthAnalyticsCustomModuleRequest {
     /// Required. The custom configuration that you need to test.
     #[serde(default, rename = "customConfig")]
@@ -751,7 +752,7 @@ pub struct SimulateSecurityHealthAnalyticsCustomModuleRequest {
 }
 
 /// Response message for simulating a SecurityHealthAnalyticsCustomModule against a given resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SimulateSecurityHealthAnalyticsCustomModuleResponse {
     /// Result for test case in the corresponding request.
     #[serde(default)]
@@ -759,7 +760,7 @@ pub struct SimulateSecurityHealthAnalyticsCustomModuleResponse {
 }
 
 /// Attack path simulation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Simulation {
     /// Indicates which cloud provider was used in this simulation. // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
     #[serde(default, rename = "cloudProvider")]
@@ -777,7 +778,7 @@ pub struct Simulation {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -785,7 +786,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -793,7 +794,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// Request to validate an Event Threat Detection custom module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValidateEventThreatDetectionCustomModuleRequest {
     /// Required. The raw text of the module''s contents. Used to generate error messages.
     #[serde(default, rename = "rawText")]
@@ -804,7 +805,7 @@ pub struct ValidateEventThreatDetectionCustomModuleRequest {
 }
 
 /// Response to validating an Event Threat Detection custom module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValidateEventThreatDetectionCustomModuleResponse {
     /// A list of errors returned by the validator. If the list is empty, there were no errors.
     #[serde(default)]
@@ -812,7 +813,7 @@ pub struct ValidateEventThreatDetectionCustomModuleResponse {
 }
 
 /// Result containing the properties and count of a VulnerabilitySnapshot request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VulnerabilitySnapshot {
     /// The cloud provider for the vulnerability snapshot. // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
     #[serde(default, rename = "cloudProvider")]
@@ -829,7 +830,7 @@ pub struct VulnerabilitySnapshot {
 }
 
 /// Request message to create single resource value config
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateResourceValueConfigRequest {
     /// Required. Resource name of the new ResourceValueConfig''s parent.
     #[serde(default)]
@@ -841,7 +842,7 @@ pub struct CreateResourceValueConfigRequest {
 }
 
 /// The email address of a contact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Contact {
     /// An email address. For example, "person123@company.com".
     #[serde(default)]
@@ -849,7 +850,7 @@ pub struct Contact {
 }
 
 /// The destination BigQuery dataset to export findings to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BigQueryDestination {
     /// Required. The relative resource name of the destination dataset, in the form projects/{projectId}/datasets/{datasetId}.
     #[serde(default)]
@@ -857,7 +858,7 @@ pub struct BigQueryDestination {
 }
 
 /// Encapsulates settings provided to GetIamPolicy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetPolicyOptions {
     /// Optional. The maximum policy version that will be used to format the policy. Valid values are 0, 1, and 3. Requests specifying an invalid value will be rejected. Requests for policies with any conditional role bindings must specify version 3. Policies with no conditional role bindings may specify any valid value or leave the field unset. The policy in the response might use the policy version that you specified, or it might use a lower policy version. For example, if you specify version 3, but the policy has no conditional role bindings, the response uses version 1. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default, rename = "requestedPolicyVersion")]
@@ -865,7 +866,7 @@ pub struct GetPolicyOptions {
 }
 
 /// Information about the ticket, if any, that is being used to track the resolution of the issue that is identified by this finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TicketInfo {
     /// The assignee of the ticket in the ticket system.
     #[serde(default)]
@@ -888,7 +889,7 @@ pub struct TicketInfo {
 }
 
 /// Information related to the Google Cloud resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1Resource {
     /// The ADC application associated with the finding.
     #[serde(default, rename = "adcApplication")]
@@ -953,7 +954,7 @@ pub struct GoogleCloudSecuritycenterV1Resource {
 }
 
 /// Security Command Center finding. A finding is a record of assessment data (security, risk, health or privacy) ingested into Security Command Center for presentation, notification, analysis, policy testing, and enforcement. For example, an XSS vulnerability in an App Engine application is a finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1p1beta1Finding {
     /// The canonical name of the finding. It''s either "organizations/{organization_id}/sources/{source_id}/findings/{finding_id}", "folders/{folder_id}/sources/{source_id}/findings/{finding_id}" or "projects/{project_number}/sources/{source_id}/findings/{finding_id}", depending on the closest CRM ancestor of the resource associated with the finding.
     #[serde(default, rename = "canonicalName")]
@@ -994,7 +995,7 @@ pub struct GoogleCloudSecuritycenterV1p1beta1Finding {
 }
 
 /// Information related to the Google Cloud resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1p1beta1Resource {
     /// Output only. Contains a Folder message for each folder in the assets ancestry. The first folder is the deepest nested folder, and the last folder is the folder directly under the Organization.
     #[serde(default)]
@@ -1017,7 +1018,7 @@ pub struct GoogleCloudSecuritycenterV1p1beta1Resource {
 }
 
 /// The email address of a contact.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Contact {
     /// An email address. For example, "person123@company.com".
     #[serde(default)]
@@ -1025,7 +1026,7 @@ pub struct GoogleCloudSecuritycenterV2Contact {
 }
 
 /// Information about the ticket, if any, that is being used to track the resolution of the issue that is identified by this finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2TicketInfo {
     /// The assignee of the ticket in the ticket system.
     #[serde(default)]
@@ -1048,7 +1049,7 @@ pub struct GoogleCloudSecuritycenterV2TicketInfo {
 }
 
 /// The domains of an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2IssueDomain {
     /// The domain category of the issue. // TODO: enum values: ["DOMAIN_CATEGORY_UNSPECIFIED", "AI", "CODE", "CONTAINER", "DATA", "IDENTITY_AND_ACCESS", "VULNERABILITY", "THREAT"]
     #[serde(default, rename = "domainCategory")]
@@ -1056,7 +1057,7 @@ pub struct GoogleCloudSecuritycenterV2IssueDomain {
 }
 
 /// The mute information of the issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2IssueMute {
     /// The email address of the user who last changed the mute state of the issue.
     #[serde(default, rename = "muteInitiator")]
@@ -1073,7 +1074,7 @@ pub struct GoogleCloudSecuritycenterV2IssueMute {
 }
 
 /// A resource associated with the an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2IssueResource {
     /// The ADC application associated with the finding.
     #[serde(default, rename = "adcApplication")]
@@ -1117,7 +1118,7 @@ pub struct GoogleCloudSecuritycenterV2IssueResource {
 }
 
 /// Finding related to an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2IssueFinding {
     /// The CVE of the finding.
     #[serde(default)]
@@ -1132,7 +1133,7 @@ pub struct GoogleCloudSecuritycenterV2IssueFinding {
 }
 
 /// Security context associated with an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2IssueSecurityContext {
     /// The aggregated count of the security context.
     #[serde(default, rename = "aggregatedCount")]
@@ -1144,7 +1145,7 @@ pub struct GoogleCloudSecuritycenterV2IssueSecurityContext {
 }
 
 /// Security Command Center finding. A finding is a record of assessment data like security, risk, health, or privacy, that is ingested into Security Command Center for presentation, notification, analysis, policy testing, and enforcement. For example, a cross-site scripting (XSS) vulnerability in an App Engine application is a finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Finding {
     /// Access details associated with the finding, such as more information on the caller, which method was accessed, and from where.
     #[serde(default)]
@@ -1368,7 +1369,7 @@ pub struct GoogleCloudSecuritycenterV2Finding {
 }
 
 /// Information related to the Google Cloud resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Resource {
     /// The ADC application associated with the finding.
     #[serde(default, rename = "adcApplication")]
@@ -1420,7 +1421,7 @@ pub struct GoogleCloudSecuritycenterV2Resource {
 }
 
 /// Resource value mapping for Sensitive Data Protection findings If any of these mappings have a resource value that is not unspecified, the resource_value field will be ignored when reading this configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2SensitiveDataProtectionMapping {
     /// Resource value mapping for high-sensitivity Sensitive Data Protection findings // TODO: enum values: ["RESOURCE_VALUE_UNSPECIFIED", "HIGH", "MEDIUM", "LOW", "NONE"]
     #[serde(default, rename = "highSensitivityMapping")]
@@ -1431,7 +1432,7 @@ pub struct GoogleCloudSecuritycenterV2SensitiveDataProtectionMapping {
 }
 
 /// Result containing the properties and count of a groupBy request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GroupResult {
     /// Total count of resources for the given properties.
     #[serde(default)]
@@ -1442,7 +1443,7 @@ pub struct GroupResult {
 }
 
 /// Result containing the Asset and its State.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAssetsResult {
     /// Asset matching the search request.
     #[serde(default)]
@@ -1453,7 +1454,7 @@ pub struct ListAssetsResult {
 }
 
 /// A path that an attacker could take to reach an exposed resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttackPath {
     /// A list of the edges between nodes in this attack path.
     #[serde(default)]
@@ -1467,7 +1468,7 @@ pub struct AttackPath {
 }
 
 /// Configures how to deliver Findings to BigQuery Instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1BigQueryExport {
     /// Output only. The time at which the BigQuery export was created. This field is set by the server and will be ignored if provided on export on creation.
     #[serde(default, rename = "createTime")]
@@ -1496,7 +1497,7 @@ pub struct GoogleCloudSecuritycenterV1BigQueryExport {
 }
 
 /// An EffectiveEventThreatDetectionCustomModule is the representation of an Event Threat Detection custom module at a specified level of the resource hierarchy: organization, folder, or project. If a custom module is inherited from a parent organization or folder, the value of the enablement_state property in EffectiveEventThreatDetectionCustomModule is set to the value that is effective in the parent, instead of INHERITED. For example, if the module is enabled in a parent organization or folder, the effective enablement_state for the module in all child folders or projects is also enabled. EffectiveEventThreatDetectionCustomModule is read-only.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EffectiveEventThreatDetectionCustomModule {
     /// The cloud provider of the custom module. // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
     #[serde(default, rename = "cloudProvider")]
@@ -1522,7 +1523,7 @@ pub struct EffectiveEventThreatDetectionCustomModule {
 }
 
 /// An EffectiveSecurityHealthAnalyticsCustomModule is the representation of a Security Health Analytics custom module at a specified level of the resource hierarchy: organization, folder, or project. If a custom module is inherited from a parent organization or folder, the value of the enablementState property in EffectiveSecurityHealthAnalyticsCustomModule is set to the value that is effective in the parent, instead of INHERITED. For example, if the module is enabled in a parent organization or folder, the effective enablement_state for the module in all child folders or projects is also enabled. EffectiveSecurityHealthAnalyticsCustomModule is read-only.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1EffectiveSecurityHealthAnalyticsCustomModule {
     /// The cloud provider of the custom module. // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
     #[serde(default, rename = "cloudProvider")]
@@ -1542,7 +1543,7 @@ pub struct GoogleCloudSecuritycenterV1EffectiveSecurityHealthAnalyticsCustomModu
 }
 
 /// Represents an instance of an Event Threat Detection custom module, including its full module name, display name, enablement state, and last updated time. You can create a custom module at the organization, folder, or project level. Custom modules that you create at the organization or folder level are inherited by child folders and projects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EventThreatDetectionCustomModule {
     /// Output only. The closest ancestor module that this module inherits the enablement state from. The format is the same as the EventThreatDetectionCustomModule resource name.
     #[serde(default, rename = "ancestorModule")]
@@ -1577,7 +1578,7 @@ pub struct EventThreatDetectionCustomModule {
 }
 
 /// Result containing the Finding and its StateChange.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListFindingsResult {
     /// Finding matching the search request.
     #[serde(default)]
@@ -1591,7 +1592,7 @@ pub struct ListFindingsResult {
 }
 
 /// A mute config is a Cloud SCC resource that contains the configuration to mute create/update events of findings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1MuteConfig {
     /// Output only. The time at which the mute config was created. This field is set by the server and will be ignored if provided on config creation.
     #[serde(default, rename = "createTime")]
@@ -1623,7 +1624,7 @@ pub struct GoogleCloudSecuritycenterV1MuteConfig {
 }
 
 /// Cloud Security Command Center (Cloud SCC) notification configs. A notification config is a Cloud SCC resource that contains the configuration to send notifications for create/update events of findings, assets and etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NotificationConfig {
     /// The description of the notification config (max of 1024 characters).
     #[serde(default)]
@@ -1643,7 +1644,7 @@ pub struct NotificationConfig {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -1663,7 +1664,7 @@ pub struct Operation {
 }
 
 /// Represents an instance of a Security Health Analytics custom module, including its full module name, display name, enablement state, and last updated time. You can create a custom module at the organization, folder, or project level. Custom modules that you create at the organization or folder level are inherited by the child folders and projects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule {
     /// Output only. If empty, indicates that the custom module was created in the organization, folder, or project in which you are viewing the custom module. Otherwise, ancestor_module specifies the organization or folder from which the custom module is inherited.
     #[serde(default, rename = "ancestorModule")]
@@ -1692,7 +1693,7 @@ pub struct GoogleCloudSecuritycenterV1SecurityHealthAnalyticsCustomModule {
 }
 
 /// Security Command Center finding source. A finding source is an entity or a mechanism that can produce a finding. A source is like a container of findings that come from the same scanner, logger, monitor, and other tools.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Source {
     /// The canonical name of the finding source. It''s either "organizations/{organization_id}/sources/{source_id}", "folders/{folder_id}/sources/{source_id}", or "projects/{project_number}/sources/{source_id}", depending on the closest CRM ancestor of the resource associated with the finding.
     #[serde(default, rename = "canonicalName")]
@@ -1709,7 +1710,7 @@ pub struct Source {
 }
 
 /// A resource that is determined to have value to a user''s system
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValuedResource {
     /// Human-readable name of the valued resource.
     #[serde(default, rename = "displayName")]
@@ -1736,7 +1737,7 @@ pub struct ValuedResource {
 }
 
 /// The configuration used for Asset Discovery runs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AssetDiscoveryConfig {
     /// The folder ids to use for filtering asset discovery. It consists of only digits, e.g., 756619654966.
     #[serde(default, rename = "folderIds")]
@@ -1750,7 +1751,7 @@ pub struct AssetDiscoveryConfig {
 }
 
 /// Manually constructed resource name. If the custom module evaluates against only the resource data, you can omit the iam_policy_data field. If it evaluates only the iam_policy_data field, you can omit the resource data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SimulatedResource {
     /// Optional. A representation of the IAM policy.
     #[serde(default, rename = "iamPolicyData")]
@@ -1764,7 +1765,7 @@ pub struct SimulatedResource {
 }
 
 /// Possible test result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SimulatedResult {
     /// Error encountered during the test.
     #[serde(default)]
@@ -1778,7 +1779,7 @@ pub struct SimulatedResult {
 }
 
 /// A list of zero or more errors encountered while validating the uploaded configuration of an Event Threat Detection Custom Module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomModuleValidationErrors {
     /// The list of errors.
     #[serde(default)]
@@ -1786,7 +1787,7 @@ pub struct CustomModuleValidationErrors {
 }
 
 /// Vulnerability count by severity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VulnerabilityCountBySeverity {
     /// Key is the Severity enum.
     #[serde(default, rename = "severityToFindingCount")]
@@ -1794,7 +1795,7 @@ pub struct VulnerabilityCountBySeverity {
 }
 
 /// A resource value configuration (RVC) is a mapping configuration of user''s resources to resource values. Used in Attack path simulations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1ResourceValueConfig {
     /// Cloud provider this configuration applies to // TODO: enum values: ["CLOUD_PROVIDER_UNSPECIFIED", "GOOGLE_CLOUD_PLATFORM", "AMAZON_WEB_SERVICES", "MICROSOFT_AZURE"]
     #[serde(default, rename = "cloudProvider")]
@@ -1833,7 +1834,7 @@ pub struct GoogleCloudSecuritycenterV1ResourceValueConfig {
 }
 
 /// User specified security marks that are attached to the parent Security Command Center resource. Security marks are scoped within a Security Command Center organization -- they can be modified and viewed by all users who have proper permissions on the organization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1p1beta1SecurityMarks {
     /// The canonical name of the marks. Examples: "organizations/{organization_id}/assets/{asset_id}/securityMarks" "folders/{folder_id}/assets/{asset_id}/securityMarks" "projects/{project_number}/assets/{asset_id}/securityMarks" "organizations/{organization_id}/sources/{source_id}/findings/{finding_id}/securityMarks" "folders/{folder_id}/sources/{source_id}/findings/{finding_id}/securityMarks" "projects/{project_number}/sources/{source_id}/findings/{finding_id}/securityMarks"
     #[serde(default, rename = "canonicalName")]
@@ -1847,7 +1848,7 @@ pub struct GoogleCloudSecuritycenterV1p1beta1SecurityMarks {
 }
 
 /// Message that contains the resource name and display name of a folder resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1p1beta1Folder {
     /// Full resource name of this folder. See: https://cloud.google.com/apis/design/resource_names#full_resource_name
     #[serde(default, rename = "resourceFolder")]
@@ -1858,7 +1859,7 @@ pub struct GoogleCloudSecuritycenterV1p1beta1Folder {
 }
 
 /// Represents an ADC application associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2IssueResourceAdcApplication {
     /// Consumer provided attributes for the AppHub application.
     #[serde(default)]
@@ -1870,7 +1871,7 @@ pub struct GoogleCloudSecuritycenterV2IssueResourceAdcApplication {
 }
 
 /// Represents an ADC template associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2IssueResourceAdcApplicationTemplateRevision {
     /// The resource name of an ADC Application Template Revision. Format: projects/{project}/locations/{location}/spaces/{space}/applicationTemplates/{application_template}/revisions/{revision}
     #[serde(default)]
@@ -1878,7 +1879,7 @@ pub struct GoogleCloudSecuritycenterV2IssueResourceAdcApplicationTemplateRevisio
 }
 
 /// Represents an ADC shared template associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2IssueResourceAdcSharedTemplateRevision {
     /// The resource name of an ADC Shared Template Revision. Format: projects/{project}/locations/{location}/spaces/{space}/applicationTemplates/{application_template}/revisions/{revision}
     #[serde(default)]
@@ -1886,7 +1887,7 @@ pub struct GoogleCloudSecuritycenterV2IssueResourceAdcSharedTemplateRevision {
 }
 
 /// The AppHub application associated with the resource, if any.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2IssueResourceApplication {
     /// Consumer provided attributes for the application
     #[serde(default)]
@@ -1898,7 +1899,7 @@ pub struct GoogleCloudSecuritycenterV2IssueResourceApplication {
 }
 
 /// The AWS metadata of a resource associated with an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2IssueResourceAwsMetadata {
     /// The AWS account of the resource associated with the issue.
     #[serde(default)]
@@ -1907,7 +1908,7 @@ pub struct GoogleCloudSecuritycenterV2IssueResourceAwsMetadata {
 }
 
 /// The Azure metadata of a resource associated with an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2IssueResourceAzureMetadata {
     /// The Azure subscription of the resource associated with the issue.
     #[serde(default)]
@@ -1917,7 +1918,7 @@ pub struct GoogleCloudSecuritycenterV2IssueResourceAzureMetadata {
 }
 
 /// Google Cloud metadata of a resource associated with an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2IssueResourceGoogleCloudMetadata {
     /// The project ID that the resource associated with the issue belongs to.
     #[serde(default, rename = "projectId")]
@@ -1925,7 +1926,7 @@ pub struct GoogleCloudSecuritycenterV2IssueResourceGoogleCloudMetadata {
 }
 
 /// The CVE of the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2IssueFindingCve {
     /// The CVE name.
     #[serde(default)]
@@ -1933,7 +1934,7 @@ pub struct GoogleCloudSecuritycenterV2IssueFindingCve {
 }
 
 /// The security bulletin of the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2IssueFindingSecurityBulletin {
     /// The security bulletin name.
     #[serde(default)]
@@ -1941,7 +1942,7 @@ pub struct GoogleCloudSecuritycenterV2IssueFindingSecurityBulletin {
 }
 
 /// Aggregated count of a security context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2IssueSecurityContextAggregatedCount {
     /// Aggregation key.
     #[serde(default)]
@@ -1952,7 +1953,7 @@ pub struct GoogleCloudSecuritycenterV2IssueSecurityContextAggregatedCount {
 }
 
 /// Context of a security context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2IssueSecurityContextContext {
     /// Context type.
     #[serde(default, rename = "type")]
@@ -1963,7 +1964,7 @@ pub struct GoogleCloudSecuritycenterV2IssueSecurityContextContext {
 }
 
 /// Represents an access event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Access {
     /// Caller''s IP address, such as "1.1.1.1".
     #[serde(default, rename = "callerIp")]
@@ -2003,7 +2004,7 @@ pub struct GoogleCloudSecuritycenterV2Access {
 }
 
 /// Details about resources affected by this finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2AffectedResources {
     /// The count of resources affected by the finding.
     #[serde(default)]
@@ -2011,7 +2012,7 @@ pub struct GoogleCloudSecuritycenterV2AffectedResources {
 }
 
 /// Details about a data access attempt made by an agent principal not authorized under applicable data security policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2AgentDataAccessEvent {
     /// Unique identifier for data access event.
     #[serde(default, rename = "eventId")]
@@ -2028,7 +2029,7 @@ pub struct GoogleCloudSecuritycenterV2AgentDataAccessEvent {
 }
 
 /// Contains information about the AI model associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2AiModel {
     /// The platform on which the model is deployed. // TODO: enum values: ["DEPLOYMENT_PLATFORM_UNSPECIFIED", "VERTEX_AI", "GKE", "GCE", "FINE_TUNED_MODEL"]
     #[serde(default, rename = "deploymentPlatform")]
@@ -2057,7 +2058,7 @@ pub struct GoogleCloudSecuritycenterV2AiModel {
 }
 
 /// Represents an application associated with a finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Application {
     /// The base URI that identifies the network location of the application in which the vulnerability was detected. For example, http://example.com.
     #[serde(default, rename = "baseUri")]
@@ -2068,7 +2069,7 @@ pub struct GoogleCloudSecuritycenterV2Application {
 }
 
 /// Represents the result of evaluating artifact guard policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2ArtifactGuardPolicies {
     /// A list of failing policies.
     #[serde(default, rename = "failingPolicies")]
@@ -2080,7 +2081,7 @@ pub struct GoogleCloudSecuritycenterV2ArtifactGuardPolicies {
 }
 
 /// An attack exposure contains the results of an attack path simulation run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2AttackExposure {
     /// The resource name of the attack path simulation result that contains the details regarding this attack exposure score. Example: organizations/123/simulations/456/attackExposureResults/789
     #[serde(default, rename = "attackExposureResult")]
@@ -2106,7 +2107,7 @@ pub struct GoogleCloudSecuritycenterV2AttackExposure {
 }
 
 /// Information related to Google Cloud Backup and DR Service findings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2BackupDisasterRecovery {
     /// The name of the Backup and DR appliance that captures, moves, and manages the lifecycle of backup data. For example, backup-server-57137.
     #[serde(default)]
@@ -2141,7 +2142,7 @@ pub struct GoogleCloudSecuritycenterV2BackupDisasterRecovery {
 }
 
 /// Contains details about a chokepoint, which is a resource or resource group where high-risk attack paths converge, based on [attack path simulations] (https://cloud.google.com/security-command-center/docs/attack-exposure-learn#attack_path_simulations).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Chokepoint {
     /// List of resource names of findings associated with this chokepoint. For example, organizations/123/sources/456/findings/789. This list will have at most 100 findings.
     #[serde(default, rename = "relatedFindings")]
@@ -2149,7 +2150,7 @@ pub struct GoogleCloudSecuritycenterV2Chokepoint {
 }
 
 /// Fields related to Google Cloud Armor findings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2CloudArmor {
     /// Information about potential Layer 7 DDoS attacks identified by [Google Cloud Armor Adaptive Protection](https://cloud.google.com/armor/docs/adaptive-protection-overview).
     #[serde(default, rename = "adaptiveProtection")]
@@ -2172,7 +2173,7 @@ pub struct GoogleCloudSecuritycenterV2CloudArmor {
 }
 
 /// The [data profile](https://cloud.google.com/dlp/docs/data-profiles) associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2CloudDlpDataProfile {
     /// Name of the data profile, for example, projects/123/locations/europe/tableProfiles/8383929.
     #[serde(default, rename = "dataProfile")]
@@ -2186,7 +2187,7 @@ pub struct GoogleCloudSecuritycenterV2CloudDlpDataProfile {
 }
 
 /// Details about the Cloud Data Loss Prevention (Cloud DLP) [inspection job](https://cloud.google.com/dlp/docs/concepts-job-triggers) that produced the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2CloudDlpInspection {
     /// Whether Cloud DLP scanned the complete resource or a sampled subset.
     #[serde(default, rename = "fullScan")]
@@ -2203,7 +2204,7 @@ pub struct GoogleCloudSecuritycenterV2CloudDlpInspection {
 }
 
 /// Compliance Details associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2ComplianceDetails {
     /// CloudControl associated with the finding
     #[serde(default, rename = "cloudControl")]
@@ -2217,7 +2218,7 @@ pub struct GoogleCloudSecuritycenterV2ComplianceDetails {
 }
 
 /// Contains compliance information about a security standard indicating unmet recommendations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Compliance {
     /// Policies within the standard or benchmark, for example, A.12.4.1
     #[serde(default)]
@@ -2231,7 +2232,7 @@ pub struct GoogleCloudSecuritycenterV2Compliance {
 }
 
 /// Contains information about the IP connection associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Connection {
     /// Destination IP address. Not present for sockets that are listening and not connected.
     #[serde(default, rename = "destinationIp")]
@@ -2251,7 +2252,7 @@ pub struct GoogleCloudSecuritycenterV2Connection {
 }
 
 /// Details about a data access attempt made by a principal not authorized under applicable data security policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2DataAccessEvent {
     /// Unique identifier for data access event.
     #[serde(default, rename = "eventId")]
@@ -2268,7 +2269,7 @@ pub struct GoogleCloudSecuritycenterV2DataAccessEvent {
 }
 
 /// Details about a data flow event, in which either the data is moved to or is accessed from a non-compliant geo-location, as defined in the applicable data security policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2DataFlowEvent {
     /// Unique identifier for data flow event.
     #[serde(default, rename = "eventId")]
@@ -2288,7 +2289,7 @@ pub struct GoogleCloudSecuritycenterV2DataFlowEvent {
 }
 
 /// Details about data retention deletion violations, in which the data is non-compliant based on their retention or deletion time, as defined in the applicable data security policy. The Data Retention Deletion (DRD) control is a control of the DSPM (Data Security Posture Management) suite that enables organizations to manage data retention and deletion policies in compliance with regulations, such as GDPR and CRPA. DRD supports two primary policy types: maximum storage length (max TTL) and minimum storage length (min TTL). Both are aimed at helping organizations meet regulatory and data management commitments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2DataRetentionDeletionEvent {
     /// Number of objects that violated the policy for this resource. If the number is less than 1,000, then the value of this field is the exact number. If the number of objects that violated the policy is greater than or equal to 1,000, then the value of this field is 1000.
     #[serde(default, rename = "dataObjectCount")]
@@ -2308,7 +2309,7 @@ pub struct GoogleCloudSecuritycenterV2DataRetentionDeletionEvent {
 }
 
 /// Represents database access information, such as queries. A database may be a sub-resource of an instance (as in the case of Cloud SQL instances or Cloud Spanner instances), or the database instance itself. Some database resources might not have the [full resource name](https://google.aip.dev/122#full-resource-names) populated because these resource types, such as Cloud SQL databases, are not yet supported by Cloud Asset Inventory. In these cases only the display name is provided.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Database {
     /// The human-readable name of the database that the user connected to.
     #[serde(default, rename = "displayName")]
@@ -2331,7 +2332,7 @@ pub struct GoogleCloudSecuritycenterV2Database {
 }
 
 /// Represents discovered, customer managed workload that is not registered with the respective GCP service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2DiscoveredWorkload {
     /// The confidence in detection of this workload. // TODO: enum values: ["CONFIDENCE_UNSPECIFIED", "CONFIDENCE_HIGH"]
     #[serde(default)]
@@ -2351,7 +2352,7 @@ pub struct GoogleCloudSecuritycenterV2DiscoveredWorkload {
 }
 
 /// Contains information about the disk associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Disk {
     /// The name of the disk, for example, "https://www.googleapis.com/compute/v1/projects/{project-id}/zones/{zone-id}/disks/{disk-id}".
     #[serde(default)]
@@ -2359,7 +2360,7 @@ pub struct GoogleCloudSecuritycenterV2Disk {
 }
 
 /// Exfiltration represents a data exfiltration attempt from one or more sources to one or more targets. The sources attribute lists the sources of the exfiltrated data. The targets attribute lists the destinations the data was copied to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Exfiltration {
     /// If there are multiple sources, then the data is considered "joined" between them. For instance, BigQuery can join multiple tables, and each table would be considered a source.
     #[serde(default)]
@@ -2373,7 +2374,7 @@ pub struct GoogleCloudSecuritycenterV2Exfiltration {
 }
 
 /// Details about the externally exposed resource associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2ExternalExposure {
     /// The full resource name of load balancer backend service, for example, "//compute.googleapis.com/projects/{project-id}/global/backendServices/{name}".
     #[serde(default, rename = "backendService")]
@@ -2414,7 +2415,7 @@ pub struct GoogleCloudSecuritycenterV2ExternalExposure {
 }
 
 /// Contains details about groups of which this finding is a member. A group is a collection of findings that are related in some way.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2GroupMembership {
     /// ID of the group.
     #[serde(default, rename = "groupId")]
@@ -2425,7 +2426,7 @@ pub struct GoogleCloudSecuritycenterV2GroupMembership {
 }
 
 /// Represents a particular IAM binding, which captures a member''s role addition, removal, or state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2IamBinding {
     /// The action that was performed on a Binding. // TODO: enum values: ["ACTION_UNSPECIFIED", "ADD", "REMOVE"]
     #[serde(default)]
@@ -2439,7 +2440,7 @@ pub struct GoogleCloudSecuritycenterV2IamBinding {
 }
 
 /// Represents what''s commonly known as an _indicator of compromise_ (IoC) in computer forensics. This is an artifact observed on a network or in an operating system that, with high confidence, indicates a computer intrusion. For more information, see [Indicator of compromise](https://en.wikipedia.org/wiki/Indicator_of_compromise).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Indicator {
     /// List of domains associated to the Finding.
     #[serde(default)]
@@ -2457,7 +2458,7 @@ pub struct GoogleCloudSecuritycenterV2Indicator {
 }
 
 /// IP rules associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2IpRules {
     /// Tuple with allowed rules.
     #[serde(default)]
@@ -2480,7 +2481,7 @@ pub struct GoogleCloudSecuritycenterV2IpRules {
 }
 
 /// Describes a job
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Job {
     /// Optional. If the job did not complete successfully, this field describes why.
     #[serde(default, rename = "errorCode")]
@@ -2497,7 +2498,7 @@ pub struct GoogleCloudSecuritycenterV2Job {
 }
 
 /// Kernel mode rootkit signatures.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2KernelRootkit {
     /// Rootkit name, when available.
     #[serde(default)]
@@ -2529,7 +2530,7 @@ pub struct GoogleCloudSecuritycenterV2KernelRootkit {
 }
 
 /// Kubernetes-related attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Kubernetes {
     /// Provides information on any Kubernetes access reviews (privilege checks) relevant to the finding.
     #[serde(default, rename = "accessReviews")]
@@ -2556,7 +2557,7 @@ pub struct GoogleCloudSecuritycenterV2Kubernetes {
 }
 
 /// Contains information related to the load balancer associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2LoadBalancer {
     /// The name of the load balancer associated with the finding.
     #[serde(default)]
@@ -2564,7 +2565,7 @@ pub struct GoogleCloudSecuritycenterV2LoadBalancer {
 }
 
 /// An individual entry in a log.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2LogEntry {
     /// An individual entry in a log stored in Cloud Logging.
     #[serde(default, rename = "cloudLoggingEntry")]
@@ -2572,7 +2573,7 @@ pub struct GoogleCloudSecuritycenterV2LogEntry {
 }
 
 /// MITRE ATT&CK tactics and techniques related to this finding. See: https://attack.mitre.org
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2MitreAttack {
     /// Additional MITRE ATT&CK tactics related to this finding, if any.
     #[serde(default, rename = "additionalTactics")]
@@ -2592,7 +2593,7 @@ pub struct GoogleCloudSecuritycenterV2MitreAttack {
 }
 
 /// Mute information about the finding, including whether the finding has a static mute or any matching dynamic mute rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2MuteInfo {
     /// The list of dynamic mute rules that currently match the finding.
     #[serde(default, rename = "dynamicMuteRecords")]
@@ -2604,7 +2605,7 @@ pub struct GoogleCloudSecuritycenterV2MuteInfo {
 }
 
 /// Contains information about a VPC network associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Network {
     /// The name of the VPC network resource, for example, //compute.googleapis.com/projects/my-project/global/networks/my-network.
     #[serde(default)]
@@ -2612,7 +2613,7 @@ pub struct GoogleCloudSecuritycenterV2Network {
 }
 
 /// Represents a Jupyter notebook IPYNB file, such as a [Colab Enterprise notebook](https://cloud.google.com/colab/docs/introduction) file, that is associated with a finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Notebook {
     /// The user ID of the latest author to modify the notebook.
     #[serde(default, rename = "lastAuthor")]
@@ -2629,7 +2630,7 @@ pub struct GoogleCloudSecuritycenterV2Notebook {
 }
 
 /// Contains information about the org policies associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2OrgPolicy {
     /// Identifier. The resource name of the org policy. Example: "organizations/{organization_id}/policies/{constraint_name}"
     #[serde(default)]
@@ -2637,7 +2638,7 @@ pub struct GoogleCloudSecuritycenterV2OrgPolicy {
 }
 
 /// Metadata summarizing policy violations of child resources of the affected resource. finding_category and resource determine the exact semantics of the counts. For example, when category=DATA_SECURITY_POSTURE_OBJECT_PUBLIC_ACCESS_VIOLATION and resource=''storage.googleapis.com/buckets/my-bucket-name'' then this counts the number of Cloud Storage objects in my-bucket-name which violate a Public Access control.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2PolicyViolationSummary {
     /// Total number of child resources that conform to the policy.
     #[serde(default, rename = "conformantResourcesCount")]
@@ -2654,7 +2655,7 @@ pub struct GoogleCloudSecuritycenterV2PolicyViolationSummary {
 }
 
 /// Represents an operating system process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Process {
     /// Process arguments as JSON encoded strings.
     #[serde(default)]
@@ -2693,7 +2694,7 @@ pub struct GoogleCloudSecuritycenterV2Process {
 }
 
 /// Details about a secret or credential associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Secret {
     /// The environment variable containing the secret.
     #[serde(default, rename = "environmentVariable")]
@@ -2711,7 +2712,7 @@ pub struct GoogleCloudSecuritycenterV2Secret {
 }
 
 /// User specified security marks that are attached to the parent Security Command Center resource. Security marks are scoped within a Security Command Center organization -- they can be modified and viewed by all users who have proper permissions on the organization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2SecurityMarks {
     /// The canonical name of the marks. The following list shows some examples: + organizations/{organization_id}/assets/{asset_id}/securityMarks + organizations/{organization_id}/sources/{source_id}/findings/{finding_id}/securityMarks + organizations/{organization_id}/sources/{source_id}/locations/{location}/findings/{finding_id}/securityMarks + folders/{folder_id}/assets/{asset_id}/securityMarks + folders/{folder_id}/sources/{source_id}/findings/{finding_id}/securityMarks + folders/{folder_id}/sources/{source_id}/locations/{location}/findings/{finding_id}/securityMarks + projects/{project_number}/assets/{asset_id}/securityMarks + projects/{project_number}/sources/{source_id}/findings/{finding_id}/securityMarks + projects/{project_number}/sources/{source_id}/locations/{location}/findings/{finding_id}/securityMarks
     #[serde(default, rename = "canonicalName")]
@@ -2725,7 +2726,7 @@ pub struct GoogleCloudSecuritycenterV2SecurityMarks {
 }
 
 /// Represents a posture that is deployed on Google Cloud by the Security Command Center Posture Management service. A posture contains one or more policy sets. A policy set is a group of policies that enforce a set of security rules on Google Cloud.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2SecurityPosture {
     /// The name of the updated policy, for example, projects/{project_id}/policies/{constraint_name}.
     #[serde(default, rename = "changedPolicy")]
@@ -2755,7 +2756,7 @@ pub struct GoogleCloudSecuritycenterV2SecurityPosture {
 }
 
 /// Contains details about a group of security issues that, when the issues occur together, represent a greater risk than when the issues occur independently. A group of such issues is referred to as a toxic combination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2ToxicCombination {
     /// The [Attack exposure score](https://cloud.google.com/security-command-center/docs/attack-exposure-learn#attack_exposure_scores) of this toxic combination. The score is a measure of how much this toxic combination exposes one or more high-value resources to potential attack.
     #[serde(default, rename = "attackExposureScore")]
@@ -2766,7 +2767,7 @@ pub struct GoogleCloudSecuritycenterV2ToxicCombination {
 }
 
 /// Vertex AI-related information associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2VertexAi {
     /// Datasets associated with the finding.
     #[serde(default)]
@@ -2777,7 +2778,7 @@ pub struct GoogleCloudSecuritycenterV2VertexAi {
 }
 
 /// Refers to common vulnerability fields e.g. cve, cvss, cwe etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Vulnerability {
     /// CVE stands for Common Vulnerabilities and Exposures (https://cve.mitre.org/about/)
     #[serde(default)]
@@ -2803,7 +2804,7 @@ pub struct GoogleCloudSecuritycenterV2Vulnerability {
 }
 
 /// Represents an ADC application associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2AdcApplication {
     /// Consumer provided attributes for the AppHub application.
     #[serde(default)]
@@ -2815,7 +2816,7 @@ pub struct GoogleCloudSecuritycenterV2AdcApplication {
 }
 
 /// Represents an ADC template associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2AdcApplicationTemplateRevision {
     /// The resource name of an ADC Application Template Revision. Format: projects/{project}/locations/{location}/spaces/{space}/applicationTemplates/{application_template}/revisions/{revision}
     #[serde(default)]
@@ -2823,7 +2824,7 @@ pub struct GoogleCloudSecuritycenterV2AdcApplicationTemplateRevision {
 }
 
 /// Represents an ADC shared template associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2AdcSharedTemplateRevision {
     /// The resource name of an ADC Shared Template Revision. Format: projects/{project}/locations/{location}/spaces/{space}/applicationTemplates/{application_template}/revisions/{revision}
     #[serde(default)]
@@ -2831,7 +2832,7 @@ pub struct GoogleCloudSecuritycenterV2AdcSharedTemplateRevision {
 }
 
 /// The App Hub Application associated with the finding''s resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2ResourceApplication {
     /// Consumer provided attributes for the application
     #[serde(default)]
@@ -2843,7 +2844,7 @@ pub struct GoogleCloudSecuritycenterV2ResourceApplication {
 }
 
 /// AWS metadata associated with the resource, only applicable if the finding''s cloud provider is Amazon Web Services.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2AwsMetadata {
     /// The AWS account associated with the resource.
     #[serde(default)]
@@ -2858,7 +2859,7 @@ pub struct GoogleCloudSecuritycenterV2AwsMetadata {
 }
 
 /// Azure metadata associated with the resource, only applicable if the finding''s cloud provider is Microsoft Azure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2AzureMetadata {
     /// A list of Azure management groups associated with the resource, ordered from lowest level (closest to the subscription) to highest level.
     #[serde(default, rename = "managementGroups")]
@@ -2876,7 +2877,7 @@ pub struct GoogleCloudSecuritycenterV2AzureMetadata {
 }
 
 /// Google Cloud metadata associated with the resource. Only applicable if the finding''s cloud provider is Google Cloud.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GcpMetadata {
     /// Output only. Contains a Folder message for each folder in the assets ancestry. The first folder is the deepest nested folder, and the last folder is the folder directly under the Organization.
     #[serde(default)]
@@ -2899,7 +2900,7 @@ pub struct GcpMetadata {
 }
 
 /// Represents the path of resources leading up to the resource this finding is about.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2ResourcePath {
     /// The list of nodes that make the up resource path, ordered from lowest level to highest level.
     #[serde(default)]
@@ -2907,7 +2908,7 @@ pub struct GoogleCloudSecuritycenterV2ResourcePath {
 }
 
 /// Security Command Center representation of a Google Cloud resource. The Asset is a Security Command Center resource that captures information about a single Google Cloud resource. All modifications to an Asset are only within the context of Security Command Center and don''t affect the referenced Google Cloud resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Asset {
     /// The canonical name of the resource. It''s either "organizations/{organization_id}/assets/{asset_id}", "folders/{folder_id}/assets/{asset_id}" or "projects/{project_number}/assets/{asset_id}", depending on the closest CRM ancestor of the resource.
     #[serde(default, rename = "canonicalName")]
@@ -2936,7 +2937,7 @@ pub struct Asset {
 }
 
 /// Represents a connection between a source node and a destination node in this attack path.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttackPathEdge {
     /// The attack node uuid of the destination node.
     #[serde(default)]
@@ -2947,7 +2948,7 @@ pub struct AttackPathEdge {
 }
 
 /// Represents one point that an attacker passes through in this attack path.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttackPathNode {
     /// The findings associated with this node in the attack path.
     #[serde(default, rename = "associatedFindings")]
@@ -2970,7 +2971,7 @@ pub struct AttackPathNode {
 }
 
 /// Information related to the Google Cloud resource that is associated with this finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Resource {
     /// The ADC application associated with the finding.
     #[serde(default, rename = "adcApplication")]
@@ -3035,7 +3036,7 @@ pub struct Resource {
 }
 
 /// The config for streaming-based notifications, which send each event as soon as it is detected.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamingConfig {
     /// Expression that defines the filter to apply across create/update events of assets or findings as specified by the event type. The expression is a list of zero or more restrictions combined via logical operators AND and OR. Parentheses are supported, and OR has higher precedence than AND. Restrictions have the form   and may have a - character in front of them to indicate negation. The fields map to those defined in the corresponding resource. The supported operators are: * = for all value types. * &gt;, &lt;, &gt;=, &lt;= for integer values. * :, meaning substring matching, for strings. The supported value types are: * string literals in quotes. * integer literals without quotes. * boolean literals true and false without quotes.
     #[serde(default)]
@@ -3043,7 +3044,7 @@ pub struct StreamingConfig {
 }
 
 /// Defines the properties in a custom module configuration for Security Health Analytics. Use the custom module configuration to create custom detectors that generate custom findings for resources that you specify.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1CustomConfig {
     /// Custom output properties.
     #[serde(default, rename = "customOutput")]
@@ -3066,7 +3067,7 @@ pub struct GoogleCloudSecuritycenterV1CustomConfig {
 }
 
 /// Metadata about a ResourceValueConfig. For example, id and name.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceValueConfigMetadata {
     /// Resource value config name
     #[serde(default)]
@@ -3074,7 +3075,7 @@ pub struct ResourceValueConfigMetadata {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -3091,7 +3092,7 @@ pub struct Policy {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -3105,7 +3106,7 @@ pub struct Status {
 }
 
 /// Security Command Center finding. A finding is a record of assessment data like security, risk, health, or privacy, that is ingested into Security Command Center for presentation, notification, analysis, policy testing, and enforcement. For example, a cross-site scripting (XSS) vulnerability in an App Engine application is a finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Finding {
     /// Access details associated with the finding, such as more information on the caller, which method was accessed, and from where.
     #[serde(default)]
@@ -3315,7 +3316,7 @@ pub struct Finding {
 }
 
 /// An error encountered while validating the uploaded configuration of an Event Threat Detection Custom Module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomModuleValidationError {
     /// A description of the error, suitable for human consumption. Required.
     #[serde(default)]
@@ -3332,7 +3333,7 @@ pub struct CustomModuleValidationError {
 }
 
 /// Resource value mapping for Sensitive Data Protection findings. If any of these mappings have a resource value that is not unspecified, the resource_value field will be ignored when reading this configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1SensitiveDataProtectionMapping {
     /// Resource value mapping for high-sensitivity Sensitive Data Protection findings // TODO: enum values: ["RESOURCE_VALUE_UNSPECIFIED", "HIGH", "MEDIUM", "LOW", "NONE"]
     #[serde(default, rename = "highSensitivityMapping")]
@@ -3343,7 +3344,7 @@ pub struct GoogleCloudSecuritycenterV1SensitiveDataProtectionMapping {
 }
 
 /// Consumer provided attributes for the application
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2IssueResourceApplicationAttributes {
     /// Business team that ensures user needs are met and value is delivered
     #[serde(default, rename = "businessOwners")]
@@ -3373,7 +3374,7 @@ pub struct GoogleCloudSecuritycenterV2IssueResourceApplicationAttributes {
 }
 
 /// The AWS account of the resource associated with the issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2IssueResourceAwsMetadataAwsAccount {
     /// The AWS account ID of the resource associated with the issue.
     #[serde(default)]
@@ -3384,7 +3385,7 @@ pub struct GoogleCloudSecuritycenterV2IssueResourceAwsMetadataAwsAccount {
 }
 
 /// The Azure subscription of the resource associated with the issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2IssueResourceAzureMetadataAzureSubscription {
     /// The Azure subscription display name of the resource associated with the issue.
     #[serde(default, rename = "displayName")]
@@ -3395,7 +3396,7 @@ pub struct GoogleCloudSecuritycenterV2IssueResourceAzureMetadataAzureSubscriptio
 }
 
 /// Represents a geographical location for a given access.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Geolocation {
     /// A CLDR.
     #[serde(default, rename = "regionCode")]
@@ -3403,7 +3404,7 @@ pub struct GoogleCloudSecuritycenterV2Geolocation {
 }
 
 /// Identity delegation history of an authenticated service account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2ServiceAccountDelegationInfo {
     /// The email address of a Google account.
     #[serde(default, rename = "principalEmail")]
@@ -3414,7 +3415,7 @@ pub struct GoogleCloudSecuritycenterV2ServiceAccountDelegationInfo {
 }
 
 /// Represents an artifact guard policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2ArtifactGuardPolicy {
     /// The reason for the policy failure, for example, "severity=HIGH AND max_vuln_count=2".
     #[serde(default, rename = "failureReason")]
@@ -3428,7 +3429,7 @@ pub struct GoogleCloudSecuritycenterV2ArtifactGuardPolicy {
 }
 
 /// Information about [Google Cloud Armor Adaptive Protection](https://cloud.google.com/armor/docs/cloud-armor-overview#google-cloud-armor-adaptive-protection).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2AdaptiveProtection {
     /// A score of 0 means that there is low confidence that the detected event is an actual attack. A score of 1 means that there is high confidence that the detected event is an attack. See the [Adaptive Protection documentation](https://cloud.google.com/armor/docs/adaptive-protection-overview#configure-alert-tuning) for further explanation.
     #[serde(default)]
@@ -3436,7 +3437,7 @@ pub struct GoogleCloudSecuritycenterV2AdaptiveProtection {
 }
 
 /// Information about DDoS attack volume and classification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Attack {
     /// Type of attack, for example, ''SYN-flood'', ''NTP-udp'', or ''CHARGEN-udp''.
     #[serde(default)]
@@ -3456,7 +3457,7 @@ pub struct GoogleCloudSecuritycenterV2Attack {
 }
 
 /// Information about the requests relevant to the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Requests {
     /// Allowed RPS (requests per second) over the long term.
     #[serde(default, rename = "longTermAllowed")]
@@ -3473,7 +3474,7 @@ pub struct GoogleCloudSecuritycenterV2Requests {
 }
 
 /// Information about the [Google Cloud Armor security policy](https://cloud.google.com/armor/docs/security-policy-overview) relevant to the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2SecurityPolicy {
     /// The name of the Google Cloud Armor security policy, for example, "my-security-policy".
     #[serde(default)]
@@ -3487,7 +3488,7 @@ pub struct GoogleCloudSecuritycenterV2SecurityPolicy {
 }
 
 /// Type of information detected by the API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2InfoType {
     /// Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern [A-Za-z0-9$_-]{1,64}.
     #[serde(default)]
@@ -3501,7 +3502,7 @@ pub struct GoogleCloudSecuritycenterV2InfoType {
 }
 
 /// CloudControl associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2CloudControl {
     /// Name of the CloudControl associated with the finding.
     #[serde(default, rename = "cloudControlName")]
@@ -3518,7 +3519,7 @@ pub struct GoogleCloudSecuritycenterV2CloudControl {
 }
 
 /// Compliance framework associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Framework {
     /// Category of the framework associated with the finding. E.g. Security Benchmark, or Assured Workloads
     #[serde(default)]
@@ -3538,7 +3539,7 @@ pub struct GoogleCloudSecuritycenterV2Framework {
 }
 
 /// Resource where data was exfiltrated from or exfiltrated to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2ExfilResource {
     /// Subcomponents of the asset that was exfiltrated, like URIs used during exfiltration, table names, databases, and filenames. For example, multiple tables might have been exfiltrated from the same Cloud SQL instance, or multiple files might have been exfiltrated from the same Cloud Storage bucket.
     #[serde(default)]
@@ -3549,7 +3550,7 @@ pub struct GoogleCloudSecuritycenterV2ExfilResource {
 }
 
 /// Indicates what signature matched this process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2ProcessSignature {
     /// Signature indicating that a binary family was matched.
     #[serde(default, rename = "memoryHashSignature")]
@@ -3564,7 +3565,7 @@ pub struct GoogleCloudSecuritycenterV2ProcessSignature {
 }
 
 /// Allowed IP rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Allowed {
     /// Optional. Optional list of allowed IP rules.
     #[serde(default, rename = "ipRules")]
@@ -3572,7 +3573,7 @@ pub struct GoogleCloudSecuritycenterV2Allowed {
 }
 
 /// Denied IP rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Denied {
     /// Optional. Optional list of denied IP rules.
     #[serde(default, rename = "ipRules")]
@@ -3580,7 +3581,7 @@ pub struct GoogleCloudSecuritycenterV2Denied {
 }
 
 /// Conveys information about a Kubernetes access review (such as one returned by a [kubectl auth can-i](https://kubernetes.io/docs/reference/access-authn-authz/authorization/#checking-api-access) command) that was involved in a finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2AccessReview {
     /// The API group of the resource. "*" means all.
     #[serde(default)]
@@ -3606,7 +3607,7 @@ pub struct GoogleCloudSecuritycenterV2AccessReview {
 }
 
 /// Represents a Kubernetes RoleBinding or ClusterRoleBinding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Binding {
     /// Name for the binding.
     #[serde(default)]
@@ -3623,7 +3624,7 @@ pub struct GoogleCloudSecuritycenterV2Binding {
 }
 
 /// Provides GKE node pool information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2NodePool {
     /// Kubernetes node pool name.
     #[serde(default)]
@@ -3634,7 +3635,7 @@ pub struct GoogleCloudSecuritycenterV2NodePool {
 }
 
 /// Kubernetes object related to the finding, uniquely identified by GKNN. Used if the object Kind is not one of Pod, Node, NodePool, Binding, or AccessReview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Object {
     /// Pod containers associated with this finding, if any.
     #[serde(default)]
@@ -3654,7 +3655,7 @@ pub struct GoogleCloudSecuritycenterV2Object {
 }
 
 /// A Kubernetes Pod.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Pod {
     /// Pod containers associated with this finding, if any.
     #[serde(default)]
@@ -3671,7 +3672,7 @@ pub struct GoogleCloudSecuritycenterV2Pod {
 }
 
 /// Metadata taken from a [Cloud Logging LogEntry](https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2CloudLoggingEntry {
     /// A unique identifier for the log entry.
     #[serde(default, rename = "insertId")]
@@ -3688,7 +3689,7 @@ pub struct GoogleCloudSecuritycenterV2CloudLoggingEntry {
 }
 
 /// The record of a dynamic mute rule that matches the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2DynamicMuteRecord {
     /// When the dynamic mute rule first matched the finding.
     #[serde(default, rename = "matchTime")]
@@ -3699,7 +3700,7 @@ pub struct GoogleCloudSecuritycenterV2DynamicMuteRecord {
 }
 
 /// Information about the static mute state. A static mute state overrides any dynamic mute rules that apply to this finding. The static mute state can be set by a static mute rule or by muting the finding directly.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2StaticMute {
     /// When the static mute was applied.
     #[serde(default, rename = "applyTime")]
@@ -3710,7 +3711,7 @@ pub struct GoogleCloudSecuritycenterV2StaticMute {
 }
 
 /// File information about the related binary/library used by an executable, or the script used by a script interpreter
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2File {
     /// Prefix of the file contents as a JSON-encoded string.
     #[serde(default)]
@@ -3743,7 +3744,7 @@ pub struct GoogleCloudSecuritycenterV2File {
 }
 
 /// A name-value pair representing an environment variable used in an operating system process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2EnvironmentVariable {
     /// Environment variable name as a JSON encoded string.
     #[serde(default)]
@@ -3754,7 +3755,7 @@ pub struct GoogleCloudSecuritycenterV2EnvironmentVariable {
 }
 
 /// Environment variable containing the secret.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2SecretEnvironmentVariable {
     /// Environment variable name as a JSON encoded string. Note that value is not included since the value contains the secret data, which is sensitive core content.
     #[serde(default)]
@@ -3762,7 +3763,7 @@ pub struct GoogleCloudSecuritycenterV2SecretEnvironmentVariable {
 }
 
 /// File path containing the secret.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2SecretFilePath {
     /// Path to the file.
     #[serde(default)]
@@ -3770,7 +3771,7 @@ pub struct GoogleCloudSecuritycenterV2SecretFilePath {
 }
 
 /// The status of the secret.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2SecretStatus {
     /// Time that the secret was found.
     #[serde(default, rename = "lastUpdatedTime")]
@@ -3781,7 +3782,7 @@ pub struct GoogleCloudSecuritycenterV2SecretStatus {
 }
 
 /// The policy field that violates the deployed posture and its expected and detected values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2PolicyDriftDetails {
     /// The detected value that violates the deployed posture, for example, false or allowed_values={"projects/22831892"}.
     #[serde(default, rename = "detectedValue")]
@@ -3795,7 +3796,7 @@ pub struct GoogleCloudSecuritycenterV2PolicyDriftDetails {
 }
 
 /// Vertex AI dataset associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Dataset {
     /// The user defined display name of dataset, e.g. plants-dataset
     #[serde(default, rename = "displayName")]
@@ -3809,7 +3810,7 @@ pub struct GoogleCloudSecuritycenterV2Dataset {
 }
 
 /// Vertex AI training pipeline associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Pipeline {
     /// The user-defined display name of pipeline, e.g. plants-classification
     #[serde(default, rename = "displayName")]
@@ -3820,7 +3821,7 @@ pub struct GoogleCloudSecuritycenterV2Pipeline {
 }
 
 /// CVE stands for Common Vulnerabilities and Exposures. Information from the [CVE record](https://www.cve.org/ResourcesSupport/Glossary) that describes this vulnerability.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Cve {
     /// Describe Common Vulnerability Scoring System specified at https://www.first.org/cvss/v3.1/specification-document
     #[serde(default)]
@@ -3855,7 +3856,7 @@ pub struct GoogleCloudSecuritycenterV2Cve {
 }
 
 /// CWE stands for Common Weakness Enumeration. Information about this weakness, as described by [CWE](https://cwe.mitre.org/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Cwe {
     /// The CWE identifier, e.g. CWE-94
     #[serde(default)]
@@ -3866,7 +3867,7 @@ pub struct GoogleCloudSecuritycenterV2Cwe {
 }
 
 /// Package is a generic definition of a package.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Package {
     /// The CPE URI where the vulnerability was detected.
     #[serde(default, rename = "cpeUri")]
@@ -3883,7 +3884,7 @@ pub struct GoogleCloudSecuritycenterV2Package {
 }
 
 /// SecurityBulletin are notifications of vulnerabilities of Google products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2SecurityBulletin {
     /// ID of the bulletin corresponding to the vulnerability.
     #[serde(default, rename = "bulletinId")]
@@ -3897,7 +3898,7 @@ pub struct GoogleCloudSecuritycenterV2SecurityBulletin {
 }
 
 /// Consumer provided attributes for the application
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2ResourceApplicationAttributes {
     /// Business team that ensures user needs are met and value is delivered
     #[serde(default, rename = "businessOwners")]
@@ -3925,7 +3926,7 @@ pub struct GoogleCloudSecuritycenterV2ResourceApplicationAttributes {
 }
 
 /// An AWS account that is a member of an organization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2AwsAccount {
     /// The unique identifier (ID) of the account, containing exactly 12 digits.
     #[serde(default)]
@@ -3936,7 +3937,7 @@ pub struct GoogleCloudSecuritycenterV2AwsAccount {
 }
 
 /// An organization is a collection of accounts that are centrally managed together using consolidated billing, organized hierarchically with organizational units (OUs), and controlled with policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2AwsOrganization {
     /// The unique identifier (ID) for the organization. The regex pattern for an organization ID string requires "o-" followed by from 10 to 32 lowercase letters or digits.
     #[serde(default)]
@@ -3944,7 +3945,7 @@ pub struct GoogleCloudSecuritycenterV2AwsOrganization {
 }
 
 /// An Organizational Unit (OU) is a container of AWS accounts within a root of an organization. Policies that are attached to an OU apply to all accounts contained in that OU and in any child OUs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2AwsOrganizationalUnit {
     /// The unique identifier (ID) associated with this OU. The regex pattern for an organizational unit ID string requires "ou-" followed by from 4 to 32 lowercase letters or digits (the ID of the root that contains the OU). This string is followed by a second "-" dash and from 8 to 32 additional lowercase letters or digits. For example, "ou-ab12-cd34ef56".
     #[serde(default)]
@@ -3955,7 +3956,7 @@ pub struct GoogleCloudSecuritycenterV2AwsOrganizationalUnit {
 }
 
 /// Represents an Azure management group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2AzureManagementGroup {
     /// The display name of the Azure management group.
     #[serde(default, rename = "displayName")]
@@ -3966,7 +3967,7 @@ pub struct GoogleCloudSecuritycenterV2AzureManagementGroup {
 }
 
 /// Represents an Azure resource group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2AzureResourceGroup {
     /// The ID of the Azure resource group.
     #[serde(default)]
@@ -3977,7 +3978,7 @@ pub struct GoogleCloudSecuritycenterV2AzureResourceGroup {
 }
 
 /// Represents an Azure subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2AzureSubscription {
     /// The display name of the Azure subscription.
     #[serde(default, rename = "displayName")]
@@ -3988,7 +3989,7 @@ pub struct GoogleCloudSecuritycenterV2AzureSubscription {
 }
 
 /// Represents a Microsoft Entra tenant.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2AzureTenant {
     /// The display name of the Azure tenant.
     #[serde(default, rename = "displayName")]
@@ -3999,7 +4000,7 @@ pub struct GoogleCloudSecuritycenterV2AzureTenant {
 }
 
 /// Message that contains the resource name and display name of a folder resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Folder {
     /// Full resource name of this folder. See: https://cloud.google.com/apis/design/resource_names#full_resource_name
     #[serde(default, rename = "resourceFolder")]
@@ -4010,7 +4011,7 @@ pub struct GoogleCloudSecuritycenterV2Folder {
 }
 
 /// A node within the resource path. Each node represents a resource within the resource hierarchy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2ResourcePathNode {
     /// The display name of the resource this node represents.
     #[serde(default, rename = "displayName")]
@@ -4024,7 +4025,7 @@ pub struct GoogleCloudSecuritycenterV2ResourcePathNode {
 }
 
 /// Cloud IAM Policy information associated with the Google Cloud resource described by the Security Command Center asset. This information is managed and defined by the Google Cloud resource and cannot be modified by the user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IamPolicy {
     /// The JSON representation of the Policy associated with the asset. See https://cloud.google.com/iam/reference/rest/v1/Policy for format details.
     #[serde(default, rename = "policyBlob")]
@@ -4032,7 +4033,7 @@ pub struct IamPolicy {
 }
 
 /// Security Command Center managed properties. These properties are managed by Security Command Center and cannot be modified by the user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityCenterProperties {
     /// Contains a Folder message for each folder in the assets ancestry. The first folder is the deepest nested folder, and the last folder is the folder directly under the Organization.
     #[serde(default)]
@@ -4064,7 +4065,7 @@ pub struct SecurityCenterProperties {
 }
 
 /// A finding that is associated with this node in the attack path.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PathNodeAssociatedFinding {
     /// Canonical name of the associated findings. Example: organizations/123/sources/456/findings/789
     #[serde(default, rename = "canonicalFinding")]
@@ -4078,7 +4079,7 @@ pub struct PathNodeAssociatedFinding {
 }
 
 /// Detailed steps the attack can take between path nodes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttackStepNode {
     /// Attack step description
     #[serde(default)]
@@ -4098,7 +4099,7 @@ pub struct AttackStepNode {
 }
 
 /// Represents an ADC application associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdcApplication {
     /// Consumer provided attributes for the AppHub application.
     #[serde(default)]
@@ -4110,7 +4111,7 @@ pub struct AdcApplication {
 }
 
 /// Represents an ADC template associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdcApplicationTemplateRevision {
     /// The resource name of an ADC Application Template Revision. Format: projects/{project}/locations/{location}/spaces/{space}/applicationTemplates/{application_template}/revisions/{revision}
     #[serde(default)]
@@ -4118,7 +4119,7 @@ pub struct AdcApplicationTemplateRevision {
 }
 
 /// Represents an ADC shared template associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdcSharedTemplateRevision {
     /// The resource name of an ADC Shared Template Revision. Format: projects/{project}/locations/{location}/spaces/{space}/applicationTemplates/{application_template}/revisions/{revision}
     #[serde(default)]
@@ -4126,7 +4127,7 @@ pub struct AdcSharedTemplateRevision {
 }
 
 /// The App Hub Application associated with the finding''s resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1ResourceApplication {
     /// Consumer provided attributes for the application
     #[serde(default)]
@@ -4138,7 +4139,7 @@ pub struct GoogleCloudSecuritycenterV1ResourceApplication {
 }
 
 /// AWS metadata associated with the resource, only applicable if the finding''s cloud provider is Amazon Web Services.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AwsMetadata {
     /// The AWS account associated with the resource.
     #[serde(default)]
@@ -4152,7 +4153,7 @@ pub struct AwsMetadata {
 }
 
 /// Azure metadata associated with the resource, only applicable if the finding''s cloud provider is Microsoft Azure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AzureMetadata {
     /// A list of Azure management groups associated with the resource, ordered from lowest level (closest to the subscription) to highest level.
     #[serde(default, rename = "managementGroups")]
@@ -4169,7 +4170,7 @@ pub struct AzureMetadata {
 }
 
 /// Represents the path of resources leading up to the resource this finding is about.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourcePath {
     /// The list of nodes that make the up resource path, ordered from lowest level to highest level.
     #[serde(default)]
@@ -4177,7 +4178,7 @@ pub struct ResourcePath {
 }
 
 /// A set of optional name-value pairs that define custom source properties to return with each finding that is generated by the custom module. The custom source properties that are defined here are included in the finding JSON under sourceProperties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1CustomOutputSpec {
     /// A list of custom output properties to add to the finding.
     #[serde(default)]
@@ -4185,7 +4186,7 @@ pub struct GoogleCloudSecuritycenterV1CustomOutputSpec {
 }
 
 /// Resource for selecting resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1ResourceSelector {
     /// The resource types to run the detector on.
     #[serde(default, rename = "resourceTypes")]
@@ -4193,7 +4194,7 @@ pub struct GoogleCloudSecuritycenterV1ResourceSelector {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -4204,7 +4205,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -4218,7 +4219,7 @@ pub struct Binding {
 }
 
 /// Represents an access event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Access {
     /// Caller''s IP address, such as "1.1.1.1".
     #[serde(default, rename = "callerIp")]
@@ -4257,7 +4258,7 @@ pub struct Access {
 }
 
 /// Details about resources affected by this finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AffectedResources {
     /// The count of resources affected by the finding.
     #[serde(default)]
@@ -4265,7 +4266,7 @@ pub struct AffectedResources {
 }
 
 /// Details about a data access attempt made by an agent principal not authorized under applicable data security policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AgentDataAccessEvent {
     /// Unique identifier for data access event.
     #[serde(default, rename = "eventId")]
@@ -4282,7 +4283,7 @@ pub struct AgentDataAccessEvent {
 }
 
 /// Contains information about the AI model associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AiModel {
     /// The platform on which the model is deployed. // TODO: enum values: ["DEPLOYMENT_PLATFORM_UNSPECIFIED", "VERTEX_AI", "GKE", "GCE", "FINE_TUNED_MODEL"]
     #[serde(default, rename = "deploymentPlatform")]
@@ -4311,7 +4312,7 @@ pub struct AiModel {
 }
 
 /// Represents an application associated with a finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Application {
     /// The base URI that identifies the network location of the application in which the vulnerability was detected. For example, http://example.com.
     #[serde(default, rename = "baseUri")]
@@ -4322,7 +4323,7 @@ pub struct Application {
 }
 
 /// Represents the result of evaluating artifact guard policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ArtifactGuardPolicies {
     /// A list of failing policies.
     #[serde(default, rename = "failingPolicies")]
@@ -4333,7 +4334,7 @@ pub struct ArtifactGuardPolicies {
 }
 
 /// An attack exposure contains the results of an attack path simulation run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttackExposure {
     /// The resource name of the attack path simulation result that contains the details regarding this attack exposure score. Example: organizations/123/simulations/456/attackExposureResults/789
     #[serde(default, rename = "attackExposureResult")]
@@ -4359,7 +4360,7 @@ pub struct AttackExposure {
 }
 
 /// Information related to Google Cloud Backup and DR Service findings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupDisasterRecovery {
     /// The name of the Backup and DR appliance that captures, moves, and manages the lifecycle of backup data. For example, backup-server-57137.
     #[serde(default)]
@@ -4394,7 +4395,7 @@ pub struct BackupDisasterRecovery {
 }
 
 /// Contains details about a chokepoint, which is a resource or resource group where high-risk attack paths converge, based on [attack path simulations] (https://cloud.google.com/security-command-center/docs/attack-exposure-learn#attack_path_simulations).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Chokepoint {
     /// List of resource names of findings associated with this chokepoint. For example, organizations/123/sources/456/findings/789. This list will have at most 100 findings.
     #[serde(default, rename = "relatedFindings")]
@@ -4402,7 +4403,7 @@ pub struct Chokepoint {
 }
 
 /// Fields related to Google Cloud Armor findings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudArmor {
     /// Information about potential Layer 7 DDoS attacks identified by [Google Cloud Armor Adaptive Protection](https://cloud.google.com/armor/docs/adaptive-protection-overview).
     #[serde(default, rename = "adaptiveProtection")]
@@ -4425,7 +4426,7 @@ pub struct CloudArmor {
 }
 
 /// The [data profile](https://cloud.google.com/dlp/docs/data-profiles) associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudDlpDataProfile {
     /// Name of the data profile, for example, projects/123/locations/europe/tableProfiles/8383929.
     #[serde(default, rename = "dataProfile")]
@@ -4439,7 +4440,7 @@ pub struct CloudDlpDataProfile {
 }
 
 /// Details about the Cloud Data Loss Prevention (Cloud DLP) [inspection job](https://cloud.google.com/dlp/docs/concepts-job-triggers) that produced the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudDlpInspection {
     /// Whether Cloud DLP scanned the complete resource or a sampled subset.
     #[serde(default, rename = "fullScan")]
@@ -4456,7 +4457,7 @@ pub struct CloudDlpInspection {
 }
 
 /// Compliance Details associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComplianceDetails {
     /// CloudControl associated with the finding
     #[serde(default, rename = "cloudControl")]
@@ -4470,7 +4471,7 @@ pub struct ComplianceDetails {
 }
 
 /// Contains compliance information about a security standard indicating unmet recommendations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Compliance {
     /// Policies within the standard or benchmark, for example, A.12.4.1
     #[serde(default)]
@@ -4484,7 +4485,7 @@ pub struct Compliance {
 }
 
 /// Contains information about the IP connection associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Connection {
     /// Destination IP address. Not present for sockets that are listening and not connected.
     #[serde(default, rename = "destinationIp")]
@@ -4504,7 +4505,7 @@ pub struct Connection {
 }
 
 /// Details about a data access attempt made by a principal not authorized under applicable data security policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataAccessEvent {
     /// Unique identifier for data access event.
     #[serde(default, rename = "eventId")]
@@ -4521,7 +4522,7 @@ pub struct DataAccessEvent {
 }
 
 /// Details about a data flow event, in which either the data is moved to or is accessed from a non-compliant geo-location, as defined in the applicable data security policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataFlowEvent {
     /// Unique identifier for data flow event.
     #[serde(default, rename = "eventId")]
@@ -4541,7 +4542,7 @@ pub struct DataFlowEvent {
 }
 
 /// Details about data retention deletion violations, in which the data is non-compliant based on their retention or deletion time, as defined in the applicable data security policy. The Data Retention Deletion (DRD) control is a control of the DSPM (Data Security Posture Management) suite that enables organizations to manage data retention and deletion policies in compliance with regulations, such as GDPR and CRPA. DRD supports two primary policy types: maximum storage length (max TTL) and minimum storage length (min TTL). Both are aimed at helping organizations meet regulatory and data management commitments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataRetentionDeletionEvent {
     /// Number of objects that violated the policy for this resource. If the number is less than 1,000, then the value of this field is the exact number. If the number of objects that violated the policy is greater than or equal to 1,000, then the value of this field is 1000.
     #[serde(default, rename = "dataObjectCount")]
@@ -4561,7 +4562,7 @@ pub struct DataRetentionDeletionEvent {
 }
 
 /// Represents database access information, such as queries. A database may be a sub-resource of an instance (as in the case of Cloud SQL instances or Cloud Spanner instances), or the database instance itself. Some database resources might not have the [full resource name](https://google.aip.dev/122#full-resource-names) populated because these resource types, such as Cloud SQL databases, are not yet supported by Cloud Asset Inventory. In these cases only the display name is provided.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Database {
     /// The human-readable name of the database that the user connected to.
     #[serde(default, rename = "displayName")]
@@ -4584,7 +4585,7 @@ pub struct Database {
 }
 
 /// Represents discovered, customer managed workload that is not registered with the respective GCP service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiscoveredWorkload {
     /// The confidence in detection of this workload. // TODO: enum values: ["CONFIDENCE_UNSPECIFIED", "CONFIDENCE_HIGH"]
     #[serde(default)]
@@ -4604,7 +4605,7 @@ pub struct DiscoveredWorkload {
 }
 
 /// Contains information about the disk associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Disk {
     /// The name of the disk, for example, "https://www.googleapis.com/compute/v1/projects/{project-id}/zones/{zone-id}/disks/{disk-id}".
     #[serde(default)]
@@ -4612,7 +4613,7 @@ pub struct Disk {
 }
 
 /// Exfiltration represents a data exfiltration attempt from one or more sources to one or more targets. The sources attribute lists the sources of the exfiltrated data. The targets attribute lists the destinations the data was copied to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Exfiltration {
     /// If there are multiple sources, then the data is considered "joined" between them. For instance, BigQuery can join multiple tables, and each table would be considered a source.
     #[serde(default)]
@@ -4626,7 +4627,7 @@ pub struct Exfiltration {
 }
 
 /// Details about the externally exposed resource associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExternalExposure {
     /// The full resource name of load balancer backend service, for example, "//compute.googleapis.com/projects/{project-id}/global/backendServices/{name}".
     #[serde(default, rename = "backendService")]
@@ -4667,7 +4668,7 @@ pub struct ExternalExposure {
 }
 
 /// Contains details about groups of which this finding is a member. A group is a collection of findings that are related in some way.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GroupMembership {
     /// ID of the group.
     #[serde(default, rename = "groupId")]
@@ -4678,7 +4679,7 @@ pub struct GroupMembership {
 }
 
 /// Represents a particular IAM binding, which captures a member''s role addition, removal, or state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IamBinding {
     /// The action that was performed on a Binding. // TODO: enum values: ["ACTION_UNSPECIFIED", "ADD", "REMOVE"]
     #[serde(default)]
@@ -4692,7 +4693,7 @@ pub struct IamBinding {
 }
 
 /// Represents what''s commonly known as an _indicator of compromise_ (IoC) in computer forensics. This is an artifact observed on a network or in an operating system that, with high confidence, indicates a computer intrusion. For more information, see [Indicator of compromise](https://en.wikipedia.org/wiki/Indicator_of_compromise).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Indicator {
     /// List of domains associated to the Finding.
     #[serde(default)]
@@ -4709,7 +4710,7 @@ pub struct Indicator {
 }
 
 /// IP rules associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IpRules {
     /// Tuple with allowed rules.
     #[serde(default)]
@@ -4732,7 +4733,7 @@ pub struct IpRules {
 }
 
 /// Describes a job
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Job {
     /// Optional. If the job did not complete successfully, this field describes why.
     #[serde(default, rename = "errorCode")]
@@ -4749,7 +4750,7 @@ pub struct Job {
 }
 
 /// Kernel mode rootkit signatures.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KernelRootkit {
     /// Rootkit name, when available.
     #[serde(default)]
@@ -4781,7 +4782,7 @@ pub struct KernelRootkit {
 }
 
 /// Kubernetes-related attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Kubernetes {
     /// Provides information on any Kubernetes access reviews (privilege checks) relevant to the finding.
     #[serde(default, rename = "accessReviews")]
@@ -4807,7 +4808,7 @@ pub struct Kubernetes {
 }
 
 /// Contains information related to the load balancer associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LoadBalancer {
     /// The name of the load balancer associated with the finding.
     #[serde(default)]
@@ -4815,7 +4816,7 @@ pub struct LoadBalancer {
 }
 
 /// An individual entry in a log.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogEntry {
     /// An individual entry in a log stored in Cloud Logging.
     #[serde(default, rename = "cloudLoggingEntry")]
@@ -4823,7 +4824,7 @@ pub struct LogEntry {
 }
 
 /// MITRE ATT&CK tactics and techniques related to this finding. See: https://attack.mitre.org
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MitreAttack {
     /// Additional MITRE ATT&CK tactics related to this finding, if any.
     #[serde(default, rename = "additionalTactics")]
@@ -4843,7 +4844,7 @@ pub struct MitreAttack {
 }
 
 /// Mute information about the finding, including whether the finding has a static mute or any matching dynamic mute rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MuteInfo {
     /// The list of dynamic mute rules that currently match the finding.
     #[serde(default, rename = "dynamicMuteRecords")]
@@ -4854,7 +4855,7 @@ pub struct MuteInfo {
 }
 
 /// Contains information about a VPC network associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Network {
     /// The name of the VPC network resource, for example, //compute.googleapis.com/projects/my-project/global/networks/my-network.
     #[serde(default)]
@@ -4862,7 +4863,7 @@ pub struct Network {
 }
 
 /// Represents a Jupyter notebook IPYNB file, such as a [Colab Enterprise notebook](https://cloud.google.com/colab/docs/introduction) file, that is associated with a finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Notebook {
     /// The user ID of the latest author to modify the notebook.
     #[serde(default, rename = "lastAuthor")]
@@ -4879,7 +4880,7 @@ pub struct Notebook {
 }
 
 /// Contains information about the org policies associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrgPolicy {
     /// The resource name of the org policy. Example: "organizations/{organization_id}/policies/{constraint_name}"
     #[serde(default)]
@@ -4887,7 +4888,7 @@ pub struct OrgPolicy {
 }
 
 /// Metadata summarizing policy violations of child resources of the affected resource. finding_category and resource determine the exact semantics of the counts. For example, when category=DATA_SECURITY_POSTURE_OBJECT_PUBLIC_ACCESS_VIOLATION and resource=''storage.googleapis.com/buckets/my-bucket-name'' then this counts the number of Cloud Storage objects in my-bucket-name which violate a Public Access control.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyViolationSummary {
     /// Total number of child resources that conform to the policy.
     #[serde(default, rename = "conformantResourcesCount")]
@@ -4904,7 +4905,7 @@ pub struct PolicyViolationSummary {
 }
 
 /// Represents an operating system process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Process {
     /// Process arguments as JSON encoded strings.
     #[serde(default)]
@@ -4942,7 +4943,7 @@ pub struct Process {
 }
 
 /// Details about a secret or credential associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Secret {
     /// The environment variable containing the secret.
     #[serde(default, rename = "environmentVariable")]
@@ -4959,7 +4960,7 @@ pub struct Secret {
 }
 
 /// User specified security marks that are attached to the parent Security Command Center resource. Security marks are scoped within a Security Command Center organization -- they can be modified and viewed by all users who have proper permissions on the organization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityMarks {
     /// The canonical name of the marks. Examples: "organizations/{organization_id}/assets/{asset_id}/securityMarks" "folders/{folder_id}/assets/{asset_id}/securityMarks" "projects/{project_number}/assets/{asset_id}/securityMarks" "organizations/{organization_id}/sources/{source_id}/findings/{finding_id}/securityMarks" "folders/{folder_id}/sources/{source_id}/findings/{finding_id}/securityMarks" "projects/{project_number}/sources/{source_id}/findings/{finding_id}/securityMarks"
     #[serde(default, rename = "canonicalName")]
@@ -4973,7 +4974,7 @@ pub struct SecurityMarks {
 }
 
 /// Represents a posture that is deployed on Google Cloud by the Security Command Center Posture Management service. A posture contains one or more policy sets. A policy set is a group of policies that enforce a set of security rules on Google Cloud.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPosture {
     /// The name of the updated policy, for example, projects/{project_id}/policies/{constraint_name}.
     #[serde(default, rename = "changedPolicy")]
@@ -5002,7 +5003,7 @@ pub struct SecurityPosture {
 }
 
 /// Contains details about a group of security issues that, when the issues occur together, represent a greater risk than when the issues occur independently. A group of such issues is referred to as a toxic combination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ToxicCombination {
     /// The [Attack exposure score](https://cloud.google.com/security-command-center/docs/attack-exposure-learn#attack_exposure_scores) of this toxic combination. The score is a measure of how much this toxic combination exposes one or more high-value resources to potential attack.
     #[serde(default, rename = "attackExposureScore")]
@@ -5013,7 +5014,7 @@ pub struct ToxicCombination {
 }
 
 /// Vertex AI-related information associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VertexAi {
     /// Datasets associated with the finding.
     #[serde(default)]
@@ -5024,7 +5025,7 @@ pub struct VertexAi {
 }
 
 /// Refers to common vulnerability fields e.g. cve, cvss, cwe etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Vulnerability {
     /// CVE stands for Common Vulnerabilities and Exposures (https://cve.mitre.org/about/)
     #[serde(default)]
@@ -5050,7 +5051,7 @@ pub struct Vulnerability {
 }
 
 /// A position in the uploaded text version of a module.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Position {
     /// The column number.
     #[serde(default, rename = "columnNumber")]
@@ -5061,7 +5062,7 @@ pub struct Position {
 }
 
 /// Contact information of stakeholders.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2IssueResourceApplicationAttributesContactInfo {
     /// Email address of the contacts.
     #[serde(default)]
@@ -5069,7 +5070,7 @@ pub struct GoogleCloudSecuritycenterV2IssueResourceApplicationAttributesContactI
 }
 
 /// Criticality of the Application, Service, or Workload
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2IssueResourceApplicationAttributesCriticality {
     /// Criticality Type. // TODO: enum values: ["CRITICALITY_TYPE_UNSPECIFIED", "MISSION_CRITICAL", "HIGH", "MEDIUM", "LOW"]
     #[serde(default, rename = "type")]
@@ -5077,7 +5078,7 @@ pub struct GoogleCloudSecuritycenterV2IssueResourceApplicationAttributesCritical
 }
 
 /// Environment of the Application, Service, or Workload
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2IssueResourceApplicationAttributesEnvironment {
     /// Environment Type. // TODO: enum values: ["ENVIRONMENT_TYPE_UNSPECIFIED", "PRODUCTION", "STAGING", "TEST", "DEVELOPMENT"]
     #[serde(default, rename = "type")]
@@ -5085,7 +5086,7 @@ pub struct GoogleCloudSecuritycenterV2IssueResourceApplicationAttributesEnvironm
 }
 
 /// Score is calculated from of all elements in the data profile. A higher level means the data is more sensitive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2SensitivityScore {
     /// The sensitivity score applied to the resource. // TODO: enum values: ["SENSITIVITY_SCORE_LEVEL_UNSPECIFIED", "SENSITIVITY_LOW", "SENSITIVITY_UNKNOWN", "SENSITIVITY_MODERATE", "SENSITIVITY_HIGH"]
     #[serde(default)]
@@ -5093,7 +5094,7 @@ pub struct GoogleCloudSecuritycenterV2SensitivityScore {
 }
 
 /// Compliance control associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Control {
     /// Name of the Control
     #[serde(default, rename = "controlName")]
@@ -5104,7 +5105,7 @@ pub struct GoogleCloudSecuritycenterV2Control {
 }
 
 /// A signature corresponding to memory page hashes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2MemoryHashSignature {
     /// The binary family.
     #[serde(default, rename = "binaryFamily")]
@@ -5115,7 +5116,7 @@ pub struct GoogleCloudSecuritycenterV2MemoryHashSignature {
 }
 
 /// A signature corresponding to a YARA rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2YaraRuleSignature {
     /// The name of the YARA rule.
     #[serde(default, rename = "yaraRule")]
@@ -5123,7 +5124,7 @@ pub struct GoogleCloudSecuritycenterV2YaraRuleSignature {
 }
 
 /// IP rule information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2IpRule {
     /// Optional. An optional list of ports to which this rule applies. This field is only applicable for the UDP or (S)TCP protocols. Each entry must be either an integer or a range including a min and max port number.
     #[serde(default, rename = "portRanges")]
@@ -5134,7 +5135,7 @@ pub struct GoogleCloudSecuritycenterV2IpRule {
 }
 
 /// Kubernetes Role or ClusterRole.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Role {
     /// Role type. // TODO: enum values: ["KIND_UNSPECIFIED", "ROLE", "CLUSTER_ROLE"]
     #[serde(default)]
@@ -5148,7 +5149,7 @@ pub struct GoogleCloudSecuritycenterV2Role {
 }
 
 /// Represents a Kubernetes subject.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Subject {
     /// Authentication type for the subject. // TODO: enum values: ["AUTH_TYPE_UNSPECIFIED", "USER", "SERVICEACCOUNT", "GROUP"]
     #[serde(default)]
@@ -5162,7 +5163,7 @@ pub struct GoogleCloudSecuritycenterV2Subject {
 }
 
 /// Kubernetes nodes associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Node {
     /// [Full resource name](https://google.aip.dev/122#full-resource-names) of the Compute Engine VM running the cluster node.
     #[serde(default)]
@@ -5170,7 +5171,7 @@ pub struct GoogleCloudSecuritycenterV2Node {
 }
 
 /// Container associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Container {
     /// The time that the container was created.
     #[serde(default, rename = "createTime")]
@@ -5190,7 +5191,7 @@ pub struct GoogleCloudSecuritycenterV2Container {
 }
 
 /// Path of the file in terms of underlying disk/partition identifiers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2DiskPath {
     /// UUID of the partition (format https://wiki.archlinux.org/title/persistent_block_device_naming#by-uuid)
     #[serde(default, rename = "partitionUuid")]
@@ -5201,7 +5202,7 @@ pub struct GoogleCloudSecuritycenterV2DiskPath {
 }
 
 /// Operation(s) performed on a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2FileOperation {
     /// The type of the operation // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "OPEN", "READ", "RENAME", "WRITE", "EXECUTE"]
     #[serde(default, rename = "type")]
@@ -5209,7 +5210,7 @@ pub struct GoogleCloudSecuritycenterV2FileOperation {
 }
 
 /// Common Vulnerability Scoring System version 3.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Cvssv3 {
     /// This metric describes the conditions beyond the attacker''s control that must exist in order to exploit the vulnerability. // TODO: enum values: ["ATTACK_COMPLEXITY_UNSPECIFIED", "ATTACK_COMPLEXITY_LOW", "ATTACK_COMPLEXITY_HIGH"]
     #[serde(default, rename = "attackComplexity")]
@@ -5241,7 +5242,7 @@ pub struct GoogleCloudSecuritycenterV2Cvssv3 {
 }
 
 /// Additional Links
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Reference {
     /// Source of the reference e.g. NVD
     #[serde(default)]
@@ -5252,7 +5253,7 @@ pub struct GoogleCloudSecuritycenterV2Reference {
 }
 
 /// Contact information of stakeholders.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2ResourceApplicationAttributesContactInfo {
     /// Email address of the contacts.
     #[serde(default)]
@@ -5260,7 +5261,7 @@ pub struct GoogleCloudSecuritycenterV2ResourceApplicationAttributesContactInfo {
 }
 
 /// Criticality of the Application, Service, or Workload
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2ResourceApplicationAttributesCriticality {
     /// Criticality Type. // TODO: enum values: ["CRITICALITY_TYPE_UNSPECIFIED", "MISSION_CRITICAL", "HIGH", "MEDIUM", "LOW"]
     #[serde(default, rename = "type")]
@@ -5268,7 +5269,7 @@ pub struct GoogleCloudSecuritycenterV2ResourceApplicationAttributesCriticality {
 }
 
 /// Environment of the Application, Service, or Workload
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2ResourceApplicationAttributesEnvironment {
     /// Environment Type. // TODO: enum values: ["ENVIRONMENT_TYPE_UNSPECIFIED", "PRODUCTION", "STAGING", "TEST", "DEVELOPMENT"]
     #[serde(default, rename = "type")]
@@ -5276,7 +5277,7 @@ pub struct GoogleCloudSecuritycenterV2ResourceApplicationAttributesEnvironment {
 }
 
 /// Message that contains the resource name and display name of a folder resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Folder {
     /// Full resource name of this folder. See: https://cloud.google.com/apis/design/resource_names#full_resource_name
     #[serde(default, rename = "resourceFolder")]
@@ -5287,7 +5288,7 @@ pub struct Folder {
 }
 
 /// Consumer provided attributes for the application
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1ResourceApplicationAttributes {
     /// Business team that ensures user needs are met and value is delivered
     #[serde(default, rename = "businessOwners")]
@@ -5315,7 +5316,7 @@ pub struct GoogleCloudSecuritycenterV1ResourceApplicationAttributes {
 }
 
 /// An AWS account that is a member of an organization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AwsAccount {
     /// The unique identifier (ID) of the account, containing exactly 12 digits.
     #[serde(default)]
@@ -5326,7 +5327,7 @@ pub struct AwsAccount {
 }
 
 /// An organization is a collection of accounts that are centrally managed together using consolidated billing, organized hierarchically with organizational units (OUs), and controlled with policies.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AwsOrganization {
     /// The unique identifier (ID) for the organization. The regex pattern for an organization ID string requires "o-" followed by from 10 to 32 lowercase letters or digits.
     #[serde(default)]
@@ -5334,7 +5335,7 @@ pub struct AwsOrganization {
 }
 
 /// An Organizational Unit (OU) is a container of AWS accounts within a root of an organization. Policies that are attached to an OU apply to all accounts contained in that OU and in any child OUs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AwsOrganizationalUnit {
     /// The unique identifier (ID) associated with this OU. The regex pattern for an organizational unit ID string requires "ou-" followed by from 4 to 32 lowercase letters or digits (the ID of the root that contains the OU). This string is followed by a second "-" dash and from 8 to 32 additional lowercase letters or digits. For example, "ou-ab12-cd34ef56".
     #[serde(default)]
@@ -5345,7 +5346,7 @@ pub struct AwsOrganizationalUnit {
 }
 
 /// Represents an Azure management group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AzureManagementGroup {
     /// The display name of the Azure management group.
     #[serde(default, rename = "displayName")]
@@ -5356,7 +5357,7 @@ pub struct AzureManagementGroup {
 }
 
 /// Represents an Azure resource group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AzureResourceGroup {
     /// The ID of the Azure resource group.
     #[serde(default)]
@@ -5367,7 +5368,7 @@ pub struct AzureResourceGroup {
 }
 
 /// Represents an Azure subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AzureSubscription {
     /// The display name of the Azure subscription.
     #[serde(default, rename = "displayName")]
@@ -5378,7 +5379,7 @@ pub struct AzureSubscription {
 }
 
 /// Represents a Microsoft Entra tenant.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AzureTenant {
     /// The display name of the Azure tenant.
     #[serde(default, rename = "displayName")]
@@ -5389,7 +5390,7 @@ pub struct AzureTenant {
 }
 
 /// A node within the resource path. Each node represents a resource within the resource hierarchy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourcePathNode {
     /// The display name of the resource this node represents.
     #[serde(default, rename = "displayName")]
@@ -5403,7 +5404,7 @@ pub struct ResourcePathNode {
 }
 
 /// An individual name-value pair that defines a custom source property.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1Property {
     /// Name of the property for the custom output.
     #[serde(default)]
@@ -5414,7 +5415,7 @@ pub struct GoogleCloudSecuritycenterV1Property {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -5425,7 +5426,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a geographical location for a given access.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Geolocation {
     /// A CLDR.
     #[serde(default, rename = "regionCode")]
@@ -5433,7 +5434,7 @@ pub struct Geolocation {
 }
 
 /// Identity delegation history of an authenticated service account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceAccountDelegationInfo {
     /// The email address of a Google account.
     #[serde(default, rename = "principalEmail")]
@@ -5444,7 +5445,7 @@ pub struct ServiceAccountDelegationInfo {
 }
 
 /// Represents an artifact guard policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ArtifactGuardPolicy {
     /// The reason for the policy failure, for example, "severity=HIGH AND max_vuln_count=2".
     #[serde(default, rename = "failureReason")]
@@ -5458,7 +5459,7 @@ pub struct ArtifactGuardPolicy {
 }
 
 /// Information about [Google Cloud Armor Adaptive Protection](https://cloud.google.com/armor/docs/cloud-armor-overview#google-cloud-armor-adaptive-protection).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdaptiveProtection {
     /// A score of 0 means that there is low confidence that the detected event is an actual attack. A score of 1 means that there is high confidence that the detected event is an attack. See the [Adaptive Protection documentation](https://cloud.google.com/armor/docs/adaptive-protection-overview#configure-alert-tuning) for further explanation.
     #[serde(default)]
@@ -5466,7 +5467,7 @@ pub struct AdaptiveProtection {
 }
 
 /// Information about DDoS attack volume and classification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Attack {
     /// Type of attack, for example, ''SYN-flood'', ''NTP-udp'', or ''CHARGEN-udp''.
     #[serde(default)]
@@ -5486,7 +5487,7 @@ pub struct Attack {
 }
 
 /// Information about the requests relevant to the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Requests {
     /// Allowed RPS (requests per second) over the long term.
     #[serde(default, rename = "longTermAllowed")]
@@ -5503,7 +5504,7 @@ pub struct Requests {
 }
 
 /// Information about the [Google Cloud Armor security policy](https://cloud.google.com/armor/docs/security-policy-overview) relevant to the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityPolicy {
     /// The name of the Google Cloud Armor security policy, for example, "my-security-policy".
     #[serde(default)]
@@ -5517,7 +5518,7 @@ pub struct SecurityPolicy {
 }
 
 /// Type of information detected by the API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InfoType {
     /// Name of the information type. Either a name of your choosing when creating a CustomInfoType, or one of the names listed at https://cloud.google.com/sensitive-data-protection/docs/infotypes-reference when specifying a built-in type. When sending Cloud DLP results to Data Catalog, infoType names should conform to the pattern [A-Za-z0-9$_-]{1,64}.
     #[serde(default)]
@@ -5531,7 +5532,7 @@ pub struct InfoType {
 }
 
 /// CloudControl associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudControl {
     /// Name of the CloudControl associated with the finding.
     #[serde(default, rename = "cloudControlName")]
@@ -5548,7 +5549,7 @@ pub struct CloudControl {
 }
 
 /// Compliance framework associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Framework {
     /// Category of the framework associated with the finding. E.g. Security Benchmark, or Assured Workloads
     #[serde(default)]
@@ -5568,7 +5569,7 @@ pub struct Framework {
 }
 
 /// Resource where data was exfiltrated from or exfiltrated to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExfilResource {
     /// Subcomponents of the asset that was exfiltrated, like URIs used during exfiltration, table names, databases, and filenames. For example, multiple tables might have been exfiltrated from the same Cloud SQL instance, or multiple files might have been exfiltrated from the same Cloud Storage bucket.
     #[serde(default)]
@@ -5579,7 +5580,7 @@ pub struct ExfilResource {
 }
 
 /// Indicates what signature matched this process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProcessSignature {
     /// Signature indicating that a binary family was matched.
     #[serde(default, rename = "memoryHashSignature")]
@@ -5593,7 +5594,7 @@ pub struct ProcessSignature {
 }
 
 /// Allowed IP rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Allowed {
     /// Optional. Optional list of allowed IP rules.
     #[serde(default, rename = "ipRules")]
@@ -5601,7 +5602,7 @@ pub struct Allowed {
 }
 
 /// Denied IP rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Denied {
     /// Optional. Optional list of denied IP rules.
     #[serde(default, rename = "ipRules")]
@@ -5609,7 +5610,7 @@ pub struct Denied {
 }
 
 /// Conveys information about a Kubernetes access review (such as one returned by a [kubectl auth can-i](https://kubernetes.io/docs/reference/access-authn-authz/authorization/#checking-api-access) command) that was involved in a finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessReview {
     /// The API group of the resource. "*" means all.
     #[serde(default)]
@@ -5635,7 +5636,7 @@ pub struct AccessReview {
 }
 
 /// Represents a Kubernetes RoleBinding or ClusterRoleBinding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1Binding {
     /// Name for the binding.
     #[serde(default)]
@@ -5652,7 +5653,7 @@ pub struct GoogleCloudSecuritycenterV1Binding {
 }
 
 /// Provides GKE node pool information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodePool {
     /// Kubernetes node pool name.
     #[serde(default)]
@@ -5663,7 +5664,7 @@ pub struct NodePool {
 }
 
 /// Kubernetes object related to the finding, uniquely identified by GKNN. Used if the object Kind is not one of Pod, Node, NodePool, Binding, or AccessReview.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Object {
     /// Pod containers associated with this finding, if any.
     #[serde(default)]
@@ -5683,7 +5684,7 @@ pub struct Object {
 }
 
 /// A Kubernetes Pod.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Pod {
     /// Pod containers associated with this finding, if any.
     #[serde(default)]
@@ -5700,7 +5701,7 @@ pub struct Pod {
 }
 
 /// Metadata taken from a [Cloud Logging LogEntry](https://cloud.google.com/logging/docs/reference/v2/rest/v2/LogEntry)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudLoggingEntry {
     /// A unique identifier for the log entry.
     #[serde(default, rename = "insertId")]
@@ -5717,7 +5718,7 @@ pub struct CloudLoggingEntry {
 }
 
 /// The record of a dynamic mute rule that matches the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DynamicMuteRecord {
     /// When the dynamic mute rule first matched the finding.
     #[serde(default, rename = "matchTime")]
@@ -5728,7 +5729,7 @@ pub struct DynamicMuteRecord {
 }
 
 /// Information about the static mute state. A static mute state overrides any dynamic mute rules that apply to this finding. The static mute state can be set by a static mute rule or by muting the finding directly.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StaticMute {
     /// When the static mute was applied.
     #[serde(default, rename = "applyTime")]
@@ -5739,7 +5740,7 @@ pub struct StaticMute {
 }
 
 /// File information about the related binary/library used by an executable, or the script used by a script interpreter
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct File {
     /// Prefix of the file contents as a JSON-encoded string.
     #[serde(default)]
@@ -5771,7 +5772,7 @@ pub struct File {
 }
 
 /// A name-value pair representing an environment variable used in an operating system process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnvironmentVariable {
     /// Environment variable name as a JSON encoded string.
     #[serde(default)]
@@ -5782,7 +5783,7 @@ pub struct EnvironmentVariable {
 }
 
 /// Environment variable containing the secret.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretEnvironmentVariable {
     /// Environment variable name as a JSON encoded string. Note that value is not included since the value contains the secret data, which is sensitive core content.
     #[serde(default)]
@@ -5790,7 +5791,7 @@ pub struct SecretEnvironmentVariable {
 }
 
 /// File path containing the secret.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretFilePath {
     /// Path to the file.
     #[serde(default)]
@@ -5798,7 +5799,7 @@ pub struct SecretFilePath {
 }
 
 /// The status of the secret.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecretStatus {
     /// Time that the secret was found.
     #[serde(default, rename = "lastUpdatedTime")]
@@ -5809,7 +5810,7 @@ pub struct SecretStatus {
 }
 
 /// The policy field that violates the deployed posture and its expected and detected values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyDriftDetails {
     /// The detected value that violates the deployed posture, for example, false or allowed_values={"projects/22831892"}.
     #[serde(default, rename = "detectedValue")]
@@ -5823,7 +5824,7 @@ pub struct PolicyDriftDetails {
 }
 
 /// Vertex AI dataset associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Dataset {
     /// The user defined display name of dataset, e.g. plants-dataset
     #[serde(default, rename = "displayName")]
@@ -5837,7 +5838,7 @@ pub struct Dataset {
 }
 
 /// Vertex AI training pipeline associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Pipeline {
     /// The user defined display name of pipeline, e.g. plants-classification
     #[serde(default, rename = "displayName")]
@@ -5848,7 +5849,7 @@ pub struct Pipeline {
 }
 
 /// CVE stands for Common Vulnerabilities and Exposures. Information from the [CVE record](https://www.cve.org/ResourcesSupport/Glossary) that describes this vulnerability.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Cve {
     /// Describe Common Vulnerability Scoring System specified at https://www.first.org/cvss/v3.1/specification-document
     #[serde(default)]
@@ -5883,7 +5884,7 @@ pub struct Cve {
 }
 
 /// CWE stands for Common Weakness Enumeration. Information about this weakness, as described by [CWE](https://cwe.mitre.org/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Cwe {
     /// The CWE identifier, e.g. CWE-94
     #[serde(default)]
@@ -5894,7 +5895,7 @@ pub struct Cwe {
 }
 
 /// Package is a generic definition of a package.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Package {
     /// The CPE URI where the vulnerability was detected.
     #[serde(default, rename = "cpeUri")]
@@ -5911,7 +5912,7 @@ pub struct Package {
 }
 
 /// SecurityBulletin are notifications of vulnerabilities of Google products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SecurityBulletin {
     /// ID of the bulletin corresponding to the vulnerability.
     #[serde(default, rename = "bulletinId")]
@@ -5925,7 +5926,7 @@ pub struct SecurityBulletin {
 }
 
 /// Memory hash detection contributing to the binary family match.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Detection {
     /// The name of the binary associated with the memory hash signature detection.
     #[serde(default)]
@@ -5936,7 +5937,7 @@ pub struct GoogleCloudSecuritycenterV2Detection {
 }
 
 /// A port range which is inclusive of the min and max values. Values are between 0 and 2^16-1. The max can be equal / must be not smaller than the min value. If min and max are equal this indicates that it is a single port.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2PortRange {
     /// Maximum port value.
     #[serde(default)]
@@ -5947,7 +5948,7 @@ pub struct GoogleCloudSecuritycenterV2PortRange {
 }
 
 /// Represents a generic name-value label. A label has separate name and value fields to support filtering with the contains() function. For more information, see [Filtering on array-type fields](https://cloud.google.com/security-command-center/docs/how-to-api-list-findings#array-contains-filtering).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV2Label {
     /// Name of the label.
     #[serde(default)]
@@ -5958,7 +5959,7 @@ pub struct GoogleCloudSecuritycenterV2Label {
 }
 
 /// Contact information of stakeholders.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1ResourceApplicationAttributesContactInfo {
     /// Email address of the contacts.
     #[serde(default)]
@@ -5966,7 +5967,7 @@ pub struct GoogleCloudSecuritycenterV1ResourceApplicationAttributesContactInfo {
 }
 
 /// Criticality of the Application, Service, or Workload
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1ResourceApplicationAttributesCriticality {
     /// Criticality Type. // TODO: enum values: ["CRITICALITY_TYPE_UNSPECIFIED", "MISSION_CRITICAL", "HIGH", "MEDIUM", "LOW"]
     #[serde(default, rename = "type")]
@@ -5974,7 +5975,7 @@ pub struct GoogleCloudSecuritycenterV1ResourceApplicationAttributesCriticality {
 }
 
 /// Environment of the Application, Service, or Workload
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSecuritycenterV1ResourceApplicationAttributesEnvironment {
     /// Environment Type. // TODO: enum values: ["ENVIRONMENT_TYPE_UNSPECIFIED", "PRODUCTION", "STAGING", "TEST", "DEVELOPMENT"]
     #[serde(default, rename = "type")]
@@ -5982,7 +5983,7 @@ pub struct GoogleCloudSecuritycenterV1ResourceApplicationAttributesEnvironment {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -5999,7 +6000,7 @@ pub struct Expr {
 }
 
 /// Score is calculated from of all elements in the data profile. A higher level means the data is more sensitive.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SensitivityScore {
     /// The sensitivity score applied to the resource. // TODO: enum values: ["SENSITIVITY_SCORE_LEVEL_UNSPECIFIED", "SENSITIVITY_LOW", "SENSITIVITY_UNKNOWN", "SENSITIVITY_MODERATE", "SENSITIVITY_HIGH"]
     #[serde(default)]
@@ -6007,7 +6008,7 @@ pub struct SensitivityScore {
 }
 
 /// Compliance control associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Control {
     /// Name of the Control
     #[serde(default, rename = "controlName")]
@@ -6018,7 +6019,7 @@ pub struct Control {
 }
 
 /// A signature corresponding to memory page hashes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MemoryHashSignature {
     /// The binary family.
     #[serde(default, rename = "binaryFamily")]
@@ -6029,7 +6030,7 @@ pub struct MemoryHashSignature {
 }
 
 /// A signature corresponding to a YARA rule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct YaraRuleSignature {
     /// The name of the YARA rule.
     #[serde(default, rename = "yaraRule")]
@@ -6037,7 +6038,7 @@ pub struct YaraRuleSignature {
 }
 
 /// IP rule information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IpRule {
     /// Optional. An optional list of ports to which this rule applies. This field is only applicable for the UDP or (S)TCP protocols. Each entry must be either an integer or a range including a min and max port number.
     #[serde(default, rename = "portRanges")]
@@ -6048,7 +6049,7 @@ pub struct IpRule {
 }
 
 /// Kubernetes Role or ClusterRole.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Role {
     /// Role type. // TODO: enum values: ["KIND_UNSPECIFIED", "ROLE", "CLUSTER_ROLE"]
     #[serde(default)]
@@ -6062,7 +6063,7 @@ pub struct Role {
 }
 
 /// Represents a Kubernetes subject.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Subject {
     /// Authentication type for the subject. // TODO: enum values: ["AUTH_TYPE_UNSPECIFIED", "USER", "SERVICEACCOUNT", "GROUP"]
     #[serde(default)]
@@ -6076,7 +6077,7 @@ pub struct Subject {
 }
 
 /// Kubernetes nodes associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Node {
     /// [Full resource name](https://google.aip.dev/122#full-resource-names) of the Compute Engine VM running the cluster node.
     #[serde(default)]
@@ -6084,7 +6085,7 @@ pub struct Node {
 }
 
 /// Container associated with the finding.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Container {
     /// The time that the container was created.
     #[serde(default, rename = "createTime")]
@@ -6104,7 +6105,7 @@ pub struct Container {
 }
 
 /// Path of the file in terms of underlying disk/partition identifiers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskPath {
     /// UUID of the partition (format https://wiki.archlinux.org/title/persistent_block_device_naming#by-uuid)
     #[serde(default, rename = "partitionUuid")]
@@ -6115,7 +6116,7 @@ pub struct DiskPath {
 }
 
 /// Operation(s) performed on a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FileOperation {
     /// The type of the operation // TODO: enum values: ["OPERATION_TYPE_UNSPECIFIED", "OPEN", "READ", "RENAME", "WRITE", "EXECUTE"]
     #[serde(default, rename = "type")]
@@ -6123,7 +6124,7 @@ pub struct FileOperation {
 }
 
 /// Common Vulnerability Scoring System version 3.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Cvssv3 {
     /// This metric describes the conditions beyond the attacker''s control that must exist in order to exploit the vulnerability. // TODO: enum values: ["ATTACK_COMPLEXITY_UNSPECIFIED", "ATTACK_COMPLEXITY_LOW", "ATTACK_COMPLEXITY_HIGH"]
     #[serde(default, rename = "attackComplexity")]
@@ -6155,7 +6156,7 @@ pub struct Cvssv3 {
 }
 
 /// Additional Links
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Reference {
     /// Source of the reference e.g. NVD
     #[serde(default)]
@@ -6166,7 +6167,7 @@ pub struct Reference {
 }
 
 /// Memory hash detection contributing to the binary family match.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Detection {
     /// The name of the binary associated with the memory hash signature detection.
     #[serde(default)]
@@ -6177,7 +6178,7 @@ pub struct Detection {
 }
 
 /// A port range which is inclusive of the min and max values. Values are between 0 and 2^16-1. The max can be equal / must be not smaller than the min value. If min and max are equal this indicates that it is a single port.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PortRange {
     /// Maximum port value.
     #[serde(default)]
@@ -6188,7 +6189,7 @@ pub struct PortRange {
 }
 
 /// Represents a generic name-value label. A label has separate name and value fields to support filtering with the contains() function. For more information, see [Filtering on array-type fields](https://cloud.google.com/security-command-center/docs/how-to-api-list-findings#array-contains-filtering).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Label {
     /// Name of the label.
     #[serde(default)]

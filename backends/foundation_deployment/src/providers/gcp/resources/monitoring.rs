@@ -8,14 +8,15 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Future parameters for the availability SLI.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AvailabilityCriteria {}
 
 /// The CreateCollectdTimeSeries request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateCollectdTimeSeriesRequest {
     /// The collectd payloads representing the time series data. You must not include more than a single point for each time series, so no two payloads can have the same values for all of the fields plugin, plugin_instance, type, and type_instance.
     #[serde(default, rename = "collectdPayloads")]
@@ -29,7 +30,7 @@ pub struct CreateCollectdTimeSeriesRequest {
 }
 
 /// The CreateCollectdTimeSeries response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateCollectdTimeSeriesResponse {
     /// Records the error status for points that were not written due to an error in the request.Failed requests for which nothing is written will return an error response instead. Requests where data points were rejected by the backend will set summary instead.
     #[serde(default, rename = "payloadErrors")]
@@ -40,7 +41,7 @@ pub struct CreateCollectdTimeSeriesResponse {
 }
 
 /// The CreateTimeSeries request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateTimeSeriesRequest {
     /// Required. The new data to be added to a list of time series. Adds at most one data point to each of several time series. The new data point must be more recent than any other point in its time series. Each TimeSeries value must fully specify a unique time series by supplying all label values for the metric and the monitored resource.The maximum number of TimeSeries objects per Create request is 200.
     #[serde(default, rename = "timeSeries")]
@@ -48,11 +49,11 @@ pub struct CreateTimeSeriesRequest {
 }
 
 /// Use a custom service to designate a service that you want to monitor when none of the other service types (like App Engine, Cloud Run, or a GKE type) matches your intended service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Custom {}
 
 /// A set of (label, value) pairs that were removed from a Distribution time series during aggregation and then added as an attachment to a Distribution.Exemplar.The full label set for the exemplars is constructed by using the dropped pairs in combination with the label values that remain on the aggregated Distribution time series. The constructed full label set can be used to identify the specific entity, such as the instance or job, which might be contributing to a long-tail. However, with dropped labels, the storage requirements are reduced because only the aggregated distribution values for a large group of time series are stored.Note that there are no guarantees on ordering of the labels from exemplar-to-exemplar and from distribution-to-distribution in the same stream, and there may be duplicates. It is up to clients to resolve any ambiguities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DroppedLabels {
     /// Map from label to its value, for all labels dropped in any aggregation.
     #[serde(default)]
@@ -60,11 +61,11 @@ pub struct DroppedLabels {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// The GetNotificationChannelVerificationCode request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetNotificationChannelVerificationCodeRequest {
     /// The desired expiration time. If specified, the API will guarantee that the returned code will not be valid after the specified timestamp; however, the API cannot guarantee that the returned code will be valid for at least as long as the requested time (the API puts an upper bound on the amount of time for which a code may be valid). If omitted, a default expiration will be used, which may be less than the max permissible expiration (so specifying an expiration may extend the code''s lifetime over omitting an expiration, even though the API does impose an upper limit on the maximum expiration that is permitted).
     #[serde(default, rename = "expireTime")]
@@ -72,7 +73,7 @@ pub struct GetNotificationChannelVerificationCodeRequest {
 }
 
 /// The GetNotificationChannelVerificationCode request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GetNotificationChannelVerificationCodeResponse {
     /// The verification code, which may be used to verify other channels that have an equivalent identity (i.e. other channels of the same type with the same fingerprint such as other email channels with the same email address or other sms channels with the same number).
     #[serde(default)]
@@ -83,7 +84,7 @@ pub struct GetNotificationChannelVerificationCodeResponse {
 }
 
 /// The protocol for the ListAlertPolicies response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAlertPoliciesResponse {
     /// The returned alert policies.
     #[serde(default, rename = "alertPolicies")]
@@ -97,7 +98,7 @@ pub struct ListAlertPoliciesResponse {
 }
 
 /// The ListAlerts response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAlertsResponse {
     /// The list of alerts.
     #[serde(default)]
@@ -111,7 +112,7 @@ pub struct ListAlertsResponse {
 }
 
 /// The ListGroupMembers response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGroupMembersResponse {
     /// A set of monitored resources in the group.
     #[serde(default)]
@@ -125,7 +126,7 @@ pub struct ListGroupMembersResponse {
 }
 
 /// The ListGroups response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListGroupsResponse {
     /// The groups that match the specified filters.
     #[serde(default)]
@@ -136,7 +137,7 @@ pub struct ListGroupsResponse {
 }
 
 /// The ListMetricDescriptors response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMetricDescriptorsResponse {
     /// The metric descriptors that are available to the project and that match the value of filter, if present.
     #[serde(default, rename = "metricDescriptors")]
@@ -147,7 +148,7 @@ pub struct ListMetricDescriptorsResponse {
 }
 
 /// The ListMonitoredResourceDescriptors response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMonitoredResourceDescriptorsResponse {
     /// If there are more results than have been returned, then this field is set to a non-empty value. To see the additional results, use that value as page_token in the next call to this method.
     #[serde(default, rename = "nextPageToken")]
@@ -158,7 +159,7 @@ pub struct ListMonitoredResourceDescriptorsResponse {
 }
 
 /// The ListNotificationChannelDescriptors response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListNotificationChannelDescriptorsResponse {
     /// The monitored resource descriptors supported for the specified project, optionally filtered.
     #[serde(default, rename = "channelDescriptors")]
@@ -169,7 +170,7 @@ pub struct ListNotificationChannelDescriptorsResponse {
 }
 
 /// The ListNotificationChannels response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListNotificationChannelsResponse {
     /// If not empty, indicates that there may be more results that match the request. Use the value in the page_token field in a subsequent request to fetch the next set of results. If empty, all results have been returned.
     #[serde(default, rename = "nextPageToken")]
@@ -183,7 +184,7 @@ pub struct ListNotificationChannelsResponse {
 }
 
 /// The ListServiceLevelObjectives response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListServiceLevelObjectivesResponse {
     /// If there are more results than have been returned, then this field is set to a non-empty value. To see the additional results, use that value as page_token in the next call to this method.
     #[serde(default, rename = "nextPageToken")]
@@ -194,7 +195,7 @@ pub struct ListServiceLevelObjectivesResponse {
 }
 
 /// The ListServices response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListServicesResponse {
     /// If there are more results than have been returned, then this field is set to a non-empty value. To see the additional results, use that value as page_token in the next call to this method.
     #[serde(default, rename = "nextPageToken")]
@@ -205,7 +206,7 @@ pub struct ListServicesResponse {
 }
 
 /// The results of a successful ListSnoozes call, containing the matching Snoozes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSnoozesResponse {
     /// Page token for repeated calls to ListSnoozes, to fetch additional pages of results. If this is empty or missing, there are no more pages.
     #[serde(default, rename = "nextPageToken")]
@@ -216,7 +217,7 @@ pub struct ListSnoozesResponse {
 }
 
 /// The ListTimeSeries response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTimeSeriesResponse {
     /// Query execution errors that may have caused the time series data returned to be incomplete.
     #[serde(default, rename = "executionErrors")]
@@ -236,7 +237,7 @@ pub struct ListTimeSeriesResponse {
 }
 
 /// The protocol for the ListUptimeCheckConfigs response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUptimeCheckConfigsResponse {
     /// This field represents the pagination token to retrieve the next page of results. If the value is empty, it means no further results for the request. To retrieve the next page of results, the value of the next_page_token is passed to the subsequent List method call (in the request message''s page_token field).
     #[serde(default, rename = "nextPageToken")]
@@ -250,7 +251,7 @@ pub struct ListUptimeCheckConfigsResponse {
 }
 
 /// The protocol for the ListUptimeCheckIps response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUptimeCheckIpsResponse {
     /// This field represents the pagination token to retrieve the next page of results. If the value is empty, it means no further results for the request. To retrieve the next page of results, the value of the next_page_token is passed to the subsequent List method call (in the request message''s page_token field). NOTE: this field is not yet implemented
     #[serde(default, rename = "nextPageToken")]
@@ -261,7 +262,7 @@ pub struct ListUptimeCheckIpsResponse {
 }
 
 /// Contains metadata for longrunning operation for the edit Metrics Scope endpoints.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// The time when the batch request was received.
     #[serde(default, rename = "createTime")]
@@ -275,7 +276,7 @@ pub struct OperationMetadata {
 }
 
 /// The QueryTimeSeries request. For information about the status of Monitoring Query Language (MQL), see the MQL deprecation notice (https://cloud.google.com/stackdriver/docs/deprecations/mql).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryTimeSeriesRequest {
     /// A positive number that is the maximum number of time_series_data to return.
     #[serde(default, rename = "pageSize")]
@@ -289,7 +290,7 @@ pub struct QueryTimeSeriesRequest {
 }
 
 /// The QueryTimeSeries response. For information about the status of Monitoring Query Language (MQL), see the MQL deprecation notice (https://cloud.google.com/stackdriver/docs/deprecations/mql).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryTimeSeriesResponse {
     /// If there are more results than have been returned, then this field is set to a non-empty value. To see the additional results, use that value as page_token in the next call to this method.
     #[serde(default, rename = "nextPageToken")]
@@ -306,11 +307,11 @@ pub struct QueryTimeSeriesResponse {
 }
 
 /// The SendNotificationChannelVerificationCode request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SendNotificationChannelVerificationCodeRequest {}
 
 /// The context of a span. This is attached to an Exemplar in Distribution values during aggregation.It contains the name of a span with format: projects/[PROJECT_ID_OR_NUMBER]/traces/[TRACE_ID]/spans/[SPAN_ID]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpanContext {
     /// The resource name of the span. The format is: projects/[PROJECT_ID_OR_NUMBER]/traces/[TRACE_ID]/spans/[SPAN_ID] [TRACE_ID] is a unique identifier for a trace within a project; it is a 32-character hexadecimal encoding of a 16-byte array.[SPAN_ID] is a unique identifier for a span within a trace; it is a 16-character hexadecimal encoding of an 8-byte array.
     #[serde(default, rename = "spanName")]
@@ -318,7 +319,7 @@ pub struct SpanContext {
 }
 
 /// A protocol buffer message type.New usages of this message as an alternative to DescriptorProto are strongly discouraged. This message does not reliability preserve all information necessary to model the schema and preserve semantics. Instead make use of FileDescriptorSet which preserves the necessary information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Type {
     /// The source edition string, only valid when syntax is SYNTAX_EDITIONS.
     #[serde(default)]
@@ -344,7 +345,7 @@ pub struct Type {
 }
 
 /// The VerifyNotificationChannel request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VerifyNotificationChannelRequest {
     /// Required. The verification code that was delivered to the channel as a result of invoking the SendNotificationChannelVerificationCode API method or that was retrieved from a verified channel via GetNotificationChannelVerificationCode. For example, one might have "G-123456" or "TKNZGhhd2EyN3I1MnRnMjRv" (in general, one is only guaranteed that the code is valid UTF-8; one should not make any assumptions regarding the structure or format of the code).
     #[serde(default)]
@@ -352,7 +353,7 @@ pub struct VerifyNotificationChannelRequest {
 }
 
 /// A collection of data points sent from a collectd-based plugin. See the collectd documentation for more information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CollectdPayload {
     /// The end time of the interval.
     #[serde(default, rename = "endTime")]
@@ -381,7 +382,7 @@ pub struct CollectdPayload {
 }
 
 /// Describes the error status for payloads that were not written.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CollectdPayloadError {
     /// Records the error status for the payload. If this field is present, the partial errors for nested values won''t be populated.
     #[serde(default)]
@@ -395,7 +396,7 @@ pub struct CollectdPayloadError {
 }
 
 /// Summary of the result of a failed request to write data to a time series.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateTimeSeriesSummary {
     /// The number of points that failed to be written. Order is not guaranteed.
     #[serde(default)]
@@ -409,7 +410,7 @@ pub struct CreateTimeSeriesSummary {
 }
 
 /// A description of the conditions under which some aspect of your system is considered to be "unhealthy" and the ways to notify people or services about this state. For an overview of alerting policies, see Introduction to Alerting (https://cloud.google.com/monitoring/alerts/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlertPolicy {
     /// Control over how this alerting policy''s notification channels are notified.
     #[serde(default, rename = "alertStrategy")]
@@ -453,7 +454,7 @@ pub struct AlertPolicy {
 }
 
 /// An alert is the representation of a violation of an alert policy. It is a read-only resource that cannot be modified by the accompanied API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Alert {
     /// The time when the alert was closed.
     #[serde(default, rename = "closeTime")]
@@ -485,7 +486,7 @@ pub struct Alert {
 }
 
 /// The description of a dynamic collection of monitored resources. Each group has a filter that is matched against monitored resources and their associated metadata. If a group''s filter matches an available monitored resource, then that resource is a member of that group. Groups can contain any number of monitored resources, and each monitored resource can be a member of any number of groups.Groups can be nested in parent-child hierarchies. The parentName field identifies an optional parent for each group. If a group has a parent, then the only monitored resources available to be matched by the group''s filter are the resources contained in the parent group. In other words, a group contains the monitored resources that match its filter and the filters of all the group''s ancestors. A group without a parent can contain any monitored resource.For example, consider an infrastructure running a set of instances with two user-defined tags: "environment" and "role". A parent group has a filter, environment="production". A child of that parent group has a filter, role="transcoder". The parent group contains all instances in the production environment, regardless of their roles. The child group contains instances that have the transcoder role and are in the production environment.The monitored resources contained in a group can change at any moment, depending on what resources exist and what filters are associated with the group and its ancestors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Group {
     /// A user-assigned name for this group, used only for display purposes.
     #[serde(default, rename = "displayName")]
@@ -505,7 +506,7 @@ pub struct Group {
 }
 
 /// Defines a metric type and its schema. Once a metric descriptor is created, deleting or altering it stops data collection and makes the metric type''s existing data unusable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricDescriptor {
     /// A detailed description of the metric, which can be used in documentation.
     #[serde(default)]
@@ -543,7 +544,7 @@ pub struct MetricDescriptor {
 }
 
 /// An object that describes the schema of a MonitoredResource object using a type name and a set of labels. For example, the monitored resource descriptor for Google Compute Engine VM instances has a type of "gce_instance" and specifies the use of the labels "instance_id" and "zone" to identify particular VM instances.Different APIs can support different monitored resource types. APIs generally provide a list method that returns the monitored resource descriptors used by the API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MonitoredResourceDescriptor {
     /// Optional. A detailed description of the monitored resource type that might be used in documentation.
     #[serde(default)]
@@ -566,7 +567,7 @@ pub struct MonitoredResourceDescriptor {
 }
 
 /// A description of a notification channel. The descriptor includes the properties of the channel and the set of labels or fields that must be specified to configure channels of a given type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NotificationChannelDescriptor {
     /// A human-readable description of the notification channel type. The description may include a description of the properties of the channel and pointers to external documentation.
     #[serde(default)]
@@ -592,7 +593,7 @@ pub struct NotificationChannelDescriptor {
 }
 
 /// A NotificationChannel is a medium through which an alert is delivered when a policy violation is detected. Examples of channels include email, SMS, and third-party messaging applications. Fields containing sensitive information like authentication tokens or contact info are only partially populated on retrieval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NotificationChannel {
     /// Record of the creation of this channel.
     #[serde(default, rename = "creationRecord")]
@@ -627,7 +628,7 @@ pub struct NotificationChannel {
 }
 
 /// A Service-Level Objective (SLO) describes a level of desired good service. It consists of a service-level indicator (SLI), a performance goal, and a period over which the objective is to be evaluated against that goal. The SLO can use SLIs defined in a number of different manners. Typical SLOs might include "99% of requests in each rolling week have latency below 200 milliseconds" or "99.5% of requests in each calendar month return successfully."
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceLevelObjective {
     /// A calendar period, semantically "since the start of the current ". At this time, only DAY, WEEK, FORTNIGHT, and MONTH are supported. // TODO: enum values: ["CALENDAR_PERIOD_UNSPECIFIED", "DAY", "WEEK", "FORTNIGHT", "MONTH", "QUARTER", "HALF", "YEAR"]
     #[serde(default, rename = "calendarPeriod")]
@@ -653,7 +654,7 @@ pub struct ServiceLevelObjective {
 }
 
 /// A Service is a discrete, autonomous, and network-accessible unit, designed to solve an individual concern (Wikipedia (https://en.wikipedia.org/wiki/Service-orientation)). In Cloud Monitoring, a Service acts as the root resource under which operational aspects of the service are accessible.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Service {
     /// Type used for App Engine services.
     #[serde(default, rename = "appEngine")]
@@ -703,7 +704,7 @@ pub struct Service {
 }
 
 /// A Snooze will prevent any alerts from being opened, and close any that are already open. The Snooze will work on alerts that match the criteria defined in the Snooze. The Snooze will be active from interval.start_time through interval.end_time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Snooze {
     /// Required. This defines the criteria for applying the Snooze. See Criteria for more information.
     #[serde(default)]
@@ -720,7 +721,7 @@ pub struct Snooze {
 }
 
 /// A collection of data points that describes the time-varying values of a metric. A time series is identified by a combination of a fully-specified monitored resource and a fully-specified metric. This type is used for both listing and creating time series.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeSeries {
     /// Input only. A detailed description of the time series that will be associated with the google.api.MetricDescriptor for the metric. Once set, this field cannot be changed through CreateTimeSeries.
     #[serde(default)]
@@ -749,7 +750,7 @@ pub struct TimeSeries {
 }
 
 /// This message configures which resources and services to monitor for availability.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UptimeCheckConfig {
     /// The type of checkers to use to execute the Uptime check. // TODO: enum values: ["CHECKER_TYPE_UNSPECIFIED", "STATIC_IP_CHECKERS", "VPC_CHECKERS"]
     #[serde(default, rename = "checkerType")]
@@ -805,7 +806,7 @@ pub struct UptimeCheckConfig {
 }
 
 /// Contains the region, location, and list of IP addresses where checkers in the location run from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UptimeCheckIp {
     /// The IP address from which the Uptime check originates. This is a fully specified IP address (not an IP address range). Most IP addresses, as of this publication, are in IPv4 format; however, one should not rely on the IP addresses being in IPv4 format indefinitely, and should support interpreting this field in either IPv4 or IPv6 format.
     #[serde(default, rename = "ipAddress")]
@@ -819,7 +820,7 @@ pub struct UptimeCheckIp {
 }
 
 /// Represents the values of a time series associated with a TimeSeriesDescriptor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeSeriesData {
     /// The values of the labels in the time series identifier, given in the same order as the label_descriptors field of the TimeSeriesDescriptor associated with this object. Each value must have a value of the type given in the corresponding entry of label_descriptors.
     #[serde(default, rename = "labelValues")]
@@ -830,7 +831,7 @@ pub struct TimeSeriesData {
 }
 
 /// A descriptor for the labels and points in a time series.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeSeriesDescriptor {
     /// Descriptors for the labels.
     #[serde(default, rename = "labelDescriptors")]
@@ -841,7 +842,7 @@ pub struct TimeSeriesDescriptor {
 }
 
 /// A single field of a message type.New usages of this message as an alternative to FieldDescriptorProto are strongly discouraged. This message does not reliability preserve all information necessary to model the schema and preserve semantics. Instead make use of FileDescriptorSet which preserves the necessary information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Field {
     /// The field cardinality. // TODO: enum values: ["CARDINALITY_UNKNOWN", "CARDINALITY_OPTIONAL", "CARDINALITY_REQUIRED", "CARDINALITY_REPEATED"]
     #[serde(default)]
@@ -876,7 +877,7 @@ pub struct Field {
 }
 
 /// SourceContext represents information about the source of a protobuf element, like the file in which it is defined.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SourceContext {
     /// The path-qualified name of the .proto file that contained the associated protobuf element. For example: "google/protobuf/source_context.proto".
     #[serde(default, rename = "fileName")]
@@ -884,7 +885,7 @@ pub struct SourceContext {
 }
 
 /// A single data point from a collectd-based plugin.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CollectdValue {
     /// The data source for the collectd value. For example, there are two data sources for network measurements: "rx" and "tx".
     #[serde(default, rename = "dataSourceName")]
@@ -898,7 +899,7 @@ pub struct CollectdValue {
 }
 
 /// Describes the error status for values that were not written.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CollectdValueError {
     /// Records the error status for the value.
     #[serde(default)]
@@ -909,7 +910,7 @@ pub struct CollectdValueError {
 }
 
 /// Detailed information about an error category.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Error {
     /// The number of points that couldn''t be written because of status.
     #[serde(default, rename = "pointCount")]
@@ -920,7 +921,7 @@ pub struct Error {
 }
 
 /// Control over how the notification channels in notification_channels are notified when this alert fires.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlertStrategy {
     /// If an alerting policy that was active has no data for this long, any open incidents will close
     #[serde(default, rename = "autoClose")]
@@ -938,7 +939,7 @@ pub struct AlertStrategy {
 }
 
 /// A condition is a true/false test that determines when an alerting policy should open an incident. If a condition evaluates to true, it signifies that something is wrong.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Condition {
     /// A condition that checks that a time series continues to receive new data points.
     #[serde(default, rename = "conditionAbsent")]
@@ -969,7 +970,7 @@ pub struct Condition {
 }
 
 /// Documentation that is included in the notifications and incidents pertaining to this policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Documentation {
     /// The body of the documentation, interpreted according to mime_type. The content may not exceed 8,192 Unicode characters and may not exceed more than 10,240 bytes when encoded in UTF-8 format, whichever is smaller. This text can be templatized by using variables (https://cloud.google.com/monitoring/alerts/doc-variables#doc-vars).
     #[serde(default)]
@@ -986,7 +987,7 @@ pub struct Documentation {
 }
 
 /// Information about the log for log-based alerts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogMetadata {
     /// The labels extracted from the log.
     #[serde(default, rename = "extractedLabels")]
@@ -994,7 +995,7 @@ pub struct LogMetadata {
 }
 
 /// The state of the policy at the time the alert was generated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicySnapshot {
     /// The display name of the alert policy.
     #[serde(default, rename = "displayName")]
@@ -1011,7 +1012,7 @@ pub struct PolicySnapshot {
 }
 
 /// Additional annotations that can be used to guide the usage of a metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricDescriptorMetadata {
     /// The delay of data points caused by ingestion. Data points older than this age are guaranteed to be ingested and available to be read, excluding data loss due to errors.
     #[serde(default, rename = "ingestDelay")]
@@ -1028,7 +1029,7 @@ pub struct MetricDescriptorMetadata {
 }
 
 /// Describes a change made to a configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MutationRecord {
     /// When the change occurred.
     #[serde(default, rename = "mutateTime")]
@@ -1039,7 +1040,7 @@ pub struct MutationRecord {
 }
 
 /// A Service-Level Indicator (SLI) describes the "performance" of a service. For some services, the SLI is well-defined. In such cases, the SLI can be described easily by referencing the well-known SLI and providing the needed parameters. Alternatively, a "custom" SLI can be defined with a query to the underlying metric store. An SLI is defined to be good_service / total_service over any queried time interval. The value of performance always falls into the range 0 &lt;= performance &lt;= 1. A custom SLI describes how to compute this ratio, whether this is by dividing values from a pair of time series, cutting a Distribution into good and bad counts, or counting time windows in which the service complies with a criterion. For separation of concerns, a single Service-Level Indicator measures performance for only one aspect of service quality, such as fraction of successful queries or fast-enough queries.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceLevelIndicator {
     /// Basic SLI on a well-known service type.
     #[serde(default, rename = "basicSli")]
@@ -1053,7 +1054,7 @@ pub struct ServiceLevelIndicator {
 }
 
 /// App Engine service. Learn more at https://cloud.google.com/appengine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppEngine {
     /// The ID of the App Engine module underlying this service. Corresponds to the module_id resource label in the gae_app monitored resource (https://cloud.google.com/monitoring/api/resources#tag_gae_app).
     #[serde(default, rename = "moduleId")]
@@ -1061,7 +1062,7 @@ pub struct AppEngine {
 }
 
 /// A well-known service type, defined by its service type and service labels. Documentation and examples here (https://cloud.google.com/stackdriver/docs/solutions/slo-monitoring/api/api-structures#basic-svc-w-basic-sli).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BasicService {
     /// Labels that specify the resource that emits the monitoring data which is used for SLO reporting of this Service. Documentation and valid values for given service types here (https://cloud.google.com/stackdriver/docs/solutions/slo-monitoring/api/api-structures#basic-svc-w-basic-sli).
     #[serde(default, rename = "serviceLabels")]
@@ -1072,7 +1073,7 @@ pub struct BasicService {
 }
 
 /// Cloud Endpoints service. Learn more at https://cloud.google.com/endpoints.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudEndpoints {
     /// The name of the Cloud Endpoints service underlying this service. Corresponds to the service resource label in the api monitored resource (https://cloud.google.com/monitoring/api/resources#tag_api).
     #[serde(default)]
@@ -1080,7 +1081,7 @@ pub struct CloudEndpoints {
 }
 
 /// Cloud Run service. Learn more at https://cloud.google.com/run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudRun {
     /// The location the service is run. Corresponds to the location resource label in the cloud_run_revision monitored resource (https://cloud.google.com/monitoring/api/resources#tag_cloud_run_revision).
     #[serde(default)]
@@ -1091,7 +1092,7 @@ pub struct CloudRun {
 }
 
 /// Istio service scoped to a single Kubernetes cluster. Learn more at https://istio.io. Clusters running OSS Istio will have their services ingested as this type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterIstio {
     /// The name of the Kubernetes cluster in which this Istio service is defined. Corresponds to the cluster_name resource label in k8s_cluster resources.
     #[serde(default, rename = "clusterName")]
@@ -1108,7 +1109,7 @@ pub struct ClusterIstio {
 }
 
 /// GKE Namespace. The field names correspond to the resource metadata labels on monitored resources that fall under a namespace (for example, k8s_container or k8s_pod).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GkeNamespace {
     /// The name of the parent cluster.
     #[serde(default, rename = "clusterName")]
@@ -1125,7 +1126,7 @@ pub struct GkeNamespace {
 }
 
 /// GKE Service. The "service" here represents a Kubernetes service object (https://kubernetes.io/docs/concepts/services-networking/service). The field names correspond to the resource labels on k8s_service monitored resources (https://cloud.google.com/monitoring/api/resources#tag_k8s_service).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GkeService {
     /// The name of the parent cluster.
     #[serde(default, rename = "clusterName")]
@@ -1145,7 +1146,7 @@ pub struct GkeService {
 }
 
 /// A GKE Workload (Deployment, StatefulSet, etc). The field names correspond to the metadata labels on monitored resources that fall under a workload (for example, k8s_container or k8s_pod).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GkeWorkload {
     /// The name of the parent cluster.
     #[serde(default, rename = "clusterName")]
@@ -1168,7 +1169,7 @@ pub struct GkeWorkload {
 }
 
 /// Canonical service scoped to an Istio mesh. Anthos clusters running ASM &gt;= 1.6.8 will have their services ingested as this type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IstioCanonicalService {
     /// The name of the canonical service underlying this service. Corresponds to the destination_canonical_service_name metric label in label in Istio metrics (https://cloud.google.com/monitoring/api/metrics_istio).
     #[serde(default, rename = "canonicalService")]
@@ -1182,7 +1183,7 @@ pub struct IstioCanonicalService {
 }
 
 /// Istio service scoped to an Istio mesh. Anthos clusters running ASM &lt; 1.6.8 will have their services ingested as this type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MeshIstio {
     /// Identifier for the mesh in which this Istio service is defined. Corresponds to the mesh_uid metric label in Istio metrics.
     #[serde(default, rename = "meshUid")]
@@ -1196,7 +1197,7 @@ pub struct MeshIstio {
 }
 
 /// Configuration for how to query telemetry on a Service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Telemetry {
     /// The full name of the resource that defines this service. Formatted as described in https://cloud.google.com/apis/design/resource_names.
     #[serde(default, rename = "resourceName")]
@@ -1204,7 +1205,7 @@ pub struct Telemetry {
 }
 
 /// Criteria specific to the AlertPolicys that this Snooze applies to. The Snooze will suppress alerts that come from one of the AlertPolicys whose names are supplied.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Criteria {
     /// Optional. When you define a snooze, you can also define a filter for that snooze. The filter is a string containing one or more key-value pairs. The string uses the standard https://google.aip.dev/160 filter syntax. If you define a filter for a snooze, then the snooze can only apply to one alert policy. When the snooze is active, incidents won''t be created when the incident would have key-value pairs (labels) that match those specified by the filter in the snooze.Snooze filters support resource, metric, and metadata labels. If multiple labels are used, then they must be connected with an AND operator. For example, the following filter applies the snooze to incidents that have a resource label with an instance ID of 1234567890, a metric label with an instance name of test_group, a metadata user label with a key of foo and a value of bar, and a metadata system label with a key of region and a value of us-central1: "filter": "resource.labels.instance_id=\"1234567890\" AND metric.labels.instance_name=\"test_group\" AND metadata.user_labels.foo=\"bar\" AND metadata.system_labels.region=\"us-central1\""
     #[serde(default)]
@@ -1215,7 +1216,7 @@ pub struct Criteria {
 }
 
 /// Auxiliary metadata for a MonitoredResource object. MonitoredResource objects contain the minimum set of information to uniquely identify a monitored resource instance. There is some other useful auxiliary metadata. Monitoring and Logging use an ingestion pipeline to extract metadata for cloud resources of all types, and store the metadata in this message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MonitoredResourceMetadata {
     /// Output only. Values for predefined system metadata labels. System labels are a kind of metadata extracted by Google, including "machine_image", "vpc", "subnet_id", "security_group", "name", etc. System label values can be only strings, Boolean values, or a list of strings. For example: { "name": "my-test-instance", "security_group": ["a", "b", "c"], "spot_instance": false }
     #[serde(default, rename = "systemLabels")]
@@ -1226,7 +1227,7 @@ pub struct MonitoredResourceMetadata {
 }
 
 /// A specific metric, identified by specifying values for all of the labels of a MetricDescriptor.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Metric {
     /// The set of label values that uniquely identify this metric. All labels listed in the MetricDescriptor must be assigned values.
     #[serde(default)]
@@ -1237,7 +1238,7 @@ pub struct Metric {
 }
 
 /// A single data point in a time series.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Point {
     /// The time interval to which the data point applies. For GAUGE metrics, the start time is optional, but if it is supplied, it must equal the end time. For DELTA metrics, the start and end time should specify a non-zero interval, with subsequent points specifying contiguous and non-overlapping intervals. For CUMULATIVE metrics, the start and end time should specify a non-zero interval, with subsequent points specifying the same start time and increasing end times, until an event resets the cumulative value to zero and sets a new start time for the following points.
     #[serde(default)]
@@ -1248,7 +1249,7 @@ pub struct Point {
 }
 
 /// Optional. Used to perform content matching. This allows matching based on substrings and regular expressions, together with their negations. Only the first 4 MB of an HTTP or HTTPS check''s response (and the first 1 MB of a TCP check''s response) are examined for purposes of content matching.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentMatcher {
     /// String, regex or JSON content to match. Maximum 1024 bytes. An empty content string indicates no content matching is to be performed.
     #[serde(default)]
@@ -1262,7 +1263,7 @@ pub struct ContentMatcher {
 }
 
 /// Information involved in an HTTP/HTTPS Uptime check request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpCheck {
     /// If present, the check will only pass if the HTTP response status code is in this set of status codes. If empty, the HTTP status code will only pass if the HTTP status code is 200-299.
     #[serde(default, rename = "acceptedResponseStatusCodes")]
@@ -1309,7 +1310,7 @@ pub struct HttpCheck {
 }
 
 /// An internal checker allows Uptime checks to run on private/internal GCP resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InternalChecker {
     /// The checker''s human-readable name. The display name should be unique within a Cloud Monitoring Metrics Scope in order to make it easier to identify; however, uniqueness is not enforced.
     #[serde(default, rename = "displayName")]
@@ -1332,7 +1333,7 @@ pub struct InternalChecker {
 }
 
 /// The resource submessage for group checks. It can be used instead of a monitored resource, when multiple resources are being monitored.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceGroup {
     /// The group of resources being monitored. Should be only the [GROUP_ID], and not the full-path projects/[PROJECT_ID_OR_NUMBER]/groups/[GROUP_ID].
     #[serde(default, rename = "groupId")]
@@ -1343,7 +1344,7 @@ pub struct ResourceGroup {
 }
 
 /// Describes a Synthetic Monitor to be invoked by Uptime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SyntheticMonitorTarget {
     /// Target a Synthetic Monitor GCFv2 instance.
     #[serde(default, rename = "cloudFunctionV2")]
@@ -1351,7 +1352,7 @@ pub struct SyntheticMonitorTarget {
 }
 
 /// Information required for a TCP Uptime check request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TcpCheck {
     /// Contains information needed to add pings to a TCP check.
     #[serde(default, rename = "pingConfig")]
@@ -1362,7 +1363,7 @@ pub struct TcpCheck {
 }
 
 /// A label value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LabelValue {
     /// A bool label value.
     #[serde(default, rename = "boolValue")]
@@ -1376,7 +1377,7 @@ pub struct LabelValue {
 }
 
 /// A point''s value columns and time interval. Each point has one or more point values corresponding to the entries in point_descriptors field in the TimeSeriesDescriptor associated with this object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PointData {
     /// The time interval associated with the point.
     #[serde(default, rename = "timeInterval")]
@@ -1387,7 +1388,7 @@ pub struct PointData {
 }
 
 /// A description of a label.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LabelDescriptor {
     /// A human-readable description for the label.
     #[serde(default)]
@@ -1401,7 +1402,7 @@ pub struct LabelDescriptor {
 }
 
 /// A descriptor for the value columns in a data point.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValueDescriptor {
     /// The value key.
     #[serde(default)]
@@ -1418,7 +1419,7 @@ pub struct ValueDescriptor {
 }
 
 /// A protocol buffer option, which can be attached to a message, field, enumeration, etc.New usages of this message as an alternative to FileOptions, MessageOptions, FieldOptions, EnumOptions, EnumValueOptions, ServiceOptions, or MethodOptions are strongly discouraged.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiOption {
     /// The option''s name. For protobuf built-in options (options defined in descriptor.proto), this is the short name. For example, "map_entry". For custom options, it should be the fully-qualified name. For example, "google.api.http".
     #[serde(default)]
@@ -1429,7 +1430,7 @@ pub struct ApiOption {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by gRPC (https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details.You can find out more about this error model and how to work with it in the API Design Guide (https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1443,7 +1444,7 @@ pub struct Status {
 }
 
 /// Control over how the notification channels in notification_channels are notified when this alert fires, on a per-channel basis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NotificationChannelStrategy {
     /// The full REST resource name for the notification channels that these settings apply to. Each of these correspond to the name field in one of the NotificationChannel objects referenced in the notification_channels field of this AlertPolicy. The format is: projects/[PROJECT_ID_OR_NUMBER]/notificationChannels/[CHANNEL_ID]
     #[serde(default, rename = "notificationChannelNames")]
@@ -1454,7 +1455,7 @@ pub struct NotificationChannelStrategy {
 }
 
 /// Control over the rate of notifications sent to this alerting policy''s notification channels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NotificationRateLimit {
     /// Not more than one notification per period.
     #[serde(default)]
@@ -1462,7 +1463,7 @@ pub struct NotificationRateLimit {
 }
 
 /// A condition type that checks that monitored resources are reporting data. The configuration defines a metric and a set of monitored resources. The predicate is considered in violation when a time series for the specified metric of a monitored resource does not include any data in the specified duration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricAbsence {
     /// Specifies the alignment of data points in individual time series as well as how to combine the retrieved time series together (such as when aggregating multiple streams on each resource to a single stream for each resource or when aggregating streams across all members of a group of resources). Multiple aggregations are applied in the order specified.This field is similar to the one in the ListTimeSeries request (https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.timeSeries/list). It is advisable to use the ListTimeSeries method when debugging this field.
     #[serde(default)]
@@ -1479,7 +1480,7 @@ pub struct MetricAbsence {
 }
 
 /// A condition type that checks whether a log message in the scoping project (https://cloud.google.com/monitoring/api/v3#project_name) satisfies the given filter. Logs from other projects in the metrics scope are not evaluated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LogMatch {
     /// Required. A logs-based filter. See Advanced Logs Queries (https://cloud.google.com/logging/docs/view/advanced-queries) for how this filter should be constructed.
     #[serde(default)]
@@ -1490,7 +1491,7 @@ pub struct LogMatch {
 }
 
 /// A condition type that allows alerting policies to be defined using Monitoring Query Language (https://cloud.google.com/monitoring/mql).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MonitoringQueryLanguageCondition {
     /// Optional. The amount of time that a time series must violate the threshold to be considered failing. Currently, only values that are a multiple of a minute--e.g., 0, 60, 120, or 300 seconds--are supported. If an invalid value is given, an error will be returned. When choosing a duration, it is useful to keep in mind the frequency of the underlying time series data (which may also be affected by any alignments specified in the aggregations field); a good duration is long enough so that a single outlier does not generate spurious alerts, but short enough that unhealthy states are detected and alerted on quickly. The default value is zero.
     #[serde(default)]
@@ -1507,7 +1508,7 @@ pub struct MonitoringQueryLanguageCondition {
 }
 
 /// A condition type that allows alerting policies to be defined using Prometheus Query Language (PromQL) (https://prometheus.io/docs/prometheus/latest/querying/basics/).The PrometheusQueryLanguageCondition message contains information from a Prometheus alerting rule and its associated rule group.A Prometheus alerting rule is described here (https://prometheus.io/docs/prometheus/latest/configuration/alerting_rules/). The semantics of a Prometheus alerting rule is described here (https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/#rule).A Prometheus rule group is described here (https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/). The semantics of a Prometheus rule group is described here (https://prometheus.io/docs/prometheus/latest/configuration/recording_rules/#rule_group).Because Cloud Alerting has no representation of a Prometheus rule group resource, we must embed the information of the parent rule group inside each of the conditions that refer to it. We must also update the contents of all Prometheus alerts in case the information of their rule group changes.The PrometheusQueryLanguageCondition protocol buffer combines the information of the corresponding rule group and alerting rule. The structure of the PrometheusQueryLanguageCondition protocol buffer does NOT mimic the structure of the Prometheus rule group and alerting rule YAML declarations. The PrometheusQueryLanguageCondition protocol buffer may change in the future to support future rule group and/or alerting rule features. There are no new such features at the present time (2023-06-26).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PrometheusQueryLanguageCondition {
     /// Optional. The alerting rule name of this alert in the corresponding Prometheus configuration file.Some external tools may require this field to be populated correctly in order to refer to the original Prometheus configuration file. The rule group name and the alert name are necessary to update the relevant AlertPolicies in case the definition of the rule group changes in the future.This field is optional. If this field is not empty, then it must be a valid Prometheus label name (https://prometheus.io/docs/concepts/data_model/#metric-names-and-labels). This field may not exceed 2048 Unicode characters in length.
     #[serde(default, rename = "alertRule")]
@@ -1533,7 +1534,7 @@ pub struct PrometheusQueryLanguageCondition {
 }
 
 /// A condition that allows alerting policies to be defined using GoogleSQL. SQL conditions examine a sliding window of logs using GoogleSQL. Alert policies with SQL conditions may incur additional billing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlCondition {
     /// Test the boolean value in the indicated column.
     #[serde(default, rename = "booleanTest")]
@@ -1556,7 +1557,7 @@ pub struct SqlCondition {
 }
 
 /// A condition type that compares a collection of time series against a threshold.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricThreshold {
     /// Specifies the alignment of data points in individual time series as well as how to combine the retrieved time series together (such as when aggregating multiple streams on each resource to a single stream for each resource or when aggregating streams across all members of a group of resources). Multiple aggregations are applied in the order specified.This field is similar to the one in the ListTimeSeries request (https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.timeSeries/list). It is advisable to use the ListTimeSeries method when debugging this field.
     #[serde(default)]
@@ -1591,7 +1592,7 @@ pub struct MetricThreshold {
 }
 
 /// Links to content such as playbooks, repositories, and other resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Link {
     /// A short display name for the link. The display name must not be empty or exceed 63 characters. Example: "playbook".
     #[serde(default, rename = "displayName")]
@@ -1602,7 +1603,7 @@ pub struct Link {
 }
 
 /// A WindowsBasedSli defines good_service as the count of time windows for which the provided service was of good quality. Criteria for determining if service was good are embedded in the window_criterion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WindowsBasedSli {
     /// A monitoring filter (https://cloud.google.com/monitoring/api/v3/filters) specifying a TimeSeries with ValueType = BOOL. The window is good if any true values appear in the window.
     #[serde(default, rename = "goodBadMetricFilter")]
@@ -1622,7 +1623,7 @@ pub struct WindowsBasedSli {
 }
 
 /// Information needed to perform a JSONPath content match. Used for ContentMatcherOption::MATCHES_JSON_PATH and ContentMatcherOption::NOT_MATCHES_JSON_PATH.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JsonPathMatcher {
     /// The type of JSONPath match that will be applied to the JSON output (ContentMatcher.content) // TODO: enum values: ["JSON_PATH_MATCHER_OPTION_UNSPECIFIED", "EXACT_MATCH", "REGEX_MATCH"]
     #[serde(default, rename = "jsonMatcher")]
@@ -1633,7 +1634,7 @@ pub struct JsonPathMatcher {
 }
 
 /// A status to accept. Either a status code class like "2xx", or an integer status code like "200".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResponseStatusCode {
     /// A class of status codes to accept. // TODO: enum values: ["STATUS_CLASS_UNSPECIFIED", "STATUS_CLASS_1XX", "STATUS_CLASS_2XX", "STATUS_CLASS_3XX", "STATUS_CLASS_4XX", "STATUS_CLASS_5XX", "STATUS_CLASS_ANY"]
     #[serde(default, rename = "statusClass")]
@@ -1644,7 +1645,7 @@ pub struct ResponseStatusCode {
 }
 
 /// The authentication parameters to provide to the specified resource or URL that requires a username and password. Currently, only Basic HTTP authentication (https://tools.ietf.org/html/rfc7617) is supported in Uptime checks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BasicAuthentication {
     /// The password to use when authenticating with the HTTP server.
     #[serde(default)]
@@ -1655,7 +1656,7 @@ pub struct BasicAuthentication {
 }
 
 /// Contains information needed for generating either an OpenID Connect token (https://developers.google.com/identity/protocols/OpenIDConnect) or OAuth token (https://developers.google.com/identity/protocols/oauth2). The token will be generated for the Monitoring service agent service account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceAgentAuthentication {
     /// Type of authentication. // TODO: enum values: ["SERVICE_AGENT_AUTHENTICATION_TYPE_UNSPECIFIED", "OIDC_TOKEN"]
     #[serde(default, rename = "type")]
@@ -1663,7 +1664,7 @@ pub struct ServiceAgentAuthentication {
 }
 
 /// A Synthetic Monitor deployed to a Cloud Functions V2 instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudFunctionV2Target {
     /// Output only. The cloud_run_revision Monitored Resource associated with the GCFv2. The Synthetic Monitor execution results (metrics, logs, and spans) are reported against this Monitored Resource. This field is output only.
     #[serde(default, rename = "cloudRunRevision")]
@@ -1674,7 +1675,7 @@ pub struct CloudFunctionV2Target {
 }
 
 /// Information involved in sending ICMP pings alongside public HTTP/TCP checks. For HTTP, the pings are performed for each part of the redirect chain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PingConfig {
     /// Number of ICMP pings. A maximum of 3 ICMP pings is currently supported.
     #[serde(default, rename = "pingsCount")]
@@ -1682,7 +1683,7 @@ pub struct PingConfig {
 }
 
 /// Describes a time interval: Reads: A half-open time interval. It includes the end time but excludes the start time: (startTime, endTime]. The start time must be specified, must be earlier than the end time, and should be no older than the data retention period for the metric. Writes: A closed time interval. It extends from the start time to the end time, and includes both: [startTime, endTime]. Valid time intervals depend on the MetricKind (https://cloud.google.com/monitoring/api/ref_v3/rest/v3/projects.metricDescriptors#MetricKind) of the metric value. The end time must not be earlier than the start time, and the end time must not be more than 25 hours in the past or more than five minutes in the future. For GAUGE metrics, the startTime value is technically optional; if no value is specified, the start time defaults to the value of the end time, and the interval represents a single point in time. If both start and end times are specified, they must be identical. Such an interval is valid only for GAUGE metrics, which are point-in-time measurements. The end time of a new interval must be at least a millisecond after the end time of the previous interval. For DELTA metrics, the start time and end time must specify a non-zero interval, with subsequent points specifying contiguous and non-overlapping intervals. For DELTA metrics, the start time of the next interval must be at least a millisecond after the end time of the previous interval. For CUMULATIVE metrics, the start time and end time must specify a non-zero interval, with subsequent points specifying the same start time and increasing end times, until an event resets the cumulative value to zero and sets a new start time for the following points. The new start time must be at least a millisecond after the end time of the previous interval. The start time of a new interval must be at least a millisecond after the end time of the previous interval because intervals are closed. If the start time of a new interval is the same as the end time of the previous interval, then data written at the new start time could overwrite data written at the previous end time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeInterval {
     /// Required. The end of the time interval.
     #[serde(default, rename = "endTime")]
@@ -1693,7 +1694,7 @@ pub struct TimeInterval {
 }
 
 /// A single strongly-typed value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TypedValue {
     /// A Boolean value: true or false.
     #[serde(default, rename = "boolValue")]
@@ -1713,7 +1714,7 @@ pub struct TypedValue {
 }
 
 /// A test that uses an alerting result in a boolean column produced by the SQL query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BooleanTest {
     /// Required. The name of the column containing the boolean value. If the value in a row is NULL, that row is ignored.
     #[serde(default)]
@@ -1721,7 +1722,7 @@ pub struct BooleanTest {
 }
 
 /// Used to schedule the query to run every so many days.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Daily {
     /// Optional. The time of day (in UTC) at which the query should run. If left unspecified, the server picks an arbitrary time of day and runs the query at the same time each day.
     #[serde(default, rename = "executionTime")]
@@ -1732,7 +1733,7 @@ pub struct Daily {
 }
 
 /// Used to schedule the query to run every so many hours.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Hourly {
     /// Optional. The number of minutes after the hour (in UTC) to run the query. Must be greater than or equal to 0 minutes and less than or equal to 59 minutes. If left unspecified, then an arbitrary offset is used.
     #[serde(default, rename = "minuteOffset")]
@@ -1743,7 +1744,7 @@ pub struct Hourly {
 }
 
 /// Used to schedule the query to run every so many minutes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Minutes {
     /// Required. Number of minutes between runs. The interval must be greater than or equal to 5 minutes and less than or equal to 1440 minutes.
     #[serde(default)]
@@ -1751,7 +1752,7 @@ pub struct Minutes {
 }
 
 /// A test that checks if the number of rows in the result set violates some threshold.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RowCountTest {
     /// Required. The comparison to apply between the number of rows returned by the query and the threshold. // TODO: enum values: ["COMPARISON_UNSPECIFIED", "COMPARISON_GT", "COMPARISON_GE", "COMPARISON_LT", "COMPARISON_LE", "COMPARISON_EQ", "COMPARISON_NE"]
     #[serde(default)]
@@ -1762,7 +1763,7 @@ pub struct RowCountTest {
 }
 
 /// Describes how to combine multiple time series to provide a different view of the data. Aggregation of time series is done in two steps. First, each time series in the set is aligned to the same time interval boundaries, then the set of time series is optionally reduced in number.Alignment consists of applying the per_series_aligner operation to each time series after its data has been divided into regular alignment_period time intervals. This process takes all of the data points in an alignment period, applies a mathematical transformation such as averaging, minimum, maximum, delta, etc., and converts them into a single data point per period.Reduction is when the aligned and transformed time series can optionally be combined, reducing the number of time series through similar mathematical transformations. Reduction involves applying a cross_series_reducer to all the time series, optionally sorting the time series into subsets with group_by_fields, and applying the reducer to each subset.The raw time series data can contain a huge amount of information from multiple sources. Alignment and reduction transforms this mass of data into a more manageable and representative collection of data, for example "the 95% latency across the average of all tasks in a cluster". This representative data can be more easily graphed and comprehended, and the individual time series data is still available for later drilldown. For more details, see Filtering and aggregation (https://cloud.google.com/monitoring/api/v3/aggregation).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Aggregation {
     /// The alignment_period specifies a time interval, in seconds, that is used to divide the data in all the time series into consistent blocks of time. This will be done before the per-series aligner can be applied to the data.The value must be at least 60 seconds. If a per-series aligner other than ALIGN_NONE is specified, this field is required or an error is returned. If no per-series aligner is specified, or the aligner ALIGN_NONE is specified, then this field is ignored.The maximum value of the alignment_period is 104 weeks (2 years) for charts, and 90,000 seconds (25 hours) for alerting policies.
     #[serde(default, rename = "alignmentPeriod")]
@@ -1779,7 +1780,7 @@ pub struct Aggregation {
 }
 
 /// Options used when forecasting the time series and testing the predicted value against the threshold.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ForecastOptions {
     /// Required. The length of time into the future to forecast whether a time series will violate the threshold. If the predicted value is found to violate the threshold, and the violation is observed in all forecasts made for the configured duration, then the time series is considered to be failing. The forecast horizon can range from 1 hour to 60 hours.
     #[serde(default, rename = "forecastHorizon")]
@@ -1787,7 +1788,7 @@ pub struct ForecastOptions {
 }
 
 /// Specifies how many time series must fail a predicate to trigger a condition. If not specified, then a {count: 1} trigger is used.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Trigger {
     /// The absolute number of time series that must fail the predicate for the condition to be triggered.
     #[serde(default)]
@@ -1798,7 +1799,7 @@ pub struct Trigger {
 }
 
 /// A PerformanceThreshold is used when each window is good when that window has a sufficiently high performance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PerformanceThreshold {
     /// BasicSli to evaluate to judge window quality.
     #[serde(default, rename = "basicSliPerformance")]
@@ -1812,7 +1813,7 @@ pub struct PerformanceThreshold {
 }
 
 /// A MetricRange is used when each window is good when the value x of a single TimeSeries satisfies range.min &lt;= x &lt;= range.max. The provided TimeSeries must have ValueType = INT64 or ValueType = DOUBLE and MetricKind = GAUGE.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MetricRange {
     /// Range of values considered "good." For a one-sided range, set one bound to an infinite value.
     #[serde(default)]
@@ -1823,7 +1824,7 @@ pub struct MetricRange {
 }
 
 /// An object representing a resource that can be used for monitoring, logging, billing, or other purposes. Examples include virtual machine instances, databases, and storage devices such as disks. The type field identifies a MonitoredResourceDescriptor object that describes the resource''s schema. Information in the labels field identifies the actual resource and its attributes according to the schema. For example, a particular Compute Engine VM instance could be represented by the following object, because the MonitoredResourceDescriptor for "gce_instance" has labels "project_id", "instance_id" and "zone": { "type": "gce_instance", "labels": { "project_id": "my-project", "instance_id": "12345678901234", "zone": "us-central1-a" }}
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MonitoredResource {
     /// Required. Values for all of the labels listed in the associated monitored resource descriptor. For example, Compute Engine VM instances use the labels "project_id", "instance_id", and "zone".
     #[serde(default)]
@@ -1834,7 +1835,7 @@ pub struct MonitoredResource {
 }
 
 /// Distribution contains summary statistics for a population of values. It optionally contains a histogram representing the distribution of those values across a set of buckets.The summary statistics are the count, mean, sum of the squared deviation from the mean, the minimum, and the maximum of the set of population of values. The histogram is based on a sequence of buckets and gives a count of values that fall into each bucket. The boundaries of the buckets are given either explicitly or by formulas for buckets of fixed or exponentially increasing widths.Although it is not forbidden, it is generally a bad idea to include non-finite values (infinities or NaNs) in the population of values, as this will render the mean and sum_of_squared_deviation fields meaningless.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Distribution {
     /// Required in the Cloud Monitoring API v3. The values for each bucket specified in bucket_options. The sum of the values in bucketCounts must equal the value in the count field of the Distribution object. The order of the bucket counts follows the numbering schemes described for the three bucket types. The underflow bucket has number 0; the finite buckets, if any, have numbers 1 through N-2; and the overflow bucket has number N-1. The size of bucket_counts must not be greater than N. If the size is less than N, then the remaining buckets are assigned values of zero.
     #[serde(default, rename = "bucketCounts")]
@@ -1860,7 +1861,7 @@ pub struct Distribution {
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]
@@ -1877,7 +1878,7 @@ pub struct TimeOfDay {
 }
 
 /// An SLI measuring performance on a well-known service type. Performance will be computed on the basis of pre-defined metrics. The type of the service_resource determines the metrics to use and the service_resource.labels and metric_labels are used to construct a monitoring filter to filter that metric down to just the data relevant to this service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BasicSli {
     /// Good service is defined to be the count of requests made to this service that return successfully.
     #[serde(default)]
@@ -1897,7 +1898,7 @@ pub struct BasicSli {
 }
 
 /// Service Level Indicators for which atomic units of service are counted directly.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RequestBasedSli {
     /// distribution_cut is used when good_service is a count of values aggregated in a Distribution that fall into a good range. The total_service is the total count of all values aggregated in the Distribution.
     #[serde(default, rename = "distributionCut")]
@@ -1908,7 +1909,7 @@ pub struct RequestBasedSli {
 }
 
 /// BucketOptions describes the bucket boundaries used to create a histogram for the distribution. The buckets can be in a linear sequence, an exponential sequence, or each bucket can be specified explicitly. BucketOptions does not include the number of values in each bucket.A bucket has an inclusive lower bound and exclusive upper bound for the values that are counted for that bucket. The upper bound of a bucket must be strictly greater than the lower bound. The sequence of N buckets for a distribution consists of an underflow bucket (number 0), zero or more finite buckets (number 1 through N - 2) and an overflow bucket (number N - 1). The buckets are contiguous: the lower bound of bucket i (i &gt; 0) is the same as the upper bound of bucket i - 1. The buckets span the whole range of finite values: lower bound of the underflow bucket is -infinity and the upper bound of the overflow bucket is +infinity. The finite buckets are so-called because both bounds are finite.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BucketOptions {
     /// The explicit buckets.
     #[serde(default, rename = "explicitBuckets")]
@@ -1922,7 +1923,7 @@ pub struct BucketOptions {
 }
 
 /// Exemplars are example points that may be used to annotate aggregated distribution values. They are metadata that gives information about a particular value added to a Distribution bucket, such as a trace ID that was active when a value was added. They may contain further information, such as a example values and timestamps, origin, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Exemplar {
     /// Contextual information about the example value. Examples are:Trace: type.googleapis.com/google.monitoring.v3.SpanContextLiteral string: type.googleapis.com/google.protobuf.StringValueLabels dropped during aggregation: type.googleapis.com/google.monitoring.v3.DroppedLabelsThere may be only a single attachment of any given message type in a single exemplar, and this is enforced by the system.
     #[serde(default)]
@@ -1936,7 +1937,7 @@ pub struct Exemplar {
 }
 
 /// The range of the population values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Range {
     /// The maximum of the population values.
     #[serde(default)]
@@ -1947,7 +1948,7 @@ pub struct Range {
 }
 
 /// Parameters for a latency threshold SLI.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LatencyCriteria {
     /// Good service is defined to be the count of requests made to this service that return in no more than threshold.
     #[serde(default)]
@@ -1955,7 +1956,7 @@ pub struct LatencyCriteria {
 }
 
 /// A DistributionCut defines a TimeSeries and thresholds used for measuring good service and total service. The TimeSeries must have ValueType = DISTRIBUTION and MetricKind = DELTA or MetricKind = CUMULATIVE. The computed good_service will be the estimated count of values in the Distribution that fall within the specified min and max.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DistributionCut {
     /// A monitoring filter (https://cloud.google.com/monitoring/api/v3/filters) specifying a TimeSeries aggregating values. Must have ValueType = DISTRIBUTION and MetricKind = DELTA or MetricKind = CUMULATIVE.
     #[serde(default, rename = "distributionFilter")]
@@ -1966,7 +1967,7 @@ pub struct DistributionCut {
 }
 
 /// A TimeSeriesRatio specifies two TimeSeries to use for computing the good_service / total_service ratio. The specified TimeSeries must have ValueType = DOUBLE or ValueType = INT64 and must have MetricKind = DELTA or MetricKind = CUMULATIVE. The TimeSeriesRatio must specify exactly two of good, bad, and total, and the relationship good_service + bad_service = total_service will be assumed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeSeriesRatio {
     /// A monitoring filter (https://cloud.google.com/monitoring/api/v3/filters) specifying a TimeSeries quantifying bad service, either demanded service that was not provided or demanded service that was of inadequate quality. Must have ValueType = DOUBLE or ValueType = INT64 and must have MetricKind = DELTA or MetricKind = CUMULATIVE.
     #[serde(default, rename = "badServiceFilter")]
@@ -1980,7 +1981,7 @@ pub struct TimeSeriesRatio {
 }
 
 /// Specifies a set of buckets with arbitrary widths.There are size(bounds) + 1 (= N) buckets. Bucket i has the following boundaries:Upper bound (0 &lt;= i &lt; N-1): boundsi Lower bound (1 &lt;= i &lt; N); boundsi - 1The bounds field must contain at least one element. If bounds has only one element, then there are no finite buckets, and that single element is the common boundary of the overflow and underflow buckets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Explicit {
     /// The values must be monotonically increasing.
     #[serde(default)]
@@ -1988,7 +1989,7 @@ pub struct Explicit {
 }
 
 /// Specifies an exponential sequence of buckets that have a width that is proportional to the value of the lower bound. Each bucket represents a constant relative uncertainty on a specific value in the bucket.There are num_finite_buckets + 2 (= N) buckets. Bucket i has the following boundaries:Upper bound (0 &lt;= i &lt; N-1): scale * (growth_factor ^ i).Lower bound (1 &lt;= i &lt; N): scale * (growth_factor ^ (i - 1)).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Exponential {
     /// Must be greater than 1.
     #[serde(default, rename = "growthFactor")]
@@ -2002,7 +2003,7 @@ pub struct Exponential {
 }
 
 /// Specifies a linear sequence of buckets that all have the same width (except overflow and underflow). Each bucket represents a constant absolute uncertainty on the specific value in the bucket.There are num_finite_buckets + 2 (= N) buckets. Bucket i has the following boundaries:Upper bound (0 &lt;= i &lt; N-1): offset + (width * i).Lower bound (1 &lt;= i &lt; N): offset + (width * (i - 1)).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Linear {
     /// Must be greater than 0.
     #[serde(default, rename = "numFiniteBuckets")]
@@ -2016,7 +2017,7 @@ pub struct Linear {
 }
 
 /// Range of numerical values within min and max.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleMonitoringV3Range {
     /// Range maximum.
     #[serde(default)]

@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// An AdvanceRelocateBucketOperation request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvanceRelocateBucketOperationRequest {
     /// Specifies the time when the relocation will revert to the sync stage if the relocation hasn''t succeeded.
     #[serde(default, rename = "expireTime")]
@@ -22,7 +23,7 @@ pub struct AdvanceRelocateBucketOperationRequest {
 }
 
 /// A list of Anywhere Caches.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnywhereCaches {
     /// The list of items.
     #[serde(default)]
@@ -36,7 +37,7 @@ pub struct AnywhereCaches {
 }
 
 /// An access-control list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BucketAccessControls {
     /// The list of items.
     #[serde(default)]
@@ -47,7 +48,7 @@ pub struct BucketAccessControls {
 }
 
 /// The storage layout configuration of a bucket.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BucketStorageLayout {
     /// The name of the bucket.
     #[serde(default)]
@@ -70,7 +71,7 @@ pub struct BucketStorageLayout {
 }
 
 /// A list of buckets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Buckets {
     /// The list of items.
     #[serde(default)]
@@ -87,7 +88,7 @@ pub struct Buckets {
 }
 
 /// A bulk restore objects request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkRestoreObjectsRequest {
     /// If false (default), the restore will not overwrite live objects with the same name at the destination. This means some deleted objects may be skipped. If true, live objects will be overwritten resulting in a noncurrent object (if versioning is enabled). If versioning is not enabled, overwriting the object will result in a soft-deleted object. In either case, if a noncurrent object already exists with the same name, a live version can be written without issue.
     #[serde(default, rename = "allowOverwrite")]
@@ -113,7 +114,7 @@ pub struct BulkRestoreObjectsRequest {
 }
 
 /// An notification channel used to watch for resource changes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Channel {
     /// The address where notifications are delivered for this channel.
     #[serde(default)]
@@ -148,7 +149,7 @@ pub struct Channel {
 }
 
 /// A Compose request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComposeRequest {
     /// If true, the source objects will be deleted.
     #[serde(default, rename = "deleteSourceObjects")]
@@ -165,7 +166,7 @@ pub struct ComposeRequest {
 }
 
 /// Represents an expression text. Example: title: "User account presence" description: "Determines whether the request has a user account" expression: "size(request.user) &gt; 0"
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// An optional description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -182,7 +183,7 @@ pub struct Expr {
 }
 
 /// A list of folders.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Folders {
     /// The list of items.
     #[serde(default)]
@@ -196,7 +197,7 @@ pub struct Folders {
 }
 
 /// The response message for storage.buckets.operations.list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The kind of item this is. For lists of operations, this is always storage#operations.
     #[serde(default)]
@@ -210,7 +211,7 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// JSON template to produce a JSON-style HMAC Key resource for Create responses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HmacKey {
     /// The kind of item this is. For HMAC keys, this is always storage#hmacKey.
     #[serde(default)]
@@ -224,7 +225,7 @@ pub struct HmacKey {
 }
 
 /// A list of hmacKeys.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HmacKeysMetadata {
     /// The list of items.
     #[serde(default)]
@@ -238,7 +239,7 @@ pub struct HmacKeysMetadata {
 }
 
 /// A list of managed folders.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedFolders {
     /// The list of items.
     #[serde(default)]
@@ -252,7 +253,7 @@ pub struct ManagedFolders {
 }
 
 /// A list of notification subscriptions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Notifications {
     /// The list of items.
     #[serde(default)]
@@ -263,7 +264,7 @@ pub struct Notifications {
 }
 
 /// An access-control list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObjectAccessControls {
     /// The list of items.
     #[serde(default)]
@@ -274,7 +275,7 @@ pub struct ObjectAccessControls {
 }
 
 /// The payload of a single user-defined object context.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObjectCustomContextPayload {
     /// The time at which the object context was created in RFC 3339 format.
     #[serde(default, rename = "createTime")]
@@ -288,7 +289,7 @@ pub struct ObjectCustomContextPayload {
 }
 
 /// A list of objects.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Objects {
     /// The list of items.
     #[serde(default)]
@@ -305,7 +306,7 @@ pub struct Objects {
 }
 
 /// A bucket/object/managedFolder IAM policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// An association between a role, which comes with a set of permissions, and members who may assume that role.
     #[serde(default)]
@@ -325,7 +326,7 @@ pub struct Policy {
 }
 
 /// A Relocate Bucket request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RelocateBucketRequest {
     /// The bucket''s new custom placement configuration if relocating to a Custom Dual Region.
     #[serde(default, rename = "destinationCustomPlacementConfig")]
@@ -342,7 +343,7 @@ pub struct RelocateBucketRequest {
 }
 
 /// A rewrite response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RewriteResponse {
     /// true if the copy is finished; otherwise, false if the copy is in progress. This property is always present in the response.
     #[serde(default)]
@@ -365,7 +366,7 @@ pub struct RewriteResponse {
 }
 
 /// A subscription to receive Google PubSub notifications.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceAccount {
     /// The ID of the notification.
     #[serde(default)]
@@ -376,7 +377,7 @@ pub struct ServiceAccount {
 }
 
 /// A storage.(buckets|objects|managedFolders).testIamPermissions response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// The kind of item this is.
     #[serde(default)]
@@ -387,7 +388,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// An Anywhere Cache instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnywhereCache {
     /// The cache-level entry admission policy.
     #[serde(default, rename = "admissionPolicy")]
@@ -428,7 +429,7 @@ pub struct AnywhereCache {
 }
 
 /// A bucket.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Bucket {
     /// Access controls on the bucket.
     #[serde(default)]
@@ -547,7 +548,7 @@ pub struct Bucket {
 }
 
 /// A folder. Only available in buckets with hierarchical namespace enabled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Folder {
     /// The name of the bucket containing this folder.
     #[serde(default)]
@@ -579,7 +580,7 @@ pub struct Folder {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is "false", it means the operation is still in progress. If "true", the operation is completed, and either "error" or "response" is available.
     #[serde(default)]
@@ -605,7 +606,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// JSON template to produce a JSON-style HMAC Key metadata resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HmacKeyMetadata {
     /// The ID of the HMAC Key.
     #[serde(default, rename = "accessId")]
@@ -640,7 +641,7 @@ pub struct HmacKeyMetadata {
 }
 
 /// A managed folder.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagedFolder {
     /// The name of the bucket containing this managed folder.
     #[serde(default)]
@@ -669,7 +670,7 @@ pub struct ManagedFolder {
 }
 
 /// A subscription to receive Google PubSub notifications.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Notification {
     /// An optional list of additional attributes to attach to each Cloud PubSub message published for this notification subscription.
     #[serde(default)]
@@ -701,7 +702,7 @@ pub struct Notification {
 }
 
 /// An object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Object {
     /// Access controls on the object.
     #[serde(default)]
@@ -820,7 +821,7 @@ pub struct Object {
 }
 
 /// An access-control entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BucketAccessControl {
     /// The name of the bucket.
     #[serde(default)]
@@ -858,7 +859,7 @@ pub struct BucketAccessControl {
 }
 
 /// The "Status" type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each "Status" message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -872,7 +873,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// An access-control entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ObjectAccessControl {
     /// The name of the bucket.
     #[serde(default)]

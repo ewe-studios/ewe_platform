@@ -1,1 +1,2 @@
 mod foundation_macros_wasm_entrypoint_tests;
+mod foundation_macros_json_hash_tests;

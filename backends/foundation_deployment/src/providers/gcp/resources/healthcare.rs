@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Activates the latest revision of the specified Consent by committing a new revision with state updated to ACTIVE. If the latest revision of the given Consent is in the ACTIVE state, no new revision is committed. A FAILED_PRECONDITION error occurs if the latest revision of the given consent is in the REJECTED or REVOKED state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActivateConsentRequest {
     /// Required. The resource name of the Consent artifact that contains documentation of the user''s consent, of the form projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/consentStores/{consent_store_id}/consentArtifacts/{consent_artifact_id}. If the draft Consent had a Consent artifact, this Consent artifact overwrites it.
     #[serde(default, rename = "consentArtifact")]
@@ -25,7 +26,7 @@ pub struct ActivateConsentRequest {
 }
 
 /// The request to analyze healthcare entities in a document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyzeEntitiesRequest {
     /// Optional. Alternative output format to be generated based on the results of analysis. // TODO: enum values: ["ALTERNATIVE_OUTPUT_FORMAT_UNSPECIFIED", "FHIR_BUNDLE"]
     #[serde(default, rename = "alternativeOutputFormat")]
@@ -39,7 +40,7 @@ pub struct AnalyzeEntitiesRequest {
 }
 
 /// Includes recognized entity mentions and relationships between them.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyzeEntitiesResponse {
     /// The union of all the candidate entities that the entity_mentions in this response could link to. These are UMLS concepts or normalized mention content.
     #[serde(default)]
@@ -56,7 +57,7 @@ pub struct AnalyzeEntitiesResponse {
 }
 
 /// Contains the error details of the unsupported admin Consent resources for when the ApplyAdminConsents method fails to apply one or more Consent resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplyAdminConsentsErrorDetail {
     /// The list of Consent resources that are unsupported or cannot be applied and the error associated with each of them.
     #[serde(default, rename = "consentErrors")]
@@ -67,7 +68,7 @@ pub struct ApplyAdminConsentsErrorDetail {
 }
 
 /// Request to apply the admin Consent resources for the specified FHIR store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplyAdminConsentsRequest {
     /// A new list of admin Consent resources to be applied. Any existing enforced Consents, which are specified in consent_config.enforced_admin_consents of the FhirStore, that are not part of this list will be disabled. An empty list is equivalent to clearing or disabling all Consents enforced on the FHIR store. When a FHIR store has disable_resource_versioning=true and this list contains a Consent resource that exists in consent_config.enforced_admin_consents, the method enforces any updates to the existing resource since the last enforcement. If the existing resource hasn''t been updated since the last enforcement, the resource is unaffected. After the method finishes, the resulting consent enforcement model is determined by the contents of the Consent resource(s) when the method was called: * When disable_resource_versioning=true, the result is identical to the current resource(s) in the FHIR store. * When disable_resource_versioning=false, the result is based on the historical version(s) of the Consent resource(s) at the point in time when the method was called. At most 200 Consents can be specified.
     #[serde(default, rename = "newConsentsList")]
@@ -78,7 +79,7 @@ pub struct ApplyAdminConsentsRequest {
 }
 
 /// Response when all admin Consent resources in scope were processed and all affected resources were reindexed successfully. This structure will be included in the response when the operation finishes successfully.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplyAdminConsentsResponse {
     /// The number of resources (including the Consent resources) that may have consent access change.
     #[serde(default, rename = "affectedResources")]
@@ -92,7 +93,7 @@ pub struct ApplyAdminConsentsResponse {
 }
 
 /// Request to apply the Consent resources for the specified FHIR store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplyConsentsRequest {
     /// Optional. Scope down to a list of patients.
     #[serde(default, rename = "patientScope")]
@@ -106,7 +107,7 @@ pub struct ApplyConsentsRequest {
 }
 
 /// Response when all Consent resources in scope were processed and all affected resources were reindexed successfully. This structure is included in the response when the operation finishes successfully.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApplyConsentsResponse {
     /// The number of resources (including the Consent resources) that may have consensual access change.
     #[serde(default, rename = "affectedResources")]
@@ -123,15 +124,15 @@ pub struct ApplyConsentsResponse {
 }
 
 /// Archives the specified User data mapping.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ArchiveUserDataMappingRequest {}
 
 /// Archives the specified User data mapping.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ArchiveUserDataMappingResponse {}
 
 /// Request to bulk delete FHIR resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkDeleteResourcesRequest {
     /// Optional. The Cloud Storage output destination. The Healthcare Service Agent account requires the roles/storage.objectAdmin role on the Cloud Storage location. The deleted resources outputs are organized by FHIR resource types. The server creates one or more objects per resource type. Each object contains newline delimited strings in the format {resourceType}/{resourceId}.
     #[serde(default, rename = "gcsDestination")]
@@ -148,11 +149,11 @@ pub struct BulkDeleteResourcesRequest {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// Checks if a particular data_id of a User data mapping in the given consent store is consented for a given use.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckDataAccessRequest {
     /// Optional. Specific Consents to evaluate the access request against. These Consents must have the same user_id as the evaluated User data mapping, must exist in the current consent_store, and have a state of either ACTIVE or DRAFT. A maximum of 100 Consents can be provided here. If no selection is specified, the access request is evaluated against all ACTIVE unexpired Consents with the same user_id as the evaluated User data mapping.
     #[serde(default, rename = "consentList")]
@@ -169,7 +170,7 @@ pub struct CheckDataAccessRequest {
 }
 
 /// Checks if a particular data_id of a User data mapping in the given consent store is consented for a given use.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckDataAccessResponse {
     /// The resource names of all evaluated Consents mapped to their evaluation.
     #[serde(default, rename = "consentDetails")]
@@ -180,7 +181,7 @@ pub struct CheckDataAccessResponse {
 }
 
 /// The detailed evaluation of a particular Consent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConsentEvaluation {
     /// The evaluation result. // TODO: enum values: ["EVALUATION_RESULT_UNSPECIFIED", "NOT_APPLICABLE", "NO_MATCHING_POLICY", "NO_SATISFIED_POLICY", "HAS_SATISFIED_POLICY"]
     #[serde(default, rename = "evaluationResult")]
@@ -188,7 +189,7 @@ pub struct ConsentEvaluation {
 }
 
 /// Creates a new message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateMessageRequest {
     /// Required. HL7v2 message.
     #[serde(default)]
@@ -196,7 +197,7 @@ pub struct CreateMessageRequest {
 }
 
 /// Redacts identifying information from the specified dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeidentifyDatasetRequest {
     /// Deidentify configuration. Only one of config and gcs_config_uri can be specified.
     #[serde(default)]
@@ -210,7 +211,7 @@ pub struct DeidentifyDatasetRequest {
 }
 
 /// Creates a new DICOM store with sensitive information de-identified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeidentifyDicomStoreRequest {
     /// Deidentify configuration. Only one of config and gcs_config_uri can be specified.
     #[serde(default)]
@@ -227,7 +228,7 @@ pub struct DeidentifyDicomStoreRequest {
 }
 
 /// Creates a new FHIR store with sensitive information de-identified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeidentifyFhirStoreRequest {
     /// Deidentify configuration. Only one of config and gcs_config_uri can be specified.
     #[serde(default)]
@@ -247,11 +248,11 @@ pub struct DeidentifyFhirStoreRequest {
 }
 
 /// Contains a summary of the Deidentify operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeidentifySummary {}
 
 /// DicomStoreMetrics contains metrics describing a DICOM store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DicomStoreMetrics {
     /// Total blob storage bytes for all instances in the store.
     #[serde(default, rename = "blobStorageSizeBytes")]
@@ -274,11 +275,11 @@ pub struct DicomStoreMetrics {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Evaluate a user''s Consents for all matching User data mappings. Note: User data mappings are indexed asynchronously, causing slight delays between the time mappings are created or updated and when they are included in EvaluateUserConsents results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EvaluateUserConsentsRequest {
     /// Optional. Specific Consents to evaluate the access request against. These Consents must have the same user_id as the User data mappings being evalauted, must exist in the current consent_store, and must have a state of either ACTIVE or DRAFT. A maximum of 100 Consents can be provided here. If unspecified, all ACTIVE unexpired Consents in the current consent_store will be evaluated.
     #[serde(default, rename = "consentList")]
@@ -304,7 +305,7 @@ pub struct EvaluateUserConsentsRequest {
 }
 
 /// EvaluateUserConsentsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EvaluateUserConsentsResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list. This token is valid for 72 hours after it is created.
     #[serde(default, rename = "nextPageToken")]
@@ -315,7 +316,7 @@ pub struct EvaluateUserConsentsResponse {
 }
 
 /// List of consent scopes that are applicable to the explained access on a given resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExplainDataAccessResponse {
     /// List of applicable consent scopes. Sorted in order of actor such that scopes belonging to the same actor will be adjacent to each other in the list.
     #[serde(default, rename = "consentScopes")]
@@ -326,7 +327,7 @@ pub struct ExplainDataAccessResponse {
 }
 
 /// Exports data from the specified DICOM store. If a given resource, such as a DICOM object with the same SOPInstance UID, already exists in the output, it is overwritten with the version in the source dataset. Exported DICOM data persists when the DICOM store from which it was exported is deleted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportDicomDataRequest {
     /// The BigQuery output destination. You can only export to a BigQuery dataset that''s in the same project as the DICOM store you''re exporting from. The Cloud Healthcare Service Agent requires two IAM roles on the BigQuery location: roles/bigquery.dataEditor and roles/bigquery.jobUser.
     #[serde(default, rename = "bigqueryDestination")]
@@ -338,11 +339,11 @@ pub struct ExportDicomDataRequest {
 }
 
 /// Returns additional information in regards to a completed DICOM store export.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportDicomDataResponse {}
 
 /// Request to schedule an export.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportMessagesRequest {
     /// The end of the range in send_time (MSH.7, https://www.hl7.org/documentcenter/public_temp_2E58C1F9-1C23-BA17-0C6126475344DA9D/wg/conf/HL7MSH.htm) to process. If not specified, the time when the export is scheduled is used. This value has to come after the start_time defined below. Only messages whose send_time lies in the range start_time (inclusive) to end_time (exclusive) are exported.
     #[serde(default, rename = "endTime")]
@@ -362,11 +363,11 @@ pub struct ExportMessagesRequest {
 }
 
 /// Final response for the export operation. This structure is included in the response to describe the detailed outcome.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportMessagesResponse {}
 
 /// Request to export resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportResourcesRequest {
     /// If provided, only resources updated after this time are exported. The time uses the format YYYY-MM-DDThh:mm:ss.sss+zz:zz. For example, 2015-02-07T13:28:17.239+02:00 or 2017-01-01T00:00:00Z. The time must be specified to the second and include a time zone.
     #[serde(default, rename = "_since")]
@@ -384,11 +385,11 @@ pub struct ExportResourcesRequest {
 }
 
 /// Response when all resources export successfully. This structure is included in the response to describe the detailed outcome after the operation finishes successfully.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportResourcesResponse {}
 
 /// List of metrics for a given FHIR store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FhirStoreMetrics {
     /// List of FhirStoreMetric by resource type.
     #[serde(default)]
@@ -399,15 +400,15 @@ pub struct FhirStoreMetrics {
 }
 
 /// Contains a summary of the DeidentifyDicomStore operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudHealthcareV1DeidentifyDeidentifyDicomStoreSummary {}
 
 /// Contains a summary of the DeidentifyFhirStore operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudHealthcareV1DeidentifyDeidentifyFhirStoreSummary {}
 
 /// List of metrics for a given HL7v2 store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Hl7v2StoreMetrics {
     /// List of HL7v2 store metrics by message type.
     #[serde(default)]
@@ -418,7 +419,7 @@ pub struct Hl7v2StoreMetrics {
 }
 
 /// Message that represents an arbitrary HTTP body. It should only be used for payload formats that can''t be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpBody {
     /// The HTTP Content-Type header value specifying the content type of the body.
     #[serde(default, rename = "contentType")]
@@ -432,7 +433,7 @@ pub struct HttpBody {
 }
 
 /// Imports data into the specified DICOM store. Returns an error if any of the files to import are not DICOM files. This API accepts duplicate DICOM instances by ignoring the newly-pushed instance. It does not overwrite.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportDicomDataRequest {
     /// Optional. The blob storage settings for the data imported by this operation.
     #[serde(default, rename = "blobStorageSettings")]
@@ -443,11 +444,11 @@ pub struct ImportDicomDataRequest {
 }
 
 /// Returns additional information in regards to a completed DICOM store import.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportDicomDataResponse {}
 
 /// Request to import messages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportMessagesRequest {
     /// Cloud Storage source data location and import configuration. The Cloud Healthcare Service Agent requires the roles/storage.objectViewer Cloud IAM roles on the Cloud Storage location.
     #[serde(default, rename = "gcsSource")]
@@ -455,11 +456,11 @@ pub struct ImportMessagesRequest {
 }
 
 /// Final response of importing messages. This structure is included in the response to describe the detailed outcome. It is only included when the operation finishes successfully.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportMessagesResponse {}
 
 /// Request to import resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportResourcesRequest {
     /// The content structure in the source location. If not specified, the server treats the input source files as BUNDLE. // TODO: enum values: ["CONTENT_STRUCTURE_UNSPECIFIED", "BUNDLE", "RESOURCE", "BUNDLE_PRETTY", "RESOURCE_PRETTY"]
     #[serde(default, rename = "contentStructure")]
@@ -470,11 +471,11 @@ pub struct ImportResourcesRequest {
 }
 
 /// Final response of importing resources. This structure is included in the response to describe the detailed outcome after the operation finishes successfully.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImportResourcesResponse {}
 
 /// Ingests a message into the specified HL7v2 store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IngestMessageRequest {
     /// Required. HL7v2 message to ingest.
     #[serde(default)]
@@ -482,7 +483,7 @@ pub struct IngestMessageRequest {
 }
 
 /// Acknowledges that a message has been ingested into the specified HL7v2 store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IngestMessageResponse {
     /// HL7v2 ACK message.
     #[serde(default, rename = "hl7Ack")]
@@ -493,7 +494,7 @@ pub struct IngestMessageResponse {
 }
 
 /// ListAttributeDefinitionsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAttributeDefinitionsResponse {
     /// The returned Attribute definitions. The maximum number of attributes returned is determined by the value of page_size in the ListAttributeDefinitionsRequest.
     #[serde(default, rename = "attributeDefinitions")]
@@ -504,7 +505,7 @@ pub struct ListAttributeDefinitionsResponse {
 }
 
 /// ListConsentArtifactsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListConsentArtifactsResponse {
     /// The returned Consent artifacts. The maximum number of artifacts returned is determined by the value of page_size in the ListConsentArtifactsRequest.
     #[serde(default, rename = "consentArtifacts")]
@@ -515,7 +516,7 @@ pub struct ListConsentArtifactsResponse {
 }
 
 /// ListConsentRevisionsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListConsentRevisionsResponse {
     /// The returned Consent revisions. The maximum number of revisions returned is determined by the value of page_size in the ListConsentRevisionsRequest.
     #[serde(default)]
@@ -526,7 +527,7 @@ pub struct ListConsentRevisionsResponse {
 }
 
 /// ListConsentStoresResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListConsentStoresResponse {
     /// The returned consent stores. The maximum number of stores returned is determined by the value of page_size in the ListConsentStoresRequest.
     #[serde(default, rename = "consentStores")]
@@ -537,7 +538,7 @@ pub struct ListConsentStoresResponse {
 }
 
 /// ListConsentsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListConsentsResponse {
     /// The returned Consents. The maximum number of Consents returned is determined by the value of page_size in the ListConsentsRequest.
     #[serde(default)]
@@ -548,7 +549,7 @@ pub struct ListConsentsResponse {
 }
 
 /// Lists the available datasets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDatasetsResponse {
     /// The first page of datasets.
     #[serde(default)]
@@ -559,7 +560,7 @@ pub struct ListDatasetsResponse {
 }
 
 /// Lists the DICOM stores in the given dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDicomStoresResponse {
     /// The returned DICOM stores. Won''t be more DICOM stores than the value of page_size in the request.
     #[serde(default, rename = "dicomStores")]
@@ -570,7 +571,7 @@ pub struct ListDicomStoresResponse {
 }
 
 /// Lists the FHIR stores in the given dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListFhirStoresResponse {
     /// The returned FHIR stores. Won''t be more FHIR stores than the value of page_size in the request.
     #[serde(default, rename = "fhirStores")]
@@ -581,7 +582,7 @@ pub struct ListFhirStoresResponse {
 }
 
 /// Lists the HL7v2 stores in the given dataset.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListHl7v2StoresResponse {
     /// The returned HL7v2 stores. Won''t be more HL7v2 stores than the value of page_size in the request.
     #[serde(default, rename = "hl7V2Stores")]
@@ -592,7 +593,7 @@ pub struct ListHl7v2StoresResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -603,7 +604,7 @@ pub struct ListLocationsResponse {
 }
 
 /// Lists the messages in the specified HL7v2 store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMessagesResponse {
     /// The returned Messages. Won''t be more Messages than the value of page_size in the request. See view for populated fields.
     #[serde(default, rename = "hl7V2Messages")]
@@ -614,7 +615,7 @@ pub struct ListMessagesResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -628,7 +629,7 @@ pub struct ListOperationsResponse {
 }
 
 /// ListUserDataMappingsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUserDataMappingsResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -639,7 +640,7 @@ pub struct ListUserDataMappingsResponse {
 }
 
 /// OperationMetadata provides information about the operation execution. Returned in the long-running operation''s metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// The name of the API method that initiated the operation.
     #[serde(default, rename = "apiMethodName")]
@@ -661,7 +662,7 @@ pub struct OperationMetadata {
 }
 
 /// Queries all data_ids that are consented for a given use in the given consent store and writes them to a specified destination. The returned Operation includes a progress counter for the number of User data mappings processed. Errors are logged to Cloud Logging (see [Viewing error logs in Cloud Logging] (https://cloud.google.com/healthcare/docs/how-tos/logging) and [QueryAccessibleData] for a sample log entry).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryAccessibleDataRequest {
     /// The Cloud Storage destination. The Cloud Healthcare API service account must have the roles/storage.objectAdmin Cloud IAM role for this Cloud Storage location.
     #[serde(default, rename = "gcsDestination")]
@@ -675,7 +676,7 @@ pub struct QueryAccessibleDataRequest {
 }
 
 /// Response for successful QueryAccessibleData operations. This structure is included in the response upon operation completion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryAccessibleDataResponse {
     /// List of files, each of which contains a list of data_id(s) that are consented for a specified use in the request.
     #[serde(default, rename = "gcsUris")]
@@ -683,11 +684,11 @@ pub struct QueryAccessibleDataResponse {
 }
 
 /// Define how to redact sensitive values. Default behaviour is erase. For example, "My name is Jane." becomes "My name is ."
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RedactConfig {}
 
 /// Rejects the latest revision of the specified Consent by committing a new revision with state updated to REJECTED. If the latest revision of the given Consent is in the REJECTED state, no new revision is committed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RejectConsentRequest {
     /// Optional. The resource name of the Consent artifact that contains documentation of the user''s rejection of the draft Consent, of the form projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/consentStores/{consent_store_id}/consentArtifacts/{consent_artifact_id}. If the draft Consent had a Consent artifact, this Consent artifact overwrites it.
     #[serde(default, rename = "consentArtifact")]
@@ -695,11 +696,11 @@ pub struct RejectConsentRequest {
 }
 
 /// When using the INSPECT_AND_TRANSFORM action, each match is replaced with the name of the info_type. For example, "My name is Jane" becomes "My name is [PERSON_NAME]." The TRANSFORM action is equivalent to redacting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReplaceWithInfoTypeConfig {}
 
 /// Revokes the latest revision of the specified Consent by committing a new revision with state updated to REVOKED. If the latest revision of the given Consent is in the REVOKED state, no new revision is committed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RevokeConsentRequest {
     /// Optional. The resource name of the Consent artifact that contains proof of the user''s revocation of the Consent, of the form projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/consentStores/{consent_store_id}/consentArtifacts/{consent_artifact_id}.
     #[serde(default, rename = "consentArtifact")]
@@ -707,7 +708,7 @@ pub struct RevokeConsentRequest {
 }
 
 /// RollbackFhirResourcesRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RollbackFhirResourcesRequest {
     /// Optional. CREATE/UPDATE/DELETE/ALL for reverting all txns of a certain type. // TODO: enum values: ["CHANGE_TYPE_UNSPECIFIED", "ALL", "CREATE", "UPDATE", "DELETE"]
     #[serde(default, rename = "changeType")]
@@ -736,7 +737,7 @@ pub struct RollbackFhirResourcesRequest {
 }
 
 /// Final response of rollback FIHR resources request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RollbackFhirResourcesResponse {
     /// The name of the FHIR store to rollback, in the format of "projects/{project_id}/locations/{location_id}/datasets/{dataset_id} /fhirStores/{fhir_store_id}".
     #[serde(default, rename = "fhirStore")]
@@ -744,7 +745,7 @@ pub struct RollbackFhirResourcesResponse {
 }
 
 /// Point in time recovery rollback request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RollbackHl7v2MessagesRequest {
     /// Optional. CREATE/UPDATE/DELETE/ALL for reverting all txns of a certain type. // TODO: enum values: ["CHANGE_TYPE_UNSPECIFIED", "ALL", "CREATE", "UPDATE", "DELETE"]
     #[serde(default, rename = "changeType")]
@@ -770,7 +771,7 @@ pub struct RollbackHl7v2MessagesRequest {
 }
 
 /// Final response of rollback HL7v2 messages request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RollbackHl7v2MessagesResponse {
     /// The name of the HL7v2 store to rollback, in the format of "projects/{project_id}/locations/{location_id}/datasets/{dataset_id} /hl7v2Stores/{hl7v2_store_id}".
     #[serde(default, rename = "hl7v2Store")]
@@ -778,15 +779,15 @@ pub struct RollbackHl7v2MessagesResponse {
 }
 
 /// Using this field will flatten the DICOM instances into a BigQuery table. The table will have one column for each DICOM tag. The column name will be the DICOM tag''s textual representation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SchemaFlattened {}
 
 /// Using this field will set the schema such that all DICOM tags will be included in the BigQuery table as a single JSON type column. The BigQuery table schema will include the following columns: * StudyInstanceUID (Type: STRING): DICOM Tag 0020000D. * SeriesInstanceUID (Type: STRING): DICOM Tag 0020000E. * SOPInstanceUID (Type: STRING): DICOM Tag 00080018. * SourceDicomStore (Type: STRING): The name of the source DICOM store. This field is only included if the include_source_store option is set to true. * Metadata (Type: JSON): All DICOM tags for the instance, stored in a single JSON object. * StructuredStorageSize (Type: INTEGER): Size of the structured storage in bytes. * DroppedTags (Type: STRING, Repeated: Yes): List of tags that were dropped during the conversion. * StorageClass (Type: STRING): The storage class of the instance. * LastUpdated (Type: TIMESTAMP): Timestamp of the last update to the instance. * BlobStorageSize (Type: INTEGER): Size of the blob storage in bytes. * Type (Type: STRING): Indicates the type of operation (e.g., INSERT, DELETE).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SchemaJSON {}
 
 /// SeriesMetrics contains metrics describing a DICOM series.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SeriesMetrics {
     /// Total blob storage bytes for all instances in the series.
     #[serde(default, rename = "blobStorageSizeBytes")]
@@ -803,7 +804,7 @@ pub struct SeriesMetrics {
 }
 
 /// Request message for SetBlobStorageSettings method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetBlobStorageSettingsRequest {
     /// The blob storage settings to update for the specified resources. Only fields listed in update_mask are applied.
     #[serde(default, rename = "blobStorageSettings")]
@@ -814,11 +815,11 @@ pub struct SetBlobStorageSettingsRequest {
 }
 
 /// Returns additional info in regards to a completed set blob storage settings API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetBlobStorageSettingsResponse {}
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -829,7 +830,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// StorageInfo encapsulates all the storage info of a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StorageInfo {
     /// Info about the data stored in blob storage for the resource.
     #[serde(default, rename = "blobStorageInfo")]
@@ -843,7 +844,7 @@ pub struct StorageInfo {
 }
 
 /// StudyMetrics contains metrics describing a DICOM study.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StudyMetrics {
     /// Total blob storage bytes for all instances in the study.
     #[serde(default, rename = "blobStorageSizeBytes")]
@@ -863,7 +864,7 @@ pub struct StudyMetrics {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -871,7 +872,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -879,7 +880,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// The candidate entities that an entity mention could link to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Entity {
     /// entity_id is a first class field entity_id uniquely identifies this concept and its meta-vocabulary. For example, "UMLS/C0000970".
     #[serde(default, rename = "entityId")]
@@ -893,7 +894,7 @@ pub struct Entity {
 }
 
 /// An entity mention in the document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EntityMention {
     /// The certainty assessment of the entity mention. Its value is one of: LIKELY, SOMEWHAT_LIKELY, UNCERTAIN, SOMEWHAT_UNLIKELY, UNLIKELY, CONDITIONAL
     #[serde(default, rename = "certaintyAssessment")]
@@ -922,7 +923,7 @@ pub struct EntityMention {
 }
 
 /// Defines directed relationship from one entity mention to another.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EntityMentionRelationship {
     /// The model''s confidence in this annotation. A number between 0 and 1.
     #[serde(default)]
@@ -936,7 +937,7 @@ pub struct EntityMentionRelationship {
 }
 
 /// The Consent resource name and error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConsentErrors {
     /// The error code and message.
     #[serde(default)]
@@ -947,7 +948,7 @@ pub struct ConsentErrors {
 }
 
 /// List of admin Consent resources to be applied.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdminConsents {
     /// Optional. The versioned names of the admin Consent resource(s), in the format projects/{project_id}/locations/{location}/datasets/{dataset_id}/fhirStores/{fhir_store_id}/fhir/Consent/{resource_id}/_history/{version_id}. For FHIR stores with disable_resource_versioning=true, the format is projects/{project_id}/locations/{location}/datasets/{dataset_id}/fhirStores/{fhir_store_id}/fhir/Consent/{resource_id}.
     #[serde(default)]
@@ -955,7 +956,7 @@ pub struct AdminConsents {
 }
 
 /// Apply consents given by a list of patients.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PatientScope {
     /// Optional. The list of patient IDs whose Consent resources will be enforced. At most 10,000 patients can be specified. An empty list is equivalent to all patients (meaning the entire FHIR store).
     #[serde(default, rename = "patientIds")]
@@ -963,7 +964,7 @@ pub struct PatientScope {
 }
 
 /// Apply consents given by patients whose most recent consent changes are in the time range. Note that after identifying these patients, the server applies all Consent resources given by those patients, not just the Consent resources within the timestamp in the range.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeRange {
     /// Optional. The latest consent change time, in format YYYY-MM-DDThh:mm:ss.sss+zz:zz If not specified, the system uses the time when ApplyConsents was called.
     #[serde(default)]
@@ -974,7 +975,7 @@ pub struct TimeRange {
 }
 
 /// Filter configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FhirFilter {
     /// List of resources to include in the output. If this list is empty or not specified, all resources are included in the output.
     #[serde(default)]
@@ -982,7 +983,7 @@ pub struct FhirFilter {
 }
 
 /// List of resource names of Consent resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConsentList {
     /// The resource names of the Consents to evaluate against, of the form projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/consentStores/{consent_store_id}/consents/{consent_id}.
     #[serde(default)]
@@ -990,7 +991,7 @@ pub struct ConsentList {
 }
 
 /// The consent evaluation result for a single data_id.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ApiResult {
     /// The resource names of all evaluated Consents mapped to their evaluation.
     #[serde(default, rename = "consentDetails")]
@@ -1004,7 +1005,7 @@ pub struct ApiResult {
 }
 
 /// A single consent scope that provides info on who has access to the requested resource scope for a particular purpose and environment, enforced by which consent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExplainDataAccessConsentScope {
     /// The accessor scope that describes who can access, for what purpose, and in which environment.
     #[serde(default, rename = "accessorScope")]
@@ -1021,7 +1022,7 @@ pub struct ExplainDataAccessConsentScope {
 }
 
 /// The Cloud Storage location where the server writes the output and the export configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudHealthcareV1DicomGcsDestination {
     /// MIME types supported by DICOM spec. Each file is written in the following format: .../{study_id}/{series_id}/{instance_id}[/{frame_number}].{extension} The frame_number component exists only for multi-frame instances. Supported MIME types are consistent with supported formats in DICOMweb: https://cloud.google.com/healthcare/docs/dicom#retrieve_transaction. Specifically, the following are supported: - application/dicom; transfer-syntax=1.2.840.10008.1.2 (DICOM Implicit VR Little Endian) - application/dicom; transfer-syntax=1.2.840.10008.1.2.1 (DICOM Explicit VR Little Endian) - application/dicom; transfer-syntax=1.2.840.10008.1.2.1.99 (DICOM Deflated Explicit VR Little Endian) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.50 (DICOM with embedded JPEG Baseline) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.51 (DICOM with embedded JPEG Extended) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.57 (DICOM with embedded JPEG Lossless) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.70 (DICOM with embedded JPEG Lossless First-Order Prediction) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.80 (DICOM with embedded JPEG-LS Lossless) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.81 (DICOM with embedded JPEG-LS Lossy (Near-Lossless)) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.90 (DICOM with embedded JPEG 2000 Lossless Only) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.91 (DICOM with embedded JPEG 2000) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.110 (DICOM with embedded JPEG XL Lossless) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.111 (DICOM with embedded JPEG XL JPEG Recompression) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.112 (DICOM with embedded JPEG XL) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.201 (DICOM with embedded High-Throughput JPEG 2000 Lossless) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.202 (DICOM with embedded High-Throughput JPEG 2000 with RPCL Options Lossless) - application/dicom; transfer-syntax=1.2.840.10008.1.2.4.203 (DICOM with embedded High-Throughput JPEG 2000) - application/dicom; transfer-syntax=1.2.840.10008.1.2.5 (DICOM with embedded RLE Lossless) - application/dicom; transfer-syntax=1.2.840.10008.1.2.8.1 (DICOM with embedded Deflated Image Frame Compression) - application/dicom; transfer-syntax=* (DICOM with no transcoding) - application/octet-stream; transfer-syntax=1.2.840.10008.1.2.1 (raw uncompressed PixelData) - application/octet-stream; transfer-syntax=* (raw PixelData in whatever format it was uploaded in) - image/jpeg; transfer-syntax=1.2.840.10008.1.2.4.50 (Consumer JPEG) - image/png The following extensions are used for output files: - application/dicom -&gt; .dcm - image/jpeg -&gt; .jpg - image/png -&gt; .png - application/octet-stream -&gt; no extension If unspecified, the instances are exported in the original DICOM format they were uploaded in.
     #[serde(default, rename = "mimeType")]
@@ -1032,7 +1033,7 @@ pub struct GoogleCloudHealthcareV1DicomGcsDestination {
 }
 
 /// The Cloud Storage output destination. The Cloud Healthcare Service Agent requires the roles/storage.objectAdmin Cloud IAM roles on the Cloud Storage location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GcsDestination {
     /// The format of the exported HL7v2 message files. // TODO: enum values: ["CONTENT_STRUCTURE_UNSPECIFIED", "MESSAGE_JSON"]
     #[serde(default, rename = "contentStructure")]
@@ -1046,7 +1047,7 @@ pub struct GcsDestination {
 }
 
 /// The Pub/Sub output destination. The Cloud Healthcare Service Agent requires the roles/pubsub.publisher Cloud IAM role on the Pub/Sub topic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PubsubDestination {
     /// The [Pub/Sub](https://cloud.google.com/pubsub/docs/) topic that Pub/Sub messages are published on. Supplied by the client. The PubsubMessage contains the following fields: * PubsubMessage.Data contains the resource name. * PubsubMessage.MessageId is the ID of this notification. It is guaranteed to be unique within the topic. * PubsubMessage.PublishTime is the time when the message was published. [Topic names](https://cloud.google.com/pubsub/docs/overview#names) must be scoped to a project. The Cloud Healthcare API service account, service-PROJECT_NUMBER@gcp-sa-healthcare.iam.gserviceaccount.com, must have publisher permissions on the given Pub/Sub topic. Not having adequate permissions causes the calls that send notifications to fail.
     #[serde(default, rename = "pubsubTopic")]
@@ -1054,7 +1055,7 @@ pub struct PubsubDestination {
 }
 
 /// The configuration for exporting to Cloud Storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudHealthcareV1FhirGcsDestination {
     /// URI for a Cloud Storage directory where result files should be written, in the format of gs://{bucket-id}/{path/to/destination/dir}. If there is no trailing slash, the service appends one when composing the object path. The user is responsible for creating the Cloud Storage bucket referenced in uri_prefix.
     #[serde(default, rename = "uriPrefix")]
@@ -1062,7 +1063,7 @@ pub struct GoogleCloudHealthcareV1FhirGcsDestination {
 }
 
 /// Count of resources and total storage size by type for a given FHIR store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FhirStoreMetric {
     /// The total count of FHIR resources in the store of this resource type.
     #[serde(default)]
@@ -1079,7 +1080,7 @@ pub struct FhirStoreMetric {
 }
 
 /// Count of messages and total storage size by type for a given HL7 store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Hl7v2StoreMetric {
     /// The total count of HL7v2 messages in the store for the given message type.
     #[serde(default)]
@@ -1093,7 +1094,7 @@ pub struct Hl7v2StoreMetric {
 }
 
 /// Specifies the configuration for importing data from Cloud Storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudHealthcareV1DicomGcsSource {
     /// Points to a Cloud Storage URI containing file(s) with content only. The URI must be in the following format: gs://{bucket_id}/{object_id}. The URI can include wildcards in object_id and thus identify multiple files. Supported wildcards: * ''*'' to match 0 or more non-separator characters * ''**'' to match 0 or more characters (including separators). Must be used at the end of a path and with no other wildcards in the path. Can also be used with a file extension (such as .dcm), which imports all files with the extension in the specified directory and its sub-directories. For example, gs://my-bucket/my-directory/**.dcm imports all files with .dcm extensions in my-directory/ and its sub-directories. * ''?'' to match 1 character. All other URI formats are invalid. Files matching the wildcard are expected to contain content only, no metadata.
     #[serde(default)]
@@ -1101,7 +1102,7 @@ pub struct GoogleCloudHealthcareV1DicomGcsSource {
 }
 
 /// Specifies the configuration for importing data from Cloud Storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GcsSource {
     /// Points to a Cloud Storage URI containing file(s) to import. The URI must be in the following format: gs://{bucket_id}/{object_id}. The URI can include wildcards in object_id and thus identify multiple files. Supported wildcards: * * to match 0 or more non-separator characters * ** to match 0 or more characters (including separators). Must be used at the end of a path and with no other wildcards in the path. Can also be used with a file extension (such as .ndjson), which imports all files with the extension in the specified directory and its sub-directories. For example, gs://my-bucket/my-directory/**.ndjson imports all files with .ndjson extensions in my-directory/ and its sub-directories. * ? to match 1 character Files matching the wildcard are expected to contain content only, no metadata.
     #[serde(default)]
@@ -1109,7 +1110,7 @@ pub struct GcsSource {
 }
 
 /// Specifies the configuration for importing data from Cloud Storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudHealthcareV1FhirGcsSource {
     /// Points to a Cloud Storage URI containing file(s) to import. The URI must be in the following format: gs://{bucket_id}/{object_id}. The URI can include wildcards in object_id and thus identify multiple files. Supported wildcards: * * to match 0 or more non-separator characters * ** to match 0 or more characters (including separators). Must be used at the end of a path and with no other wildcards in the path. Can also be used with a file extension (such as .ndjson), which imports all files with the extension in the specified directory and its sub-directories. For example, gs://my-bucket/my-directory/**.ndjson imports all files with .ndjson extensions in my-directory/ and its sub-directories. * ? to match 1 character Files matching the wildcard are expected to contain content only, no metadata.
     #[serde(default)]
@@ -1117,7 +1118,7 @@ pub struct GoogleCloudHealthcareV1FhirGcsSource {
 }
 
 /// A client-defined consent attribute.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttributeDefinition {
     /// Required. Possible values for the attribute. The number of allowed values must not exceed 500. An empty list is invalid. The list can only be expanded after creation.
     #[serde(default, rename = "allowedValues")]
@@ -1140,7 +1141,7 @@ pub struct AttributeDefinition {
 }
 
 /// Documentation of a user''s consent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConsentArtifact {
     /// Optional. Screenshots, PDFs, or other binary information documenting the user''s consent.
     #[serde(default, rename = "consentContentScreenshots")]
@@ -1169,7 +1170,7 @@ pub struct ConsentArtifact {
 }
 
 /// Represents a consent store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConsentStore {
     /// Optional. Default time to live for Consents created in this store. Must be at least 24 hours. Updating this field will not affect the expiration time of existing consents.
     #[serde(default, rename = "defaultConsentTtl")]
@@ -1186,7 +1187,7 @@ pub struct ConsentStore {
 }
 
 /// Represents a user''s consent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Consent {
     /// Required. The resource name of the Consent artifact that contains proof of the end user''s consent, of the form projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/consentStores/{consent_store_id}/consentArtifacts/{consent_artifact_id}.
     #[serde(default, rename = "consentArtifact")]
@@ -1221,7 +1222,7 @@ pub struct Consent {
 }
 
 /// A message representing a health dataset. A health dataset represents a collection of healthcare data pertaining to one or more patients. This may include multiple modalities of healthcare data, such as electronic medical records or medical imaging data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Dataset {
     /// Optional. Customer-managed encryption key spec for a Dataset. If set, this Dataset and all of its sub-resources will be secured by this key. If empty, the Dataset is secured by the default Google encryption key.
     #[serde(default, rename = "encryptionSpec")]
@@ -1241,7 +1242,7 @@ pub struct Dataset {
 }
 
 /// Represents a DICOM store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DicomStore {
     /// User-supplied key-value pairs used to organize DICOM stores. Label keys must be between 1 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: \p{Ll}\p{Lo}{0,62} Label values are optional, must be between 1 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: [\p{Ll}\p{Lo}\p{N}_-]{0,63} No more than 64 labels can be associated with a given store.
     #[serde(default)]
@@ -1262,7 +1263,7 @@ pub struct DicomStore {
 }
 
 /// Represents a FHIR store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FhirStore {
     /// Optional. FHIR bulk export exports resources to the specified Cloud Storage destination. A Cloud Storage destination is a URI for a Cloud Storage directory where result files will be written. Only used in the spec-defined bulk $export methods. The Cloud Healthcare Service Agent requires the roles/storage.objectAdmin Cloud IAM role on the destination.
     #[serde(default, rename = "bulkExportGcsDestination")]
@@ -1309,7 +1310,7 @@ pub struct FhirStore {
 }
 
 /// Represents an HL7v2 store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Hl7v2Store {
     /// User-supplied key-value pairs used to organize HL7v2 stores. Label keys must be between 1 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: \p{Ll}\p{Lo}{0,62} Label values are optional, must be between 1 and 63 characters long, have a UTF-8 encoding of maximum 128 bytes, and must conform to the following PCRE regular expression: [\p{Ll}\p{Lo}\p{N}_-]{0,63} No more than 64 labels can be associated with a given store.
     #[serde(default)]
@@ -1329,7 +1330,7 @@ pub struct Hl7v2Store {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -1349,7 +1350,7 @@ pub struct Location {
 }
 
 /// A complete HL7v2 message. See [Introduction to HL7 Standards] (https://www.hl7.org/implement/standards/index.cfm?ref=common) for details on the standard.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Message {
     /// Output only. The datetime when the message was created. Set by the server.
     #[serde(default, rename = "createTime")]
@@ -1384,7 +1385,7 @@ pub struct Message {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -1404,7 +1405,7 @@ pub struct Operation {
 }
 
 /// Maps a resource to the associated user and Attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserDataMapping {
     /// Output only. Indicates the time when this mapping was archived.
     #[serde(default, rename = "archiveTime")]
@@ -1427,7 +1428,7 @@ pub struct UserDataMapping {
 }
 
 /// ProgressCounter provides counters to describe an operation''s progress.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProgressCounter {
     /// The number of units that failed in the operation.
     #[serde(default)]
@@ -1447,7 +1448,7 @@ pub struct ProgressCounter {
 }
 
 /// The Cloud Storage location for export.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudHealthcareV1ConsentGcsDestination {
     /// URI for a Cloud Storage directory where the server writes result files, in the format gs://{bucket-id}/{path/to/destination/dir}. If there is no trailing slash, the service appends one when composing the object path. The user is responsible for creating the Cloud Storage bucket and directory referenced in uri_prefix.
     #[serde(default, rename = "uriPrefix")]
@@ -1455,7 +1456,7 @@ pub struct GoogleCloudHealthcareV1ConsentGcsDestination {
 }
 
 /// RollbackFhirResourceFilteringFields resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RollbackFhirResourceFilteringFields {
     /// Optional. A filter expression that matches data in the Resource.meta element. Supports all filters in [AIP-160](https://google.aip.dev/160) except the "has" (:) operator. Supports the following custom functions: * tag("") = "" for tag filtering. * extension_value_ts("") =  for filtering extensions with a timestamp, where  is a Unix timestamp. Supports the &gt;, &lt;, &lt;=, &gt;=, and != comparison operators.
     #[serde(default, rename = "metadataFilter")]
@@ -1466,7 +1467,7 @@ pub struct RollbackFhirResourceFilteringFields {
 }
 
 /// Filtering fields for an HL7v2 rollback. Currently only supports a list of operation ids to roll back.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RollbackHL7MessagesFilteringFields {
     /// Optional. A list of operation IDs to roll back.
     #[serde(default, rename = "operationIds")]
@@ -1474,7 +1475,7 @@ pub struct RollbackHL7MessagesFilteringFields {
 }
 
 /// Settings for data stored in Blob storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BlobStorageSettings {
     /// The Storage class in which the Blob data is stored. // TODO: enum values: ["BLOB_STORAGE_CLASS_UNSPECIFIED", "STANDARD", "NEARLINE", "COLDLINE", "ARCHIVE"]
     #[serde(default, rename = "blobStorageClass")]
@@ -1482,7 +1483,7 @@ pub struct BlobStorageSettings {
 }
 
 /// Specifies the filter configuration for DICOM resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DicomFilterConfig {
     /// The Cloud Storage location of the filter configuration file. The gcs_uri must be in the format gs://bucket/path/to/object. The filter configuration file must contain a list of resource paths separated by newline characters (\n or \r\n). Each resource path must be in the format "/studies/{studyUID}[/series/{seriesUID}[/instances/{instanceUID}]]" The Cloud Healthcare API service account must have the roles/storage.objectViewer Cloud IAM role for this Cloud Storage location.
     #[serde(default, rename = "resourcePathsGcsUri")]
@@ -1490,7 +1491,7 @@ pub struct DicomFilterConfig {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -1507,7 +1508,7 @@ pub struct Policy {
 }
 
 /// BlobStorageInfo contains details about the data stored in Blob Storage for the referenced resource. Note: Storage class is only valid for DICOM and hence will only be populated for DICOM resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BlobStorageInfo {
     /// Size in bytes of data stored in Blob Storage.
     #[serde(default, rename = "sizeBytes")]
@@ -1521,7 +1522,7 @@ pub struct BlobStorageInfo {
 }
 
 /// StructuredStorageInfo contains details about the data stored in Structured Storage for the referenced resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StructuredStorageInfo {
     /// Size in bytes of data stored in structured storage.
     #[serde(default, rename = "sizeBytes")]
@@ -1529,7 +1530,7 @@ pub struct StructuredStorageInfo {
 }
 
 /// A feature of an entity mention.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Feature {
     /// The model''s confidence in this feature annotation. A number between 0 and 1.
     #[serde(default)]
@@ -1540,7 +1541,7 @@ pub struct Feature {
 }
 
 /// EntityMentions can be linked to multiple entities using a LinkedEntity message lets us add other fields, e.g. confidence.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LinkedEntity {
     /// entity_id is a concept unique identifier. These are prefixed by a string that identifies the entity coding system, followed by the unique identifier within that system. For example, "UMLS/C0000970". This also supports ad hoc entities, which are formed by normalizing entity mention content.
     #[serde(default, rename = "entityId")]
@@ -1548,7 +1549,7 @@ pub struct LinkedEntity {
 }
 
 /// A span of text in the provided document.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextSpan {
     /// The unicode codepoint index of the beginning of this span.
     #[serde(default, rename = "beginOffset")]
@@ -1559,7 +1560,7 @@ pub struct TextSpan {
 }
 
 /// A list of FHIR resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Resources {
     /// List of resources IDs. For example, "Patient/1234".
     #[serde(default)]
@@ -1567,7 +1568,7 @@ pub struct Resources {
 }
 
 /// The enforcing consent''s metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExplainDataAccessConsentInfo {
     /// The compartment base resources that matched a cascading policy. Each resource has the following format: projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/fhirStores/{fhir_store_id}/fhir/{resource_type}/{resource_id}
     #[serde(default, rename = "cascadeOrigins")]
@@ -1593,7 +1594,7 @@ pub struct ExplainDataAccessConsentInfo {
 }
 
 /// User signature.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Signature {
     /// Optional. An image of the user''s signature.
     #[serde(default)]
@@ -1610,7 +1611,7 @@ pub struct Signature {
 }
 
 /// Represents a user''s consent in terms of the resources that can be accessed and under what conditions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudHealthcareV1ConsentPolicy {
     /// Required. The request conditions to meet to grant access. In addition to any supported comparison operators, authorization rules may have IN operator as well as at most 10 logical operators that are limited to AND (&&), OR (||).
     #[serde(default, rename = "authorizationRule")]
@@ -1621,7 +1622,7 @@ pub struct GoogleCloudHealthcareV1ConsentPolicy {
 }
 
 /// Represents a customer-managed encryption key spec that can be applied to a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptionSpec {
     /// Required. The resource name of customer-managed encryption key that is used to secure a resource and its sub-resources. Only the key in the same location as this Dataset is allowed to be used for encryption. Format is: projects/{project}/locations/{location}/keyRings/{keyRing}/cryptoKeys/{key}
     #[serde(default, rename = "kmsKeyName")]
@@ -1629,7 +1630,7 @@ pub struct EncryptionSpec {
 }
 
 /// Contains the configuration for DICOM notifications.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DicomNotificationConfig {
     /// Required. The [Pub/Sub](https://cloud.google.com/pubsub/docs/) topic that notifications of changes are published on. Supplied by the client. The notification is a PubsubMessage with the following fields: * PubsubMessage.Data contains the resource name. * PubsubMessage.MessageId is the ID of this notification. It is guaranteed to be unique within the topic. * PubsubMessage.PublishTime is the time when the message was published. * PubsubMessage.Attributes contains the following attributes: * action: The name of the endpoint that generated the notification. Possible values are StoreInstances, SetBlobSettings, ImportDicomData, etc. * lastUpdatedTime: The latest timestamp when the DICOM instance was updated. * storeName: The resource name of the DICOM store, of the form projects/{project_id}/locations/{location_id}/datasets/{dataset_id}/dicomStores/{dicom_store_id}. * studyInstanceUID: The study UID of the DICOM instance that was changed. * seriesInstanceUID: The series UID of the DICOM instance that was changed. * sopInstanceUID: The instance UID of the DICOM instance that was changed. * versionId: The version ID of the DICOM instance that was changed. * modality: The modality tag of the DICOM instance that was changed. * previousStorageClass: The storage class where the DICOM instance was previously stored if the storage class was changed. * storageClass: The storage class where the DICOM instance is currently stored. Note that notifications are only sent if the topic is non-empty. [Topic names](https://cloud.google.com/pubsub/docs/overview#names) must be scoped to a project. The Cloud Healthcare API service account, service-@gcp-sa-healthcare.iam.gserviceaccount.com, must have the pubsub.topics.publish permission (which is typically included in roles/pubsub.publisher role) on the given Pub/Sub topic. Not having adequate permissions causes the calls that send notifications to fail (https://cloud.google.com/healthcare-api/docs/permissions-healthcare-api-gcp-products#dicom_fhir_and_hl7v2_store_cloud_pubsub_permissions). If a notification can''t be published to Pub/Sub, errors are logged to Cloud Logging. For more information, see [Viewing error logs in Cloud Logging](https://cloud.google.com/healthcare-api/docs/how-tos/logging).
     #[serde(default, rename = "pubsubTopic")]
@@ -1637,7 +1638,7 @@ pub struct DicomNotificationConfig {
 }
 
 /// StreamConfig specifies configuration for a streaming DICOM export.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudHealthcareV1DicomStreamConfig {
     /// Results are appended to this table. The server creates a new table in the given BigQuery dataset if the specified table does not exist. To enable the Cloud Healthcare API to write to your BigQuery table, you must give the Cloud Healthcare API service account the bigquery.dataEditor role. The service account is: service-{PROJECT_NUMBER}@gcp-sa-healthcare.iam.gserviceaccount.com. The PROJECT_NUMBER identifies the project that the DICOM store resides in. To get the project number, go to the Cloud Console Dashboard. It is recommended to not have a custom schema in the destination table which could conflict with the schema created by the Cloud Healthcare API. Instance deletions are not applied to the destination table. The destination''s table schema will be automatically updated in case a new instance''s data is incompatible with the current schema. The schema should not be updated manually as this can cause incompatibilies that cannot be resolved automatically. One resolution in this case is to delete the incompatible table and let the server recreate one, though the newly created table only contains data after the table recreation. BigQuery imposes a 1 MB limit on streaming insert row size, therefore any instance that generates more than 1 MB of BigQuery data will not be streamed. If an instance cannot be streamed to BigQuery, errors will be logged to Cloud Logging (see [Viewing error logs in Cloud Logging](https://cloud.google.com/healthcare/docs/how-tos/logging)).
     #[serde(default, rename = "bigqueryDestination")]
@@ -1646,7 +1647,7 @@ pub struct GoogleCloudHealthcareV1DicomStreamConfig {
 }
 
 /// The configuration for exporting to Cloud Storage using the bulk export API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BulkExportGcsDestination {
     /// Optional. URI for a Cloud Storage directory where the server writes result files, in the format gs://{bucket-id}/{path/to/destination/dir}. If there is no trailing slash, the service appends one when composing the object path. The user is responsible for creating the Cloud Storage bucket referenced in uri_prefix.
     #[serde(default, rename = "uriPrefix")]
@@ -1654,7 +1655,7 @@ pub struct BulkExportGcsDestination {
 }
 
 /// Configures whether to enforce consent for the FHIR store and which consent enforcement version is being used.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConsentConfig {
     /// Optional. Specifies how the server logs the consent-aware requests. If not specified, the AccessDeterminationLogConfig.LogLevel.MINIMUM option is used.
     #[serde(default, rename = "accessDeterminationLogConfig")]
@@ -1674,7 +1675,7 @@ pub struct ConsentConfig {
 }
 
 /// Specifies where to send notifications upon changes to a data store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NotificationConfig {
     /// The [Pub/Sub](https://cloud.google.com/pubsub/docs/) topic that notifications of changes are published on. Supplied by the client. PubsubMessage.Data contains the resource name. PubsubMessage.MessageId is the ID of this message. It is guaranteed to be unique within the topic. PubsubMessage.PublishTime is the time at which the message was published. Notifications are only sent if the topic is non-empty. [Topic names](https://cloud.google.com/pubsub/docs/overview#names) must be scoped to a project. Cloud Healthcare API service account must have publisher permissions on the given Pub/Sub topic. Not having adequate permissions causes the calls that send notifications to fail. If a notification can''t be published to Pub/Sub, errors are logged to Cloud Logging (see [Viewing error logs in Cloud Logging](https://cloud.google.com/healthcare/docs/how-tos/logging)). If the number of errors exceeds a certain rate, some aren''t submitted. Note that not all operations trigger notifications, see [Configuring Pub/Sub notifications](https://cloud.google.com/healthcare/docs/how-tos/pubsub) for specific details.
     #[serde(default, rename = "pubsubTopic")]
@@ -1685,7 +1686,7 @@ pub struct NotificationConfig {
 }
 
 /// Contains the configuration for FHIR notifications.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FhirNotificationConfig {
     /// Optional. The [Pub/Sub](https://cloud.google.com/pubsub/docs/) topic that notifications of changes are published on. Supplied by the client. The notification is a PubsubMessage with the following fields: * PubsubMessage.Data contains the resource name. * PubsubMessage.MessageId is the ID of this notification. It is guaranteed to be unique within the topic. * PubsubMessage.PublishTime is the time when the message was published. Note that notifications are only sent if the topic is non-empty. [Topic names](https://cloud.google.com/pubsub/docs/overview#names) must be scoped to a project. The Cloud Healthcare API service account, service-@gcp-sa-healthcare.iam.gserviceaccount.com, must have publisher permissions on the given Pub/Sub topic. Not having adequate permissions causes the calls that send notifications to fail (https://cloud.google.com/healthcare-api/docs/permissions-healthcare-api-gcp-products#dicom_fhir_and_hl7v2_store_cloud_pubsub_permissions). If a notification can''t be published to Pub/Sub, errors are logged to Cloud Logging. For more information, see [Viewing error logs in Cloud Logging](https://cloud.google.com/healthcare-api/docs/how-tos/logging).
     #[serde(default, rename = "pubsubTopic")]
@@ -1699,7 +1700,7 @@ pub struct FhirNotificationConfig {
 }
 
 /// Contains configuration for streaming FHIR export.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamConfig {
     /// Optional. The destination BigQuery structure that contains both the dataset location and corresponding schema config. The output is organized in one table per resource type. The server reuses the existing tables (if any) that are named after the resource types. For example, "Patient", "Observation". When there is no existing table for a given resource type, the server attempts to create one. When a table schema doesn''t align with the schema config, either because of existing incompatible schema or out of band incompatible modification, the server does not stream in new data. BigQuery imposes a 1 MB limit on streaming insert row size, therefore any resource mutation that generates more than 1 MB of BigQuery data is not streamed. One resolution in this case is to delete the incompatible table and let the server recreate one, though the newly created table only contains data after the table recreation. Results are written to BigQuery tables according to the parameters in BigQueryDestination.WriteDisposition. Different versions of the same resource are distinguishable by the meta.versionId and meta.lastUpdated columns. The operation (CREATE/UPDATE/DELETE) that results in the new version is recorded in the meta.tag. The tables contain all historical resource versions since streaming was enabled. For query convenience, the server also creates one view per table of the same name containing only the current resource version. The streamed data in the BigQuery dataset is not guaranteed to be completely unique. The combination of the id and meta.versionId columns should ideally identify a single unique row. But in rare cases, duplicates may exist. At query time, users may use the SQL select statement to keep only one of the duplicate rows given an id and meta.versionId pair. Alternatively, the server created view mentioned above also filters out duplicates. If a resource mutation cannot be streamed to BigQuery, errors are logged to Cloud Logging. For more information, see [Viewing error logs in Cloud Logging](https://cloud.google.com/healthcare/docs/how-tos/logging)).
     #[serde(default, rename = "bigqueryDestination")]
@@ -1714,7 +1715,7 @@ pub struct StreamConfig {
 }
 
 /// Contains the configuration for FHIR profiles and validation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValidationConfig {
     /// Optional. Whether to disable FHIRPath validation for incoming resources. The default value is false. Set this to true to disable checking incoming resources for conformance against FHIRPath requirement defined in the FHIR specification. This property only affects resource types that do not have profiles configured for them, any rules in enabled implementation guides will still be enforced.
     #[serde(default, rename = "disableFhirpathValidation")]
@@ -1737,7 +1738,7 @@ pub struct ValidationConfig {
 }
 
 /// Specifies where and whether to send notifications upon changes to a data store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Hl7v2NotificationConfig {
     /// Optional. Restricts notifications sent for messages matching a filter. If this is empty, all messages are matched. The following syntax is available: * A string field value can be written as text inside quotation marks, for example "query text". The only valid relational operation for text fields is equality (=), where text is searched within the field, rather than having the field be equal to the text. For example, "Comment = great" returns messages with great in the comment field. * A number field value can be written as an integer, a decimal, or an exponential. The valid relational operators for number fields are the equality operator (=), along with the less than/greater than operators (&lt;, &lt;=, &gt;, &gt;=). Note that there is no inequality (!=) operator. You can prepend the NOT operator to an expression to negate it. * A date field value must be written in yyyy-mm-dd form. Fields with date and time use the RFC3339 time format. Leading zeros are required for one-digit months and days. The valid relational operators for date fields are the equality operator (=) , along with the less than/greater than operators (&lt;, &lt;=, &gt;, &gt;=). Note that there is no inequality (!=) operator. You can prepend the NOT operator to an expression to negate it. * Multiple field query expressions can be combined in one query by adding AND or OR operators between the expressions. If a boolean operator appears within a quoted string, it is not treated as special, it''s just another part of the character string to be matched. You can prepend the NOT operator to an expression to negate it. The following fields and functions are available for filtering: * message_type, from the MSH-9.1 field. For example, NOT message_type = "ADT". * send_date or sendDate, the YYYY-MM-DD date the message was sent in the dataset''s time_zone, from the MSH-7 segment. For example, send_date &lt; "2017-01-02". * send_time, the timestamp when the message was sent, using the RFC3339 time format for comparisons, from the MSH-7 segment. For example, send_time &lt; "2017-01-02T00:00:00-05:00". * create_time, the timestamp when the message was created in the HL7v2 store. Use the RFC3339 time format for comparisons. For example, create_time &lt; "2017-01-02T00:00:00-05:00". * send_facility, the care center that the message came from, from the MSH-4 segment. For example, send_facility = "ABC". * PatientId(value, type), which matches if the message lists a patient having an ID of the given value and type in the PID-2, PID-3, or PID-4 segments. For example, PatientId("123456", "MRN"). * labels.x, a string value of the label with key x as set using the Message.labels map. For example, labels."priority"="high". The operator :* can be used to assert the existence of a label. For example, labels."priority":*.
     #[serde(default)]
@@ -1748,7 +1749,7 @@ pub struct Hl7v2NotificationConfig {
 }
 
 /// The configuration for the parser. It determines how the server parses the messages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ParserConfig {
     /// Optional. Determines whether messages with no header are allowed.
     #[serde(default, rename = "allowNullHeader")]
@@ -1765,14 +1766,14 @@ pub struct ParserConfig {
 }
 
 /// The content of a HL7v2 message in a structured format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ParsedData {
     #[serde(default)]
     pub segments: ::core::option::Option<::std::vec::Vec<Segment>>,
 }
 
 /// A patient identifier and associated type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PatientId {
     /// ID type. For example, MRN or NHS.
     #[serde(default, rename = "type")]
@@ -1783,7 +1784,7 @@ pub struct PatientId {
 }
 
 /// The content of an HL7v2 message in a structured format as specified by a schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SchematizedData {
     /// JSON output of the parser.
     #[serde(default)]
@@ -1794,7 +1795,7 @@ pub struct SchematizedData {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1808,7 +1809,7 @@ pub struct Status {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -1819,7 +1820,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -1833,7 +1834,7 @@ pub struct Binding {
 }
 
 /// The accessor scope that describes who can access, for what purpose, in which environment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConsentAccessorScope {
     /// An individual, group, or access role that identifies the accessor or a characteristic of the accessor. This can be a resource ID (such as {resourceType}/{id}) or an external URI. This value must be present.
     #[serde(default)]
@@ -1847,7 +1848,7 @@ pub struct ConsentAccessorScope {
 }
 
 /// Raw bytes representing consent artifact content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Image {
     /// Input only. Points to a Cloud Storage URI containing the consent artifact content. The URI must be in the following format: gs://{bucket_id}/{object_id}. The Cloud Healthcare API service account must have the roles/storage.objectViewer Cloud IAM role for this Cloud Storage location. The consent artifact content at this URI is copied to a Cloud Storage location managed by the Cloud Healthcare API. Responses to fetching requests return the consent artifact content in raw_bytes.
     #[serde(default, rename = "gcsUri")]
@@ -1858,7 +1859,7 @@ pub struct Image {
 }
 
 /// An attribute value for a Consent or User data mapping. Each Attribute must have a corresponding AttributeDefinition in the consent store that defines the default and allowed values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Attribute {
     /// Indicates the name of an attribute defined in the consent store.
     #[serde(default, rename = "attributeDefinitionId")]
@@ -1869,7 +1870,7 @@ pub struct Attribute {
 }
 
 /// The BigQuery table where the server writes the output.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudHealthcareV1DicomBigQueryDestination {
     /// Optional. Use write_disposition instead. If write_disposition is specified, this parameter is ignored. force=false is equivalent to write_disposition=WRITE_EMPTY and force=true is equivalent to write_disposition=WRITE_TRUNCATE.
     #[serde(default)]
@@ -1892,7 +1893,7 @@ pub struct GoogleCloudHealthcareV1DicomBigQueryDestination {
 }
 
 /// Configures consent audit log config for FHIR create, read, update, and delete (CRUD) operations. Cloud audit log for healthcare API must be [enabled](https://cloud.google.com/logging/docs/audit/configure-data-access#config-console-enable). The consent-related logs are included as part of protoPayload.metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessDeterminationLogConfig {
     /// Optional. Controls the amount of detail to include as part of the audit logs. // TODO: enum values: ["LOG_LEVEL_UNSPECIFIED", "DISABLED", "MINIMUM", "VERBOSE"]
     #[serde(default, rename = "logLevel")]
@@ -1900,7 +1901,7 @@ pub struct AccessDeterminationLogConfig {
 }
 
 /// How the server handles the consent header.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConsentHeaderHandling {
     /// Optional. Specifies the default server behavior when the header is empty. If not specified, the ScopeProfile.PERMIT_EMPTY_SCOPE option is used. // TODO: enum values: ["SCOPE_PROFILE_UNSPECIFIED", "PERMIT_EMPTY_SCOPE", "REQUIRED_ON_READ"]
     #[serde(default)]
@@ -1908,7 +1909,7 @@ pub struct ConsentHeaderHandling {
 }
 
 /// The configuration for exporting to BigQuery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudHealthcareV1FhirBigQueryDestination {
     /// Optional. BigQuery URI to an existing dataset, up to 2000 characters long, in the format bq://projectId.bqDatasetId.
     #[serde(default, rename = "datasetUri")]
@@ -1925,7 +1926,7 @@ pub struct GoogleCloudHealthcareV1FhirBigQueryDestination {
 }
 
 /// Contains configuration for streaming de-identified FHIR export.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeidentifiedStoreDestination {
     /// Optional. The configuration to use when de-identifying resources that are added to this store.
     #[serde(default)]
@@ -1936,7 +1937,7 @@ pub struct DeidentifiedStoreDestination {
 }
 
 /// A schema package contains a set of schemas and type definitions.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SchemaPackage {
     /// Optional. Flag to ignore all min_occurs restrictions in the schema. This means that incoming messages can omit any group, segment, field, component, or subcomponent.
     #[serde(default, rename = "ignoreMinOccurs")]
@@ -1956,7 +1957,7 @@ pub struct SchemaPackage {
 }
 
 /// A segment in a structured format.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Segment {
     /// A mapping from the positional location to the value. The key string uses zero-based indexes separated by dots to identify Fields, components and sub-components. A bracket notation is also used to identify different instances of a repeated field. Regex for key: (\d+)(\[\d+\])?(.\d+)?(.\d+)? Examples of (key, value) pairs: * (0.1, "hemoglobin") denotes that the first component of Field 0 has the value "hemoglobin". * (1.1.2, "CBC") denotes that the second sub-component of the first component of Field 1 has the value "CBC". * (1[0].1, "HbA1c") denotes that the first component of the first Instance of Field 1, which is repeated, has the value "HbA1c".
     #[serde(default)]
@@ -1970,7 +1971,7 @@ pub struct Segment {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -1981,7 +1982,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -1998,7 +1999,7 @@ pub struct Expr {
 }
 
 /// Configuration for the FHIR BigQuery schema. Determines how the server generates the schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SchemaConfig {
     /// The configuration for exported BigQuery tables to be partitioned by FHIR resource''s last updated time column.
     #[serde(default, rename = "lastUpdatedPartitionConfig")]
@@ -2012,7 +2013,7 @@ pub struct SchemaConfig {
 }
 
 /// Configures de-id options specific to different types of content. Each submessage customizes the handling of an https://tools.ietf.org/html/rfc6838 media type or subtype. Configs are applied in a nested manner at runtime.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeidentifyConfig {
     /// Optional. Configures de-id of application/DICOM content.
     #[serde(default)]
@@ -2032,7 +2033,7 @@ pub struct DeidentifyConfig {
 }
 
 /// Root config message for HL7v2 schema. This contains a schema structure of groups and segments, and filters that determine which messages to apply the schema structure to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Hl7SchemaConfig {
     /// Map from each HL7v2 message type and trigger event pair, such as ADT_A04, to its schema configuration root group.
     #[serde(default, rename = "messageSchemaConfigs")]
@@ -2043,7 +2044,7 @@ pub struct Hl7SchemaConfig {
 }
 
 /// Root config for HL7v2 datatype definitions for a specific HL7v2 version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Hl7TypesConfig {
     /// The HL7v2 type definitions.
     #[serde(default, rename = "type")]
@@ -2054,7 +2055,7 @@ pub struct Hl7TypesConfig {
 }
 
 /// Configuration for FHIR BigQuery time-partitioned tables.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimePartitioning {
     /// Number of milliseconds for which to keep the storage for a partition.
     #[serde(default, rename = "expirationMs")]
@@ -2065,7 +2066,7 @@ pub struct TimePartitioning {
 }
 
 /// Specifies the parameters needed for de-identification of DICOM stores.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DicomConfig {
     /// Tag filtering profile that determines which tags to keep/remove. // TODO: enum values: ["TAG_FILTER_PROFILE_UNSPECIFIED", "MINIMAL_KEEP_LIST_PROFILE", "ATTRIBUTE_CONFIDENTIALITY_BASIC_PROFILE", "KEEP_ALL_PROFILE", "DEIDENTIFY_TAG_CONTENTS"]
     #[serde(default, rename = "filterProfile")]
@@ -2082,7 +2083,7 @@ pub struct DicomConfig {
 }
 
 /// Specifies how to handle de-identification of a FHIR store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FhirConfig {
     /// Optional. The behaviour for handling FHIR extensions that aren''t otherwise specified for de-identification. If true, all extensions are preserved during de-identification by default. If false or unspecified, all extensions are removed during de-identification by default.
     #[serde(default, rename = "defaultKeepExtensions")]
@@ -2093,7 +2094,7 @@ pub struct FhirConfig {
 }
 
 /// Specifies how to handle de-identification of image pixels.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageConfig {
     /// Optional. Determines how to redact text from image. // TODO: enum values: ["TEXT_REDACTION_MODE_UNSPECIFIED", "REDACT_ALL_TEXT", "REDACT_SENSITIVE_TEXT", "REDACT_NO_TEXT"]
     #[serde(default, rename = "textRedactionMode")]
@@ -2101,7 +2102,7 @@ pub struct ImageConfig {
 }
 
 /// TextConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextConfig {
     /// Optional. Transformations to apply to the detected data, overridden by exclude_info_types.
     #[serde(default, rename = "additionalTransformations")]
@@ -2115,7 +2116,7 @@ pub struct TextConfig {
 }
 
 /// A type definition for some HL7v2 type (incl. Segments and Datatypes).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Type {
     /// The (sub) fields this type has (if not primitive).
     #[serde(default)]
@@ -2129,7 +2130,7 @@ pub struct Type {
 }
 
 /// Describes a selector for extracting and matching an MSH field to a value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VersionSource {
     /// The field to extract from the MSH segment. For example, "3.1" or "18[1].1".
     #[serde(default, rename = "mshField")]
@@ -2140,7 +2141,7 @@ pub struct VersionSource {
 }
 
 /// List of tags to be filtered.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TagFilterList {
     /// Optional. Tags to be filtered. Tags must be DICOM Data Elements, File Meta Elements, or Directory Structuring Elements, as defined at: https://dicom.nema.org/medical/dicom/current/output/html/part06.html#table_6-1,. They may be provided by "Keyword" or "Tag". For example "PatientID", "00100010".
     #[serde(default)]
@@ -2148,7 +2149,7 @@ pub struct TagFilterList {
 }
 
 /// Specifies FHIR paths to match, and how to handle de-identification of matching fields.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FieldMetadata {
     /// Optional. Deidentify action for one field. // TODO: enum values: ["ACTION_UNSPECIFIED", "TRANSFORM", "INSPECT_AND_TRANSFORM", "DO_NOT_TRANSFORM"]
     #[serde(default)]
@@ -2159,7 +2160,7 @@ pub struct FieldMetadata {
 }
 
 /// A transformation to apply to text that is identified as a specific info_type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InfoTypeTransformation {
     /// Config for character mask.
     #[serde(default, rename = "characterMaskConfig")]
@@ -2182,7 +2183,7 @@ pub struct InfoTypeTransformation {
 }
 
 /// A (sub) field of a type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Field {
     /// The maximum number of times this field can be repeated. 0 or -1 means unbounded.
     #[serde(default, rename = "maxOccurs")]
@@ -2202,7 +2203,7 @@ pub struct Field {
 }
 
 /// Mask a string by replacing its characters with a fixed character.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CharacterMaskConfig {
     /// Optional. Character to mask the sensitive values. If not supplied, defaults to "*".
     #[serde(default, rename = "maskingCharacter")]
@@ -2210,7 +2211,7 @@ pub struct CharacterMaskConfig {
 }
 
 /// Pseudonymization method that generates surrogates via cryptographic hashing. Uses SHA-256. Outputs a base64-encoded representation of the hashed output (for example, L7k0BHmF1ha5U3NfGykjro4xWi1MPVQPjhMAZbSV9mM=).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CryptoHashConfig {
     /// An AES 128/192/256 bit key. Causes the hash to be computed based on this key. A default key is generated for each Deidentify operation and is used when neither crypto_key nor kms_wrapped is specified. Must not be set if kms_wrapped is set.
     #[serde(default, rename = "cryptoKey")]
@@ -2221,7 +2222,7 @@ pub struct CryptoHashConfig {
 }
 
 /// Shift a date forward or backward in time by a random amount which is consistent for a given patient and crypto key combination.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DateShiftConfig {
     /// An AES 128/192/256 bit key. The date shift is computed based on this key and the patient ID. If the patient ID is empty for a DICOM resource, the date shift is computed based on this key and the study instance UID. If crypto_key is not set, then kms_wrapped is used to calculate the date shift. If neither is set, a default key is generated for each de-identify operation. Must not be set if kms_wrapped is set.
     #[serde(default, rename = "cryptoKey")]
@@ -2232,7 +2233,7 @@ pub struct DateShiftConfig {
 }
 
 /// Include to use an existing data crypto key wrapped by KMS. The wrapped key must be a 128-, 192-, or 256-bit key. The key must grant the Cloud IAM permission cloudkms.cryptoKeyVersions.useToDecrypt to the project''s Cloud Healthcare Service Agent service account. For more information, see [Creating a wrapped key] (https://cloud.google.com/dlp/docs/create-wrapped-key).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KmsWrappedCryptoKey {
     /// Required. The resource name of the KMS CryptoKey to use for unwrapping. For example, projects/{project_id}/locations/{location_id}/keyRings/{keyring}/cryptoKeys/{key}.
     #[serde(default, rename = "cryptoKey")]
@@ -2243,7 +2244,7 @@ pub struct KmsWrappedCryptoKey {
 }
 
 /// Construct representing a logical group or a segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GroupOrSegment {
     #[serde(default)]
     pub group: ::core::option::Option<::std::boxed::Box<SchemaGroup>>,
@@ -2252,7 +2253,7 @@ pub struct GroupOrSegment {
 }
 
 /// An HL7v2 logical group construct.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SchemaGroup {
     /// True indicates that this is a choice group, meaning that only one of its segments can exist in a given message.
     #[serde(default)]
@@ -2272,7 +2273,7 @@ pub struct SchemaGroup {
 }
 
 /// An HL7v2 Segment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SchemaSegment {
     /// The maximum number of times this segment can be present in this group. 0 or -1 means unbounded.
     #[serde(default, rename = "maxOccurs")]

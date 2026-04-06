@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Response message for the ComputeContacts method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudEssentialcontactsV1ComputeContactsResponse {
     /// All contacts for the resource that are subscribed to the specified notification categories, including contacts inherited from any parent resources.
     #[serde(default)]
@@ -22,7 +23,7 @@ pub struct GoogleCloudEssentialcontactsV1ComputeContactsResponse {
 }
 
 /// Response message for the ListContacts method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudEssentialcontactsV1ListContactsResponse {
     /// The contacts for the specified resource.
     #[serde(default)]
@@ -33,7 +34,7 @@ pub struct GoogleCloudEssentialcontactsV1ListContactsResponse {
 }
 
 /// Request message for the SendTestMessage method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudEssentialcontactsV1SendTestMessageRequest {
     /// Required. The list of names of the contacts to send a test message to. Format: organizations/{organization}/contacts/{contact}, folders/{folder}/contacts/{contact} or projects/{project}/contacts/{contact} (where {project} is the project number)
     #[serde(default)]
@@ -44,11 +45,11 @@ pub struct GoogleCloudEssentialcontactsV1SendTestMessageRequest {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// A contact that will receive notifications from Google Cloud.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudEssentialcontactsV1Contact {
     /// Required. The email address to send notifications to. The email address does not need to be a Google Account.
     #[serde(default)]

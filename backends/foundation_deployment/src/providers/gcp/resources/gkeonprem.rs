@@ -8,18 +8,19 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Message for enrolling an existing bare metal admin cluster to the GKE on-prem API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnrollBareMetalAdminClusterRequest {
     /// User provided OnePlatform identifier that is used as part of the resource name. This must be unique among all GKE on-prem clusters within a project and location and will return a 409 if the cluster already exists. (https://tools.ietf.org/html/rfc1123) format.
     #[serde(default, rename = "bareMetalAdminClusterId")]
@@ -30,7 +31,7 @@ pub struct EnrollBareMetalAdminClusterRequest {
 }
 
 /// Message for enrolling an existing bare metal cluster to the Anthos On-Prem API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnrollBareMetalClusterRequest {
     /// Required. The admin cluster this bare metal user cluster belongs to. This is the full resource name of the admin cluster''s fleet membership. In the future, references to other resource types might be allowed if admin clusters are modeled as their own resources.
     #[serde(default, rename = "adminClusterMembership")]
@@ -47,7 +48,7 @@ pub struct EnrollBareMetalClusterRequest {
 }
 
 /// Message for enrolling an existing bare metal node pool to the GKE on-prem API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnrollBareMetalNodePoolRequest {
     /// User provided OnePlatform identifier that is used as part of the resource name. (https://tools.ietf.org/html/rfc1123) format.
     #[serde(default, rename = "bareMetalNodePoolId")]
@@ -58,7 +59,7 @@ pub struct EnrollBareMetalNodePoolRequest {
 }
 
 /// Message for enrolling an existing VMware admin cluster to the GKE on-prem API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnrollVmwareAdminClusterRequest {
     /// Required. This is the full resource name of this admin cluster''s fleet membership.
     #[serde(default)]
@@ -69,7 +70,7 @@ pub struct EnrollVmwareAdminClusterRequest {
 }
 
 /// Message for enrolling an existing VMware cluster to the Anthos On-Prem API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnrollVmwareClusterRequest {
     /// Required. The admin cluster this VMware user cluster belongs to. This is the full resource name of the admin cluster''s fleet membership. In the future, references to other resource types might be allowed if admin clusters are modeled as their own resources.
     #[serde(default, rename = "adminClusterMembership")]
@@ -86,7 +87,7 @@ pub struct EnrollVmwareClusterRequest {
 }
 
 /// Message for enrolling a VMware node pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnrollVmwareNodePoolRequest {
     /// The target node pool id to be enrolled.
     #[serde(default, rename = "vmwareNodePoolId")]
@@ -94,7 +95,7 @@ pub struct EnrollVmwareNodePoolRequest {
 }
 
 /// Response message for listing bare metal admin clusters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBareMetalAdminClustersResponse {
     /// The list of bare metal admin cluster.
     #[serde(default, rename = "bareMetalAdminClusters")]
@@ -108,7 +109,7 @@ pub struct ListBareMetalAdminClustersResponse {
 }
 
 /// Response message for listing bare metal Clusters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBareMetalClustersResponse {
     /// The list of bare metal Clusters.
     #[serde(default, rename = "bareMetalClusters")]
@@ -122,7 +123,7 @@ pub struct ListBareMetalClustersResponse {
 }
 
 /// Response message for listing bare metal node pools.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBareMetalNodePoolsResponse {
     /// The node pools from the specified parent resource.
     #[serde(default, rename = "bareMetalNodePools")]
@@ -136,7 +137,7 @@ pub struct ListBareMetalNodePoolsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -147,7 +148,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -161,7 +162,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response message for listing VMware admin clusters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListVmwareAdminClustersResponse {
     /// A token identifying a page of results the server should return. If the token is not empty this means that more results are available and should be retrieved by repeating the request with the provided page token.
     #[serde(default, rename = "nextPageToken")]
@@ -175,7 +176,7 @@ pub struct ListVmwareAdminClustersResponse {
 }
 
 /// Response message for listing VMware Clusters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListVmwareClustersResponse {
     /// A token identifying a page of results the server should return. If the token is not empty this means that more results are available and should be retrieved by repeating the request with the provided page token.
     #[serde(default, rename = "nextPageToken")]
@@ -189,7 +190,7 @@ pub struct ListVmwareClustersResponse {
 }
 
 /// Response message for listing VMware node pools.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListVmwareNodePoolsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -203,7 +204,7 @@ pub struct ListVmwareNodePoolsResponse {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -238,7 +239,7 @@ pub struct OperationMetadata {
 }
 
 /// Response message for querying bare metal admin cluster version config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryBareMetalAdminVersionConfigResponse {
     /// List of available versions to install or to upgrade to.
     #[serde(default)]
@@ -246,7 +247,7 @@ pub struct QueryBareMetalAdminVersionConfigResponse {
 }
 
 /// Response message for querying bare metal admin cluster version config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryBareMetalVersionConfigResponse {
     /// List of available versions to install or to upgrade to.
     #[serde(default)]
@@ -254,7 +255,7 @@ pub struct QueryBareMetalVersionConfigResponse {
 }
 
 /// Response message for querying VMware user cluster version config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QueryVmwareVersionConfigResponse {
     /// List of available versions to install or to upgrade to.
     #[serde(default)]
@@ -262,7 +263,7 @@ pub struct QueryVmwareVersionConfigResponse {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -270,7 +271,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -278,7 +279,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -286,7 +287,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// Resource that represents a bare metal admin cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminCluster {
     /// Annotations on the bare metal admin cluster. This field has the same restrictions as Kubernetes annotations. The total size of all keys and values combined is limited to 256k. Key can have 2 segments: prefix (optional) and name (required), separated by a slash (/). Prefix must be a DNS subdomain. Name must be 63 characters or less, begin and end with alphanumerics, with dashes (-), underscores (_), dots (.), and alphanumerics between.
     #[serde(default)]
@@ -378,7 +379,7 @@ pub struct BareMetalAdminCluster {
 }
 
 /// Resource that represents a bare metal user cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalCluster {
     /// Required. The admin cluster this bare metal user cluster belongs to. This is the full resource name of the admin cluster''s fleet membership.
     #[serde(default, rename = "adminClusterMembership")]
@@ -482,7 +483,7 @@ pub struct BareMetalCluster {
 }
 
 /// Resource that represents a bare metal node pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalNodePool {
     /// Annotations on the bare metal node pool. This field has the same restrictions as Kubernetes annotations. The total size of all keys and values combined is limited to 256k. Key can have 2 segments: prefix (optional) and name (required), separated by a slash (/). Prefix must be a DNS subdomain. Name must be 63 characters or less, begin and end with alphanumerics, with dashes (-), underscores (_), dots (.), and alphanumerics between.
     #[serde(default)]
@@ -526,7 +527,7 @@ pub struct BareMetalNodePool {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -546,7 +547,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -566,7 +567,7 @@ pub struct Operation {
 }
 
 /// Resource that represents a VMware admin cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareAdminCluster {
     /// The VMware admin cluster addon node configuration.
     #[serde(default, rename = "addonNode")]
@@ -661,7 +662,7 @@ pub struct VmwareAdminCluster {
 }
 
 /// Resource that represents a VMware user cluster. ##
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareCluster {
     /// Required. The admin cluster this VMware user cluster belongs to. This is the full resource name of the admin cluster''s fleet membership. In the future, references to other resource types might be allowed if admin clusters are modeled as their own resources.
     #[serde(default, rename = "adminClusterMembership")]
@@ -765,7 +766,7 @@ pub struct VmwareCluster {
 }
 
 /// Resource VmwareNodePool represents a VMware node pool. ##
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareNodePool {
     /// Annotations on the node pool. This field has the same restrictions as Kubernetes annotations. The total size of all keys and values combined is limited to 256k. Key can have 2 segments: prefix (optional) and name (required), separated by a slash (/). Prefix must be a DNS subdomain. Name must be 63 characters or less, begin and end with alphanumerics, with dashes (-), underscores (_), dots (.), and alphanumerics between.
     #[serde(default)]
@@ -812,7 +813,7 @@ pub struct VmwareNodePool {
 }
 
 /// Information about operation progress.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationProgress {
     /// The stages of the operation.
     #[serde(default)]
@@ -820,7 +821,7 @@ pub struct OperationProgress {
 }
 
 /// Contains information about a specific Anthos on bare metal version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalVersionInfo {
     /// The list of upgrade dependencies for this version.
     #[serde(default)]
@@ -834,7 +835,7 @@ pub struct BareMetalVersionInfo {
 }
 
 /// Contains information about a specific Anthos on VMware version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareVersionInfo {
     /// The list of upgrade dependencies for this version.
     #[serde(default)]
@@ -851,7 +852,7 @@ pub struct VmwareVersionInfo {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
@@ -865,7 +866,7 @@ pub struct Policy {
 }
 
 /// BareMetalAdminClusterOperationsConfig specifies the admin cluster''s observability infrastructure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminClusterOperationsConfig {
     /// Whether collection of application logs/metrics should be enabled (in addition to system logs/metrics).
     #[serde(default, rename = "enableApplicationLogs")]
@@ -873,7 +874,7 @@ pub struct BareMetalAdminClusterOperationsConfig {
 }
 
 /// BareMetalAdminControlPlaneConfig specifies the control plane configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminControlPlaneConfig {
     /// Customizes the default API server args. Only a subset of customized flags are supported. Please refer to the API server documentation below to know the exact format: https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/
     #[serde(default, rename = "apiServerArgs")]
@@ -885,7 +886,7 @@ pub struct BareMetalAdminControlPlaneConfig {
 }
 
 /// BareMetalAdminLoadBalancerConfig specifies the load balancer configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminLoadBalancerConfig {
     /// Configuration for BGP typed load balancers.
     #[serde(default, rename = "bgpLbConfig")]
@@ -902,7 +903,7 @@ pub struct BareMetalAdminLoadBalancerConfig {
 }
 
 /// BareMetalAdminMaintenanceConfig specifies configurations to put bare metal Admin cluster CRs nodes in and out of maintenance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminMaintenanceConfig {
     /// Required. All IPv4 address from these ranges will be placed into maintenance mode. Nodes in maintenance mode will be cordoned and drained. When both of these are true, the "baremetal.cluster.gke.io/maintenance" annotation will be set on the node resource.
     #[serde(default, rename = "maintenanceAddressCidrBlocks")]
@@ -910,7 +911,7 @@ pub struct BareMetalAdminMaintenanceConfig {
 }
 
 /// BareMetalAdminMaintenanceStatus represents the maintenance status for bare metal Admin cluster CR''s nodes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminMaintenanceStatus {
     /// Represents the status of draining and drained machine nodes. This is used to show the progress of cluster upgrade.
     #[serde(default, rename = "machineDrainStatus")]
@@ -918,7 +919,7 @@ pub struct BareMetalAdminMaintenanceStatus {
 }
 
 /// BareMetalAdminNetworkConfig specifies the cluster network configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminNetworkConfig {
     /// Enables the use of advanced Anthos networking features, such as Bundled Load Balancing with BGP or the egress NAT gateway. Setting configuration for advanced networking features will automatically set this flag.
     #[serde(default, rename = "advancedNetworking")]
@@ -933,7 +934,7 @@ pub struct BareMetalAdminNetworkConfig {
 }
 
 /// Specifies the node access related settings for the bare metal admin cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminNodeAccessConfig {
     /// Required. LoginUser is the user name used to access node machines. It defaults to "root" if not set.
     #[serde(default, rename = "loginUser")]
@@ -941,7 +942,7 @@ pub struct BareMetalAdminNodeAccessConfig {
 }
 
 /// BareMetalAdminWorkloadNodeConfig specifies the workload node configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminWorkloadNodeConfig {
     /// The maximum number of pods a node can run. The size of the CIDR range assigned to the node will be derived from this parameter. By default 110 Pods are created per Node. Upper bound is 250 for both HA and non-HA admin cluster. Lower bound is 64 for non-HA admin cluster and 32 for HA admin cluster.
     #[serde(default, rename = "maxPodsPerNode")]
@@ -949,7 +950,7 @@ pub struct BareMetalAdminWorkloadNodeConfig {
 }
 
 /// Specifies operating system operation settings for cluster provisioning.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminOsEnvironmentConfig {
     /// Whether the package repo should be added when initializing bare metal machines.
     #[serde(default, rename = "packageRepoExcluded")]
@@ -957,7 +958,7 @@ pub struct BareMetalAdminOsEnvironmentConfig {
 }
 
 /// BareMetalAdminProxyConfig specifies the cluster proxy configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminProxyConfig {
     /// A list of IPs, hostnames, and domains that should skip the proxy. Examples: ["127.0.0.1", "example.com", ".corp", "localhost"].
     #[serde(default, rename = "noProxy")]
@@ -968,7 +969,7 @@ pub struct BareMetalAdminProxyConfig {
 }
 
 /// Specifies the security related settings for the bare metal admin cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminSecurityConfig {
     /// Configures user access to the admin cluster.
     #[serde(default)]
@@ -976,7 +977,7 @@ pub struct BareMetalAdminSecurityConfig {
 }
 
 /// BareMetalAdminStorageConfig specifies the cluster storage configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminStorageConfig {
     /// Required. Specifies the config for local PersistentVolumes backed by mounted node disks. These disks need to be formatted and mounted by the user, which can be done before or after cluster creation.
     #[serde(default, rename = "lvpNodeMountsConfig")]
@@ -987,7 +988,7 @@ pub struct BareMetalAdminStorageConfig {
 }
 
 /// Specifies the bare metal user cluster''s observability infrastructure.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalClusterOperationsConfig {
     /// Whether collection of application logs/metrics should be enabled (in addition to system logs/metrics).
     #[serde(default, rename = "enableApplicationLogs")]
@@ -995,7 +996,7 @@ pub struct BareMetalClusterOperationsConfig {
 }
 
 /// Specifies the control plane configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalControlPlaneConfig {
     /// Customizes the default API server args. Only a subset of customized flags are supported. For the exact format, refer to the [API server documentation](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/).
     #[serde(default, rename = "apiServerArgs")]
@@ -1006,7 +1007,7 @@ pub struct BareMetalControlPlaneConfig {
 }
 
 /// Specifies the load balancer configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalLoadBalancerConfig {
     /// Configuration for BGP typed load balancers. When set network_config.advanced_networking is automatically set to true.
     #[serde(default, rename = "bgpLbConfig")]
@@ -1026,7 +1027,7 @@ pub struct BareMetalLoadBalancerConfig {
 }
 
 /// Specifies configurations to put bare metal nodes in and out of maintenance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalMaintenanceConfig {
     /// Required. All IPv4 address from these ranges will be placed into maintenance mode. Nodes in maintenance mode will be cordoned and drained. When both of these are true, the "baremetal.cluster.gke.io/maintenance" annotation will be set on the node resource.
     #[serde(default, rename = "maintenanceAddressCidrBlocks")]
@@ -1034,7 +1035,7 @@ pub struct BareMetalMaintenanceConfig {
 }
 
 /// Represents the maintenance status of the bare metal user cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalMaintenanceStatus {
     /// The maintenance status of node machines.
     #[serde(default, rename = "machineDrainStatus")]
@@ -1042,7 +1043,7 @@ pub struct BareMetalMaintenanceStatus {
 }
 
 /// Specifies the cluster network configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalNetworkConfig {
     /// Enables the use of advanced Anthos networking features, such as Bundled Load Balancing with BGP or the egress NAT gateway. Setting configuration for advanced networking features will automatically set this flag.
     #[serde(default, rename = "advancedNetworking")]
@@ -1060,7 +1061,7 @@ pub struct BareMetalNetworkConfig {
 }
 
 /// Specifies the node access related settings for the bare metal user cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalNodeAccessConfig {
     /// LoginUser is the user name used to access node machines. It defaults to "root" if not set.
     #[serde(default, rename = "loginUser")]
@@ -1068,7 +1069,7 @@ pub struct BareMetalNodeAccessConfig {
 }
 
 /// Specifies the workload node configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalWorkloadNodeConfig {
     /// Specifies which container runtime will be used. // TODO: enum values: ["CONTAINER_RUNTIME_UNSPECIFIED", "CONTAINERD"]
     #[serde(default, rename = "containerRuntime")]
@@ -1079,7 +1080,7 @@ pub struct BareMetalWorkloadNodeConfig {
 }
 
 /// Specifies operating system settings for cluster provisioning.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalOsEnvironmentConfig {
     /// Whether the package repo should not be included when initializing bare metal machines.
     #[serde(default, rename = "packageRepoExcluded")]
@@ -1087,7 +1088,7 @@ pub struct BareMetalOsEnvironmentConfig {
 }
 
 /// Specifies the cluster proxy configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalProxyConfig {
     /// A list of IPs, hostnames, and domains that should skip the proxy. Examples: ["127.0.0.1", "example.com", ".corp", "localhost"].
     #[serde(default, rename = "noProxy")]
@@ -1098,7 +1099,7 @@ pub struct BareMetalProxyConfig {
 }
 
 /// Specifies the security related settings for the bare metal user cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalSecurityConfig {
     /// Configures user access to the user cluster.
     #[serde(default)]
@@ -1106,7 +1107,7 @@ pub struct BareMetalSecurityConfig {
 }
 
 /// BareMetalStorageConfig specifies the cluster storage configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalStorageConfig {
     /// Required. Specifies the config for local PersistentVolumes backed by mounted node disks. These disks need to be formatted and mounted by the user, which can be done before or after cluster creation.
     #[serde(default, rename = "lvpNodeMountsConfig")]
@@ -1117,7 +1118,7 @@ pub struct BareMetalStorageConfig {
 }
 
 /// BareMetalClusterUpgradePolicy defines the cluster upgrade policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalClusterUpgradePolicy {
     /// Output only. Pause is used to show the upgrade pause status. It''s view only for now.
     #[serde(default)]
@@ -1128,7 +1129,7 @@ pub struct BareMetalClusterUpgradePolicy {
 }
 
 /// BareMetalNodePoolUpgradePolicy defines the node pool upgrade policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalNodePoolUpgradePolicy {
     /// The parallel upgrade settings for worker node pools.
     #[serde(default, rename = "parallelUpgradeConfig")]
@@ -1136,7 +1137,7 @@ pub struct BareMetalNodePoolUpgradePolicy {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -1150,7 +1151,7 @@ pub struct Status {
 }
 
 /// VmwareAdminAddonNodeConfig contains add-on node configurations for VMware admin cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareAdminAddonNodeConfig {
     /// VmwareAutoResizeConfig config specifies auto resize config.
     #[serde(default, rename = "autoResizeConfig")]
@@ -1158,7 +1159,7 @@ pub struct VmwareAdminAddonNodeConfig {
 }
 
 /// VmwareAdminAuthorizationConfig represents configuration for admin cluster authorization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareAdminAuthorizationConfig {
     /// For VMware admin clusters, users will be granted the cluster-viewer role on the cluster.
     #[serde(default, rename = "viewerUsers")]
@@ -1166,7 +1167,7 @@ pub struct VmwareAdminAuthorizationConfig {
 }
 
 /// VmwareAdminControlPlaneNodeConfig contains control plane node configuration for VMware admin cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareAdminControlPlaneNodeConfig {
     /// The number of vCPUs for the control-plane node of the admin cluster.
     #[serde(default)]
@@ -1180,7 +1181,7 @@ pub struct VmwareAdminControlPlaneNodeConfig {
 }
 
 /// VmwareAdminLoadBalancerConfig contains load balancer configuration for VMware admin cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareAdminLoadBalancerConfig {
     /// Configuration for F5 Big IP typed load balancers.
     #[serde(default, rename = "f5Config")]
@@ -1200,7 +1201,7 @@ pub struct VmwareAdminLoadBalancerConfig {
 }
 
 /// VmwareAdminNetworkConfig contains network configuration for VMware admin cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareAdminNetworkConfig {
     /// Configuration settings for a DHCP IP configuration.
     #[serde(default, rename = "dhcpIpConfig")]
@@ -1226,7 +1227,7 @@ pub struct VmwareAdminNetworkConfig {
 }
 
 /// VmwarePlatformConfig represents configuration for the VMware platform.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwarePlatformConfig {
     /// Output only. The list of bundles installed in the admin cluster.
     #[serde(default)]
@@ -1243,7 +1244,7 @@ pub struct VmwarePlatformConfig {
 }
 
 /// VmwareAdminPreparedSecretsConfig represents configuration for admin cluster prepared secrets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareAdminPreparedSecretsConfig {
     /// Whether prepared secrets is enabled.
     #[serde(default)]
@@ -1251,7 +1252,7 @@ pub struct VmwareAdminPreparedSecretsConfig {
 }
 
 /// VmwareAdminPrivateRegistryConfig represents configuration for admin cluster registry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareAdminPrivateRegistryConfig {
     /// The registry address.
     #[serde(default)]
@@ -1262,7 +1263,7 @@ pub struct VmwareAdminPrivateRegistryConfig {
 }
 
 /// VmwareAdminProxy represents configuration for admin cluster proxy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareAdminProxy {
     /// A comma-separated list of IP addresses, IP address ranges, host names, and domain names that should not go through the proxy server. When Google Distributed Cloud sends a request to one of these addresses, hosts, or domains, the request is sent directly.
     #[serde(default, rename = "noProxy")]
@@ -1273,7 +1274,7 @@ pub struct VmwareAdminProxy {
 }
 
 /// VmwareAdminVCenterConfig contains VCenter configuration for VMware admin cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareAdminVCenterConfig {
     /// The vCenter IP address.
     #[serde(default)]
@@ -1305,7 +1306,7 @@ pub struct VmwareAdminVCenterConfig {
 }
 
 /// Specifies anti affinity group config for the VMware user cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareAAGConfig {
     /// Spread nodes across at least three physical hosts (requires at least three hosts). Enabled by default.
     #[serde(default, rename = "aagConfigDisabled")]
@@ -1313,7 +1314,7 @@ pub struct VmwareAAGConfig {
 }
 
 /// Specifies config to enable/disable auto repair. The cluster-health-controller is deployed only if Enabled is true.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareAutoRepairConfig {
     /// Whether auto repair is enabled.
     #[serde(default)]
@@ -1321,7 +1322,7 @@ pub struct VmwareAutoRepairConfig {
 }
 
 /// Configuration for Binary Authorization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BinaryAuthorization {
     /// Mode of operation for binauthz policy evaluation. If unspecified, defaults to DISABLED. // TODO: enum values: ["EVALUATION_MODE_UNSPECIFIED", "DISABLED", "PROJECT_SINGLETON_POLICY_ENFORCE"]
     #[serde(default, rename = "evaluationMode")]
@@ -1329,7 +1330,7 @@ pub struct BinaryAuthorization {
 }
 
 /// Specifies control plane node config for the VMware user cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareControlPlaneNodeConfig {
     /// AutoResizeConfig provides auto resizing configurations.
     #[serde(default, rename = "autoResizeConfig")]
@@ -1349,7 +1350,7 @@ pub struct VmwareControlPlaneNodeConfig {
 }
 
 /// Contains configurations for Dataplane V2, which is optimized dataplane for Kubernetes networking. For more information, see: https://cloud.google.com/kubernetes-engine/docs/concepts/dataplane-v2
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareDataplaneV2Config {
     /// Enable advanced networking which requires dataplane_v2_enabled to be set true.
     #[serde(default, rename = "advancedNetworking")]
@@ -1366,7 +1367,7 @@ pub struct VmwareDataplaneV2Config {
 }
 
 /// Fleet related configuration. Fleets are a Google Cloud concept for logically organizing clusters, letting you use and manage multi-cluster capabilities and apply consistent policies across your systems. See [Anthos Fleets](https://cloud.google.com/anthos/multicluster-management/fleets) for more details on Anthos multi-cluster capabilities using Fleets. ##
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Fleet {
     /// Output only. The name of the managed fleet Membership resource associated to this cluster. Membership names are formatted as projects//locations//memberships/.
     #[serde(default)]
@@ -1374,7 +1375,7 @@ pub struct Fleet {
 }
 
 /// Specifies the locad balancer config for the VMware user cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareLoadBalancerConfig {
     /// Configuration for F5 Big IP typed load balancers.
     #[serde(default, rename = "f5Config")]
@@ -1394,7 +1395,7 @@ pub struct VmwareLoadBalancerConfig {
 }
 
 /// Specifies network config for the VMware user cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareNetworkConfig {
     /// Configuration for control plane V2 mode.
     #[serde(default, rename = "controlPlaneV2Config")]
@@ -1420,7 +1421,7 @@ pub struct VmwareNetworkConfig {
 }
 
 /// Specifies vSphere CSI components deployment config in the VMware user cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareStorageConfig {
     /// Whether or not to deploy vSphere CSI components in the VMware user cluster. Enabled by default.
     #[serde(default, rename = "vsphereCsiDisabled")]
@@ -1428,7 +1429,7 @@ pub struct VmwareStorageConfig {
 }
 
 /// VmwareClusterUpgradePolicy defines the cluster upgrade policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareClusterUpgradePolicy {
     /// Controls whether the upgrade applies to the control plane only.
     #[serde(default, rename = "controlPlaneOnly")]
@@ -1436,7 +1437,7 @@ pub struct VmwareClusterUpgradePolicy {
 }
 
 /// ValidationCheck represents the result of preflight check.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValidationCheck {
     /// Options used for the validation check // TODO: enum values: ["OPTIONS_UNSPECIFIED", "SKIP_VALIDATION_CHECK_BLOCKING", "SKIP_VALIDATION_ALL"]
     #[serde(default)]
@@ -1450,7 +1451,7 @@ pub struct ValidationCheck {
 }
 
 /// Represents configuration for the VMware VCenter for the user cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareVCenterConfig {
     /// Output only. The vCenter IP address.
     #[serde(default)]
@@ -1479,7 +1480,7 @@ pub struct VmwareVCenterConfig {
 }
 
 /// Parameters that describe the configuration of all nodes within a given node pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareNodeConfig {
     /// VMware disk size to be used during creation.
     #[serde(default, rename = "bootDiskSizeGb")]
@@ -1514,7 +1515,7 @@ pub struct VmwareNodeConfig {
 }
 
 /// NodePoolAutoscaling config for the NodePool to allow for the kubernetes to scale NodePool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareNodePoolAutoscalingConfig {
     /// Maximum number of replicas in the NodePool.
     #[serde(default, rename = "maxReplicas")]
@@ -1525,7 +1526,7 @@ pub struct VmwareNodePoolAutoscalingConfig {
 }
 
 /// Information about a particular stage of an operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationStage {
     /// Time the stage ended.
     #[serde(default, rename = "endTime")]
@@ -1545,7 +1546,7 @@ pub struct OperationStage {
 }
 
 /// UpgradeDependency represents a dependency when upgrading a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpgradeDependency {
     /// Current version of the dependency e.g. 1.15.0.
     #[serde(default, rename = "currentVersion")]
@@ -1562,7 +1563,7 @@ pub struct UpgradeDependency {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -1576,7 +1577,7 @@ pub struct Binding {
 }
 
 /// BareMetalAdminApiServerArgument represents an arg name-&gt;value pair. Only a subset of customized flags are supported. Please refer to the API server documentation below to know the exact format: https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminApiServerArgument {
     /// Required. The argument name as it appears on the API Server command line please make sure to remove the leading dashes.
     #[serde(default)]
@@ -1587,7 +1588,7 @@ pub struct BareMetalAdminApiServerArgument {
 }
 
 /// BareMetalAdminControlPlaneNodePoolConfig specifies the control plane node pool configuration. We have a control plane specific node pool config so that we can flexible about supporting control plane specific fields in the future.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminControlPlaneNodePoolConfig {
     /// Required. The generic configuration for a node pool running the control plane.
     #[serde(default, rename = "nodePoolConfig")]
@@ -1595,7 +1596,7 @@ pub struct BareMetalAdminControlPlaneNodePoolConfig {
 }
 
 /// BareMetalAdminBgpLbConfig represents configuration parameters for a Border Gateway Protocol (BGP) load balancer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminBgpLbConfig {
     /// Required. AddressPools is a list of non-overlapping IP pools used by load balancer typed services. All addresses must be routable to load balancer nodes. IngressVIP must be included in the pools.
     #[serde(default, rename = "addressPools")]
@@ -1614,7 +1615,7 @@ pub struct BareMetalAdminBgpLbConfig {
 }
 
 /// BareMetalAdminManualLbConfig represents configuration parameters for a manual load balancer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminManualLbConfig {
     /// Whether manual load balancing is enabled.
     #[serde(default)]
@@ -1622,7 +1623,7 @@ pub struct BareMetalAdminManualLbConfig {
 }
 
 /// BareMetalAdminPortConfig is the specification of load balancer ports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminPortConfig {
     /// The port that control plane hosted load balancers will listen on.
     #[serde(default, rename = "controlPlaneLoadBalancerPort")]
@@ -1630,7 +1631,7 @@ pub struct BareMetalAdminPortConfig {
 }
 
 /// BareMetalAdminVipConfig for bare metal load balancer configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminVipConfig {
     /// The VIP which you previously set aside for the Kubernetes API of this bare metal admin cluster.
     #[serde(default, rename = "controlPlaneVip")]
@@ -1638,7 +1639,7 @@ pub struct BareMetalAdminVipConfig {
 }
 
 /// BareMetalAdminMachineDrainStatus represents the status of bare metal node machines that are undergoing drain operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminMachineDrainStatus {
     /// The list of drained machines.
     #[serde(default, rename = "drainedMachines")]
@@ -1649,7 +1650,7 @@ pub struct BareMetalAdminMachineDrainStatus {
 }
 
 /// BareMetalAdminIslandModeCidrConfig specifies the cluster CIDR configuration while running in island mode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminIslandModeCidrConfig {
     /// Required. All pods in the cluster are assigned an RFC1918 IPv4 address from these ranges. This field cannot be changed after creation.
     #[serde(default, rename = "podAddressCidrBlocks")]
@@ -1660,7 +1661,7 @@ pub struct BareMetalAdminIslandModeCidrConfig {
 }
 
 /// Specifies the multiple networking interfaces cluster configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminMultipleNetworkInterfacesConfig {
     /// Whether to enable multiple network interfaces for your pods. When set network_config.advanced_networking is automatically set to true.
     #[serde(default)]
@@ -1668,7 +1669,7 @@ pub struct BareMetalAdminMultipleNetworkInterfacesConfig {
 }
 
 /// Represents an arg name-&gt;value pair. Only a subset of customized flags are supported. For the exact format, refer to the [API server documentation](https://kubernetes.io/docs/reference/command-line-tools-reference/kube-apiserver/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalApiServerArgument {
     /// Required. The argument name as it appears on the API Server command line, make sure to remove the leading dashes.
     #[serde(default)]
@@ -1679,7 +1680,7 @@ pub struct BareMetalApiServerArgument {
 }
 
 /// Specifies the control plane node pool configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalControlPlaneNodePoolConfig {
     /// Required. The generic configuration for a node pool running the control plane.
     #[serde(default, rename = "nodePoolConfig")]
@@ -1687,7 +1688,7 @@ pub struct BareMetalControlPlaneNodePoolConfig {
 }
 
 /// BareMetalBgpLbConfig represents configuration parameters for a Border Gateway Protocol (BGP) load balancer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalBgpLbConfig {
     /// Required. AddressPools is a list of non-overlapping IP pools used by load balancer typed services. All addresses must be routable to load balancer nodes. IngressVIP must be included in the pools.
     #[serde(default, rename = "addressPools")]
@@ -1704,7 +1705,7 @@ pub struct BareMetalBgpLbConfig {
 }
 
 /// Represents configuration parameters for a manual load balancer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalManualLbConfig {
     /// Whether manual load balancing is enabled.
     #[serde(default)]
@@ -1712,7 +1713,7 @@ pub struct BareMetalManualLbConfig {
 }
 
 /// Represents configuration parameters for a MetalLB load balancer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalMetalLbConfig {
     /// Required. AddressPools is a list of non-overlapping IP pools used by load balancer typed services. All addresses must be routable to load balancer nodes. IngressVIP must be included in the pools.
     #[serde(default, rename = "addressPools")]
@@ -1723,7 +1724,7 @@ pub struct BareMetalMetalLbConfig {
 }
 
 /// Specifies load balancer ports for the bare metal user cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalPortConfig {
     /// The port that control plane hosted load balancers will listen on.
     #[serde(default, rename = "controlPlaneLoadBalancerPort")]
@@ -1731,7 +1732,7 @@ pub struct BareMetalPortConfig {
 }
 
 /// Specifies the VIP config for the bare metal load balancer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalVipConfig {
     /// The VIP which you previously set aside for the Kubernetes API of this bare metal user cluster.
     #[serde(default, rename = "controlPlaneVip")]
@@ -1742,7 +1743,7 @@ pub struct BareMetalVipConfig {
 }
 
 /// Represents the status of node machines that are undergoing drain operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalMachineDrainStatus {
     /// The list of drained machines.
     #[serde(default, rename = "drainedMachines")]
@@ -1753,7 +1754,7 @@ pub struct BareMetalMachineDrainStatus {
 }
 
 /// Specifies the cluster CIDR configuration while running in island mode.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalIslandModeCidrConfig {
     /// Required. All pods in the cluster are assigned an RFC1918 IPv4 address from these ranges. This field cannot be changed after creation.
     #[serde(default, rename = "podAddressCidrBlocks")]
@@ -1764,7 +1765,7 @@ pub struct BareMetalIslandModeCidrConfig {
 }
 
 /// Specifies the multiple networking interfaces cluster configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalMultipleNetworkInterfacesConfig {
     /// Whether to enable multiple network interfaces for your pods. When set network_config.advanced_networking is automatically set to true.
     #[serde(default)]
@@ -1772,7 +1773,7 @@ pub struct BareMetalMultipleNetworkInterfacesConfig {
 }
 
 /// Specifies the SR-IOV networking operator config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalSrIovConfig {
     /// Whether to install the SR-IOV operator.
     #[serde(default)]
@@ -1780,7 +1781,7 @@ pub struct BareMetalSrIovConfig {
 }
 
 /// Authorization defines the On-Prem cluster authorization configuration to bootstrap onto the admin cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Authorization {
     /// For VMware and bare metal user clusters, users will be granted the cluster-admin role on the cluster, which provides full administrative access to the cluster. For bare metal admin clusters, users will be granted the cluster-view role, which limits users to read-only access.
     #[serde(default, rename = "adminUsers")]
@@ -1788,7 +1789,7 @@ pub struct Authorization {
 }
 
 /// Specifies the configs for local persistent volumes under a shared file system.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalLvpShareConfig {
     /// Required. Defines the machine path and storage class for the LVP Share.
     #[serde(default, rename = "lvpConfig")]
@@ -1799,7 +1800,7 @@ pub struct BareMetalLvpShareConfig {
 }
 
 /// BareMetalParallelUpgradeConfig defines the parallel upgrade settings for worker node pools.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalParallelUpgradeConfig {
     /// The maximum number of nodes that can be upgraded at once.
     #[serde(default, rename = "concurrentNodes")]
@@ -1810,7 +1811,7 @@ pub struct BareMetalParallelUpgradeConfig {
 }
 
 /// VmwareAdminF5BigIpConfig represents configuration parameters for an F5 BIG-IP load balancer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareAdminF5BigIpConfig {
     /// The load balancer''s IP address.
     #[serde(default)]
@@ -1824,7 +1825,7 @@ pub struct VmwareAdminF5BigIpConfig {
 }
 
 /// VmwareAdminManualLbConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareAdminManualLbConfig {
     /// NodePort for add-ons server in the admin cluster.
     #[serde(default, rename = "addonsNodePort")]
@@ -1844,7 +1845,7 @@ pub struct VmwareAdminManualLbConfig {
 }
 
 /// VmwareAdminMetalLbConfig represents configuration parameters for a MetalLB load balancer. For admin clusters, currently no configurations is needed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareAdminMetalLbConfig {
     /// Whether MetalLB is enabled.
     #[serde(default)]
@@ -1852,7 +1853,7 @@ pub struct VmwareAdminMetalLbConfig {
 }
 
 /// VmwareSeesawConfig represents configuration parameters for an already existing Seesaw load balancer. IMPORTANT: Please note that the Anthos On-Prem API will not generate or update Seesaw configurations it can only bind a pre-existing configuration to a new user cluster. IMPORTANT: When attempting to create a user cluster with a pre-existing Seesaw load balancer you will need to follow some preparation steps before calling the ''CreateVmwareCluster'' API method. First you will need to create the user cluster''s namespace via kubectl. The namespace will need to use the following naming convention : -gke-onprem-mgmt or -gke-onprem-mgmt depending on whether you used the ''VmwareCluster.local_name'' to disambiguate collisions; for more context see the documentation of ''VmwareCluster.local_name''. Once the namespace is created you will need to create a secret resource via kubectl. This secret will contain copies of your Seesaw credentials. The Secret must be called ''user-cluster-creds'' and contain Seesaw''s SSH and Cert credentials. The credentials must be keyed with the following names: ''seesaw-ssh-private-key'', ''seesaw-ssh-public-key'', ''seesaw-ssh-ca-key'', ''seesaw-ssh-ca-cert''.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareAdminSeesawConfig {
     /// Enable two load balancer VMs to achieve a highly-available Seesaw load balancer.
     #[serde(default, rename = "enableHa")]
@@ -1875,7 +1876,7 @@ pub struct VmwareAdminSeesawConfig {
 }
 
 /// VmwareAdminVipConfig for VMware load balancer configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareAdminVipConfig {
     /// The VIP to configure the load balancer for add-ons.
     #[serde(default, rename = "addonsVip")]
@@ -1886,7 +1887,7 @@ pub struct VmwareAdminVipConfig {
 }
 
 /// Specifies HA admin control plane config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareAdminHAControlPlaneConfig {
     /// Static IP addresses for the admin control plane nodes.
     #[serde(default, rename = "controlPlaneIpBlock")]
@@ -1894,7 +1895,7 @@ pub struct VmwareAdminHAControlPlaneConfig {
 }
 
 /// VmwareBundleConfig represents configuration for the bundle.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareBundleConfig {
     /// Output only. Resource status for the bundle.
     #[serde(default)]
@@ -1905,7 +1906,7 @@ pub struct VmwareBundleConfig {
 }
 
 /// Represents auto resizing configurations for the VMware user cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareAutoResizeConfig {
     /// Whether to enable controle plane node auto resizing.
     #[serde(default)]
@@ -1913,7 +1914,7 @@ pub struct VmwareAutoResizeConfig {
 }
 
 /// Specifies control plane node config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareControlPlaneVsphereConfig {
     /// The Vsphere datastore used by the control plane Node.
     #[serde(default)]
@@ -1924,7 +1925,7 @@ pub struct VmwareControlPlaneVsphereConfig {
 }
 
 /// Represents configuration parameters for an F5 BIG-IP load balancer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareF5BigIpConfig {
     /// The load balancer''s IP address.
     #[serde(default)]
@@ -1938,7 +1939,7 @@ pub struct VmwareF5BigIpConfig {
 }
 
 /// Represents configuration parameters for an already existing manual load balancer. Given the nature of manual load balancers it is expected that said load balancer will be fully managed by users. IMPORTANT: Please note that the Anthos On-Prem API will not generate or update ManualLB configurations it can only bind a pre-existing configuration to a new VMware user cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareManualLbConfig {
     /// NodePort for control plane service. The Kubernetes API server in the admin cluster is implemented as a Service of type NodePort (ex. 30968).
     #[serde(default, rename = "controlPlaneNodePort")]
@@ -1955,7 +1956,7 @@ pub struct VmwareManualLbConfig {
 }
 
 /// Represents configuration parameters for the MetalLB load balancer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareMetalLbConfig {
     /// Required. AddressPools is a list of non-overlapping IP pools used by load balancer typed services. All addresses must be routable to load balancer nodes. IngressVIP must be included in the pools.
     #[serde(default, rename = "addressPools")]
@@ -1963,7 +1964,7 @@ pub struct VmwareMetalLbConfig {
 }
 
 /// VmwareSeesawConfig represents configuration parameters for an already existing Seesaw load balancer. IMPORTANT: Please note that the Anthos On-Prem API will not generate or update Seesaw configurations it can only bind a pre-existing configuration to a new user cluster. IMPORTANT: When attempting to create a user cluster with a pre-existing Seesaw load balancer you will need to follow some preparation steps before calling the ''CreateVmwareCluster'' API method. First you will need to create the user cluster''s namespace via kubectl. The namespace will need to use the following naming convention : -gke-onprem-mgmt or -gke-onprem-mgmt depending on whether you used the ''VmwareCluster.local_name'' to disambiguate collisions; for more context see the documentation of ''VmwareCluster.local_name''. Once the namespace is created you will need to create a secret resource via kubectl. This secret will contain copies of your Seesaw credentials. The Secret must be called ''user-cluster-creds'' and contain Seesaw''s SSH and Cert credentials. The credentials must be keyed with the following names: ''seesaw-ssh-private-key'', ''seesaw-ssh-public-key'', ''seesaw-ssh-ca-key'', ''seesaw-ssh-ca-cert''.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareSeesawConfig {
     /// Enable two load balancer VMs to achieve a highly-available Seesaw load balancer.
     #[serde(default, rename = "enableHa")]
@@ -1986,7 +1987,7 @@ pub struct VmwareSeesawConfig {
 }
 
 /// Specifies the VIP config for the VMware user cluster load balancer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareVipConfig {
     /// The VIP which you previously set aside for the Kubernetes API of this cluster.
     #[serde(default, rename = "controlPlaneVip")]
@@ -1997,7 +1998,7 @@ pub struct VmwareVipConfig {
 }
 
 /// Specifies control plane V2 config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareControlPlaneV2Config {
     /// Static IP addresses for the control plane nodes.
     #[serde(default, rename = "controlPlaneIpBlock")]
@@ -2005,7 +2006,7 @@ pub struct VmwareControlPlaneV2Config {
 }
 
 /// Represents the network configuration required for the VMware user clusters with DHCP IP configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareDhcpIpConfig {
     /// enabled is a flag to mark if DHCP IP allocation is used for VMware user clusters.
     #[serde(default)]
@@ -2013,7 +2014,7 @@ pub struct VmwareDhcpIpConfig {
 }
 
 /// Represents the common parameters for all the hosts irrespective of their IP address.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareHostConfig {
     /// DNS search domains.
     #[serde(default, rename = "dnsSearchDomains")]
@@ -2027,7 +2028,7 @@ pub struct VmwareHostConfig {
 }
 
 /// Represents the network configuration required for the VMware user clusters with Static IP configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareStaticIpConfig {
     /// Represents the configuration values for static IP allocation to nodes.
     #[serde(default, rename = "ipBlocks")]
@@ -2035,7 +2036,7 @@ pub struct VmwareStaticIpConfig {
 }
 
 /// ValidationCheckStatus defines the detailed validation check status.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValidationCheckStatus {
     /// Individual checks which failed as part of the Preflight check execution.
     #[serde(default)]
@@ -2043,7 +2044,7 @@ pub struct ValidationCheckStatus {
 }
 
 /// VmwareVsphereConfig represents configuration for the VMware VCenter for node pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareVsphereConfig {
     /// The name of the vCenter datastore. Inherited from the user cluster.
     #[serde(default)]
@@ -2057,7 +2058,7 @@ pub struct VmwareVsphereConfig {
 }
 
 /// Progress metric is (string, int|float|string) pair.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Metric {
     /// For metrics with floating point value.
     #[serde(default, rename = "doubleValue")]
@@ -2074,7 +2075,7 @@ pub struct Metric {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -2091,7 +2092,7 @@ pub struct Expr {
 }
 
 /// Represents an IP pool used by the load balancer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminLoadBalancerAddressPool {
     /// Required. The addresses that are part of this pool. Each address must be either in the CIDR form (1.2.3.0/24) or range form (1.2.3.1-1.2.3.5).
     #[serde(default)]
@@ -2108,7 +2109,7 @@ pub struct BareMetalAdminLoadBalancerAddressPool {
 }
 
 /// BareMetalAdminBgpPeerConfig represents configuration parameters for a Border Gateway Protocol (BGP) peer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminBgpPeerConfig {
     /// Required. BGP autonomous system number (ASN) for the network that contains the external peer device.
     #[serde(default)]
@@ -2122,7 +2123,7 @@ pub struct BareMetalAdminBgpPeerConfig {
 }
 
 /// Specifies the load balancer''s node pool configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminLoadBalancerNodePoolConfig {
     /// The generic configuration for a node pool running a load balancer.
     #[serde(default, rename = "nodePoolConfig")]
@@ -2130,7 +2131,7 @@ pub struct BareMetalAdminLoadBalancerNodePoolConfig {
 }
 
 /// BareMetalAdminDrainedMachine represents the machines that are drained.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminDrainedMachine {
     /// Drained machine IP address.
     #[serde(default, rename = "nodeIp")]
@@ -2138,7 +2139,7 @@ pub struct BareMetalAdminDrainedMachine {
 }
 
 /// BareMetalAdminDrainingMachine represents the machines that are currently draining.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalAdminDrainingMachine {
     /// Draining machine IP address.
     #[serde(default, rename = "nodeIp")]
@@ -2149,7 +2150,7 @@ pub struct BareMetalAdminDrainingMachine {
 }
 
 /// BareMetalBgpPeerConfig represents configuration parameters for a Border Gateway Protocol (BGP) peer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalBgpPeerConfig {
     /// Required. BGP autonomous system number (ASN) for the network that contains the external peer device.
     #[serde(default)]
@@ -2163,7 +2164,7 @@ pub struct BareMetalBgpPeerConfig {
 }
 
 /// Represents an IP pool used by the load balancer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalLoadBalancerAddressPool {
     /// Required. The addresses that are part of this pool. Each address must be either in the CIDR form (1.2.3.0/24) or range form (1.2.3.1-1.2.3.5).
     #[serde(default)]
@@ -2180,7 +2181,7 @@ pub struct BareMetalLoadBalancerAddressPool {
 }
 
 /// Specifies the load balancer''s node pool configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalLoadBalancerNodePoolConfig {
     /// The generic configuration for a node pool running a load balancer.
     #[serde(default, rename = "nodePoolConfig")]
@@ -2188,7 +2189,7 @@ pub struct BareMetalLoadBalancerNodePoolConfig {
 }
 
 /// Represents a machine that is currently drained.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalDrainedMachine {
     /// Drained machine IP address.
     #[serde(default, rename = "nodeIp")]
@@ -2196,7 +2197,7 @@ pub struct BareMetalDrainedMachine {
 }
 
 /// Represents a machine that is currently draining.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalDrainingMachine {
     /// Draining machine IP address.
     #[serde(default, rename = "nodeIp")]
@@ -2207,7 +2208,7 @@ pub struct BareMetalDrainingMachine {
 }
 
 /// ClusterUser configures user principals for an RBAC policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ClusterUser {
     /// Required. The name of the user, e.g. my-gcp-id@gmail.com.
     #[serde(default)]
@@ -2215,7 +2216,7 @@ pub struct ClusterUser {
 }
 
 /// Specifies the configs for local persistent volumes (PVs).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalLvpConfig {
     /// Required. The host machine path.
     #[serde(default)]
@@ -2226,7 +2227,7 @@ pub struct BareMetalLvpConfig {
 }
 
 /// ResourceStatus describes why a cluster or node pool has a certain status. (e.g., ERROR or DEGRADED).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceStatus {
     /// ResourceCondition provide a standard mechanism for higher-level status reporting from controller.
     #[serde(default)]
@@ -2243,7 +2244,7 @@ pub struct ResourceStatus {
 }
 
 /// Represents an IP pool used by the load balancer.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareAddressPool {
     /// Required. The addresses that are part of this pool. Each address must be either in the CIDR form (1.2.3.0/24) or range form (1.2.3.1-1.2.3.5).
     #[serde(default)]
@@ -2260,7 +2261,7 @@ pub struct VmwareAddressPool {
 }
 
 /// Represents a collection of IP addresses to assign to nodes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareIpBlock {
     /// The network gateway used by the VMware user cluster.
     #[serde(default)]
@@ -2274,7 +2275,7 @@ pub struct VmwareIpBlock {
 }
 
 /// ValidationCheckResult defines the details about the validation check.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValidationCheckResult {
     /// The category of the validation.
     #[serde(default)]
@@ -2294,7 +2295,7 @@ pub struct ValidationCheckResult {
 }
 
 /// VmwareVsphereTag describes a vSphere tag to be placed on VMs in the node pool. For more information, see https://docs.vmware.com/en/VMware-vSphere/7.0/com.vmware.vsphere.vcenterhost.doc/GUID-E8E854DD-AA97-4E0C-8419-CE84F93C4058.html
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareVsphereTag {
     /// The Vsphere tag category.
     #[serde(default)]
@@ -2305,7 +2306,7 @@ pub struct VmwareVsphereTag {
 }
 
 /// BareMetalNodePoolConfig describes the configuration of all nodes within a given bare metal node pool.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalNodePoolConfig {
     /// The modifiable kubelet configurations for the bare metal machines.
     #[serde(default, rename = "kubeletConfig")]
@@ -2325,7 +2326,7 @@ pub struct BareMetalNodePoolConfig {
 }
 
 /// ResourceCondition provides a standard mechanism for higher-level status reporting from controller.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceCondition {
     /// Last time the condition transit from one status to another.
     #[serde(default, rename = "lastTransitionTime")]
@@ -2345,7 +2346,7 @@ pub struct ResourceCondition {
 }
 
 /// Versions describes the mapping of a given version to the number of machines under this version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Versions {
     /// Shows the mapping of a given version to the number of machines under this version.
     #[serde(default)]
@@ -2353,7 +2354,7 @@ pub struct Versions {
 }
 
 /// Represents VMware user cluster node''s network configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VmwareHostIp {
     /// Hostname of the machine. VM''s name will be used if this field is empty.
     #[serde(default)]
@@ -2364,7 +2365,7 @@ pub struct VmwareHostIp {
 }
 
 /// KubeletConfig defines the modifiable kubelet configurations for bare metal machines. Note: this list includes fields supported in GKE (see https://cloud.google.com/kubernetes-engine/docs/how-to/node-system-config#kubelet-options).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalKubeletConfig {
     /// The maximum size of bursty pulls, temporarily allows pulls to burst to this number, while still not exceeding registry_pull_qps. The value must not be a negative number. Updating this field may impact scalability by changing the amount of traffic produced by image pulls. Defaults to 10.
     #[serde(default, rename = "registryBurst")]
@@ -2378,7 +2379,7 @@ pub struct BareMetalKubeletConfig {
 }
 
 /// BareMetalNodeConfig lists machine addresses to access Nodes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BareMetalNodeConfig {
     /// The labels assigned to this node. An object containing a list of key/value pairs. The labels here, unioned with the labels set on BareMetalNodePoolConfig are the set of labels that will be applied to the node. If there are any conflicts, the BareMetalNodeConfig labels take precedence. Example: { "name": "wrench", "mass": "1.3kg", "count": "3" }.
     #[serde(default)]
@@ -2389,7 +2390,7 @@ pub struct BareMetalNodeConfig {
 }
 
 /// NodeTaint applied to every Kubernetes node in a node pool. Kubernetes taints can be used together with tolerations to control how workloads are scheduled to your nodes. Node taints are permanent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeTaint {
     /// The taint effect. // TODO: enum values: ["EFFECT_UNSPECIFIED", "NO_SCHEDULE", "PREFER_NO_SCHEDULE", "NO_EXECUTE"]
     #[serde(default)]
@@ -2403,7 +2404,7 @@ pub struct NodeTaint {
 }
 
 /// Version describes the number of nodes at a given version under a resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Version {
     /// Number of machines under the above version.
     #[serde(default)]

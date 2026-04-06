@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Configuration for Data Lineage. Defines different configuration options for Lineage customers to control behaviour of lineage systems.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageConfigmanagementV1Config {
     /// Optional. etag is used for optimistic concurrency control as a way to help prevent simultaneous updates of a config from overwriting each other. It is required that systems make use of the etag in the read-modify-write cycle to perform config updates in order to avoid race conditions: An etag is returned in the response to GetConfig, and systems are expected to put that etag in the request to UpdateConfig to ensure that their change will be applied to the same version of the config. If an etag is not provided in the call to UpdateConfig, then the existing config, if any, will be overwritten.
     #[serde(default)]
@@ -26,7 +27,7 @@ pub struct GoogleCloudDatacatalogLineageConfigmanagementV1Config {
 }
 
 /// Request message for BatchSearchLinkProcesses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageV1BatchSearchLinkProcessesRequest {
     /// Required. An array of links to check for their associated LineageProcesses. The maximum number of items in this array is 100. If the request contains more than 100 links, it returns the INVALID_ARGUMENT error. Format: projects/{project}/locations/{location}/links/{link}.
     #[serde(default)]
@@ -40,7 +41,7 @@ pub struct GoogleCloudDatacatalogLineageV1BatchSearchLinkProcessesRequest {
 }
 
 /// Response message for BatchSearchLinkProcesses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageV1BatchSearchLinkProcessesResponse {
     /// The token to specify as page_token in the subsequent call to get the next page. Omitted if there are no more pages in the response.
     #[serde(default, rename = "nextPageToken")]
@@ -52,7 +53,7 @@ pub struct GoogleCloudDatacatalogLineageV1BatchSearchLinkProcessesResponse {
 }
 
 /// Response message for ListLineageEvents.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageV1ListLineageEventsResponse {
     /// Lineage events from the specified project and location.
     #[serde(default, rename = "lineageEvents")]
@@ -64,7 +65,7 @@ pub struct GoogleCloudDatacatalogLineageV1ListLineageEventsResponse {
 }
 
 /// Response message for ListProcesses.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageV1ListProcessesResponse {
     /// The token to specify as page_token in the next call to get the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -75,7 +76,7 @@ pub struct GoogleCloudDatacatalogLineageV1ListProcessesResponse {
 }
 
 /// Response message for ListRuns.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageV1ListRunsResponse {
     /// The token to specify as page_token in the next call to get the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -86,7 +87,7 @@ pub struct GoogleCloudDatacatalogLineageV1ListRunsResponse {
 }
 
 /// Metadata describing the operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageV1OperationMetadata {
     /// Output only. The timestamp of the operation submission to the server.
     #[serde(default, rename = "createTime")]
@@ -109,7 +110,7 @@ pub struct GoogleCloudDatacatalogLineageV1OperationMetadata {
 }
 
 /// Response message for ProcessOpenLineageRunEvent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageV1ProcessOpenLineageRunEventResponse {
     /// Created lineage event names. Format: projects/{project}/locations/{location}/processes/{process}/runs/{run}/lineageEvents/{lineage_event}.
     #[serde(default, rename = "lineageEvents")]
@@ -123,7 +124,7 @@ pub struct GoogleCloudDatacatalogLineageV1ProcessOpenLineageRunEventResponse {
 }
 
 /// Request message for SearchLinks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageV1SearchLinksRequest {
     /// Optional. The maximum number of links to return in a single page of the response. A page may contain fewer links than this value. If unspecified, at most 10 links are returned. Maximum value is 100; values greater than 100 are reduced to 100.
     #[serde(default, rename = "pageSize")]
@@ -140,7 +141,7 @@ pub struct GoogleCloudDatacatalogLineageV1SearchLinksRequest {
 }
 
 /// Response message for SearchLinks.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageV1SearchLinksResponse {
     /// The list of links for a given asset. Can be empty if the asset has no relations of requested type (source or target).
     #[serde(default)]
@@ -151,11 +152,11 @@ pub struct GoogleCloudDatacatalogLineageV1SearchLinksResponse {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningCancelOperationRequest {}
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -169,11 +170,11 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// Defines how Lineage should be ingested for a given resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestion {
     /// Optional. List of rules for Data Lineage ingestion.
     #[serde(default)]
@@ -185,7 +186,7 @@ pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestion {
 }
 
 /// Links associated with a specific process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageV1ProcessLinks {
     /// An array containing link details objects of the links provided in the original request. A single process can result in creating multiple links. If any of the links you provide in the request are created by the same process, they all are included in this array.
     #[serde(default)]
@@ -197,7 +198,7 @@ pub struct GoogleCloudDatacatalogLineageV1ProcessLinks {
 }
 
 /// A lineage event represents an operation on assets. Within the operation, the data flows from the source to the target defined in the links field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageV1LineageEvent {
     /// Optional. The end of the transformation which resulted in this lineage event. For streaming scenarios, it should be the end of the period from which the lineage is being reported.
     #[serde(default, rename = "endTime")]
@@ -214,7 +215,7 @@ pub struct GoogleCloudDatacatalogLineageV1LineageEvent {
 }
 
 /// A process is the definition of a data transformation operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageV1Process {
     /// Optional. The attributes of the process. Should only be used for the purpose of non-semantic management (classifying, describing or labeling the process). Up to 100 attributes are allowed.
     #[serde(default)]
@@ -231,7 +232,7 @@ pub struct GoogleCloudDatacatalogLineageV1Process {
 }
 
 /// A lineage run represents an execution of a process that creates lineage events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageV1Run {
     /// Optional. The attributes of the run. Should only be used for the purpose of non-semantic management (classifying, describing or labeling the run). Up to 100 attributes are allowed.
     #[serde(default)]
@@ -254,7 +255,7 @@ pub struct GoogleCloudDatacatalogLineageV1Run {
 }
 
 /// Links represent the data flow between **source** (upstream) and **target** (downstream) assets in transformation pipelines. Links are created when LineageEvents record data transformation between related assets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageV1Link {
     /// The end of the last event establishing this link.
     #[serde(default, rename = "endTime")]
@@ -274,7 +275,7 @@ pub struct GoogleCloudDatacatalogLineageV1Link {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -294,7 +295,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// Ingestion rule for Data Lineage ingestion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRule {
     /// Required. Integration selector of the rule. The rule is only applied to the Integration selected by the selector.
     #[serde(default, rename = "integrationSelector")]
@@ -305,7 +306,7 @@ pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngesti
 }
 
 /// Link details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageV1ProcessLinkInfo {
     /// The end of the last event establishing this link-process tuple.
     #[serde(default, rename = "endTime")]
@@ -319,7 +320,7 @@ pub struct GoogleCloudDatacatalogLineageV1ProcessLinkInfo {
 }
 
 /// A lineage between source and target entities.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageV1EventLink {
     /// Required. Reference to the source entity
     #[serde(default)]
@@ -330,7 +331,7 @@ pub struct GoogleCloudDatacatalogLineageV1EventLink {
 }
 
 /// Origin of a process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageV1Origin {
     /// If the source_type isn''t CUSTOM, the value of this field should be a Google Cloud resource name of the system, which reports lineage. The project and location parts of the resource name must match the project and location of the lineage resource being created. Examples: - {source_type: COMPOSER, name: "projects/foo/locations/us/environments/bar"} - {source_type: BIGQUERY, name: "projects/foo/locations/eu"} - {source_type: CUSTOM, name: "myCustomIntegration"}
     #[serde(default)]
@@ -341,7 +342,7 @@ pub struct GoogleCloudDatacatalogLineageV1Origin {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -355,7 +356,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// Integration selector of the rule. The rule is only applied to the Integration selected by the selector.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRuleIntegrationSelector
 {
     /// Required. Integration to which the rule applies. This field can be used to specify the integration against which the ingestion rule should be applied. // TODO: enum values: ["INTEGRATION_UNSPECIFIED", "DATAPROC", "LOOKER_CORE"]
@@ -364,7 +365,7 @@ pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngesti
 }
 
 /// Lineage enablement configuration. Defines configurations for the ingestion of lineage for the resource and its children.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngestionRuleLineageEnablement
 {
     /// Optional. If true, ingestion of lineage should be enabled. If false, it should be disabled. If unspecified, the system default value is used.
@@ -373,7 +374,7 @@ pub struct GoogleCloudDatacatalogLineageConfigmanagementV1ConfigIngestionIngesti
 }
 
 /// The soft reference to everything you can attach a lineage event to.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudDatacatalogLineageV1EntityReference {
     /// Required. [Fully Qualified Name (FQN)](https://cloud.google.com/dataplex/docs/fully-qualified-names) of the entity.
     #[serde(default, rename = "fullyQualifiedName")]

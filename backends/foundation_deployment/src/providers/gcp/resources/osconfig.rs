@@ -8,18 +8,19 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Represents the metadata of a generic long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOsconfigCommonV1OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -45,7 +46,7 @@ pub struct GoogleCloudOsconfigCommonV1OperationMetadata {
 }
 
 /// Represents the metadata of a generic long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOsconfigCommonV1alphaOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -71,7 +72,7 @@ pub struct GoogleCloudOsconfigCommonV1alphaOperationMetadata {
 }
 
 /// Represents the metadata of a generic long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOsconfigCommonV1mainOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -97,7 +98,7 @@ pub struct GoogleCloudOsconfigCommonV1mainOperationMetadata {
 }
 
 /// OS policy assignment operation metadata provided by OS policy assignment API methods that return long running operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOsconfigV1OSPolicyAssignmentOperationMetadata {
     /// The OS policy assignment API method. // TODO: enum values: ["API_METHOD_UNSPECIFIED", "CREATE", "UPDATE", "DELETE"]
     #[serde(default, rename = "apiMethod")]
@@ -117,7 +118,7 @@ pub struct GoogleCloudOsconfigV1OSPolicyAssignmentOperationMetadata {
 }
 
 /// Response for the list policy orchestrator resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -132,7 +133,7 @@ pub struct GoogleCloudOsconfigV2ListPolicyOrchestratorsResponse {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOsconfigV2OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -158,7 +159,7 @@ pub struct GoogleCloudOsconfigV2OperationMetadata {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOsconfigV2betaOperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -184,7 +185,7 @@ pub struct GoogleCloudOsconfigV2betaOperationMetadata {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -198,11 +199,11 @@ pub struct ListOperationsResponse {
 }
 
 /// This is proto2''s version of MessageSet. DEPRECATED: DO NOT USE FOR NEW FIELDS. If you are using editions or proto2, please make your own extendable messages for your use case. If you are using proto3, please use Any instead. MessageSet was the implementation of extensions for proto1. When proto2 was introduced, extensions were implemented as a first-class feature. This schema for MessageSet was meant to be a "bridge" solution to migrate MessageSet-bearing messages from proto1 to proto2. This schema has been open-sourced only to facilitate the migration of Google products with MessageSet-bearing messages to open-source environments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MessageSet {}
 
 /// OS policy assignment operation metadata provided by OS policy assignment API methods that return long running operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyAssignmentOperationMetadata {
     /// The OS policy assignment API method. // TODO: enum values: ["API_METHOD_UNSPECIFIED", "CREATE", "UPDATE", "DELETE"]
     #[serde(default, rename = "apiMethod")]
@@ -222,7 +223,7 @@ pub struct OSPolicyAssignmentOperationMetadata {
 }
 
 /// Wire-format for a Status object
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StatusProto {
     /// copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional int32 canonical_code = 6;
     #[serde(default, rename = "canonicalCode")]
@@ -242,7 +243,7 @@ pub struct StatusProto {
 }
 
 /// PolicyOrchestrator helps managing project+zone level policy resources (e.g. OS Policy Assignments), by providing tools to create, update and delete them across projects and locations, at scale. Policy orchestrator functions as an endless loop. Each iteration orchestrator computes a set of resources that should be affected, then progressively applies changes to them. If for some reason this set of resources changes over time (e.g. new projects are added), the future loop iterations will address that. Orchestrator can either upsert or delete policy resources. For more details, see the description of the action, and orchestrated_resource fields. Note that policy orchestrator do not "manage" the resources it creates. Every iteration is independent and only minimal history of past actions is retained (apart from Cloud Logging). If orchestrator gets deleted, it does not affect the resources it created in the past. Those will remain where they were. Same applies if projects are removed from the orchestrator''s scope.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOsconfigV2PolicyOrchestrator {
     /// Required. Action to be done by the orchestrator in projects/{project_id}/zones/{zone_id} locations defined by the orchestration_scope. Allowed values: - UPSERT - Orchestrator will create or update target resources. - DELETE - Orchestrator will delete target resources, if they exist
     #[serde(default)]
@@ -284,7 +285,7 @@ pub struct GoogleCloudOsconfigV2PolicyOrchestrator {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -304,7 +305,7 @@ pub struct Operation {
 }
 
 /// Represents a resource that is being orchestrated by the policy orchestrator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOsconfigV2OrchestratedResource {
     /// Optional. ID of the resource to be used while generating set of affected resources. For UPSERT action the value is auto-generated during PolicyOrchestrator creation when not set. When the value is set it should following next restrictions: * Must contain only lowercase letters, numbers, and hyphens. * Must start with a letter. * Must be between 1-63 characters. * Must end with a number or a letter. * Must be unique within the project. For DELETE action, ID must be specified explicitly during PolicyOrchestrator creation.
     #[serde(default)]
@@ -315,7 +316,7 @@ pub struct GoogleCloudOsconfigV2OrchestratedResource {
 }
 
 /// Defines a set of selectors which drive which resources are in scope of policy orchestration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOsconfigV2OrchestrationScope {
     /// Optional. Selectors of the orchestration scope. There is a logical AND between each selector defined. When there is no explicit ResourceHierarchySelector selector specified, the scope is by default bounded to the parent of the policy orchestrator resource.
     #[serde(default)]
@@ -324,7 +325,7 @@ pub struct GoogleCloudOsconfigV2OrchestrationScope {
 }
 
 /// Describes the state of the orchestration process.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOsconfigV2PolicyOrchestratorOrchestrationState {
     /// Output only. Current Wave iteration state.
     #[serde(default, rename = "currentIterationState")]
@@ -337,7 +338,7 @@ pub struct GoogleCloudOsconfigV2PolicyOrchestratorOrchestrationState {
 }
 
 /// OS policy assignment is an API resource that is used to apply a set of OS policies to a dynamically targeted group of Compute Engine VM instances. An OS policy is used to define the desired state configuration for a Compute Engine VM instance through a set of configuration resources that provide capabilities such as installing or removing software packages, or executing a script. For more information about the OS policy resource definitions and examples, see [OS policy and OS policy assignment](https://cloud.google.com/compute/docs/os-configuration-management/working-with-os-policies).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyAssignment {
     /// Output only. Indicates that this revision has been successfully rolled out in this zone and new VMs will be assigned OS policies from this revision. For a given OS policy assignment, there is only one revision with a value of true for this field.
     #[serde(default)]
@@ -381,7 +382,7 @@ pub struct OSPolicyAssignment {
 }
 
 /// Selector for the resources in scope of orchestration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOsconfigV2OrchestrationScopeSelector {
     /// Selector for selecting locations.
     #[serde(default, rename = "locationSelector")]
@@ -394,7 +395,7 @@ pub struct GoogleCloudOsconfigV2OrchestrationScopeSelector {
 }
 
 /// Describes the state of a single iteration of the orchestrator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOsconfigV2PolicyOrchestratorIterationState {
     /// Output only. Error thrown in the wave iteration.
     #[serde(default)]
@@ -423,7 +424,7 @@ pub struct GoogleCloudOsconfigV2PolicyOrchestratorIterationState {
 }
 
 /// Filters to select target VMs for an assignment. If more than one filter criteria is specified below, a VM will be selected if and only if it satisfies all of them.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyAssignmentInstanceFilter {
     /// Target all VMs in the project. If true, no other criteria is permitted.
     #[serde(default)]
@@ -441,7 +442,7 @@ pub struct OSPolicyAssignmentInstanceFilter {
 }
 
 /// An OS policy defines the desired state configuration for a VM.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicy {
     /// This flag determines the OS policy compliance status when none of the resource groups within the policy are applicable for a VM. Set this value to true if the policy needs to be reported as compliant even if the policy has nothing to validate or enforce.
     #[serde(default, rename = "allowNoResourceGroupMatch")]
@@ -461,7 +462,7 @@ pub struct OSPolicy {
 }
 
 /// Message to configure the rollout at the zonal level for the OS policy assignment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyAssignmentRollout {
     /// Required. The maximum number (or percentage) of VMs per zone to disrupt at any given moment.
     #[serde(default, rename = "disruptionBudget")]
@@ -472,7 +473,7 @@ pub struct OSPolicyAssignmentRollout {
 }
 
 /// Selector containing locations in scope.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOsconfigV2OrchestrationScopeLocationSelector {
     /// Optional. Names of the locations in scope. Format: us-central1-a
     #[serde(default, rename = "includedLocations")]
@@ -480,7 +481,7 @@ pub struct GoogleCloudOsconfigV2OrchestrationScopeLocationSelector {
 }
 
 /// Selector containing Cloud Resource Manager resource hierarchy nodes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudOsconfigV2OrchestrationScopeResourceHierarchySelector {
     /// Optional. Names of the folders in scope. Format: folders/{folder_id}
     #[serde(default, rename = "includedFolders")]
@@ -491,7 +492,7 @@ pub struct GoogleCloudOsconfigV2OrchestrationScopeResourceHierarchySelector {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -505,7 +506,7 @@ pub struct Status {
 }
 
 /// Message representing label set. * A label is a key value pair set for a VM. * A LabelSet is a set of labels. * Labels within a LabelSet are ANDed. In other words, a LabelSet is applicable for a VM only if it matches all the labels in the LabelSet. * Example: A LabelSet with 2 labels: env=prod and type=webserver will only be applicable for those VMs with both labels present.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyAssignmentLabelSet {
     /// Labels are identified by key/value pairs in this map. A VM should contain all the key/value pairs specified in this map to be selected.
     #[serde(default)]
@@ -513,7 +514,7 @@ pub struct OSPolicyAssignmentLabelSet {
 }
 
 /// VM inventory details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyAssignmentInstanceFilterInventory {
     /// Required. The OS short name
     #[serde(default, rename = "osShortName")]
@@ -524,7 +525,7 @@ pub struct OSPolicyAssignmentInstanceFilterInventory {
 }
 
 /// Resource groups provide a mechanism to group OS policy resources. Resource groups enable OS policy authors to create a single OS policy to be applied to VMs running different operating Systems. When the OS policy is applied to a target VM, the appropriate resource group within the OS policy is selected based on the OSFilter specified within the resource group.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyResourceGroup {
     /// List of inventory filters for the resource group. The resources in this resource group are applied to the target VM if it satisfies at least one of the following inventory filters. For example, to apply this resource group to VMs running either RHEL or CentOS operating systems, specify 2 items for the list with following values: inventory_filters[0].os_short_name=''rhel'' and inventory_filters[1].os_short_name=''centos'' If the list is empty, this resource group will be applied to the target VM unconditionally.
     #[serde(default, rename = "inventoryFilters")]
@@ -535,7 +536,7 @@ pub struct OSPolicyResourceGroup {
 }
 
 /// Message encapsulating a value that can be either absolute ("fixed") or relative ("percent") to a value.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FixedOrPercent {
     /// Specifies a fixed value.
     #[serde(default)]
@@ -546,7 +547,7 @@ pub struct FixedOrPercent {
 }
 
 /// Filtering criteria to select VMs based on inventory details.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyInventoryFilter {
     /// Required. The OS short name
     #[serde(default, rename = "osShortName")]
@@ -557,7 +558,7 @@ pub struct OSPolicyInventoryFilter {
 }
 
 /// An OS policy resource is used to define the desired state configuration and provides a specific functionality like installing/removing packages, executing a script etc. The system ensures that resources are always in their desired state by taking necessary actions if they have drifted from their desired state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyResource {
     /// Exec resource
     #[serde(default)]
@@ -577,7 +578,7 @@ pub struct OSPolicyResource {
 }
 
 /// A resource that allows executing scripts on the VM. The ExecResource has 2 stages: validate and enforce and both stages accept a script as an argument to execute. When the ExecResource is applied by the agent, it first executes the script in the validate stage. The validate stage can signal that the ExecResource is already in the desired state by returning an exit code of 100. If the ExecResource is not in the desired state, it should return an exit code of 101. Any other exit code returned by this stage is considered an error. If the ExecResource is not in the desired state based on the exit code from the validate stage, the agent proceeds to execute the script from the enforce stage. If the ExecResource is already in the desired state, the enforce stage will not be run. Similar to validate stage, the enforce stage should return an exit code of 100 to indicate that the resource in now in its desired state. Any other exit code is considered an error. NOTE: An exit code of 100 was chosen over 0 (and 101 vs 1) to have an explicit indicator of in desired state, not in desired state and errors. Because, for example, Powershell will always return an exit code of 0 unless an exit statement is provided in the script. So, for reasons of consistency and being explicit, exit codes 100 and 101 were chosen.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyResourceExecResource {
     /// What to run to bring this resource into the desired state. An exit code of 100 indicates "success", any other exit code indicates a failure running enforce.
     #[serde(default)]
@@ -588,7 +589,7 @@ pub struct OSPolicyResourceExecResource {
 }
 
 /// A resource that manages the state of a file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyResourceFileResource {
     /// A file with this content. The size of the content is limited to 32KiB.
     #[serde(default)]
@@ -608,7 +609,7 @@ pub struct OSPolicyResourceFileResource {
 }
 
 /// A resource that manages a system package.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyResourcePackageResource {
     /// A package managed by Apt.
     #[serde(default)]
@@ -637,7 +638,7 @@ pub struct OSPolicyResourcePackageResource {
 }
 
 /// A resource that manages a package repository.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyResourceRepositoryResource {
     /// An Apt Repository.
     #[serde(default)]
@@ -654,7 +655,7 @@ pub struct OSPolicyResourceRepositoryResource {
 }
 
 /// A file or script to execute.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyResourceExecResourceExec {
     /// Optional arguments to pass to the source during execution.
     #[serde(default)]
@@ -674,7 +675,7 @@ pub struct OSPolicyResourceExecResourceExec {
 }
 
 /// A package managed by APT. - install: apt-get update && apt-get -y install [name] - remove: apt-get -y remove [name]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyResourcePackageResourceAPT {
     /// Required. Package name.
     #[serde(default)]
@@ -682,7 +683,7 @@ pub struct OSPolicyResourcePackageResourceAPT {
 }
 
 /// A deb package file. dpkg packages only support INSTALLED state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyResourcePackageResourceDeb {
     /// Whether dependencies should also be installed. - install when false: dpkg -i package - install when true: apt-get update && apt-get -y install package.deb
     #[serde(default, rename = "pullDeps")]
@@ -693,7 +694,7 @@ pub struct OSPolicyResourcePackageResourceDeb {
 }
 
 /// A package managed by GooGet. - install: googet -noconfirm install package - remove: googet -noconfirm remove package
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyResourcePackageResourceGooGet {
     /// Required. Package name.
     #[serde(default)]
@@ -701,7 +702,7 @@ pub struct OSPolicyResourcePackageResourceGooGet {
 }
 
 /// An MSI package. MSI packages only support INSTALLED state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyResourcePackageResourceMSI {
     /// Additional properties to use during installation. This should be in the format of Property=Setting. Appended to the defaults of ACTION=INSTALL REBOOT=ReallySuppress.
     #[serde(default)]
@@ -712,7 +713,7 @@ pub struct OSPolicyResourcePackageResourceMSI {
 }
 
 /// An RPM package file. RPM packages only support INSTALLED state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyResourcePackageResourceRPM {
     /// Whether dependencies should also be installed. - install when false: rpm --upgrade --replacepkgs package.rpm - install when true: yum -y install package.rpm or zypper -y install package.rpm
     #[serde(default, rename = "pullDeps")]
@@ -723,7 +724,7 @@ pub struct OSPolicyResourcePackageResourceRPM {
 }
 
 /// A package managed by YUM. - install: yum -y install package - remove: yum -y remove package
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyResourcePackageResourceYUM {
     /// Required. Package name.
     #[serde(default)]
@@ -731,7 +732,7 @@ pub struct OSPolicyResourcePackageResourceYUM {
 }
 
 /// A package managed by Zypper. - install: zypper -y install package - remove: zypper -y rm package
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyResourcePackageResourceZypper {
     /// Required. Package name.
     #[serde(default)]
@@ -739,7 +740,7 @@ pub struct OSPolicyResourcePackageResourceZypper {
 }
 
 /// Represents a single apt package repository. These will be added to a repo file that will be managed at /etc/apt/sources.list.d/google_osconfig.list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyResourceRepositoryResourceAptRepository {
     /// Required. Type of archive files in this repository. // TODO: enum values: ["ARCHIVE_TYPE_UNSPECIFIED", "DEB", "DEB_SRC"]
     #[serde(default, rename = "archiveType")]
@@ -759,7 +760,7 @@ pub struct OSPolicyResourceRepositoryResourceAptRepository {
 }
 
 /// Represents a Goo package repository. These are added to a repo file that is managed at C:/ProgramData/GooGet/repos/google_osconfig.repo.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyResourceRepositoryResourceGooRepository {
     /// Required. The name of the repository.
     #[serde(default)]
@@ -770,7 +771,7 @@ pub struct OSPolicyResourceRepositoryResourceGooRepository {
 }
 
 /// Represents a single yum package repository. These are added to a repo file that is managed at /etc/yum.repos.d/google_osconfig.repo.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyResourceRepositoryResourceYumRepository {
     /// Required. The location of the repository directory.
     #[serde(default, rename = "baseUrl")]
@@ -787,7 +788,7 @@ pub struct OSPolicyResourceRepositoryResourceYumRepository {
 }
 
 /// Represents a single zypper package repository. These are added to a repo file that is managed at /etc/zypp/repos.d/google_osconfig.repo.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyResourceRepositoryResourceZypperRepository {
     /// Required. The location of the repository directory.
     #[serde(default, rename = "baseUrl")]
@@ -804,7 +805,7 @@ pub struct OSPolicyResourceRepositoryResourceZypperRepository {
 }
 
 /// A remote or local file.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyResourceFile {
     /// Defaults to false. When false, files are subject to validations based on the file type: Remote: A checksum must be specified. Cloud Storage: An object generation number must be specified.
     #[serde(default, rename = "allowInsecure")]
@@ -821,7 +822,7 @@ pub struct OSPolicyResourceFile {
 }
 
 /// Specifies a file available as a Cloud Storage Object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyResourceFileGcs {
     /// Required. Bucket of the Cloud Storage object.
     #[serde(default)]
@@ -835,7 +836,7 @@ pub struct OSPolicyResourceFileGcs {
 }
 
 /// Specifies a file available via some URI.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OSPolicyResourceFileRemote {
     /// SHA256 checksum of the remote file.
     #[serde(default, rename = "sha256Checksum")]

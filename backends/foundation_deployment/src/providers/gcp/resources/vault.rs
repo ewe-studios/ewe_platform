@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Add a list of accounts to a hold.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddHeldAccountsRequest {
     /// A comma-separated list of the account IDs of the accounts to add to the hold. Specify either **emails** or **account_ids**, but not both.
     #[serde(default, rename = "accountIds")]
@@ -22,7 +23,7 @@ pub struct AddHeldAccountsRequest {
 }
 
 /// Response for batch create held accounts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddHeldAccountsResponse {
     /// The list of responses, in the same order as the batch request.
     #[serde(default)]
@@ -30,7 +31,7 @@ pub struct AddHeldAccountsResponse {
 }
 
 /// Add an account with the permission specified. The role cannot be owner. If an account already has a role in the matter, the existing role is overwritten.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddMatterPermissionsRequest {
     /// Only relevant if **sendEmails** is **true**. To CC the requestor in the email message, set to **true**. To not CC requestor, set to **false**.
     #[serde(default, rename = "ccMe")]
@@ -44,15 +45,15 @@ pub struct AddMatterPermissionsRequest {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// Close a matter by ID.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloseMatterRequest {}
 
 /// Response to a CloseMatterRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloseMatterResponse {
     /// The updated matter, with state **CLOSED**.
     #[serde(default)]
@@ -60,7 +61,7 @@ pub struct CloseMatterResponse {
 }
 
 /// Long running operation metadata for CountArtifacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CountArtifactsMetadata {
     /// End time of count operation. Available when operation is done.
     #[serde(default, rename = "endTime")]
@@ -77,7 +78,7 @@ pub struct CountArtifactsMetadata {
 }
 
 /// Count artifacts request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CountArtifactsRequest {
     /// The search query.
     #[serde(default)]
@@ -88,7 +89,7 @@ pub struct CountArtifactsRequest {
 }
 
 /// Definition of the response for method CountArtifacts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CountArtifactsResponse {
     /// Count metrics for Groups.
     #[serde(default, rename = "groupsCountResult")]
@@ -102,19 +103,19 @@ pub struct CountArtifactsResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Additional options for Gemini search
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeminiOptions {}
 
 /// Options for Calendar holds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HeldCalendarQuery {}
 
 /// The exports for a matter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListExportsResponse {
     /// The list of exports.
     #[serde(default)]
@@ -125,7 +126,7 @@ pub struct ListExportsResponse {
 }
 
 /// Returns a list of the accounts covered by a hold.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListHeldAccountsResponse {
     /// The held accounts on a hold.
     #[serde(default)]
@@ -133,7 +134,7 @@ pub struct ListHeldAccountsResponse {
 }
 
 /// The holds for a matter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListHoldsResponse {
     /// The list of holds.
     #[serde(default)]
@@ -144,7 +145,7 @@ pub struct ListHoldsResponse {
 }
 
 /// Provides the list of matters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMattersResponse {
     /// List of matters.
     #[serde(default)]
@@ -155,7 +156,7 @@ pub struct ListMattersResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -169,7 +170,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Definition of the response for method ListSaveQuery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSavedQueriesResponse {
     /// Page token to retrieve the next page of results in the list. If this is empty, then there are no more saved queries to list.
     #[serde(default, rename = "nextPageToken")]
@@ -180,7 +181,7 @@ pub struct ListSavedQueriesResponse {
 }
 
 /// Remove a list of accounts from a hold.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveHeldAccountsRequest {
     /// The account IDs of the accounts to remove from the hold.
     #[serde(default, rename = "accountIds")]
@@ -188,7 +189,7 @@ pub struct RemoveHeldAccountsRequest {
 }
 
 /// Response for batch delete held accounts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveHeldAccountsResponse {
     /// A list of statuses for the deleted accounts. Results have the same order as the request.
     #[serde(default)]
@@ -196,7 +197,7 @@ pub struct RemoveHeldAccountsResponse {
 }
 
 /// Remove an account as a matter collaborator.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveMatterPermissionsRequest {
     /// The account ID.
     #[serde(default, rename = "accountId")]
@@ -204,11 +205,11 @@ pub struct RemoveMatterPermissionsRequest {
 }
 
 /// Reopen a matter by ID.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReopenMatterRequest {}
 
 /// Response to a ReopenMatterRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReopenMatterResponse {
     /// The updated matter, with state **OPEN**.
     #[serde(default)]
@@ -216,11 +217,11 @@ pub struct ReopenMatterResponse {
 }
 
 /// Undelete a matter by ID.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UndeleteMatterRequest {}
 
 /// The status of each account creation, and the **HeldAccount**, if successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddHeldAccountResult {
     /// Returned when the account was successfully created.
     #[serde(default)]
@@ -231,7 +232,7 @@ pub struct AddHeldAccountResult {
 }
 
 /// Groups specific count metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GroupsCountResult {
     /// Error occurred when querying these accounts.
     #[serde(default, rename = "accountCountErrors")]
@@ -251,7 +252,7 @@ pub struct GroupsCountResult {
 }
 
 /// Gmail and classic Hangouts-specific count metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MailCountResult {
     /// Errors occurred when querying these accounts.
     #[serde(default, rename = "accountCountErrors")]
@@ -271,7 +272,7 @@ pub struct MailCountResult {
 }
 
 /// An export. To work with Vault resources, the account must have the [required Vault privileges](https://support.google.com/vault/answer/2799699) and access to the matter. To access a matter, the account must have created the matter, have the matter shared with them, or have the **View All Matters** privilege.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Export {
     /// Output only. The sink for export files in Cloud Storage.
     #[serde(default, rename = "cloudStorageSink")]
@@ -309,7 +310,7 @@ pub struct Export {
 }
 
 /// A hold. A hold prevents the specified Google Workspace service from purging data for specific accounts or all members of an organizational unit. To work with Vault resources, the account must have the [required Vault privileges] (https://support.google.com/vault/answer/2799699) and access to the matter. To access a matter, the account must have created the matter, have the matter shared with them, or have the **View All Matters** privilege.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Hold {
     /// If set, the hold applies to the specified accounts and **orgUnit** must be empty.
     #[serde(default)]
@@ -335,7 +336,7 @@ pub struct Hold {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -355,7 +356,7 @@ pub struct Operation {
 }
 
 /// The definition of a saved query. To work with Vault resources, the account must have the [required Vault privileges](https://support.google.com/vault/answer/2799699) and access to the matter. To access a matter, the account must have created the matter, have the matter shared with them, or have the **View All Matters** privilege.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SavedQuery {
     /// Output only. The server-generated timestamp when the saved query was created.
     #[serde(default, rename = "createTime")]
@@ -375,7 +376,7 @@ pub struct SavedQuery {
 }
 
 /// Represents a matter. To work with Vault resources, the account must have the [required Vault privileges] (https://support.google.com/vault/answer/2799699) and access to the matter. To access a matter, the account must have created the matter, have the matter shared with them, or have the **View All Matters** privilege.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Matter {
     /// An optional description for the matter.
     #[serde(default)]
@@ -398,7 +399,7 @@ pub struct Matter {
 }
 
 /// An error that occurred when querying a specific account
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountCountError {
     /// Account owner.
     #[serde(default)]
@@ -409,7 +410,7 @@ pub struct AccountCountError {
 }
 
 /// The results count for each account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountCount {
     /// Account owner.
     #[serde(default)]
@@ -420,7 +421,7 @@ pub struct AccountCount {
 }
 
 /// Export sink for Cloud Storage files.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudStorageSink {
     /// Output only. The exported files in Cloud Storage.
     #[serde(default)]
@@ -428,7 +429,7 @@ pub struct CloudStorageSink {
 }
 
 /// Additional options for exports
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportOptions {
     /// Option available for Calendar export.
     #[serde(default, rename = "calendarOptions")]
@@ -457,7 +458,7 @@ pub struct ExportOptions {
 }
 
 /// Progress information for an export.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExportStats {
     /// The number of messages or files already processed for export.
     #[serde(default, rename = "exportedArtifactCount")]
@@ -471,7 +472,7 @@ pub struct ExportStats {
 }
 
 /// An account covered by a hold. This structure is immutable. It can be an individual account or a Google Group, depending on the service. To work with Vault resources, the account must have the [required Vault privileges] (https://support.google.com/vault/answer/2799699) and access to the matter. To access a matter, the account must have created the matter, have the matter shared with them, or have the **View All Matters** privilege.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HeldAccount {
     /// The account ID, as provided by the [Admin SDK](https://developers.google.com/admin-sdk/).
     #[serde(default, rename = "accountId")]
@@ -491,7 +492,7 @@ pub struct HeldAccount {
 }
 
 /// The organizational unit covered by a hold. This structure is immutable.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HeldOrgUnit {
     /// When the organizational unit was put on hold. This property is immutable.
     #[serde(default, rename = "holdTime")]
@@ -502,7 +503,7 @@ pub struct HeldOrgUnit {
 }
 
 /// Service-specific options for holds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CorpusQuery {
     /// Service-specific options for Calendar holds. If set, **CorpusType** must be **CALENDAR**.
     #[serde(default, rename = "calendarQuery")]
@@ -525,7 +526,7 @@ pub struct CorpusQuery {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -539,7 +540,7 @@ pub struct Status {
 }
 
 /// The query definition used for search and export.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Query {
     /// Required when **SearchMethod** is **ACCOUNT**.
     #[serde(default, rename = "accountInfo")]
@@ -607,7 +608,7 @@ pub struct Query {
 }
 
 /// Users can be matter owners or collaborators. Each matter has only one owner. All others users who can access the matter are collaborators. When an account is purged, its corresponding MatterPermission resources cease to exist.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MatterPermission {
     /// The account ID, as provided by the [Admin SDK](https://developers.google.com/admin-sdk/).
     #[serde(default, rename = "accountId")]
@@ -618,7 +619,7 @@ pub struct MatterPermission {
 }
 
 /// User''s information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserInfo {
     /// The displayed name of the user.
     #[serde(default, rename = "displayName")]
@@ -629,7 +630,7 @@ pub struct UserInfo {
 }
 
 /// The export file in Cloud Storage
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudStorageFile {
     /// The name of the Cloud Storage bucket for the export file. You can use this value in the Cloud Storage [JSON API](https://cloud.google.com/storage/docs/json_api) or [XML API](https://cloud.google.com/storage/docs/xml-api), but not to list the bucket contents. Instead, you can [get individual export files](https://cloud.google.com/storage/docs/json_api/v1/objects/get) by object name.
     #[serde(default, rename = "bucketName")]
@@ -646,7 +647,7 @@ pub struct CloudStorageFile {
 }
 
 /// The options for Calendar exports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CalendarExportOptions {
     /// The file format for exported text messages. // TODO: enum values: ["EXPORT_FORMAT_UNSPECIFIED", "MBOX", "PST", "ICS", "XML"]
     #[serde(default, rename = "exportFormat")]
@@ -654,7 +655,7 @@ pub struct CalendarExportOptions {
 }
 
 /// Options for Drive exports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DriveExportOptions {
     /// To include access level information for users with [indirect access](https://support.google.com/vault/answer/6099459#metadata) to files, set to **true**.
     #[serde(default, rename = "includeAccessInfo")]
@@ -662,7 +663,7 @@ pub struct DriveExportOptions {
 }
 
 /// The options for Gemini exports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GeminiExportOptions {
     /// The file format for exported messages. // TODO: enum values: ["EXPORT_FORMAT_UNSPECIFIED", "MBOX", "PST", "ICS", "XML"]
     #[serde(default, rename = "exportFormat")]
@@ -670,7 +671,7 @@ pub struct GeminiExportOptions {
 }
 
 /// Options for Groups exports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GroupsExportOptions {
     /// The file format for exported messages. // TODO: enum values: ["EXPORT_FORMAT_UNSPECIFIED", "MBOX", "PST", "ICS", "XML"]
     #[serde(default, rename = "exportFormat")]
@@ -678,7 +679,7 @@ pub struct GroupsExportOptions {
 }
 
 /// Options for Chat exports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HangoutsChatExportOptions {
     /// The file format for exported messages. // TODO: enum values: ["EXPORT_FORMAT_UNSPECIFIED", "MBOX", "PST", "ICS", "XML"]
     #[serde(default, rename = "exportFormat")]
@@ -686,7 +687,7 @@ pub struct HangoutsChatExportOptions {
 }
 
 /// Options for Gmail exports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MailExportOptions {
     /// The file format for exported messages. // TODO: enum values: ["EXPORT_FORMAT_UNSPECIFIED", "MBOX", "PST", "ICS", "XML"]
     #[serde(default, rename = "exportFormat")]
@@ -703,7 +704,7 @@ pub struct MailExportOptions {
 }
 
 /// The options for Voice exports.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VoiceExportOptions {
     /// The file format for exported text messages. // TODO: enum values: ["EXPORT_FORMAT_UNSPECIFIED", "MBOX", "PST", "ICS", "XML"]
     #[serde(default, rename = "exportFormat")]
@@ -711,7 +712,7 @@ pub struct VoiceExportOptions {
 }
 
 /// Options for Drive holds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HeldDriveQuery {
     /// To include files in shared drives in the hold, set to **true**.
     #[serde(default, rename = "includeSharedDriveFiles")]
@@ -722,7 +723,7 @@ pub struct HeldDriveQuery {
 }
 
 /// Query options for group holds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HeldGroupsQuery {
     /// The end time for the query. Specify in GMT. The value is rounded to 12 AM on the specified date.
     #[serde(default, rename = "endTime")]
@@ -736,7 +737,7 @@ pub struct HeldGroupsQuery {
 }
 
 /// Options for Chat holds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HeldHangoutsChatQuery {
     /// To include messages in Chat spaces the user was a member of, set to **true**.
     #[serde(default, rename = "includeRooms")]
@@ -744,7 +745,7 @@ pub struct HeldHangoutsChatQuery {
 }
 
 /// Query options for Gmail holds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HeldMailQuery {
     /// The end time for the query. Specify in GMT. The value is rounded to 12 AM on the specified date.
     #[serde(default, rename = "endTime")]
@@ -758,7 +759,7 @@ pub struct HeldMailQuery {
 }
 
 /// Options for Voice holds.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HeldVoiceQuery {
     /// A list of data types covered by the hold. Should be non-empty. Order does not matter and duplicates are ignored.
     #[serde(default, rename = "coveredData")]
@@ -766,7 +767,7 @@ pub struct HeldVoiceQuery {
 }
 
 /// The accounts to search
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccountInfo {
     /// A set of accounts to search.
     #[serde(default)]
@@ -774,7 +775,7 @@ pub struct AccountInfo {
 }
 
 /// Additional options for Calendar search
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CalendarOptions {
     /// Matches only those events whose location contains all of the words in the given set. If the string contains quoted phrases, this method only matches those events whose location contain the exact phrase. Entries in the set are considered in "and". Word splitting example: ["New Zealand"] vs ["New","Zealand"] "New Zealand": matched by both "New and better Zealand": only matched by the later
     #[serde(default, rename = "locationQuery")]
@@ -794,7 +795,7 @@ pub struct CalendarOptions {
 }
 
 /// The Drive documents to search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DriveDocumentInfo {
     /// Specify Drive documents by document ID.
     #[serde(default, rename = "documentIds")]
@@ -802,7 +803,7 @@ pub struct DriveDocumentInfo {
 }
 
 /// Additional options for Drive search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DriveOptions {
     /// Set whether the results include only content encrypted with [Google Workspace Client-side encryption](https://support.google.com/a?p=cse_ov) content, only unencrypted content, or both. Defaults to both. Currently supported for Drive. // TODO: enum values: ["CLIENT_SIDE_ENCRYPTED_OPTION_UNSPECIFIED", "CLIENT_SIDE_ENCRYPTED_OPTION_ANY", "CLIENT_SIDE_ENCRYPTED_OPTION_ENCRYPTED", "CLIENT_SIDE_ENCRYPTED_OPTION_UNENCRYPTED"]
     #[serde(default, rename = "clientSideEncryptedOption")]
@@ -822,7 +823,7 @@ pub struct DriveOptions {
 }
 
 /// The Chat spaces to search
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HangoutsChatInfo {
     /// A list of Chat spaces IDs, as provided by the [Chat API](https://developers.google.com/workspace/chat). There is a limit of exporting from 500 Chat spaces per request.
     #[serde(default, rename = "roomId")]
@@ -830,7 +831,7 @@ pub struct HangoutsChatInfo {
 }
 
 /// Additional options for Google Chat search
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HangoutsChatOptions {
     /// For searches by account or organizational unit, set to **true** to include rooms.
     #[serde(default, rename = "includeRooms")]
@@ -838,7 +839,7 @@ pub struct HangoutsChatOptions {
 }
 
 /// Additional options for Gmail search
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MailOptions {
     /// Specifies whether the results should include encrypted content, unencrypted content, or both. Defaults to including both. // TODO: enum values: ["CLIENT_SIDE_ENCRYPTED_OPTION_UNSPECIFIED", "CLIENT_SIDE_ENCRYPTED_OPTION_ANY", "CLIENT_SIDE_ENCRYPTED_OPTION_ENCRYPTED", "CLIENT_SIDE_ENCRYPTED_OPTION_UNENCRYPTED"]
     #[serde(default, rename = "clientSideEncryptedOption")]
@@ -849,7 +850,7 @@ pub struct MailOptions {
 }
 
 /// The organizational unit to search
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OrgUnitInfo {
     /// The name of the organizational unit to search, as provided by the [Admin SDK Directory API](https://developers.google.com/admin-sdk/directory/).
     #[serde(default, rename = "orgUnitId")]
@@ -857,7 +858,7 @@ pub struct OrgUnitInfo {
 }
 
 /// The shared drives to search
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SharedDriveInfo {
     /// A list of shared drive IDs, as provided by the [Drive API](https://developers.google.com/drive).
     #[serde(default, rename = "sharedDriveIds")]
@@ -865,7 +866,7 @@ pub struct SharedDriveInfo {
 }
 
 /// The published site URLs of new Google Sites to search
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SitesUrlInfo {
     /// A list of published site URLs.
     #[serde(default)]
@@ -873,7 +874,7 @@ pub struct SitesUrlInfo {
 }
 
 /// Team Drives to search
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TeamDriveInfo {
     /// List of Team Drive IDs, as provided by the [Drive API](https://developers.google.com/drive).
     #[serde(default, rename = "teamDriveIds")]
@@ -881,7 +882,7 @@ pub struct TeamDriveInfo {
 }
 
 /// Additional options for Voice search
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VoiceOptions {
     /// Datatypes to search
     #[serde(default, rename = "coveredData")]
@@ -889,7 +890,7 @@ pub struct VoiceOptions {
 }
 
 /// Specify Drive documents by document ID.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DriveDocumentIds {
     /// Required. A list of Drive document IDs.
     #[serde(default)]

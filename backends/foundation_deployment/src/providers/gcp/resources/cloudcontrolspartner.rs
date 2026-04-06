@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// The EKM connections associated with a workload
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EkmConnections {
     /// The EKM connections associated with the workload
     #[serde(default, rename = "ekmConnections")]
@@ -22,11 +23,11 @@ pub struct EkmConnections {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Response message for list access requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAccessApprovalRequestsResponse {
     /// List of access approval requests
     #[serde(default, rename = "accessApprovalRequests")]
@@ -40,7 +41,7 @@ pub struct ListAccessApprovalRequestsResponse {
 }
 
 /// Response message for list customer Customers requests
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCustomersResponse {
     /// List of customers
     #[serde(default)]
@@ -54,7 +55,7 @@ pub struct ListCustomersResponse {
 }
 
 /// Response message for list customer violation requests
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListViolationsResponse {
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -68,7 +69,7 @@ pub struct ListViolationsResponse {
 }
 
 /// Response message for list customer workloads requests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListWorkloadsResponse {
     /// A token that can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -82,7 +83,7 @@ pub struct ListWorkloadsResponse {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -108,7 +109,7 @@ pub struct OperationMetadata {
 }
 
 /// Message describing Partner resource
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Partner {
     /// Output only. Time the resource was created
     #[serde(default, rename = "createTime")]
@@ -134,7 +135,7 @@ pub struct Partner {
 }
 
 /// The permissions granted to the partner for a workload
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PartnerPermissions {
     /// Identifier. Format: organizations/{organization}/locations/{location}/customers/{customer}/workloads/{workload}/partnerPermissions
     #[serde(default)]
@@ -145,7 +146,7 @@ pub struct PartnerPermissions {
 }
 
 /// Details about the EKM connection
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EkmConnection {
     /// The connection error that occurred if any
     #[serde(default, rename = "connectionError")]
@@ -159,7 +160,7 @@ pub struct EkmConnection {
 }
 
 /// Details about the Access request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessApprovalRequest {
     /// Identifier. Format: organizations/{organization}/locations/{location}/customers/{customer}/workloads/{workload}/accessApprovalRequests/{access_approval_request}
     #[serde(default)]
@@ -176,7 +177,7 @@ pub struct AccessApprovalRequest {
 }
 
 /// Contains metadata around a Cloud Controls Partner Customer
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Customer {
     /// Output only. Container for customer onboarding steps
     #[serde(default, rename = "customerOnboardingState")]
@@ -196,7 +197,7 @@ pub struct Customer {
 }
 
 /// Details of resource Violation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Violation {
     /// Output only. Time of the event which triggered the Violation.
     #[serde(default, rename = "beginTime")]
@@ -231,7 +232,7 @@ pub struct Violation {
 }
 
 /// Contains metadata around the [Workload resource](https://cloud.google.com/assured-workloads/docs/reference/rest/Shared.Types/Workload) in the Assured Workloads API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Workload {
     /// Output only. Time the resource was created.
     #[serde(default, rename = "createTime")]
@@ -263,7 +264,7 @@ pub struct Workload {
 }
 
 /// Holds information needed by Mudbray to use partner EKMs for workloads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EkmMetadata {
     /// Endpoint for sending requests to the EKM for key provisioning during Assured Workload creation.
     #[serde(default, rename = "ekmEndpointUri")]
@@ -274,7 +275,7 @@ pub struct EkmMetadata {
 }
 
 /// Represents the SKU a partner owns inside Google Cloud to sell to customers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Sku {
     /// Display name of the product identified by the SKU. A partner may want to show partner branded names for their offerings such as local sovereign cloud solutions.
     #[serde(default, rename = "displayName")]
@@ -285,7 +286,7 @@ pub struct Sku {
 }
 
 /// Information around the error that occurred if the connection state is anything other than available or unspecified
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectionError {
     /// The error domain for the error
     #[serde(default, rename = "errorDomain")]
@@ -296,7 +297,7 @@ pub struct ConnectionError {
 }
 
 /// Reason for the access.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessReason {
     /// More detail about certain reason types. See comments for each type above.
     #[serde(default)]
@@ -307,7 +308,7 @@ pub struct AccessReason {
 }
 
 /// Container for customer onboarding steps
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerOnboardingState {
     /// List of customer onboarding steps
     #[serde(default, rename = "onboardingSteps")]
@@ -315,7 +316,7 @@ pub struct CustomerOnboardingState {
 }
 
 /// Represents remediation guidance to resolve compliance violation for AssuredWorkload
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Remediation {
     /// Values that can resolve the violation For example: for list org policy violations, this will either be the list of allowed or denied values
     #[serde(default, rename = "compliantValues")]
@@ -329,7 +330,7 @@ pub struct Remediation {
 }
 
 /// Container for workload onboarding steps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkloadOnboardingState {
     /// List of workload onboarding steps.
     #[serde(default, rename = "onboardingSteps")]
@@ -337,7 +338,7 @@ pub struct WorkloadOnboardingState {
 }
 
 /// Container for customer onboarding information
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerOnboardingStep {
     /// Output only. Current state of the step // TODO: enum values: ["COMPLETION_STATE_UNSPECIFIED", "PENDING", "SUCCEEDED", "FAILED", "NOT_APPLICABLE"]
     #[serde(default, rename = "completionState")]
@@ -354,7 +355,7 @@ pub struct CustomerOnboardingStep {
 }
 
 /// Instructions to remediate violation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Instructions {
     /// Remediation instructions to resolve violation via cloud console
     #[serde(default, rename = "consoleInstructions")]
@@ -365,7 +366,7 @@ pub struct Instructions {
 }
 
 /// Container for workload onboarding information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkloadOnboardingStep {
     /// Output only. The completion state of the onboarding step. // TODO: enum values: ["COMPLETION_STATE_UNSPECIFIED", "PENDING", "SUCCEEDED", "FAILED", "NOT_APPLICABLE"]
     #[serde(default, rename = "completionState")]
@@ -382,7 +383,7 @@ pub struct WorkloadOnboardingStep {
 }
 
 /// Remediation instructions to resolve violation via cloud console
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Console {
     /// Additional urls for more information about steps
     #[serde(default, rename = "additionalLinks")]
@@ -396,7 +397,7 @@ pub struct Console {
 }
 
 /// Remediation instructions to resolve violation via gcloud cli
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Gcloud {
     /// Additional urls for more information about steps
     #[serde(default, rename = "additionalLinks")]

@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request for the Acknowledge method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcknowledgeRequest {
     /// Required. The acknowledgment ID for the messages being acknowledged that was returned by the Pub/Sub system in the Pull response. Must not be empty.
     #[serde(default, rename = "ackIds")]
@@ -19,11 +20,11 @@ pub struct AcknowledgeRequest {
 }
 
 /// Configuration for reading Cloud Storage data in Avro binary format. The bytes of each object will be set to the data field of a Pub/Sub message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AvroFormat {}
 
 /// Request for CommitSchema method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommitSchemaRequest {
     /// Required. The schema revision to commit.
     #[serde(default)]
@@ -31,7 +32,7 @@ pub struct CommitSchemaRequest {
 }
 
 /// Request for the CreateSnapshot method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CreateSnapshotRequest {
     /// Optional. See [Creating and managing labels](https://cloud.google.com/pubsub/docs/labels).
     #[serde(default)]
@@ -45,15 +46,15 @@ pub struct CreateSnapshotRequest {
 }
 
 /// Response for the DetachSubscription method. Reserved for future use.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DetachSubscriptionResponse {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Response for the ListSchemaRevisions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSchemaRevisionsResponse {
     /// A token that can be sent as page_token to retrieve the next page. If this field is empty, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -64,7 +65,7 @@ pub struct ListSchemaRevisionsResponse {
 }
 
 /// Response for the ListSchemas method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSchemasResponse {
     /// If not empty, indicates that there may be more schemas that match the request; this value should be passed in a new ListSchemasRequest.
     #[serde(default, rename = "nextPageToken")]
@@ -75,7 +76,7 @@ pub struct ListSchemasResponse {
 }
 
 /// Response for the ListSnapshots method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSnapshotsResponse {
     /// Optional. If not empty, indicates that there may be more snapshot that match the request; this value should be passed in a new ListSnapshotsRequest.
     #[serde(default, rename = "nextPageToken")]
@@ -86,7 +87,7 @@ pub struct ListSnapshotsResponse {
 }
 
 /// Response for the ListSubscriptions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSubscriptionsResponse {
     /// Optional. If not empty, indicates that there may be more subscriptions that match the request; this value should be passed in a new ListSubscriptionsRequest to get more subscriptions.
     #[serde(default, rename = "nextPageToken")]
@@ -97,7 +98,7 @@ pub struct ListSubscriptionsResponse {
 }
 
 /// Response for the ListTopicSnapshots method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTopicSnapshotsResponse {
     /// Optional. If not empty, indicates that there may be more snapshots that match the request; this value should be passed in a new ListTopicSnapshotsRequest to get more snapshots.
     #[serde(default, rename = "nextPageToken")]
@@ -108,7 +109,7 @@ pub struct ListTopicSnapshotsResponse {
 }
 
 /// Response for the ListTopicSubscriptions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTopicSubscriptionsResponse {
     /// Optional. If not empty, indicates that there may be more subscriptions that match the request; this value should be passed in a new ListTopicSubscriptionsRequest to get more subscriptions.
     #[serde(default, rename = "nextPageToken")]
@@ -119,7 +120,7 @@ pub struct ListTopicSubscriptionsResponse {
 }
 
 /// Response for the ListTopics method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListTopicsResponse {
     /// Optional. If not empty, indicates that there may be more topics that match the request; this value should be passed in a new ListTopicsRequest.
     #[serde(default, rename = "nextPageToken")]
@@ -130,7 +131,7 @@ pub struct ListTopicsResponse {
 }
 
 /// Request for the ModifyAckDeadline method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModifyAckDeadlineRequest {
     /// Required. The new ack deadline with respect to the time this request was sent to the Pub/Sub system. For example, if the value is 10, the new ack deadline will expire 10 seconds after the ModifyAckDeadline call was made. Specifying zero might immediately make the message available for delivery to another subscriber client. This typically results in an increase in the rate of message redeliveries (that is, duplicates). The minimum deadline you can specify is 0 seconds. The maximum deadline you can specify in a single request is 600 seconds (10 minutes).
     #[serde(default, rename = "ackDeadlineSeconds")]
@@ -141,7 +142,7 @@ pub struct ModifyAckDeadlineRequest {
 }
 
 /// Request for the ModifyPushConfig method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ModifyPushConfigRequest {
     /// Required. The push configuration for future deliveries. An empty pushConfig indicates that the Pub/Sub system should stop pushing messages from the given subscription and allow messages to be pulled and acknowledged - effectively pausing the subscription if Pull or StreamingPull is not called.
     #[serde(default, rename = "pushConfig")]
@@ -149,11 +150,11 @@ pub struct ModifyPushConfigRequest {
 }
 
 /// Configuration for reading Cloud Storage data written via [Cloud Storage subscriptions](https://cloud.google.com/pubsub/docs/cloudstorage). The data and attributes fields of the originally exported Pub/Sub message will be restored when publishing.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PubSubAvroFormat {}
 
 /// Request for the Publish method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublishRequest {
     /// Required. The messages to publish.
     #[serde(default)]
@@ -161,7 +162,7 @@ pub struct PublishRequest {
 }
 
 /// Response for the Publish method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PublishResponse {
     /// Optional. The server-assigned ID of each published message, in the same order as the messages in the request. IDs are guaranteed to be unique within the topic.
     #[serde(default, rename = "messageIds")]
@@ -169,11 +170,11 @@ pub struct PublishResponse {
 }
 
 /// The payload to the push endpoint is in the form of the JSON representation of a PubsubMessage (https://cloud.google.com/pubsub/docs/reference/rpc/google.pubsub.v1#pubsubmessage).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PubsubWrapper {}
 
 /// Request for the Pull method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PullRequest {
     /// Required. The maximum number of messages to return for this request. Must be a positive integer. The Pub/Sub system may return fewer than the number specified.
     #[serde(default, rename = "maxMessages")]
@@ -184,7 +185,7 @@ pub struct PullRequest {
 }
 
 /// Response for the Pull method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PullResponse {
     /// Optional. Received Pub/Sub messages. The list will be empty if there are no more messages available in the backlog, or if no messages could be returned before the request timeout. For JSON, the response can be entirely empty. The Pub/Sub system may return fewer than the maxMessages requested even if there are more messages available in the backlog.
     #[serde(default, rename = "receivedMessages")]
@@ -192,7 +193,7 @@ pub struct PullResponse {
 }
 
 /// Request for the RollbackSchema method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RollbackSchemaRequest {
     /// Required. The revision ID to roll back to. It must be a revision of the same schema. Example: c7cfa2a8
     #[serde(default, rename = "revisionId")]
@@ -200,7 +201,7 @@ pub struct RollbackSchemaRequest {
 }
 
 /// Request for the Seek method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SeekRequest {
     /// Optional. The snapshot to seek to. The snapshot''s topic must be the same as that of the provided subscription. Format is projects/{project}/snapshots/{snap}.
     #[serde(default)]
@@ -211,11 +212,11 @@ pub struct SeekRequest {
 }
 
 /// Response for the Seek method (this response is empty).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SeekResponse {}
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -223,7 +224,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -231,7 +232,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -239,11 +240,11 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// Configuration for writing message data in text format. Message payloads will be written to files as raw text, separated by a newline.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextConfig {}
 
 /// Request for the UpdateSnapshot method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateSnapshotRequest {
     /// Required. The updated snapshot object.
     #[serde(default)]
@@ -254,7 +255,7 @@ pub struct UpdateSnapshotRequest {
 }
 
 /// Request for the UpdateSubscription method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateSubscriptionRequest {
     /// Required. The updated subscription object.
     #[serde(default)]
@@ -265,7 +266,7 @@ pub struct UpdateSubscriptionRequest {
 }
 
 /// Request for the UpdateTopic method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdateTopicRequest {
     /// Required. The updated topic object.
     #[serde(default)]
@@ -276,7 +277,7 @@ pub struct UpdateTopicRequest {
 }
 
 /// Request for the ValidateMessage method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValidateMessageRequest {
     /// The encoding expected for messages // TODO: enum values: ["ENCODING_UNSPECIFIED", "JSON", "BINARY"]
     #[serde(default)]
@@ -293,11 +294,11 @@ pub struct ValidateMessageRequest {
 }
 
 /// Response for the ValidateMessage method. Empty for now.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValidateMessageResponse {}
 
 /// Request for the ValidateSchema method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValidateSchemaRequest {
     /// Required. The schema object to validate.
     #[serde(default)]
@@ -305,11 +306,11 @@ pub struct ValidateSchemaRequest {
 }
 
 /// Response for the ValidateSchema method. Empty for now.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValidateSchemaResponse {}
 
 /// A message and its corresponding acknowledgment ID.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReceivedMessage {
     /// Optional. This ID can be used to acknowledge the received message.
     #[serde(default, rename = "ackId")]
@@ -323,7 +324,7 @@ pub struct ReceivedMessage {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
@@ -337,7 +338,7 @@ pub struct Policy {
 }
 
 /// A snapshot resource. Snapshots are used in [Seek](https://cloud.google.com/pubsub/docs/replay-overview) operations, which allow you to manage message acknowledgments in bulk. That is, you can set the acknowledgment state of messages in an existing subscription to the state captured by a snapshot.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Snapshot {
     /// Optional. The snapshot is guaranteed to exist up until this time. A newly-created snapshot expires no later than 7 days from the time of its creation. Its exact lifetime is determined at creation by the existing backlog in the source subscription. Specifically, the lifetime of the snapshot is 7 days - (age of oldest unacked message in the subscription). For example, consider a subscription whose oldest unacked message is 3 days old. If a snapshot is created from this subscription, the snapshot -- which will always capture this 3-day-old backlog as long as the snapshot exists -- will expire in 4 days. The service will refuse to create a snapshot that would expire in less than 1 hour after creation.
     #[serde(default, rename = "expireTime")]
@@ -354,7 +355,7 @@ pub struct Snapshot {
 }
 
 /// A subscription resource. If none of push_config, bigquery_config, or cloud_storage_config is set, then the subscriber will pull and ack messages using API methods. At most one of these fields may be set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Subscription {
     /// Optional. The approximate amount of time (on a best-effort basis) Pub/Sub waits for the subscriber to acknowledge receipt before resending the message. In the interval after the message is delivered and before it is acknowledged, it is considered to be _outstanding_. During that time period, the message will not be redelivered (on a best-effort basis). For pull subscriptions, this value is used as the initial value for the ack deadline. To override this value for a given message, call ModifyAckDeadline with the corresponding ack_id if using non-streaming pull or send the ack_id in a StreamingModifyAckDeadlineRequest if using streaming pull. The minimum custom deadline you can specify is 10 seconds. The maximum custom deadline you can specify is 600 seconds (10 minutes). If this parameter is 0, a default value of 10 seconds is used. For push delivery, this value is also used to set the request timeout for the call to the push endpoint. If the subscriber never acknowledges the message, the Pub/Sub system will eventually redeliver the message.
     #[serde(default, rename = "ackDeadlineSeconds")]
@@ -425,7 +426,7 @@ pub struct Subscription {
 }
 
 /// A topic resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Topic {
     /// Optional. Settings for ingestion from a data source into this topic.
     #[serde(default, rename = "ingestionDataSourceSettings")]
@@ -463,7 +464,7 @@ pub struct Topic {
 }
 
 /// A schema resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Schema {
     /// The definition of the schema. This should contain a string representing the full definition of the schema that is a valid schema definition of the type specified in type.
     #[serde(default)]
@@ -483,7 +484,7 @@ pub struct Schema {
 }
 
 /// A message that is published by publishers and consumed by subscribers. The message must contain either a non-empty data field or at least one attribute. Note that client libraries represent this object differently depending on the language. See the corresponding [client library documentation](https://cloud.google.com/pubsub/docs/reference/libraries) for more information. See [quotas and limits] (https://cloud.google.com/pubsub/quotas) for more information about message limits.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PubsubMessage {
     /// Optional. Attributes for this message. If this field is empty, the message must contain non-empty data. This can be used to filter messages on the subscription.
     #[serde(default)]
@@ -503,7 +504,7 @@ pub struct PubsubMessage {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -517,7 +518,7 @@ pub struct Binding {
 }
 
 /// Information about an associated [Analytics Hub subscription](https://cloud.google.com/bigquery/docs/analytics-hub-manage-subscriptions).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyticsHubSubscriptionInfo {
     /// Optional. The name of the associated Analytics Hub listing resource. Pattern: "projects/{project}/locations/{location}/dataExchanges/{data_exchange}/listings/{listing}"
     #[serde(default)]
@@ -528,7 +529,7 @@ pub struct AnalyticsHubSubscriptionInfo {
 }
 
 /// Configuration for a BigQuery subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BigQueryConfig {
     /// Optional. When true and use_topic_schema is true, any fields that are a part of the topic schema that are not part of the BigQuery table schema are dropped when writing to BigQuery. Otherwise, the schemas must be kept in sync and any messages with extra fields are not written and remain in the subscription''s backlog.
     #[serde(default, rename = "dropUnknownFields")]
@@ -554,7 +555,7 @@ pub struct BigQueryConfig {
 }
 
 /// Configuration for a Bigtable subscription. The Pub/Sub message will be written to a Bigtable row as follows: - row key: subscription name and message ID delimited by #. - columns: message bytes written to a single column family "data" with an empty-string column qualifier. - cell timestamp: the message publish timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BigtableConfig {
     /// Optional. The app profile to use for the Bigtable writes. If not specified, the "default" application profile will be used. The app profile must use single-cluster routing.
     #[serde(default, rename = "appProfileId")]
@@ -574,7 +575,7 @@ pub struct BigtableConfig {
 }
 
 /// Configuration for a Cloud Storage subscription.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudStorageConfig {
     /// Optional. If set, message data will be written to Cloud Storage in Avro format.
     #[serde(default, rename = "avroConfig")]
@@ -612,7 +613,7 @@ pub struct CloudStorageConfig {
 }
 
 /// Dead lettering is done on a best effort basis. The same message might be dead lettered multiple times. If validation on any of the fields fails at subscription creation/updation, the create/update subscription request will fail.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeadLetterPolicy {
     /// Optional. The name of the topic to which dead letter messages should be published. Format is projects/{project}/topics/{topic}.The Pub/Sub service account associated with the enclosing subscription''s parent project (i.e., service-{project_number}@gcp-sa-pubsub.iam.gserviceaccount.com) must have permission to Publish() to this topic. The operation will fail if the topic does not exist. Users should ensure that there is a subscription attached to this topic since messages published to a topic with no subscriptions are lost.
     #[serde(default, rename = "deadLetterTopic")]
@@ -623,7 +624,7 @@ pub struct DeadLetterPolicy {
 }
 
 /// A policy that specifies the conditions for resource expiration (i.e., automatic resource deletion).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExpirationPolicy {
     /// Optional. Specifies the "time-to-live" duration for an associated resource. The resource expires if it is not active for a period of ttl. The definition of "activity" depends on the type of the associated resource. The minimum and maximum allowed values for ttl depend on the type of the associated resource, as well. If ttl is not set, the associated resource never expires.
     #[serde(default)]
@@ -631,7 +632,7 @@ pub struct ExpirationPolicy {
 }
 
 /// Configuration for a push delivery endpoint.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PushConfig {
     /// Optional. Endpoint configuration attributes that can be used to control different aspects of the message delivery. The only currently supported attribute is x-goog-version, which you can use to change the format of the pushed message. This attribute indicates the version of the data expected by the endpoint. This controls the shape of the pushed message (i.e., its fields and metadata). If not present during the CreateSubscription call, it will default to the version of the Pub/Sub API used to make such call. If not present in a ModifyPushConfig call, its value will not be changed. GetSubscription calls will always return a valid version, even if the subscription was created without this attribute. The only supported values for the x-goog-version attribute are: * v1beta1: uses the push format defined in the v1beta1 Pub/Sub API. * v1 or v1beta2: uses the push format defined in the v1 Pub/Sub API. For example: attributes { "x-goog-version": "v1" }
     #[serde(default)]
@@ -651,7 +652,7 @@ pub struct PushConfig {
 }
 
 /// A policy that specifies how Pub/Sub retries message delivery. Retry delay will be exponential based on provided minimum and maximum backoffs. https://en.wikipedia.org/wiki/Exponential_backoff. RetryPolicy will be triggered on NACKs or acknowledgment deadline exceeded events for a given message. Retry Policy is implemented on a best effort basis. At times, the delay between consecutive deliveries may not match the configuration. That is, delay can be more or less than configured backoff.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RetryPolicy {
     /// Optional. The maximum delay between consecutive deliveries of a given message. Value should be between 0 and 600 seconds. Defaults to 600 seconds.
     #[serde(default, rename = "maximumBackoff")]
@@ -662,7 +663,7 @@ pub struct RetryPolicy {
 }
 
 /// Settings for an ingestion data source on a topic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IngestionDataSourceSettings {
     /// Optional. Amazon Kinesis Data Streams.
     #[serde(default, rename = "awsKinesis")]
@@ -685,7 +686,7 @@ pub struct IngestionDataSourceSettings {
 }
 
 /// A policy constraining the storage of messages published to the topic.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MessageStoragePolicy {
     /// Optional. A list of IDs of Google Cloud regions where messages that are published to the topic may be persisted in storage. Messages published by publishers running in non-allowed Google Cloud regions (or running outside of Google Cloud altogether) are routed for storage in one of the allowed regions. An empty list means that no regions are allowed, and is not a valid configuration.
     #[serde(default, rename = "allowedPersistenceRegions")]
@@ -696,7 +697,7 @@ pub struct MessageStoragePolicy {
 }
 
 /// All supported message transforms types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MessageTransform {
     /// Optional. AI Inference. Specifies the Vertex AI endpoint that inference requests built from the Pub/Sub message data and provided parameters will be sent to.
     #[serde(default, rename = "aiInference")]
@@ -713,7 +714,7 @@ pub struct MessageTransform {
 }
 
 /// Settings for validating messages published against a schema.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SchemaSettings {
     /// Optional. The encoding of messages validated against schema. // TODO: enum values: ["ENCODING_UNSPECIFIED", "JSON", "BINARY"]
     #[serde(default)]
@@ -730,7 +731,7 @@ pub struct SchemaSettings {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -747,7 +748,7 @@ pub struct Expr {
 }
 
 /// Configuration for writing message data in Avro format. Message payloads and metadata will be written to files as an Avro binary.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AvroConfig {
     /// Optional. When true, the output Cloud Storage file will be serialized using the topic schema, if it exists.
     #[serde(default, rename = "useTopicSchema")]
@@ -758,7 +759,7 @@ pub struct AvroConfig {
 }
 
 /// Sets the data field as the HTTP body for delivery.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NoWrapper {
     /// Optional. When true, writes the Pub/Sub message metadata to x-goog-pubsub-: headers of the HTTP request. Writes the Pub/Sub message attributes to : headers of the HTTP request.
     #[serde(default, rename = "writeMetadata")]
@@ -766,7 +767,7 @@ pub struct NoWrapper {
 }
 
 /// Contains information needed for generating an [OpenID Connect token](https://developers.google.com/identity/protocols/OpenIDConnect).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OidcToken {
     /// Optional. Audience to be used when generating OIDC token. The audience claim identifies the recipients that the JWT is intended for. The audience value is a single case-sensitive string. Having multiple values (array) for the audience field is not supported. More info about the OIDC JWT token audience here: https://tools.ietf.org/html/rfc7519#section-4.1.3 Note: if not specified, the Push endpoint URL will be used.
     #[serde(default)]
@@ -777,7 +778,7 @@ pub struct OidcToken {
 }
 
 /// Ingestion settings for Amazon Kinesis Data Streams.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AwsKinesis {
     /// Required. AWS role ARN to be used for Federated Identity authentication with Kinesis. Check the Pub/Sub docs for how to set up this role and the required permissions that need to be attached to it.
     #[serde(default, rename = "awsRoleArn")]
@@ -797,7 +798,7 @@ pub struct AwsKinesis {
 }
 
 /// Ingestion settings for Amazon MSK.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AwsMsk {
     /// Required. AWS role ARN to be used for Federated Identity authentication with Amazon MSK. Check the Pub/Sub docs for how to set up this role and the required permissions that need to be attached to it.
     #[serde(default, rename = "awsRoleArn")]
@@ -817,7 +818,7 @@ pub struct AwsMsk {
 }
 
 /// Ingestion settings for Azure Event Hubs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AzureEventHubs {
     /// Optional. The client id of the Azure application that is being used to authenticate Pub/Sub.
     #[serde(default, rename = "clientId")]
@@ -846,7 +847,7 @@ pub struct AzureEventHubs {
 }
 
 /// Ingestion settings for Cloud Storage.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudStorage {
     /// Optional. Data from Cloud Storage will be interpreted in Avro format.
     #[serde(default, rename = "avroFormat")]
@@ -872,7 +873,7 @@ pub struct CloudStorage {
 }
 
 /// Ingestion settings for Confluent Cloud.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfluentCloud {
     /// Required. The address of the bootstrap server. The format is url:port.
     #[serde(default, rename = "bootstrapServer")]
@@ -895,7 +896,7 @@ pub struct ConfluentCloud {
 }
 
 /// Settings for Platform Logs produced by Pub/Sub.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlatformLogsSettings {
     /// Optional. The minimum severity level of Platform Logs that will be written. // TODO: enum values: ["SEVERITY_UNSPECIFIED", "DISABLED", "DEBUG", "INFO", "WARNING", "ERROR"]
     #[serde(default)]
@@ -903,7 +904,7 @@ pub struct PlatformLogsSettings {
 }
 
 /// Configuration for making inference requests against Vertex AI models.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AIInference {
     /// Required. An endpoint to a Vertex AI model of the form projects/{project}/locations/{location}/endpoints/{endpoint} or projects/{project}/locations/{location}/publishers/{publisher}/models/{model}. Vertex AI API requests will be sent to this endpoint.
     #[serde(default)]
@@ -917,7 +918,7 @@ pub struct AIInference {
 }
 
 /// User-defined JavaScript function that can transform or filter a Pub/Sub message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct JavaScriptUDF {
     /// Required. JavaScript code that contains a function function_name with the below signature:  /** * Transforms a Pub/Sub message. * @return {(Object)&gt;|null)} - To * filter a message, return null. To transform a message return a map * with the following keys: * - (required) ''data'' : {string} * - (optional) ''attributes'' : {Object} * Returning empty attributes will remove all attributes from the * message. * * @param {(Object)&gt;} Pub/Sub * message. Keys: * - (required) ''data'' : {string} * - (required) ''attributes'' : {Object} * * @param {Object} metadata - Pub/Sub message metadata. * Keys: * - (optional) ''message_id'' : {string} * - (optional) ''publish_time'': {string} YYYY-MM-DDTHH:MM:SSZ format * - (optional) ''ordering_key'': {string} */ function (message, metadata) { }
     #[serde(default)]
@@ -928,7 +929,7 @@ pub struct JavaScriptUDF {
 }
 
 /// Configuration for reading Cloud Storage data in text format. Each line of text as specified by the delimiter will be set to the data field of a Pub/Sub message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextFormat {
     /// Optional. When unset, ''\n'' is used.
     #[serde(default)]
@@ -936,7 +937,7 @@ pub struct TextFormat {
 }
 
 /// Configuration for making inferences using arbitrary JSON payloads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UnstructuredInference {
     /// Optional. A parameters object to be included in each inference request. The parameters object is combined with the data field of the Pub/Sub message to form the inference request.
     #[serde(default)]

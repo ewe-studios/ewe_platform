@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Singleton resource representing the set of ANR (Application not responding) metrics. This metric set contains ANRs data combined with usage data to produce a normalized metric independent of user counts. **Supported aggregation periods:** * DAILY: metrics are aggregated in calendar date intervals. Due to historical constraints, the only supported timezone is America/Los_Angeles. * HOURLY: metrics are aggregated in hourly intervals. The default and only supported timezone is UTC. **Supported metrics:** * anrRate (google.type.Decimal): Percentage of distinct users in the aggregation period that experienced at least one ANR. * anrRate7dUserWeighted (google.type.Decimal): Rolling average value of anrRate in the last 7 days. The daily values are weighted by the count of distinct users for the day. Not supported in HOURLY granularity. * anrRate28dUserWeighted (google.type.Decimal): Rolling average value of anrRate in the last 28 days. The daily values are weighted by the count of distinct users for the day. Not supported in HOURLY granularity. * userPerceivedAnrRate (google.type.Decimal): Percentage of distinct users in the aggregation period that experienced at least one user-perceived ANR. User-perceived ANRs are currently those of ''Input dispatching'' type. * userPerceivedAnrRate7dUserWeighted (google.type.Decimal): Rolling average value of userPerceivedAnrRate in the last 7 days. The daily values are weighted by the count of distinct users for the day. Not supported in HOURLY granularity. * userPerceivedAnrRate28dUserWeighted (google.type.Decimal): Rolling average value of userPerceivedAnrRate in the last 28 days. The daily values are weighted by the count of distinct users for the day. * distinctUsers (google.type.Decimal): Count of distinct users in the aggregation period that were used as normalization value for the anrRate and userPerceivedAnrRate metrics. A user is counted in this metric if they used the app in the foreground during the aggregation period. Care must be taken not to aggregate this count further, as it may result in users being counted multiple times. The value is rounded to the nearest multiple of 10, 100, 1,000 or 1,000,000, depending on the magnitude of the value. **Supported dimensions:** * apiLevel (string): the API level of Android that was running on the user''s device, e.g., 26. * versionCode (int64): version of the app that was running on the user''s device. * deviceModel (string): unique identifier of the user''s device model. The form of the identifier is ''deviceBrand/device'', where deviceBrand corresponds to Build.BRAND and device corresponds to Build.DEVICE, e.g., google/coral. * deviceBrand (string): unique identifier of the user''s device brand, e.g., google. * deviceType (string): the type (also known as form factor) of the user''s device, e.g., PHONE. * countryCode (string): the country or region of the user''s device based on their IP address, represented as a 2-letter ISO-3166 code (e.g. US for the United States). * deviceRamBucket (int64): RAM of the device, in MB, in buckets (3GB, 4GB, etc.). * deviceSocMake (string): Make of the device''s primary system-on-chip, e.g., Samsung. [Reference](https://developer.android.com/reference/android/os/Build#SOC_MANUFACTURER) * deviceSocModel (string): Model of the device''s primary system-on-chip, e.g., "Exynos 2100". [Reference](https://developer.android.com/reference/android/os/Build#SOC_MODEL) * deviceCpuMake (string): Make of the device''s CPU, e.g., Qualcomm. * deviceCpuModel (string): Model of the device''s CPU, e.g., "Kryo 240". * deviceGpuMake (string): Make of the device''s GPU, e.g., ARM. * deviceGpuModel (string): Model of the device''s GPU, e.g., Mali. * deviceGpuVersion (string): Version of the device''s GPU, e.g., T750. * deviceVulkanVersion (string): Vulkan version of the device, e.g., "4198400". * deviceGlEsVersion (string): OpenGL ES version of the device, e.g., "196610". * deviceScreenSize (string): Screen size of the device, e.g., NORMAL, LARGE. * deviceScreenDpi (string): Screen density of the device, e.g., mdpi, hdpi. **Required permissions**: to access this resource, the calling user needs the _View app information (read-only)_ permission for the app. **Related metric sets:** * vitals.errors contains unnormalized version (absolute counts) of crashes. * vitals.errors contains normalized metrics about crashes, another stability metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1AnrRateMetricSet {
     /// Summary about data freshness in this resource.
     #[serde(default, rename = "freshnessInfo")]
@@ -22,7 +23,7 @@ pub struct GooglePlayDeveloperReportingV1beta1AnrRateMetricSet {
 }
 
 /// Singleton resource representing the set of crashrate metrics. This metric set contains crashes data combined with usage data to produce a normalized metric independent of user counts. **Supported aggregation periods:** * DAILY: metrics are aggregated in calendar date intervals. Due to historical constraints, the only supported timezone is America/Los_Angeles. * HOURLY: metrics are aggregated in hourly intervals. The default and only supported timezone is UTC. **Supported metrics:** * crashRate (google.type.Decimal): Percentage of distinct users in the aggregation period that experienced at least one crash. * crashRate7dUserWeighted (google.type.Decimal): Rolling average value of crashRate in the last 7 days. The daily values are weighted by the count of distinct users for the day. Not supported in HOURLY granularity. * crashRate28dUserWeighted (google.type.Decimal): Rolling average value of crashRate in the last 28 days. The daily values are weighted by the count of distinct users for the day. Not supported in HOURLY granularity. * userPerceivedCrashRate (google.type.Decimal): Percentage of distinct users in the aggregation period that experienced at least one crash while they were actively using your app (a user-perceived crash). An app is considered to be in active use if it is displaying any activity or executing any foreground service. * userPerceivedCrashRate7dUserWeighted (google.type.Decimal): Rolling average value of userPerceivedCrashRate in the last 7 days. The daily values are weighted by the count of distinct users for the day. Not supported in HOURLY granularity. * userPerceivedCrashRate28dUserWeighted (google.type.Decimal): Rolling average value of userPerceivedCrashRate in the last 28 days. The daily values are weighted by the count of distinct users for the day. Not supported in HOURLY granularity. * distinctUsers (google.type.Decimal): Count of distinct users in the aggregation period that were used as normalization value for the crashRate and userPerceivedCrashRate metrics. A user is counted in this metric if they used the app actively during the aggregation period. An app is considered to be in active use if it is displaying any activity or executing any foreground service. Care must be taken not to aggregate this count further, as it may result in users being counted multiple times. The value is rounded to the nearest multiple of 10, 100, 1,000 or 1,000,000, depending on the magnitude of the value. **Supported dimensions:** * apiLevel (string): the API level of Android that was running on the user''s device, e.g., 26. * versionCode (int64): version of the app that was running on the user''s device. * deviceModel (string): unique identifier of the user''s device model. The form of the identifier is ''deviceBrand/device'', where deviceBrand corresponds to Build.BRAND and device corresponds to Build.DEVICE, e.g., google/coral. * deviceBrand (string): unique identifier of the user''s device brand, e.g., google. * deviceType (string): the type (also known as form factor) of the user''s device, e.g., PHONE. * countryCode (string): the country or region of the user''s device based on their IP address, represented as a 2-letter ISO-3166 code (e.g. US for the United States). * deviceRamBucket (int64): RAM of the device, in MB, in buckets (3GB, 4GB, etc.). * deviceSocMake (string): Make of the device''s primary system-on-chip, e.g., Samsung. [Reference](https://developer.android.com/reference/android/os/Build#SOC_MANUFACTURER) * deviceSocModel (string): Model of the device''s primary system-on-chip, e.g., "Exynos 2100". [Reference](https://developer.android.com/reference/android/os/Build#SOC_MODEL) * deviceCpuMake (string): Make of the device''s CPU, e.g., Qualcomm. * deviceCpuModel (string): Model of the device''s CPU, e.g., "Kryo 240". * deviceGpuMake (string): Make of the device''s GPU, e.g., ARM. * deviceGpuModel (string): Model of the device''s GPU, e.g., Mali. * deviceGpuVersion (string): Version of the device''s GPU, e.g., T750. * deviceVulkanVersion (string): Vulkan version of the device, e.g., "4198400". * deviceGlEsVersion (string): OpenGL ES version of the device, e.g., "196610". * deviceScreenSize (string): Screen size of the device, e.g., NORMAL, LARGE. * deviceScreenDpi (string): Screen density of the device, e.g., mdpi, hdpi. **Required permissions**: to access this resource, the calling user needs the _View app information (read-only)_ permission for the app. **Related metric sets:** * vitals.errors contains unnormalized version (absolute counts) of crashes. * vitals.errors contains normalized metrics about ANRs, another stability metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1CrashRateMetricSet {
     /// Summary about data freshness in this resource.
     #[serde(default, rename = "freshnessInfo")]
@@ -33,7 +34,7 @@ pub struct GooglePlayDeveloperReportingV1beta1CrashRateMetricSet {
 }
 
 /// Singleton resource representing the set of error report metrics. This metric set contains un-normalized error report counts. **Supported aggregation periods:** * HOURLY: metrics are aggregated in hourly intervals. The default and only supported timezone is UTC. * DAILY: metrics are aggregated in calendar date intervals. The default and only supported timezone is America/Los_Angeles. **Supported metrics:** * errorReportCount (google.type.Decimal): Absolute count of individual error reports that have been received for an app. * distinctUsers (google.type.Decimal): Count of distinct users for which reports have been received. Care must be taken not to aggregate this count further, as it may result in users being counted multiple times. This value is not rounded, however it may be an approximation. **Required dimension:** This dimension must be always specified in all requests in the dimensions field in query requests. * reportType (string): the type of error. The value should correspond to one of the possible values in ErrorType. **Supported dimensions:** * apiLevel (string): the API level of Android that was running on the user''s device, e.g., 26. * versionCode (int64): version of the app that was running on the user''s device. * deviceModel (string): unique identifier of the user''s device model. The form of the identifier is ''deviceBrand/device'', where deviceBrand corresponds to Build.BRAND and device corresponds to Build.DEVICE, e.g., google/coral. * deviceType (string): identifier of the device''s form factor, e.g., PHONE. * issueId (string): the id an error was assigned to. The value should correspond to the {issue} component of the issue name. * deviceRamBucket (int64): RAM of the device, in MB, in buckets (3GB, 4GB, etc.). * deviceSocMake (string): Make of the device''s primary system-on-chip, e.g., Samsung. [Reference](https://developer.android.com/reference/android/os/Build#SOC_MANUFACTURER) * deviceSocModel (string): Model of the device''s primary system-on-chip, e.g., "Exynos 2100". [Reference](https://developer.android.com/reference/android/os/Build#SOC_MODEL) * deviceCpuMake (string): Make of the device''s CPU, e.g., Qualcomm. * deviceCpuModel (string): Model of the device''s CPU, e.g., "Kryo 240". * deviceGpuMake (string): Make of the device''s GPU, e.g., ARM. * deviceGpuModel (string): Model of the device''s GPU, e.g., Mali. * deviceGpuVersion (string): Version of the device''s GPU, e.g., T750. * deviceVulkanVersion (string): Vulkan version of the device, e.g., "4198400". * deviceGlEsVersion (string): OpenGL ES version of the device, e.g., "196610". * deviceScreenSize (string): Screen size of the device, e.g., NORMAL, LARGE. * deviceScreenDpi (string): Screen density of the device, e.g., mdpi, hdpi. **Required permissions**: to access this resource, the calling user needs the _View app information (read-only)_ permission for the app. **Related metric sets:** * vitals.errors.counts contains normalized metrics about Crashes, another stability metric. * vitals.errors.counts contains normalized metrics about ANRs, another stability metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1ErrorCountMetricSet {
     /// Summary about data freshness in this resource.
     #[serde(default, rename = "freshnessInfo")]
@@ -44,7 +45,7 @@ pub struct GooglePlayDeveloperReportingV1beta1ErrorCountMetricSet {
 }
 
 /// Singleton resource representing the set of Excessive Weakeups metrics. This metric set contains AlarmManager wakeup counts data combined with process state data to produce a normalized metric independent of user counts. **Supported aggregation periods:** * DAILY: metrics are aggregated in calendar date intervals. Due to historical constraints, the only supported timezone is America/Los_Angeles. **Supported metrics:** * excessiveWakeupRate (google.type.Decimal): Percentage of distinct users in the aggregation period that had more than 10 wakeups per hour. * excessiveWakeupRate7dUserWeighted (google.type.Decimal): Rolling average value of excessiveWakeupRate in the last 7 days. The daily values are weighted by the count of distinct users for the day. * excessiveWakeupRate28dUserWeighted (google.type.Decimal): Rolling average value of excessiveWakeupRate in the last 28 days. The daily values are weighted by the count of distinct users for the day. * distinctUsers (google.type.Decimal): Count of distinct users in the aggregation period that were used as normalization value for the excessiveWakeupRate metric. A user is counted in this metric if they app was doing any work on the device, i.e., not just active foreground usage but also background work. Care must be taken not to aggregate this count further, as it may result in users being counted multiple times. The value is rounded to the nearest multiple of 10, 100, 1,000 or 1,000,000, depending on the magnitude of the value. **Supported dimensions:** * apiLevel (string): the API level of Android that was running on the user''s device, e.g., 26. * versionCode (int64): version of the app that was running on the user''s device. * deviceModel (string): unique identifier of the user''s device model. The form of the identifier is ''deviceBrand/device'', where deviceBrand corresponds to Build.BRAND and device corresponds to Build.DEVICE, e.g., google/coral. * deviceBrand (string): unique identifier of the user''s device brand, e.g., google. * deviceType (string): the type (also known as form factor) of the user''s device, e.g., PHONE. * countryCode (string): the country or region of the user''s device based on their IP address, represented as a 2-letter ISO-3166 code (e.g. US for the United States). * deviceRamBucket (int64): RAM of the device, in MB, in buckets (3GB, 4GB, etc.). * deviceSocMake (string): Make of the device''s primary system-on-chip, e.g., Samsung. [Reference](https://developer.android.com/reference/android/os/Build#SOC_MANUFACTURER) * deviceSocModel (string): Model of the device''s primary system-on-chip, e.g., "Exynos 2100". [Reference](https://developer.android.com/reference/android/os/Build#SOC_MODEL) * deviceCpuMake (string): Make of the device''s CPU, e.g., Qualcomm. * deviceCpuModel (string): Model of the device''s CPU, e.g., "Kryo 240". * deviceGpuMake (string): Make of the device''s GPU, e.g., ARM. * deviceGpuModel (string): Model of the device''s GPU, e.g., Mali. * deviceGpuVersion (string): Version of the device''s GPU, e.g., T750. * deviceVulkanVersion (string): Vulkan version of the device, e.g., "4198400". * deviceGlEsVersion (string): OpenGL ES version of the device, e.g., "196610". * deviceScreenSize (string): Screen size of the device, e.g., NORMAL, LARGE. * deviceScreenDpi (string): Screen density of the device, e.g., mdpi, hdpi. **Required permissions**: to access this resource, the calling user needs the _View app information (read-only)_ permission for the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1ExcessiveWakeupRateMetricSet {
     /// Summary about data freshness in this resource.
     #[serde(default, rename = "freshnessInfo")]
@@ -55,7 +56,7 @@ pub struct GooglePlayDeveloperReportingV1beta1ExcessiveWakeupRateMetricSet {
 }
 
 /// Response with a list of anomalies in datasets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1ListAnomaliesResponse {
     /// Anomalies that were found.
     #[serde(default)]
@@ -67,7 +68,7 @@ pub struct GooglePlayDeveloperReportingV1beta1ListAnomaliesResponse {
 }
 
 /// Singleton resource representing the set of LMK (Low Memory Kill) metrics. This metric set contains LMKs data combined with usage data to produce a normalized metric independent of user counts. **Supported aggregation periods:** * DAILY: metrics are aggregated in calendar date intervals. Due to historical constraints, the only supported timezone is America/Los_Angeles. **Supported metrics:** * userPerceivedLmkRate (google.type.Decimal): Percentage of distinct users in the aggregation period that experienced at least one LMK while they were actively using your app (a user-perceived LMK). An app is considered to be in active use if it is displaying any activity or executing any foreground service. * userPerceivedLmkRate7dUserWeighted (google.type.Decimal): Rolling average value of userPerceivedLmkRate in the last 7 days. The daily values are weighted by the count of distinct users for the day. * userPerceivedLmkRate28dUserWeighted (google.type.Decimal): Rolling average value of userPerceivedLmkRate in the last 28 days. The daily values are weighted by the count of distinct users for the day. * distinctUsers (google.type.Decimal): Count of distinct users in the aggregation period that were used as normalization value for the userPerceivedLmkRate metrics. A user is counted in this metric if they used the app in the foreground during the aggregation period. Care must be taken not to aggregate this count further, as it may result in users being counted multiple times. The value is rounded to the nearest multiple of 10, 100, 1,000 or 1,000,000, depending on the magnitude of the value. **Supported dimensions:** * apiLevel (string): the API level of Android that was running on the user''s device, e.g., 26. * versionCode (int64): version of the app that was running on the user''s device. * deviceModel (string): unique identifier of the user''s device model. The form of the identifier is ''deviceBrand/device'', where deviceBrand corresponds to Build.BRAND and device corresponds to Build.DEVICE, e.g., google/coral. * deviceBrand (string): unique identifier of the user''s device brand, e.g., google. * deviceType (string): the type (also known as form factor) of the user''s device, e.g., PHONE. * countryCode (string): the country or region of the user''s device based on their IP address, represented as a 2-letter ISO-3166 code (e.g. US for the United States). * deviceRamBucket (int64): RAM of the device, in MB, in buckets (3GB, 4GB, etc.). * deviceSocMake (string): Make of the device''s primary system-on-chip, e.g., Samsung. [Reference](https://developer.android.com/reference/android/os/Build#SOC_MANUFACTURER) * deviceSocModel (string): Model of the device''s primary system-on-chip, e.g., "Exynos 2100". [Reference](https://developer.android.com/reference/android/os/Build#SOC_MODEL) * deviceCpuMake (string): Make of the device''s CPU, e.g., Qualcomm. * deviceCpuModel (string): Model of the device''s CPU, e.g., "Kryo 240". * deviceGpuMake (string): Make of the device''s GPU, e.g., ARM. * deviceGpuModel (string): Model of the device''s GPU, e.g., Mali. * deviceGpuVersion (string): Version of the device''s GPU, e.g., T750. * deviceVulkanVersion (string): Vulkan version of the device, e.g., "4198400". * deviceGlEsVersion (string): OpenGL ES version of the device, e.g., "196610". * deviceScreenSize (string): Screen size of the device, e.g., NORMAL, LARGE. * deviceScreenDpi (string): Screen density of the device, e.g., mdpi, hdpi. **Required permissions**: to access this resource, the calling user needs the _View app information (read-only)_ permission for the app. **Related metric sets:** * vitals.errors contains normalized metrics about crashes, another stability metric. * vitals.errors contains normalized metrics about ANRs, another stability metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1LmkRateMetricSet {
     /// Summary about data freshness in this resource.
     #[serde(default, rename = "freshnessInfo")]
@@ -78,7 +79,7 @@ pub struct GooglePlayDeveloperReportingV1beta1LmkRateMetricSet {
 }
 
 /// Request message for QueryAnrRateMetricSet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1QueryAnrRateMetricSetRequest {
     /// Optional. Dimensions to slice the metrics by. **Supported dimensions:** * apiLevel (string): the API level of Android that was running on the user''s device, e.g., 26. * versionCode (int64): version of the app that was running on the user''s device. * deviceModel (string): unique identifier of the user''s device model. The form of the identifier is ''deviceBrand/device'', where deviceBrand corresponds to Build.BRAND and device corresponds to Build.DEVICE, e.g., google/coral. * deviceBrand (string): unique identifier of the user''s device brand, e.g., google. * deviceType (string): the type (also known as form factor) of the user''s device, e.g., PHONE. * countryCode (string): the country or region of the user''s device based on their IP address, represented as a 2-letter ISO-3166 code (e.g. US for the United States). * deviceRamBucket (int64): RAM of the device, in MB, in buckets (3GB, 4GB, etc.). * deviceSocMake (string): Make of the device''s primary system-on-chip, e.g., Samsung. [Reference](https://developer.android.com/reference/android/os/Build#SOC_MANUFACTURER) * deviceSocModel (string): Model of the device''s primary system-on-chip, e.g., "Exynos 2100". [Reference](https://developer.android.com/reference/android/os/Build#SOC_MODEL) * deviceCpuMake (string): Make of the device''s CPU, e.g., Qualcomm. * deviceCpuModel (string): Model of the device''s CPU, e.g., "Kryo 240". * deviceGpuMake (string): Make of the device''s GPU, e.g., ARM. * deviceGpuModel (string): Model of the device''s GPU, e.g., Mali. * deviceGpuVersion (string): Version of the device''s GPU, e.g., T750. * deviceVulkanVersion (string): Vulkan version of the device, e.g., "4198400". * deviceGlEsVersion (string): OpenGL ES version of the device, e.g., "196610". * deviceScreenSize (string): Screen size of the device, e.g., NORMAL, LARGE. * deviceScreenDpi (string): Screen density of the device, e.g., mdpi, hdpi.
     #[serde(default)]
@@ -104,7 +105,7 @@ pub struct GooglePlayDeveloperReportingV1beta1QueryAnrRateMetricSetRequest {
 }
 
 /// Response message for QueryAnrRateMetricSet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1QueryAnrRateMetricSetResponse {
     /// Continuation token to fetch the next page of data.
     #[serde(default, rename = "nextPageToken")]
@@ -116,7 +117,7 @@ pub struct GooglePlayDeveloperReportingV1beta1QueryAnrRateMetricSetResponse {
 }
 
 /// Request message for QueryCrashRateMetricSet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1QueryCrashRateMetricSetRequest {
     /// Optional. Dimensions to slice the metrics by. **Supported dimensions:** * apiLevel (string): the API level of Android that was running on the user''s device, e.g., 26. * versionCode (int64): version of the app that was running on the user''s device. * deviceModel (string): unique identifier of the user''s device model. The form of the identifier is ''deviceBrand/device'', where deviceBrand corresponds to Build.BRAND and device corresponds to Build.DEVICE, e.g., google/coral. * deviceBrand (string): unique identifier of the user''s device brand, e.g., google. * deviceType (string): the type (also known as form factor) of the user''s device, e.g., PHONE. * countryCode (string): the country or region of the user''s device based on their IP address, represented as a 2-letter ISO-3166 code (e.g. US for the United States). * deviceRamBucket (int64): RAM of the device, in MB, in buckets (3GB, 4GB, etc.). * deviceSocMake (string): Make of the device''s primary system-on-chip, e.g., Samsung. [Reference](https://developer.android.com/reference/android/os/Build#SOC_MANUFACTURER) * deviceSocModel (string): Model of the device''s primary system-on-chip, e.g., "Exynos 2100". [Reference](https://developer.android.com/reference/android/os/Build#SOC_MODEL) * deviceCpuMake (string): Make of the device''s CPU, e.g., Qualcomm. * deviceCpuModel (string): Model of the device''s CPU, e.g., "Kryo 240". * deviceGpuMake (string): Make of the device''s GPU, e.g., ARM. * deviceGpuModel (string): Model of the device''s GPU, e.g., Mali. * deviceGpuVersion (string): Version of the device''s GPU, e.g., T750. * deviceVulkanVersion (string): Vulkan version of the device, e.g., "4198400". * deviceGlEsVersion (string): OpenGL ES version of the device, e.g., "196610". * deviceScreenSize (string): Screen size of the device, e.g., NORMAL, LARGE. * deviceScreenDpi (string): Screen density of the device, e.g., mdpi, hdpi.
     #[serde(default)]
@@ -142,7 +143,7 @@ pub struct GooglePlayDeveloperReportingV1beta1QueryCrashRateMetricSetRequest {
 }
 
 /// Response message for QueryCrashRateMetricSet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1QueryCrashRateMetricSetResponse {
     /// Continuation token to fetch the next page of data.
     #[serde(default, rename = "nextPageToken")]
@@ -154,7 +155,7 @@ pub struct GooglePlayDeveloperReportingV1beta1QueryCrashRateMetricSetResponse {
 }
 
 /// Request message for QueryErrorCountMetricSet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1QueryErrorCountMetricSetRequest {
     /// Optional. Dimensions to slice the data by. **Supported dimensions:** * apiLevel (string): the API level of Android that was running on the user''s device, e.g., 26. * versionCode (int64): unique identifier of the user''s device model. The form of the identifier is ''deviceBrand/device'', where deviceBrand corresponds to Build.BRAND and device corresponds to Build.DEVICE, e.g., google/coral. * deviceModel (string): unique identifier of the user''s device model. * deviceType (string): identifier of the device''s form factor, e.g., PHONE. * reportType (string): the type of error. The value should correspond to one of the possible values in ErrorType. * issueId (string): the id an error was assigned to. The value should correspond to the {issue} component of the issue name. * deviceRamBucket (int64): RAM of the device, in MB, in buckets (3GB, 4GB, etc.). * deviceSocMake (string): Make of the device''s primary system-on-chip, e.g., Samsung. [Reference](https://developer.android.com/reference/android/os/Build#SOC_MANUFACTURER) * deviceSocModel (string): Model of the device''s primary system-on-chip, e.g., "Exynos 2100". [Reference](https://developer.android.com/reference/android/os/Build#SOC_MODEL) * deviceCpuMake (string): Make of the device''s CPU, e.g., Qualcomm. * deviceCpuModel (string): Model of the device''s CPU, e.g., "Kryo 240". * deviceGpuMake (string): Make of the device''s GPU, e.g., ARM. * deviceGpuModel (string): Model of the device''s GPU, e.g., Mali. * deviceGpuVersion (string): Version of the device''s GPU, e.g., T750. * deviceVulkanVersion (string): Vulkan version of the device, e.g., "4198400". * deviceGlEsVersion (string): OpenGL ES version of the device, e.g., "196610". * deviceScreenSize (string): Screen size of the device, e.g., NORMAL, LARGE. * deviceScreenDpi (string): Screen density of the device, e.g., mdpi, hdpi.
     #[serde(default)]
@@ -177,7 +178,7 @@ pub struct GooglePlayDeveloperReportingV1beta1QueryErrorCountMetricSetRequest {
 }
 
 /// Error counts query response.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1QueryErrorCountMetricSetResponse {
     /// Continuation token to fetch the next page of data.
     #[serde(default, rename = "nextPageToken")]
@@ -189,7 +190,7 @@ pub struct GooglePlayDeveloperReportingV1beta1QueryErrorCountMetricSetResponse {
 }
 
 /// Request message for QueryExcessiveWakeupRateMetricSet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1QueryExcessiveWakeupRateMetricSetRequest {
     /// Optional. Dimensions to slice the data by. **Supported dimensions:** * apiLevel (string): the API level of Android that was running on the user''s device, e.g., 26. * versionCode (int64): version of the app that was running on the user''s device. * deviceModel (string): unique identifier of the user''s device model. The form of the identifier is ''deviceBrand/device'', where deviceBrand corresponds to Build.BRAND and device corresponds to Build.DEVICE, e.g., google/coral. * deviceBrand (string): unique identifier of the user''s device brand, e.g., google. * deviceType (string): the type (also known as form factor) of the user''s device, e.g., PHONE. * countryCode (string): the country or region of the user''s device based on their IP address, represented as a 2-letter ISO-3166 code (e.g. US for the United States). * deviceRamBucket (int64): RAM of the device, in MB, in buckets (3GB, 4GB, etc.). * deviceSocMake (string): Make of the device''s primary system-on-chip, e.g., Samsung. [Reference](https://developer.android.com/reference/android/os/Build#SOC_MANUFACTURER) * deviceSocModel (string): Model of the device''s primary system-on-chip, e.g., "Exynos 2100". [Reference](https://developer.android.com/reference/android/os/Build#SOC_MODEL) * deviceCpuMake (string): Make of the device''s CPU, e.g., Qualcomm. * deviceCpuModel (string): Model of the device''s CPU, e.g., "Kryo 240". * deviceGpuMake (string): Make of the device''s GPU, e.g., ARM. * deviceGpuModel (string): Model of the device''s GPU, e.g., Mali. * deviceGpuVersion (string): Version of the device''s GPU, e.g., T750. * deviceVulkanVersion (string): Vulkan version of the device, e.g., "4198400". * deviceGlEsVersion (string): OpenGL ES version of the device, e.g., "196610". * deviceScreenSize (string): Screen size of the device, e.g., NORMAL, LARGE. * deviceScreenDpi (string): Screen density of the device, e.g., mdpi, hdpi.
     #[serde(default)]
@@ -215,7 +216,7 @@ pub struct GooglePlayDeveloperReportingV1beta1QueryExcessiveWakeupRateMetricSetR
 }
 
 /// Response message for QueryExcessiveWakeupRateMetricSet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1QueryExcessiveWakeupRateMetricSetResponse {
     /// Continuation token to fetch the next page of data.
     #[serde(default, rename = "nextPageToken")]
@@ -227,7 +228,7 @@ pub struct GooglePlayDeveloperReportingV1beta1QueryExcessiveWakeupRateMetricSetR
 }
 
 /// Request message for QueryLmkRateMetricSet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1QueryLmkRateMetricSetRequest {
     /// Optional. Dimensions to slice the metrics by. **Supported dimensions:** * apiLevel (string): the API level of Android that was running on the user''s device, e.g., 26. * versionCode (int64): version of the app that was running on the user''s device. * deviceModel (string): unique identifier of the user''s device model. The form of the identifier is ''deviceBrand/device'', where deviceBrand corresponds to Build.BRAND and device corresponds to Build.DEVICE, e.g., google/coral. * deviceBrand (string): unique identifier of the user''s device brand, e.g., google. * deviceType (string): the type (also known as form factor) of the user''s device, e.g., PHONE. * countryCode (string): the country or region of the user''s device based on their IP address, represented as a 2-letter ISO-3166 code (e.g. US for the United States). * deviceRamBucket (int64): RAM of the device, in MB, in buckets (3GB, 4GB, etc.). * deviceSocMake (string): Make of the device''s primary system-on-chip, e.g., Samsung. [Reference](https://developer.android.com/reference/android/os/Build#SOC_MANUFACTURER) * deviceSocModel (string): Model of the device''s primary system-on-chip, e.g., "Exynos 2100". [Reference](https://developer.android.com/reference/android/os/Build#SOC_MODEL) * deviceCpuMake (string): Make of the device''s CPU, e.g., Qualcomm. * deviceCpuModel (string): Model of the device''s CPU, e.g., "Kryo 240". * deviceGpuMake (string): Make of the device''s GPU, e.g., ARM. * deviceGpuModel (string): Model of the device''s GPU, e.g., Mali. * deviceGpuVersion (string): Version of the device''s GPU, e.g., T750. * deviceVulkanVersion (string): Vulkan version of the device, e.g., "4198400". * deviceGlEsVersion (string): OpenGL ES version of the device, e.g., "196610". * deviceScreenSize (string): Screen size of the device, e.g., NORMAL, LARGE. * deviceScreenDpi (string): Screen density of the device, e.g., mdpi, hdpi.
     #[serde(default)]
@@ -253,7 +254,7 @@ pub struct GooglePlayDeveloperReportingV1beta1QueryLmkRateMetricSetRequest {
 }
 
 /// Response message for QueryLmkRateMetricSet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1QueryLmkRateMetricSetResponse {
     /// Continuation token to fetch the next page of data.
     #[serde(default, rename = "nextPageToken")]
@@ -265,7 +266,7 @@ pub struct GooglePlayDeveloperReportingV1beta1QueryLmkRateMetricSetResponse {
 }
 
 /// Request message for QuerySlowRenderingRateMetricSet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1QuerySlowRenderingRateMetricSetRequest {
     /// Optional. Dimensions to slice the data by. **Supported dimensions:** * apiLevel (string): the API level of Android that was running on the user''s device, e.g., 26. * versionCode (int64): version of the app that was running on the user''s device. * deviceModel (string): unique identifier of the user''s device model. The form of the identifier is ''deviceBrand/device'', where deviceBrand corresponds to Build.BRAND and device corresponds to Build.DEVICE, e.g., google/coral. * deviceBrand (string): unique identifier of the user''s device brand, e.g., google. * deviceType (string): the type (also known as form factor) of the user''s device, e.g., PHONE. * countryCode (string): the country or region of the user''s device based on their IP address, represented as a 2-letter ISO-3166 code (e.g. US for the United States). * deviceRamBucket (int64): RAM of the device, in MB, in buckets (3GB, 4GB, etc.). * deviceSocMake (string): Make of the device''s primary system-on-chip, e.g., Samsung. [Reference](https://developer.android.com/reference/android/os/Build#SOC_MANUFACTURER) * deviceSocModel (string): Model of the device''s primary system-on-chip, e.g., "Exynos 2100". [Reference](https://developer.android.com/reference/android/os/Build#SOC_MODEL) * deviceCpuMake (string): Make of the device''s CPU, e.g., Qualcomm. * deviceCpuModel (string): Model of the device''s CPU, e.g., "Kryo 240". * deviceGpuMake (string): Make of the device''s GPU, e.g., ARM. * deviceGpuModel (string): Model of the device''s GPU, e.g., Mali. * deviceGpuVersion (string): Version of the device''s GPU, e.g., T750. * deviceVulkanVersion (string): Vulkan version of the device, e.g., "4198400". * deviceGlEsVersion (string): OpenGL ES version of the device, e.g., "196610". * deviceScreenSize (string): Screen size of the device, e.g., NORMAL, LARGE. * deviceScreenDpi (string): Screen density of the device, e.g., mdpi, hdpi.
     #[serde(default)]
@@ -291,7 +292,7 @@ pub struct GooglePlayDeveloperReportingV1beta1QuerySlowRenderingRateMetricSetReq
 }
 
 /// Response message for QuerySlowRenderingRateMetricSet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1QuerySlowRenderingRateMetricSetResponse {
     /// Continuation token to fetch the next page of data.
     #[serde(default, rename = "nextPageToken")]
@@ -303,7 +304,7 @@ pub struct GooglePlayDeveloperReportingV1beta1QuerySlowRenderingRateMetricSetRes
 }
 
 /// Request message for QuerySlowStartRateMetricSet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1QuerySlowStartRateMetricSetRequest {
     /// Optional. Dimensions to slice the data by. **Supported dimensions:** * apiLevel (string): the API level of Android that was running on the user''s device, e.g., 26. * versionCode (int64): version of the app that was running on the user''s device. * deviceModel (string): unique identifier of the user''s device model. The form of the identifier is ''deviceBrand/device'', where deviceBrand corresponds to Build.BRAND and device corresponds to Build.DEVICE, e.g., google/coral. * deviceBrand (string): unique identifier of the user''s device brand, e.g., google. * deviceType (string): the type (also known as form factor) of the user''s device, e.g., PHONE. * countryCode (string): the country or region of the user''s device based on their IP address, represented as a 2-letter ISO-3166 code (e.g. US for the United States). * deviceRamBucket (int64): RAM of the device, in MB, in buckets (3GB, 4GB, etc.). * deviceSocMake (string): Make of the device''s primary system-on-chip, e.g., Samsung. [Reference](https://developer.android.com/reference/android/os/Build#SOC_MANUFACTURER) * deviceSocModel (string): Model of the device''s primary system-on-chip, e.g., "Exynos 2100". [Reference](https://developer.android.com/reference/android/os/Build#SOC_MODEL) * deviceCpuMake (string): Make of the device''s CPU, e.g., Qualcomm. * deviceCpuModel (string): Model of the device''s CPU, e.g., "Kryo 240". * deviceGpuMake (string): Make of the device''s GPU, e.g., ARM. * deviceGpuModel (string): Model of the device''s GPU, e.g., Mali. * deviceGpuVersion (string): Version of the device''s GPU, e.g., T750. * deviceVulkanVersion (string): Vulkan version of the device, e.g., "4198400". * deviceGlEsVersion (string): OpenGL ES version of the device, e.g., "196610". * deviceScreenSize (string): Screen size of the device, e.g., NORMAL, LARGE. * deviceScreenDpi (string): Screen density of the device, e.g., mdpi, hdpi.
     #[serde(default)]
@@ -329,7 +330,7 @@ pub struct GooglePlayDeveloperReportingV1beta1QuerySlowStartRateMetricSetRequest
 }
 
 /// Response message for QuerySlowStartRateMetricSet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1QuerySlowStartRateMetricSetResponse {
     /// Continuation token to fetch the next page of data.
     #[serde(default, rename = "nextPageToken")]
@@ -341,7 +342,7 @@ pub struct GooglePlayDeveloperReportingV1beta1QuerySlowStartRateMetricSetRespons
 }
 
 /// Request message for QueryStuckBackgroundWakelockRateMetricSet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1QueryStuckBackgroundWakelockRateMetricSetRequest {
     /// Optional. Dimensions to slice the data by. **Supported dimensions:** * apiLevel (string): the API level of Android that was running on the user''s device, e.g., 26. * versionCode (int64): version of the app that was running on the user''s device. * deviceModel (string): unique identifier of the user''s device model. The form of the identifier is ''deviceBrand/device'', where deviceBrand corresponds to Build.BRAND and device corresponds to Build.DEVICE, e.g., google/coral. * deviceBrand (string): unique identifier of the user''s device brand, e.g., google. * deviceType (string): the type (also known as form factor) of the user''s device, e.g., PHONE. * countryCode (string): the country or region of the user''s device based on their IP address, represented as a 2-letter ISO-3166 code (e.g. US for the United States). * deviceRamBucket (int64): RAM of the device, in MB, in buckets (3GB, 4GB, etc.). * deviceSocMake (string): Make of the device''s primary system-on-chip, e.g., Samsung. [Reference](https://developer.android.com/reference/android/os/Build#SOC_MANUFACTURER) * deviceSocModel (string): Model of the device''s primary system-on-chip, e.g., "Exynos 2100". [Reference](https://developer.android.com/reference/android/os/Build#SOC_MODEL) * deviceCpuMake (string): Make of the device''s CPU, e.g., Qualcomm. * deviceCpuModel (string): Model of the device''s CPU, e.g., "Kryo 240". * deviceGpuMake (string): Make of the device''s GPU, e.g., ARM. * deviceGpuModel (string): Model of the device''s GPU, e.g., Mali. * deviceGpuVersion (string): Version of the device''s GPU, e.g., T750. * deviceVulkanVersion (string): Vulkan version of the device, e.g., "4198400". * deviceGlEsVersion (string): OpenGL ES version of the device, e.g., "196610". * deviceScreenSize (string): Screen size of the device, e.g., NORMAL, LARGE. * deviceScreenDpi (string): Screen density of the device, e.g., mdpi, hdpi.
     #[serde(default)]
@@ -367,7 +368,7 @@ pub struct GooglePlayDeveloperReportingV1beta1QueryStuckBackgroundWakelockRateMe
 }
 
 /// Response message for QueryStuckBackgroundWakelockRateMetricSet.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1QueryStuckBackgroundWakelockRateMetricSetResponse {
     /// Continuation token to fetch the next page of data.
     #[serde(default, rename = "nextPageToken")]
@@ -379,7 +380,7 @@ pub struct GooglePlayDeveloperReportingV1beta1QueryStuckBackgroundWakelockRateMe
 }
 
 /// A set of filtering options for releases and version codes specific to an app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1ReleaseFilterOptions {
     /// List of tracks to filter releases over. Provides the grouping of version codes under releases and tracks.
     #[serde(default)]
@@ -387,7 +388,7 @@ pub struct GooglePlayDeveloperReportingV1beta1ReleaseFilterOptions {
 }
 
 /// Response message for SearchAccessibleApps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1SearchAccessibleAppsResponse {
     /// The apps accessible to the user calling the endpoint.
     #[serde(default)]
@@ -398,7 +399,7 @@ pub struct GooglePlayDeveloperReportingV1beta1SearchAccessibleAppsResponse {
 }
 
 /// Response with a paginated list of issues that matched the request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1SearchErrorIssuesResponse {
     /// ErrorIssues that were found.
     #[serde(default, rename = "errorIssues")]
@@ -410,7 +411,7 @@ pub struct GooglePlayDeveloperReportingV1beta1SearchErrorIssuesResponse {
 }
 
 /// Response with a paginated list of error reports matching the search query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1SearchErrorReportsResponse {
     /// Error reports that were found.
     #[serde(default, rename = "errorReports")]
@@ -422,7 +423,7 @@ pub struct GooglePlayDeveloperReportingV1beta1SearchErrorReportsResponse {
 }
 
 /// Singleton resource representing the set of Slow Rendering metrics. This metric set contains low-level rendering data captured by SurafeFlinger. Sessions are evaluated based on the present-to-present histogram of frames handled by any SurfaceFlinger layer owned by the app. A slow session is a session where more than 25% of frames for the session did not meet the metric''s target frame rate (either 20fps, or 30fps). *NOTE:* This metric set is only available for games. **Supported aggregation periods:** * DAILY: metrics are aggregated in calendar date intervals. Due to historical constraints, the only supported timezone is America/Los_Angeles. **Supported metrics:** * slowRenderingRate20Fps (google.type.Decimal): Percentage of distinct users in the aggregation period that had slow rendering. * slowRenderingRate20Fps7dUserWeighted (google.type.Decimal): Rolling average value of slowRenderingRate20Fps in the last 7 days. The daily values are weighted by the count of distinct users for the day. * slowRenderingRate20Fps28dUserWeighted (google.type.Decimal): Rolling average value of slowRenderingRate20Fps in the last 28 days. The daily values are weighted by the count of distinct users for the day. * slowRenderingRate30Fps (google.type.Decimal): Percentage of distinct users in the aggregation period that had slow rendering. * slowRenderingRate30Fps7dUserWeighted (google.type.Decimal): Rolling average value of slowRenderingRate30Fps in the last 7 days. The daily values are weighted by the count of distinct users for the day. * slowRenderingRate30Fps28dUserWeighted (google.type.Decimal): Rolling average value of slowRenderingRate30Fps in the last 28 days. The daily values are weighted by the count of distinct users for the day. * distinctUsers (google.type.Decimal): Count of distinct users in the aggregation period that were used as normalization value for the slowRenderingRate20Fps/slowRenderingRate30Fps metric. A user is counted in this metric if their app rendered any frames. Care must be taken not to aggregate this count further, as it may result in users being counted multiple times. The value is rounded to the nearest multiple of 10, 100, 1,000 or 1,000,000, depending on the magnitude of the value. **Supported dimensions:** * apiLevel (string): the API level of Android that was running on the user''s device, e.g., 26. * versionCode (int64): version of the app that was running on the user''s device. * deviceModel (string): unique identifier of the user''s device model. The form of the identifier is ''deviceBrand/device'', where deviceBrand corresponds to Build.BRAND and device corresponds to Build.DEVICE, e.g., google/coral. * deviceBrand (string): unique identifier of the user''s device brand, e.g., google. * deviceType (string): the type (also known as form factor) of the user''s device, e.g., PHONE. * countryCode (string): the country or region of the user''s device based on their IP address, represented as a 2-letter ISO-3166 code (e.g. US for the United States). * deviceRamBucket (int64): RAM of the device, in MB, in buckets (3GB, 4GB, etc.). * deviceSocMake (string): Make of the device''s primary system-on-chip, e.g., Samsung. [Reference](https://developer.android.com/reference/android/os/Build#SOC_MANUFACTURER) * deviceSocModel (string): Model of the device''s primary system-on-chip, e.g., "Exynos 2100". [Reference](https://developer.android.com/reference/android/os/Build#SOC_MODEL) * deviceCpuMake (string): Make of the device''s CPU, e.g., Qualcomm. * deviceCpuModel (string): Model of the device''s CPU, e.g., "Kryo 240". * deviceGpuMake (string): Make of the device''s GPU, e.g., ARM. * deviceGpuModel (string): Model of the device''s GPU, e.g., Mali. * deviceGpuVersion (string): Version of the device''s GPU, e.g., T750. * deviceVulkanVersion (string): Vulkan version of the device, e.g., "4198400". * deviceGlEsVersion (string): OpenGL ES version of the device, e.g., "196610". * deviceScreenSize (string): Screen size of the device, e.g., NORMAL, LARGE. * deviceScreenDpi (string): Screen density of the device, e.g., mdpi, hdpi. **Required permissions**: to access this resource, the calling user needs the _View app information (read-only)_ permission for the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1SlowRenderingRateMetricSet {
     /// Summary about data freshness in this resource.
     #[serde(default, rename = "freshnessInfo")]
@@ -433,7 +434,7 @@ pub struct GooglePlayDeveloperReportingV1beta1SlowRenderingRateMetricSet {
 }
 
 /// Singleton resource representing the set of Slow Start metrics. This metric set contains Activity start duration data. **Supported aggregation periods:** * DAILY: metrics are aggregated in calendar date intervals. Due to historical constraints, the only supported timezone is America/Los_Angeles. **Supported metrics:** * slowStartRate (google.type.Decimal): Percentage of distinct users in the aggregation period that had a slow start. * slowStartRate7dUserWeighted (google.type.Decimal): Rolling average value of slowStartRate in the last 7 days. The daily values are weighted by the count of distinct users for the day. * slowStartRate28dUserWeighted (google.type.Decimal): Rolling average value of slowStartRate in the last 28 days. The daily values are weighted by the count of distinct users for the day. * distinctUsers (google.type.Decimal): Count of distinct users in the aggregation period that were used as normalization value for the slowStartRate metric. A user is counted in this metric if their app was launched in the device. Care must be taken not to aggregate this count further, as it may result in users being counted multiple times. The value is rounded to the nearest multiple of 10, 100, 1,000 or 1,000,000, depending on the magnitude of the value. **Required dimension:** This dimension must be specified with each request for the request to be valid. * startType (string): the type of start that was measured. Valid types are HOT, WARM and COLD. **Supported dimensions:** * apiLevel (string): the API level of Android that was running on the user''s device, e.g., 26. * versionCode (int64): version of the app that was running on the user''s device. * deviceModel (string): unique identifier of the user''s device model. The form of the identifier is ''deviceBrand/device'', where deviceBrand corresponds to Build.BRAND and device corresponds to Build.DEVICE, e.g., google/coral. * deviceBrand (string): unique identifier of the user''s device brand, e.g., google. * deviceType (string): the type (also known as form factor) of the user''s device, e.g., PHONE. * countryCode (string): the country or region of the user''s device based on their IP address, represented as a 2-letter ISO-3166 code (e.g. US for the United States). * deviceRamBucket (int64): RAM of the device, in MB, in buckets (3GB, 4GB, etc.). * deviceSocMake (string): Make of the device''s primary system-on-chip, e.g., Samsung. [Reference](https://developer.android.com/reference/android/os/Build#SOC_MANUFACTURER) * deviceSocModel (string): Model of the device''s primary system-on-chip, e.g., "Exynos 2100". [Reference](https://developer.android.com/reference/android/os/Build#SOC_MODEL) * deviceCpuMake (string): Make of the device''s CPU, e.g., Qualcomm. * deviceCpuModel (string): Model of the device''s CPU, e.g., "Kryo 240". * deviceGpuMake (string): Make of the device''s GPU, e.g., ARM. * deviceGpuModel (string): Model of the device''s GPU, e.g., Mali. * deviceGpuVersion (string): Version of the device''s GPU, e.g., T750. * deviceVulkanVersion (string): Vulkan version of the device, e.g., "4198400". * deviceGlEsVersion (string): OpenGL ES version of the device, e.g., "196610". * deviceScreenSize (string): Screen size of the device, e.g., NORMAL, LARGE. * deviceScreenDpi (string): Screen density of the device, e.g., mdpi, hdpi. **Required permissions**: to access this resource, the calling user needs the _View app information (read-only)_ permission for the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1SlowStartRateMetricSet {
     /// Summary about data freshness in this resource.
     #[serde(default, rename = "freshnessInfo")]
@@ -444,7 +445,7 @@ pub struct GooglePlayDeveloperReportingV1beta1SlowStartRateMetricSet {
 }
 
 /// Singleton resource representing the set of Stuck Background Wakelocks metrics. This metric set contains PowerManager wakelock duration data combined with process state data to produce a normalized metric independent of user counts. **Supported aggregation periods:** * DAILY: metrics are aggregated in calendar date intervals. Due to historical constraints, the only supported timezone is America/Los_Angeles. **Supported metrics:** * stuckBgWakelockRate (google.type.Decimal): Percentage of distinct users in the aggregation period that had a wakelock held in the background for longer than 1 hour. * stuckBgWakelockRate7dUserWeighted (google.type.Decimal): Rolling average value of stuckBgWakelockRate in the last 7 days. The daily values are weighted by the count of distinct users for the day. * stuckBgWakelockRate28dUserWeighted (google.type.Decimal): Rolling average value of stuckBgWakelockRate in the last 28 days. The daily values are weighted by the count of distinct users for the day. * distinctUsers (google.type.Decimal): Count of distinct users in the aggregation period that were used as normalization value for the stuckBgWakelockRate metric. A user is counted in this metric if their app was doing any work on the device, i.e., not just active foreground usage but also background work. Care must be taken not to aggregate this count further, as it may result in users being counted multiple times. The value is rounded to the nearest multiple of 10, 100, 1,000 or 1,000,000, depending on the magnitude of the value. **Supported dimensions:** * apiLevel (string): the API level of Android that was running on the user''s device, e.g., 26. * versionCode (int64): version of the app that was running on the user''s device. * deviceModel (string): unique identifier of the user''s device model. The form of the identifier is ''deviceBrand/device'', where deviceBrand corresponds to Build.BRAND and device corresponds to Build.DEVICE, e.g., google/coral. * deviceBrand (string): unique identifier of the user''s device brand, e.g., google. * deviceType (string): the type (also known as form factor) of the user''s device, e.g., PHONE. * countryCode (string): the country or region of the user''s device based on their IP address, represented as a 2-letter ISO-3166 code (e.g. US for the United States). * deviceRamBucket (int64): RAM of the device, in MB, in buckets (3GB, 4GB, etc.). * deviceSocMake (string): Make of the device''s primary system-on-chip, e.g., Samsung. [Reference](https://developer.android.com/reference/android/os/Build#SOC_MANUFACTURER) * deviceSocModel (string): Model of the device''s primary system-on-chip, e.g., "Exynos 2100". [Reference](https://developer.android.com/reference/android/os/Build#SOC_MODEL) * deviceCpuMake (string): Make of the device''s CPU, e.g., Qualcomm. * deviceCpuModel (string): Model of the device''s CPU, e.g., "Kryo 240". * deviceGpuMake (string): Make of the device''s GPU, e.g., ARM. * deviceGpuModel (string): Model of the device''s GPU, e.g., Mali. * deviceGpuVersion (string): Version of the device''s GPU, e.g., T750. * deviceVulkanVersion (string): Vulkan version of the device, e.g., "4198400". * deviceGlEsVersion (string): OpenGL ES version of the device, e.g., "196610". * deviceScreenSize (string): Screen size of the device, e.g., NORMAL, LARGE. * deviceScreenDpi (string): Screen density of the device, e.g., mdpi, hdpi. **Required permissions**: to access this resource, the calling user needs the _View app information (read-only)_ permission for the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1StuckBackgroundWakelockRateMetricSet {
     /// Summary about data freshness in this resource.
     #[serde(default, rename = "freshnessInfo")]
@@ -455,7 +456,7 @@ pub struct GooglePlayDeveloperReportingV1beta1StuckBackgroundWakelockRateMetricS
 }
 
 /// Represents an anomaly detected in a dataset. Our anomaly detection systems flag datapoints in a time series that fall outside of and expected range derived from historical data. Although those expected ranges have an upper and a lower bound, we only flag anomalies when the data has become unexpectedly _worse_, which usually corresponds to the case where the metric crosses the upper bound. Multiple contiguous datapoints in a timeline outside of the expected range will be grouped into a single anomaly. Therefore, an anomaly represents effectively a segment of a metric''s timeline. The information stored in the timeline_spec, dimensions and metric can be used to fetch a full timeline with extended ragne for context. **Required permissions**: to access this resource, the calling user needs the _View app information (read-only)_ permission for the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1Anomaly {
     /// Combination of dimensions in which the anomaly was detected.
     #[serde(default)]
@@ -476,7 +477,7 @@ pub struct GooglePlayDeveloperReportingV1beta1Anomaly {
 }
 
 /// Represents a row of dimensions and metrics.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1MetricsRow {
     /// Optional. Granularity of the aggregation period of the row. // TODO: enum values: ["AGGREGATION_PERIOD_UNSPECIFIED", "HOURLY", "DAILY", "FULL_RANGE"]
     #[serde(default, rename = "aggregationPeriod")]
@@ -495,7 +496,7 @@ pub struct GooglePlayDeveloperReportingV1beta1MetricsRow {
 }
 
 /// A representation of a Play release track.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1Track {
     /// Readable identifier of the track.
     #[serde(default, rename = "displayName")]
@@ -510,7 +511,7 @@ pub struct GooglePlayDeveloperReportingV1beta1Track {
 }
 
 /// A representation of an app in the Play Store.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1App {
     /// Title of the app. This is the latest title as set in the Play Console and may not yet have been reviewed, so might not match the Play Store. Example: Google Maps.
     #[serde(default, rename = "displayName")]
@@ -524,7 +525,7 @@ pub struct GooglePlayDeveloperReportingV1beta1App {
 }
 
 /// A group of related ErrorReports received for an app. Similar error reports are grouped together into issues with a likely identical root cause. **Please note:** this resource is currently in Alpha. There could be changes to the issue grouping that would result in similar but more recent error reports being assigned to different issues. This could also cause some issues disappearing entirely and being replaced by new ones. **Required permissions**: to access this resource, the calling user needs the _View app information (read-only)_ permission for the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1ErrorIssue {
     /// List of annotations for an issue. Annotations provide additional information that may help in diagnosing and fixing the issue.
     #[serde(default)]
@@ -575,7 +576,7 @@ pub struct GooglePlayDeveloperReportingV1beta1ErrorIssue {
 }
 
 /// An error report received for an app. There reports are produced by the Android platform code when a (potentially fatal) error condition is detected. Identical reports from many users will be deduplicated and coalesced into a single ErrorReport. **Required permissions**: to access this resource, the calling user needs the _View app information (read-only)_ permission for the app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1ErrorReport {
     /// The app version on which an event in this error report occurred on.
     #[serde(default, rename = "appVersion")]
@@ -607,7 +608,7 @@ pub struct GooglePlayDeveloperReportingV1beta1ErrorReport {
 }
 
 /// Represents the latest available time that can be requested in a TimelineSpec. Different aggregation periods have different freshness. For example, DAILY aggregation may lag behind HOURLY in cases where such aggregation is computed only once at the end of the day.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1FreshnessInfo {
     /// Information about data freshness for every supported aggregation period. This field has set semantics, keyed by the aggregation_period field.
     #[serde(default)]
@@ -617,7 +618,7 @@ pub struct GooglePlayDeveloperReportingV1beta1FreshnessInfo {
 }
 
 /// Specification of the time-related aggregation parameters of a timeline. Timelines have an aggregation period (DAILY, HOURLY, etc) which defines how events are aggregated in metrics. The points in a timeline are defined by the starting DateTime of the aggregation period. The duration is implicit in the AggregationPeriod. Hourly aggregation periods, when supported by a metric set, are always specified in UTC to avoid ambiguities around daylight saving time transitions, where an hour is skipped when adopting DST, and repeated when abandoning DST. For example, the timestamp ''2021-11-07 01:00:00 America/Los_Angeles'' is ambiguous since it can correspond to ''2021-11-07 08:00:00 UTC'' or ''2021-11-07 09:00:00 UTC''. Daily aggregation periods require specifying a timezone which will determine the precise instants of the start and the end of the day. Not all metric sets support all timezones, so make sure to check which timezones are supported by the metric set you want to query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1TimelineSpec {
     /// Optional. Type of the aggregation period of the datapoints in the timeline. Intervals are identified by the date and time at the start of the interval. // TODO: enum values: ["AGGREGATION_PERIOD_UNSPECIFIED", "HOURLY", "DAILY", "FULL_RANGE"]
     #[serde(default, rename = "aggregationPeriod")]
@@ -631,7 +632,7 @@ pub struct GooglePlayDeveloperReportingV1beta1TimelineSpec {
 }
 
 /// Represents the value of a single dimension.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1DimensionValue {
     /// Name of the dimension.
     #[serde(default)]
@@ -648,7 +649,7 @@ pub struct GooglePlayDeveloperReportingV1beta1DimensionValue {
 }
 
 /// Represents the value of a metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1MetricValue {
     /// Actual value, represented as a decimal number.
     #[serde(default, rename = "decimalValue")]
@@ -663,7 +664,7 @@ pub struct GooglePlayDeveloperReportingV1beta1MetricValue {
 }
 
 /// A representation of an app release.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1Release {
     /// Readable identifier of the release.
     #[serde(default, rename = "displayName")]
@@ -674,7 +675,7 @@ pub struct GooglePlayDeveloperReportingV1beta1Release {
 }
 
 /// Representation of an annotation message for an issue.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1IssueAnnotation {
     /// Contains the contents of the annotation message.
     #[serde(default)]
@@ -688,7 +689,7 @@ pub struct GooglePlayDeveloperReportingV1beta1IssueAnnotation {
 }
 
 /// Representations of an app version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1AppVersion {
     /// Optional. Numeric version code of the app version (set by the app''s developer).
     #[serde(default, rename = "versionCode")]
@@ -696,7 +697,7 @@ pub struct GooglePlayDeveloperReportingV1beta1AppVersion {
 }
 
 /// Summary of a device
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1DeviceModelSummary {
     /// Identifier of the device.
     #[serde(default, rename = "deviceId")]
@@ -710,7 +711,7 @@ pub struct GooglePlayDeveloperReportingV1beta1DeviceModelSummary {
 }
 
 /// Representation of an OS version.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1OsVersion {
     /// Optional. Numeric version code of the OS - API level
     #[serde(default, rename = "apiLevel")]
@@ -718,7 +719,7 @@ pub struct GooglePlayDeveloperReportingV1beta1OsVersion {
 }
 
 /// Information about data freshness for a single aggregation period.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1FreshnessInfoFreshness {
     /// Aggregation period for which data is available. // TODO: enum values: ["AGGREGATION_PERIOD_UNSPECIFIED", "HOURLY", "DAILY", "FULL_RANGE"]
     #[serde(default, rename = "aggregationPeriod")]
@@ -729,7 +730,7 @@ pub struct GooglePlayDeveloperReportingV1beta1FreshnessInfoFreshness {
 }
 
 /// Represents the confidence interval of a metric.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1DecimalConfidenceInterval {
     /// The confidence interval''s lower bound.
     #[serde(default, rename = "lowerBound")]
@@ -740,7 +741,7 @@ pub struct GooglePlayDeveloperReportingV1beta1DecimalConfidenceInterval {
 }
 
 /// Identifier of a device.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GooglePlayDeveloperReportingV1beta1DeviceId {
     /// Value of Build.BRAND.
     #[serde(default, rename = "buildBrand")]
@@ -751,7 +752,7 @@ pub struct GooglePlayDeveloperReportingV1beta1DeviceId {
 }
 
 /// Represents civil time (or occasionally physical time). This type can represent a civil time in one of a few possible ways: * When utc_offset is set and time_zone is unset: a civil time on a calendar day with a particular offset from UTC. * When time_zone is set and utc_offset is unset: a civil time on a calendar day in a particular time zone. * When neither time_zone nor utc_offset is set: a civil time on a calendar day in local time. The date is relative to the Proleptic Gregorian Calendar. If year, month, or day are 0, the DateTime is considered not to have a specific year, month, or day respectively. This type may also be used to represent a physical time if all the date and time fields are set and either case of the time_offset oneof is set. Consider using Timestamp message for physical time instead. If your use case also would like to store the user''s timezone, that can be done in another field. This type is more flexible than some applications may want. Make sure to document and validate your application''s limitations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeDateTime {
     /// Optional. Day of month. Must be from 1 to 31 and valid for the year and month, or 0 if specifying a datetime without a day.
     #[serde(default)]
@@ -783,7 +784,7 @@ pub struct GoogleTypeDateTime {
 }
 
 /// A representation of a decimal value, such as 2.5. Clients may convert values into language-native decimal formats, such as Java''s [BigDecimal](https://docs.oracle.com/en/java/javase/11/docs/api/java.base/java/math/BigDecimal.html) or Python''s [decimal.Decimal](https://docs.python.org/3/library/decimal.html).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeDecimal {
     /// The decimal value, as a string. The string representation consists of an optional sign, + (U+002B) or - (U+002D), followed by a sequence of zero or more decimal digits ("the integer"), optionally followed by a fraction, optionally followed by an exponent. An empty string **should** be interpreted as 0. The fraction consists of a decimal point followed by zero or more decimal digits. The string must contain at least one digit in either the integer or the fraction. The number formed by the sign, the integer and the fraction is referred to as the significand. The exponent consists of the character e (U+0065) or E (U+0045) followed by one or more decimal digits. Services **should** normalize decimal values before storing them by: - Removing an explicitly-provided + sign (+2.5 -&gt; 2.5). - Replacing a zero-length integer value with 0 (.5 -&gt; 0.5). - Coercing the exponent character to upper-case, with explicit sign (2.5e8 -&gt; 2.5E+8). - Removing an explicitly-provided zero exponent (2.5E0 -&gt; 2.5). Services **may** perform additional normalization based on its own needs and the internal decimal implementation selected, such as shifting the decimal point and exponent value together (example: 2.5E-1 &lt;-&gt; 0.25). Additionally, services **may** preserve trailing zeroes in the fraction to indicate increased precision, but are not required to do so. Note that only the . character is supported to divide the integer and the fraction; , **should not** be supported regardless of locale. Additionally, thousand separators **should not** be supported. If a service does support them, values **must** be normalized. The ENBF grammar is: DecimalString = '''' | [Sign] Significand [Exponent]; Sign = ''+'' | ''-''; Significand = Digits ''.'' | [Digits] ''.'' Digits; Exponent = (''e'' | ''E'') [Sign] Digits; Digits = { ''0'' | ''1'' | ''2'' | ''3'' | ''4'' | ''5'' | ''6'' | ''7'' | ''8'' | ''9'' }; Services **should** clearly document the range of supported values, the maximum supported precision (total number of digits), and, if applicable, the scale (number of digits after the decimal point), as well as how it behaves when receiving out-of-bounds values. Services **may** choose to accept values passed as input even when the value has a higher precision or scale than the service supports, and **should** round the value to fit the supported scale. Alternatively, the service **may** error with 400 Bad Request (INVALID_ARGUMENT in gRPC) if precision would be lost. Services **should** error with 400 Bad Request (INVALID_ARGUMENT in gRPC) if the service receives a value outside of the supported range.
     #[serde(default)]
@@ -791,7 +792,7 @@ pub struct GoogleTypeDecimal {
 }
 
 /// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeTimeZone {
     /// IANA Time Zone Database time zone. For example "America/New_York".
     #[serde(default)]

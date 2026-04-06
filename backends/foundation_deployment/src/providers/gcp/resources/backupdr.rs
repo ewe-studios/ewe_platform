@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// request message for AbandonBackup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AbandonBackupRequest {
     /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes since the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
@@ -19,15 +20,15 @@ pub struct AbandonBackupRequest {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Request message for ending a trial.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EndTrialRequest {
     /// Required. The reason for ending the trial. // TODO: enum values: ["END_REASON_UNSPECIFIED", "MOVE_TO_PAID", "DISCONTINUED"]
     #[serde(default, rename = "endReason")]
@@ -35,7 +36,7 @@ pub struct EndTrialRequest {
 }
 
 /// Request message for FetchAccessToken.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchAccessTokenRequest {
     /// Required. The generation of the backup to update.
     #[serde(default, rename = "generationId")]
@@ -43,7 +44,7 @@ pub struct FetchAccessTokenRequest {
 }
 
 /// Response message for FetchAccessToken.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchAccessTokenResponse {
     /// The token is valid until this time.
     #[serde(default, rename = "expireTime")]
@@ -60,7 +61,7 @@ pub struct FetchAccessTokenResponse {
 }
 
 /// Response for the FetchBackupPlanAssociationsForResourceType method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchBackupPlanAssociationsForResourceTypeResponse {
     /// Output only. The BackupPlanAssociations from the specified parent.
     #[serde(default, rename = "backupPlanAssociations")]
@@ -71,7 +72,7 @@ pub struct FetchBackupPlanAssociationsForResourceTypeResponse {
 }
 
 /// Response for the FetchBackupsForResourceType method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchBackupsForResourceTypeResponse {
     /// The Backups from the specified parent.
     #[serde(default)]
@@ -82,7 +83,7 @@ pub struct FetchBackupsForResourceTypeResponse {
 }
 
 /// Response for the FetchDataSourceReferencesForResourceType method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchDataSourceReferencesForResourceTypeResponse {
     /// The DataSourceReferences from the specified parent.
     #[serde(default, rename = "dataSourceReferences")]
@@ -93,7 +94,7 @@ pub struct FetchDataSourceReferencesForResourceTypeResponse {
 }
 
 /// Request message for GetMsComplianceMetadata
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchMsComplianceMetadataRequest {
     /// Required. The project id of the target project
     #[serde(default, rename = "projectId")]
@@ -101,7 +102,7 @@ pub struct FetchMsComplianceMetadataRequest {
 }
 
 /// Response message for GetMsComplianceMetadata
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchMsComplianceMetadataResponse {
     /// The ms compliance metadata of the target project, if the project is an Assured Workloads project, values will be true, otherwise false.
     #[serde(default, rename = "isAssuredWorkload")]
@@ -109,7 +110,7 @@ pub struct FetchMsComplianceMetadataResponse {
 }
 
 /// Response message for fetching usable BackupVaults.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FetchUsableBackupVaultsResponse {
     /// The list of BackupVault instances in the project for the specified location. If the ''{location}'' value in the request is "-", the response contains a list of instances from all locations. In case any location is unreachable, the response will only return backup vaults in reachable locations and the ''unreachable'' field will be populated with a list of unreachable locations.
     #[serde(default, rename = "backupVaults")]
@@ -123,7 +124,7 @@ pub struct FetchUsableBackupVaultsResponse {
 }
 
 /// Message for finalizing a Backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FinalizeBackupRequest {
     /// Required. Resource ID of the Backup resource to be finalized. This must be the same backup_id that was used in the InitiateBackupRequest.
     #[serde(default, rename = "backupId")]
@@ -149,7 +150,7 @@ pub struct FinalizeBackupRequest {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudBackupdrV1OperationMetadata {
     /// Output only. AdditionalInfo contains additional Info related to backup plan association resource.
     #[serde(default, rename = "additionalInfo")]
@@ -178,7 +179,7 @@ pub struct GoogleCloudBackupdrV1OperationMetadata {
 }
 
 /// Request message for initializing the service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InitializeServiceRequest {
     /// Optional. The location where the BackupPlan will be created. This field is required for multi-region BackupVaults and is optional for regional BackupVaults. It is useful when creating a Backup Vault in a multi-region, allowing the BackupPlan to reside in a specific region within that multi-region. If this field is not provided, the BackupPlan will be created in the same location as specified in the name field.
     #[serde(default, rename = "backupPlanLocation")]
@@ -196,7 +197,7 @@ pub struct InitializeServiceRequest {
 }
 
 /// request message for InitiateBackup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InitiateBackupRequest {
     /// Required. Resource ID of the Backup resource.
     #[serde(default, rename = "backupId")]
@@ -207,7 +208,7 @@ pub struct InitiateBackupRequest {
 }
 
 /// Response message for InitiateBackup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InitiateBackupResponse {
     /// The name of the backup that was created.
     #[serde(default)]
@@ -221,7 +222,7 @@ pub struct InitiateBackupResponse {
 }
 
 /// Response message for List BackupPlanAssociation
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBackupPlanAssociationsResponse {
     /// The list of Backup Plan Associations in the project for the specified location. If the {location} value in the request is "-", the response contains a list of instances from all locations. In case any location is unreachable, the response will only return backup plan associations in reachable locations and the ''unreachable'' field will be populated with a list of unreachable locations.
     #[serde(default, rename = "backupPlanAssociations")]
@@ -235,7 +236,7 @@ pub struct ListBackupPlanAssociationsResponse {
 }
 
 /// The response message for getting a list of BackupPlanRevision.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBackupPlanRevisionsResponse {
     /// The list of BackupPlanRevisions in the project for the specified location. If the {location} value in the request is "-", the response contains a list of resources from all locations. In case any location is unreachable, the response will only return backup plans in reachable locations and the ''unreachable'' field will be populated with a list of unreachable locations.
     #[serde(default, rename = "backupPlanRevisions")]
@@ -249,7 +250,7 @@ pub struct ListBackupPlanRevisionsResponse {
 }
 
 /// The response message for getting a list of BackupPlan.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBackupPlansResponse {
     /// The list of BackupPlans in the project for the specified location. If the {location} value in the request is "-", the response contains a list of resources from all locations. In case any location is unreachable, the response will only return backup plans in reachable locations and the ''unreachable'' field will be populated with a list of unreachable locations. BackupPlan
     #[serde(default, rename = "backupPlans")]
@@ -263,7 +264,7 @@ pub struct ListBackupPlansResponse {
 }
 
 /// Response message for listing BackupVaults.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBackupVaultsResponse {
     /// The list of BackupVault instances in the project for the specified location. If the ''{location}'' value in the request is "-", the response contains a list of instances from all locations. In case any location is unreachable, the response will only return backup vaults in reachable locations and the ''unreachable'' field will be populated with a list of unreachable locations.
     #[serde(default, rename = "backupVaults")]
@@ -277,7 +278,7 @@ pub struct ListBackupVaultsResponse {
 }
 
 /// Response message for listing Backups.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBackupsResponse {
     /// The list of Backup instances in the project for the specified location. If the ''{location}'' value in the request is "-", the response contains a list of instances from all locations. In case any location is unreachable, the response will only return data sources in reachable locations and the ''unreachable'' field will be populated with a list of unreachable locations.
     #[serde(default)]
@@ -291,7 +292,7 @@ pub struct ListBackupsResponse {
 }
 
 /// Response for the ListDataSourceReferences method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDataSourceReferencesResponse {
     /// The DataSourceReferences from the specified parent.
     #[serde(default, rename = "dataSourceReferences")]
@@ -305,7 +306,7 @@ pub struct ListDataSourceReferencesResponse {
 }
 
 /// Response message for listing DataSources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDataSourcesResponse {
     /// The list of DataSource instances in the project for the specified location. If the ''{location}'' value in the request is "-", the response contains a list of instances from all locations. In case any location is unreachable, the response will only return data sources in reachable locations and the ''unreachable'' field will be populated with a list of unreachable locations.
     #[serde(default, rename = "dataSources")]
@@ -319,7 +320,7 @@ pub struct ListDataSourcesResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -330,7 +331,7 @@ pub struct ListLocationsResponse {
 }
 
 /// Response message for listing management servers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListManagementServersResponse {
     /// The list of ManagementServer instances in the project for the specified location. If the ''{location}'' value in the request is "-", the response contains a list of instances from all locations. In case any location is unreachable, the response will only return management servers in reachable locations and the ''unreachable'' field will be populated with a list of unreachable locations.
     #[serde(default, rename = "managementServers")]
@@ -344,7 +345,7 @@ pub struct ListManagementServersResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -358,7 +359,7 @@ pub struct ListOperationsResponse {
 }
 
 /// Response for ListResourceBackupConfigs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListResourceBackupConfigsResponse {
     /// A token identifying a page of results the server should return.
     #[serde(default, rename = "nextPageToken")]
@@ -369,7 +370,7 @@ pub struct ListResourceBackupConfigsResponse {
 }
 
 /// LocationMetadata resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LocationMetadata {
     /// List of features that are not supported in the location.
     #[serde(default, rename = "unsupportedFeatures")]
@@ -377,7 +378,7 @@ pub struct LocationMetadata {
 }
 
 /// Message for deleting a DataSource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveDataSourceRequest {
     /// Optional. An optional request ID to identify requests. Specify a unique request ID so that if you must retry your request, the server will know to ignore the request if it has already been completed. The server will guarantee that for at least 60 minutes after the first request. For example, consider a situation where you make an initial request and the request times out. If you make the request again with the same request ID, the server can check if original operation with the same request ID was received, and if so, will ignore the second request. This prevents clients from accidentally creating duplicate commitments. The request ID must be a valid UUID with the exception that zero UUID is not supported (00000000-0000-0000-0000-000000000000).
     #[serde(default, rename = "requestId")]
@@ -385,7 +386,7 @@ pub struct RemoveDataSourceRequest {
 }
 
 /// Request message for restoring from a Backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestoreBackupRequest {
     /// Optional. A field mask used to clear server-side default values for fields within the instance_properties oneof. When a field in this mask is cleared, the server will not apply its default logic (like inheriting a value from the source) for that field. The most common current use case is clearing default encryption keys. Examples of field mask paths: - Compute Instance Disks: compute_instance_restore_properties.disks.*.disk_encryption_key - Single Disk: disk_restore_properties.disk_encryption_key
     #[serde(default, rename = "clearOverridesFieldMask")]
@@ -413,7 +414,7 @@ pub struct RestoreBackupRequest {
 }
 
 /// Response message for restoring from a Backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestoreBackupResponse {
     /// Details of the target resource created/modified as part of restore.
     #[serde(default, rename = "targetResource")]
@@ -421,7 +422,7 @@ pub struct RestoreBackupResponse {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -432,7 +433,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Request message for SetStatusInternal method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetInternalStatusRequest {
     /// Required. Output only. The new BackupConfigState to set for the DataSource. // TODO: enum values: ["BACKUP_CONFIG_STATE_UNSPECIFIED", "ACTIVE", "PASSIVE"]
     #[serde(default, rename = "backupConfigState")]
@@ -446,15 +447,15 @@ pub struct SetInternalStatusRequest {
 }
 
 /// Response message from SetStatusInternal method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetInternalStatusResponse {}
 
 /// Request message for subscribing to a trial.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SubscribeTrialRequest {}
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -462,7 +463,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -470,7 +471,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// Represents a Trial for a project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Trial {
     /// Output only. The reason for ending the trial. // TODO: enum values: ["END_REASON_UNSPECIFIED", "MOVE_TO_PAID", "DISCONTINUED"]
     #[serde(default, rename = "endReason")]
@@ -490,7 +491,7 @@ pub struct Trial {
 }
 
 /// Request message for triggering a backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TriggerBackupRequest {
     /// Optional. The duration for which backup data will be kept, while taking an on-demand backup with custom retention. It is defined in "days". It is mutually exclusive with rule_id. This field is required if rule_id is not provided.
     #[serde(default, rename = "customRetentionDays")]
@@ -507,7 +508,7 @@ pub struct TriggerBackupRequest {
 }
 
 /// CloudSqlInstanceInitializationConfig contains the configuration for initializing a Cloud SQL instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudSqlInstanceInitializationConfig {
     /// Required. The edition of the Cloud SQL instance. // TODO: enum values: ["EDITION_UNSPECIFIED", "ENTERPRISE", "ENTERPRISE_PLUS"]
     #[serde(default)]
@@ -515,7 +516,7 @@ pub struct CloudSqlInstanceInitializationConfig {
 }
 
 /// A BackupPlanAssociation represents a single BackupPlanAssociation which contains details like workload, backup plan etc
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupPlanAssociation {
     /// Output only. AlloyDB cluster''s backup plan association properties.
     #[serde(default, rename = "alloydbClusterBackupPlanAssociationProperties")]
@@ -565,7 +566,7 @@ pub struct BackupPlanAssociation {
 }
 
 /// BackupPlanRevision represents a snapshot of a BackupPlan at a point in time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupPlanRevision {
     /// The Backup Plan being encompassed by this revision.
     #[serde(default, rename = "backupPlanSnapshot")]
@@ -585,7 +586,7 @@ pub struct BackupPlanRevision {
 }
 
 /// Message describing a BackupVault object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupVault {
     /// Optional. Note: This field is added for future use case and will not be supported in the current release. Access restriction for the backup vault. Default value is WITHIN_ORGANIZATION if not provided during creation. // TODO: enum values: ["ACCESS_RESTRICTION_UNSPECIFIED", "WITHIN_PROJECT", "WITHIN_ORGANIZATION", "UNRESTRICTED", "WITHIN_ORG_BUT_UNRESTRICTED_FOR_BA"]
     #[serde(default, rename = "accessRestriction")]
@@ -644,7 +645,7 @@ pub struct BackupVault {
 }
 
 /// Message describing a Backup object.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Backup {
     /// Output only. AlloyDB specific backup properties.
     #[serde(default, rename = "alloyDbBackupProperties")]
@@ -729,7 +730,7 @@ pub struct Backup {
 }
 
 /// DataSourceReference is a reference to a DataSource resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataSourceReference {
     /// Output only. The time when the DataSourceReference was created.
     #[serde(default, rename = "createTime")]
@@ -758,7 +759,7 @@ pub struct DataSourceReference {
 }
 
 /// Message describing a DataSource object. Datasource object used to represent Datasource details for both admin and basic view.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataSource {
     /// Output only. This field is set to true if the backup is blocked by vault access restriction.
     #[serde(default, rename = "backupBlockedByVaultAccessRestriction")]
@@ -803,7 +804,7 @@ pub struct DataSource {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -823,7 +824,7 @@ pub struct Location {
 }
 
 /// ManagementServer describes a single BackupDR ManagementServer instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagementServer {
     /// Output only. The hostname or ip address of the exposed AGM endpoints, used by BAs to connect to BA proxy.
     #[serde(default, rename = "baProxyUri")]
@@ -878,7 +879,7 @@ pub struct ManagementServer {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -898,7 +899,7 @@ pub struct Operation {
 }
 
 /// ResourceBackupConfig represents a resource along with its backup configurations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResourceBackupConfig {
     /// Backup configurations applying to the target resource, including those targeting its related/child resources. For example, backup configuration applicable to Compute Engine disks will be populated in this field for a Compute Engine VM which has the disk associated.
     #[serde(default, rename = "backupConfigsDetails")]
@@ -930,7 +931,7 @@ pub struct ResourceBackupConfig {
 }
 
 /// ComputeInstanceRestoreProperties represents Compute Engine instance properties to be overridden during restore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeInstanceRestoreProperties {
     /// Optional. Controls for advanced machine-related behavior features.
     #[serde(default, rename = "advancedMachineFeatures")]
@@ -1010,7 +1011,7 @@ pub struct ComputeInstanceRestoreProperties {
 }
 
 /// ComputeInstanceTargetEnvironment represents Compute Engine target environment to be used during restore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeInstanceTargetEnvironment {
     /// Required. Target project for the Compute Engine instance.
     #[serde(default)]
@@ -1021,7 +1022,7 @@ pub struct ComputeInstanceTargetEnvironment {
 }
 
 /// DiskRestoreProperties represents the properties of a Disk restore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskRestoreProperties {
     /// Optional. The access mode of the disk. // TODO: enum values: ["READ_WRITE_SINGLE", "READ_WRITE_MANY", "READ_ONLY_MANY"]
     #[serde(default, rename = "accessMode")]
@@ -1077,7 +1078,7 @@ pub struct DiskRestoreProperties {
 }
 
 /// DiskTargetEnvironment represents the target environment for the disk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskTargetEnvironment {
     /// Required. Target project for the disk.
     #[serde(default)]
@@ -1088,7 +1089,7 @@ pub struct DiskTargetEnvironment {
 }
 
 /// RegionDiskTargetEnvironment represents the target environment for the disk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionDiskTargetEnvironment {
     /// Required. Target project for the disk.
     #[serde(default)]
@@ -1102,7 +1103,7 @@ pub struct RegionDiskTargetEnvironment {
 }
 
 /// Details of the target resource created/modified as part of restore.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TargetResource {
     /// Details of the native Google Cloud resource created as part of restore.
     #[serde(default, rename = "gcpResource")]
@@ -1110,7 +1111,7 @@ pub struct TargetResource {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Specifies cloud audit logging configuration for this policy.
     #[serde(default, rename = "auditConfigs")]
@@ -1127,7 +1128,7 @@ pub struct Policy {
 }
 
 /// Properties for an AlloyDB cluster backup plan association.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlloyDBClusterBackupPlanAssociationProperties {
     /// Output only. The cluster UID of the AlloyDB cluster.
     #[serde(default, rename = "clusterUid")]
@@ -1135,7 +1136,7 @@ pub struct AlloyDBClusterBackupPlanAssociationProperties {
 }
 
 /// Cloud SQL instance''s BPA properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudSqlInstanceBackupPlanAssociationProperties {
     /// Output only. The time when the instance was created.
     #[serde(default, rename = "instanceCreateTime")]
@@ -1143,7 +1144,7 @@ pub struct CloudSqlInstanceBackupPlanAssociationProperties {
 }
 
 /// Filestore instance''s BPA properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FilestoreInstanceBackupPlanAssociationProperties {
     /// Output only. The time when the instance was created.
     #[serde(default, rename = "instanceCreateTime")]
@@ -1151,7 +1152,7 @@ pub struct FilestoreInstanceBackupPlanAssociationProperties {
 }
 
 /// Message for rules config info.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RuleConfigInfo {
     /// Output only. google.rpc.Status object to store the last backup error.
     #[serde(default, rename = "lastBackupError")]
@@ -1168,7 +1169,7 @@ pub struct RuleConfigInfo {
 }
 
 /// A BackupPlan specifies some common fields, such as description as well as one or more BackupRule messages. Each BackupRule has a retention policy and defines a schedule by which the system is to perform backup workloads.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupPlan {
     /// Optional. The backup rules for this BackupPlan.
     #[serde(default, rename = "backupRules")]
@@ -1228,7 +1229,7 @@ pub struct BackupPlan {
 }
 
 /// Message describing the EncryptionConfig of backup vault. This determines how data within the vault is encrypted at rest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EncryptionConfig {
     /// Optional. The Cloud KMS key name to encrypt backups in this backup vault. Must be in the same region as the vault. Some workload backups like compute disk backups may use their inherited source key instead. Format: projects/{project}/locations/{location}/keyRings/{ring}/cryptoKeys/{key}
     #[serde(default, rename = "kmsKeyName")]
@@ -1236,7 +1237,7 @@ pub struct EncryptionConfig {
 }
 
 /// AlloyDbClusterBackupProperties represents AlloyDB cluster backup properties. .
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlloyDbClusterBackupProperties {
     /// Output only. The chain id of this backup. Backups belonging to the same chain are sharing the same chain id. This property is calculated and maintained by BackupDR.
     #[serde(default, rename = "chainId")]
@@ -1253,7 +1254,7 @@ pub struct AlloyDbClusterBackupProperties {
 }
 
 /// BackupApplianceBackupProperties represents BackupDR backup appliance''s properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupApplianceBackupProperties {
     /// Output only. The time when this backup object was finalized (if none, backup is not finalized).
     #[serde(default, rename = "finalizeTime")]
@@ -1270,7 +1271,7 @@ pub struct BackupApplianceBackupProperties {
 }
 
 /// BackupLock represents a single lock on a Backup resource. An unexpired lock on a Backup prevents the Backup from being deleted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupLock {
     /// If the client is a backup and recovery appliance, this contains metadata about why the lock exists.
     #[serde(default, rename = "backupApplianceLockInfo")]
@@ -1284,7 +1285,7 @@ pub struct BackupLock {
 }
 
 /// CloudSqlInstanceBackupProperties represents Cloud SQL Instance Backup properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudSqlInstanceBackupProperties {
     /// Output only. The installed database version of the Cloud SQL instance when the backup was taken.
     #[serde(default, rename = "databaseInstalledVersion")]
@@ -1307,7 +1308,7 @@ pub struct CloudSqlInstanceBackupProperties {
 }
 
 /// ComputeInstanceBackupProperties represents Compute Engine instance backup properties.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeInstanceBackupProperties {
     /// Enables instances created based on these properties to send packets with source IP addresses other than their own and receive packets with destination IP addresses other than their own. If these instances will be used as an IP gateway or it will be set as the next-hop in a Route resource, specify true. If unsure, leave this set to false. See the https://cloud.google.com/vpc/docs/using-routes#canipforward documentation for more information.
     #[serde(default, rename = "canIpForward")]
@@ -1357,7 +1358,7 @@ pub struct ComputeInstanceBackupProperties {
 }
 
 /// DiskBackupProperties represents the properties of a Disk backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskBackupProperties {
     /// The access mode of the source disk.
     #[serde(default, rename = "accessMode")]
@@ -1416,7 +1417,7 @@ pub struct DiskBackupProperties {
 }
 
 /// FilestoreInstanceBackupProperties represents the properties of a Filestore instance that are backed up by the datasource. .
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FilestoreInstanceBackupProperties {
     /// Output only. The source instance of the backup.
     #[serde(default, rename = "sourceInstance")]
@@ -1424,7 +1425,7 @@ pub struct FilestoreInstanceBackupProperties {
 }
 
 /// GCPBackupPlanInfo captures the plan configuration details of Google Cloud resources at the time of backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GCPBackupPlanInfo {
     /// Resource name of backup plan by which workload is protected at the time of the backup. Format: projects/{project}/locations/{location}/backupPlans/{backupPlanId}
     #[serde(default, rename = "backupPlan")]
@@ -1441,7 +1442,7 @@ pub struct GCPBackupPlanInfo {
 }
 
 /// Minimum details to identify a Google Cloud resource for a backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupGcpResource {
     /// Name of the Google Cloud resource.
     #[serde(default, rename = "gcpResourcename")]
@@ -1455,7 +1456,7 @@ pub struct BackupGcpResource {
 }
 
 /// Information of backup configuration on the DataSource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataSourceBackupConfigInfo {
     /// Output only. The status of the last backup in this DataSource // TODO: enum values: ["LAST_BACKUP_STATE_UNSPECIFIED", "FIRST_BACKUP_PENDING", "SUCCEEDED", "FAILED", "PERMISSION_DENIED"]
     #[serde(default, rename = "lastBackupState")]
@@ -1466,7 +1467,7 @@ pub struct DataSourceBackupConfigInfo {
 }
 
 /// The Google Cloud resource that the DataSource is associated with.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataSourceGcpResourceInfo {
     /// Output only. The properties of the AlloyDB cluster.
     #[serde(default, rename = "alloyDbClusterProperties")]
@@ -1492,7 +1493,7 @@ pub struct DataSourceGcpResourceInfo {
 }
 
 /// BackupConfigInfo has information about how the resource is configured for Backup and about the most recent backup to this vault.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupConfigInfo {
     /// Configuration for an application backed up by a Backup Appliance.
     #[serde(default, rename = "backupApplianceBackupConfig")]
@@ -1512,7 +1513,7 @@ pub struct BackupConfigInfo {
 }
 
 /// BackupApplianceApplication describes a Source Resource when it is an application backed up by a BackupAppliance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataSourceBackupApplianceApplication {
     /// Appliance Id of the Backup Appliance.
     #[serde(default, rename = "applianceId")]
@@ -1538,7 +1539,7 @@ pub struct DataSourceBackupApplianceApplication {
 }
 
 /// DataSourceGcpResource is used for protected resources that are Google Cloud Resources. This name is easeier to understand than GcpResourceDataSource or GcpDataSourceResource
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DataSourceGcpResource {
     /// Output only. AlloyDBClusterDataSourceProperties has a subset of AlloyDB cluster properties that are useful at the Datasource level. Currently none of its child properties are auditable. If new auditable properties are added, the AUDIT annotation should be added.
     #[serde(default, rename = "alloyDbClusterDatasourceProperties")]
@@ -1571,7 +1572,7 @@ pub struct DataSourceGcpResource {
 }
 
 /// ManagementURI for the Management Server resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ManagementURI {
     /// Output only. The ManagementServer AGM/RD API URL.
     #[serde(default)]
@@ -1582,7 +1583,7 @@ pub struct ManagementURI {
 }
 
 /// Network configuration for ManagementServer instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkConfig {
     /// Optional. The resource name of the Google Compute Engine VPC network to which the ManagementServer instance is connected.
     #[serde(default)]
@@ -1593,7 +1594,7 @@ pub struct NetworkConfig {
 }
 
 /// ManagementURI depending on the Workforce Identity i.e. either 1p or 3p.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkforceIdentityBasedManagementURI {
     /// Output only. First party Management URI for Google Identities.
     #[serde(default, rename = "firstPartyManagementUri")]
@@ -1604,7 +1605,7 @@ pub struct WorkforceIdentityBasedManagementURI {
 }
 
 /// OAuth Client ID depending on the Workforce Identity i.e. either 1p or 3p,
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkforceIdentityBasedOAuth2ClientID {
     /// Output only. First party OAuth Client ID for Google Identities.
     #[serde(default, rename = "firstPartyOauth2ClientId")]
@@ -1615,7 +1616,7 @@ pub struct WorkforceIdentityBasedOAuth2ClientID {
 }
 
 /// BackupConfigDetails has information about how the resource is configured for backups and about the most recent backup taken for this configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupConfigDetails {
     /// Output only. The [full resource name](https://cloud.google.com/asset-inventory/docs/resource-name-format) of the resource that is applicable for the backup configuration. Example: "//compute.googleapis.com/projects/{project}/zones/{zone}/instances/{instance}"
     #[serde(default, rename = "applicableResource")]
@@ -1653,7 +1654,7 @@ pub struct BackupConfigDetails {
 }
 
 /// Specifies options for controlling advanced machine features.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdvancedMachineFeatures {
     /// Optional. Whether to enable nested virtualization or not (default is false).
     #[serde(default, rename = "enableNestedVirtualization")]
@@ -1670,7 +1671,7 @@ pub struct AdvancedMachineFeatures {
 }
 
 /// A set of Confidential Instance options.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConfidentialInstanceConfig {
     /// Optional. Defines whether the instance should have confidential compute enabled.
     #[serde(default, rename = "enableConfidentialCompute")]
@@ -1678,7 +1679,7 @@ pub struct ConfidentialInstanceConfig {
 }
 
 /// A set of Display Device options
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisplayDevice {
     /// Optional. Enables display for the Compute Engine VM
     #[serde(default, rename = "enableDisplay")]
@@ -1686,7 +1687,7 @@ pub struct DisplayDevice {
 }
 
 /// Network performance configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkPerformanceConfig {
     /// Optional. The tier of the total egress bandwidth. // TODO: enum values: ["TIER_UNSPECIFIED", "DEFAULT", "TIER_1"]
     #[serde(default, rename = "totalEgressBandwidthTier")]
@@ -1694,7 +1695,7 @@ pub struct NetworkPerformanceConfig {
 }
 
 /// Additional instance params.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InstanceParams {
     /// Optional. Resource manager tags to be bound to the instance.
     #[serde(default, rename = "resourceManagerTags")]
@@ -1702,7 +1703,7 @@ pub struct InstanceParams {
 }
 
 /// Specifies the reservations that this instance can consume from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AllocationAffinity {
     /// Optional. Specifies the type of reservation from which this instance can consume // TODO: enum values: ["TYPE_UNSPECIFIED", "NO_RESERVATION", "ANY_RESERVATION", "SPECIFIC_RESERVATION"]
     #[serde(default, rename = "consumeReservationType")]
@@ -1716,7 +1717,7 @@ pub struct AllocationAffinity {
 }
 
 /// Minimum details to identify a Google Cloud resource
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GcpResource {
     /// Name of the Google Cloud resource.
     #[serde(default, rename = "gcpResourcename")]
@@ -1730,7 +1731,7 @@ pub struct GcpResource {
 }
 
 /// Specifies the audit configuration for a service. The configuration determines which permission types are logged, and what identities, if any, are exempted from logging. An AuditConfig must have one or more AuditLogConfigs. If there are AuditConfigs for both allServices and a specific service, the union of the two AuditConfigs is used for that service: the log_types specified in each AuditConfig are enabled, and the exempted_members in each AuditLogConfig are exempted. Example Policy with multiple AuditConfigs: { "audit_configs": [ { "service": "allServices", "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" }, { "log_type": "ADMIN_READ" } ] }, { "service": "sampleservice.googleapis.com", "audit_log_configs": [ { "log_type": "DATA_READ" }, { "log_type": "DATA_WRITE", "exempted_members": [ "user:aliya@example.com" ] } ] } ] } For sampleservice, this policy enables DATA_READ, DATA_WRITE and ADMIN_READ logging. It also exempts jose@example.com from DATA_READ logging, and aliya@example.com from DATA_WRITE logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditConfig {
     /// The configuration for logging of each type of permission.
     #[serde(default, rename = "auditLogConfigs")]
@@ -1741,7 +1742,7 @@ pub struct AuditConfig {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -1755,7 +1756,7 @@ pub struct Binding {
 }
 
 /// BackupRule binds the backup schedule to a retention policy.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupRule {
     /// Required. Configures the duration for which backup data will be kept. It is defined in “days”. The value should be greater than or equal to minimum enforced retention of the backup vault. Minimum value is 1 and maximum value is 36159 for custom retention on-demand backup. Minimum and maximum values are workload specific for all other rules. Note: Longer retention can lead to higher storage costs post introductory trial. We recommend starting with a short duration of 3 days or less.
     #[serde(default, rename = "backupRetentionDays")]
@@ -1769,7 +1770,7 @@ pub struct BackupRule {
 }
 
 /// --- ComputeInstanceBackupPlanProperties Message ---
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeInstanceBackupPlanProperties {
     /// Optional. Indicates whether to perform a guest flush operation before taking a compute backup. When set to false, the system will create crash-consistent backups. Default value is false.
     #[serde(default, rename = "guestFlush")]
@@ -1777,7 +1778,7 @@ pub struct ComputeInstanceBackupPlanProperties {
 }
 
 /// --- DiskBackupPlanProperties Message ---
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskBackupPlanProperties {
     /// Optional. Indicates whether to perform a guest flush operation before taking a disk backup. When set to false, the system will create crash-consistent backups. Default value is false.
     #[serde(default, rename = "guestFlush")]
@@ -1785,7 +1786,7 @@ pub struct DiskBackupPlanProperties {
 }
 
 /// BackupApplianceLockInfo contains metadata about the backupappliance that created the lock.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupApplianceLockInfo {
     /// Required. The ID of the backup/recovery appliance that created this lock.
     #[serde(default, rename = "backupApplianceId")]
@@ -1808,7 +1809,7 @@ pub struct BackupApplianceLockInfo {
 }
 
 /// ServiceLockInfo represents the details of a lock taken by the service on a Backup resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceLockInfo {
     /// Output only. The name of the operation that created this lock. The lock will automatically be released when the operation completes.
     #[serde(default)]
@@ -1816,7 +1817,7 @@ pub struct ServiceLockInfo {
 }
 
 /// An instance-attached disk resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttachedDisk {
     /// Optional. Specifies whether the disk will be auto-deleted when the instance is deleted (but not when the disk is detached from the instance).
     #[serde(default, rename = "autoDelete")]
@@ -1872,7 +1873,7 @@ pub struct AttachedDisk {
 }
 
 /// A specification of the type and number of accelerator cards attached to the instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AcceleratorConfig {
     /// Optional. The number of the guest accelerator cards exposed to this instance.
     #[serde(default, rename = "acceleratorCount")]
@@ -1883,7 +1884,7 @@ pub struct AcceleratorConfig {
 }
 
 /// A metadata key/value entry.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Metadata {
     /// Optional. Array of key/value pairs. The total size of all keys and values must be less than 512 KB.
     #[serde(default)]
@@ -1891,7 +1892,7 @@ pub struct Metadata {
 }
 
 /// A network interface resource attached to an instance. s
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NetworkInterface {
     /// Optional. An array of configurations for this interface. Currently, only one access config,ONE_TO_ONE_NAT is supported. If there are no accessConfigs specified, then this instance will have no external internet access.
     #[serde(default, rename = "accessConfigs")]
@@ -1938,7 +1939,7 @@ pub struct NetworkInterface {
 }
 
 /// Sets the scheduling options for an Instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Scheduling {
     /// Optional. Specifies whether the instance should be automatically restarted if it is terminated by Compute Engine (not terminated by a user).
     #[serde(default, rename = "automaticRestart")]
@@ -1967,7 +1968,7 @@ pub struct Scheduling {
 }
 
 /// A service account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceAccount {
     /// Optional. Email address of the service account.
     #[serde(default)]
@@ -1978,7 +1979,7 @@ pub struct ServiceAccount {
 }
 
 /// A set of instance tags.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Tags {
     /// Optional. An array of tags. Each tag must be 1-63 characters long, and comply with RFC1035.
     #[serde(default)]
@@ -1986,7 +1987,7 @@ pub struct Tags {
 }
 
 /// AlloyDBClusterDataSourceReferenceProperties represents the properties of an AlloyDB cluster that are stored in the DataSourceReference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlloyDBClusterDataSourceReferenceProperties {
     /// Output only. Name of the AlloyDB cluster backed up by the datasource. Format: projects/{project}/locations/{location}/clusters/{cluster}
     #[serde(default)]
@@ -1994,7 +1995,7 @@ pub struct AlloyDBClusterDataSourceReferenceProperties {
 }
 
 /// CloudSqlInstanceDataSourceReferenceProperties represents the properties of a Cloud SQL resource that are stored in the DataSourceReference.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudSqlInstanceDataSourceReferenceProperties {
     /// Output only. The installed database version of the Cloud SQL instance.
     #[serde(default, rename = "databaseInstalledVersion")]
@@ -2011,7 +2012,7 @@ pub struct CloudSqlInstanceDataSourceReferenceProperties {
 }
 
 /// FilestoreInstanceDataSourceReferenceProperties represents the properties of a Filestore resource that are stored in the DataSourceReference. .
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FilestoreInstanceDataSourceReferenceProperties {
     /// Output only. The instance creation timestamp.
     #[serde(default, rename = "instanceCreateTime")]
@@ -2022,7 +2023,7 @@ pub struct FilestoreInstanceDataSourceReferenceProperties {
 }
 
 /// BackupApplianceBackupConfig captures the backup configuration for applications that are protected by Backup Appliances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupApplianceBackupConfig {
     /// The name of the application.
     #[serde(default, rename = "applicationName")]
@@ -2048,7 +2049,7 @@ pub struct BackupApplianceBackupConfig {
 }
 
 /// GcpBackupConfig captures the Backup configuration details for Google Cloud resources. All Google Cloud resources regardless of type are protected with backup plan associations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GcpBackupConfig {
     /// The name of the backup plan.
     #[serde(default, rename = "backupPlan")]
@@ -2071,7 +2072,7 @@ pub struct GcpBackupConfig {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -2085,7 +2086,7 @@ pub struct Status {
 }
 
 /// AlloyDBClusterDataSourceProperties represents the properties of a AlloyDB cluster resource that are stored in the DataSource. .
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlloyDBClusterDataSourceProperties {
     /// Output only. The cluster UID of the AlloyDB cluster backed up by the datasource.
     #[serde(default, rename = "clusterUid")]
@@ -2099,7 +2100,7 @@ pub struct AlloyDBClusterDataSourceProperties {
 }
 
 /// CloudSqlInstanceDataSourceProperties represents the properties of a Cloud SQL resource that are stored in the DataSource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CloudSqlInstanceDataSourceProperties {
     /// Output only. The installed database version of the Cloud SQL instance.
     #[serde(default, rename = "databaseInstalledVersion")]
@@ -2116,7 +2117,7 @@ pub struct CloudSqlInstanceDataSourceProperties {
 }
 
 /// ComputeInstanceDataSourceProperties represents the properties of a ComputeEngine resource that are stored in the DataSource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeInstanceDataSourceProperties {
     /// The description of the Compute Engine instance.
     #[serde(default)]
@@ -2136,7 +2137,7 @@ pub struct ComputeInstanceDataSourceProperties {
 }
 
 /// DiskDataSourceProperties represents the properties of a Disk resource that are stored in the DataSource. .
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DiskDataSourceProperties {
     /// The description of the disk.
     #[serde(default)]
@@ -2153,7 +2154,7 @@ pub struct DiskDataSourceProperties {
 }
 
 /// FilestoreInstanceDataSourceProperties represents the properties of a Filestore resource that are stored in the DataSource. .
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FilestoreInstanceDataSourceProperties {
     /// Output only. The instance creation timestamp.
     #[serde(default, rename = "instanceCreateTime")]
@@ -2164,7 +2165,7 @@ pub struct FilestoreInstanceDataSourceProperties {
 }
 
 /// BackupDrPlanConfig has additional information about Google Cloud Backup and DR''s Plan backup configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupDrPlanConfig {
     /// Backup rules of the backup plan resource.
     #[serde(default, rename = "backupDrPlanRules")]
@@ -2172,7 +2173,7 @@ pub struct BackupDrPlanConfig {
 }
 
 /// Provides additional information about Google Cloud Backup and DR''s Template backup configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupDrTemplateConfig {
     /// Output only. The URI of the BackupDr template resource for the first party identity users.
     #[serde(default, rename = "firstPartyManagementUri")]
@@ -2183,7 +2184,7 @@ pub struct BackupDrTemplateConfig {
 }
 
 /// BackupLocation represents a cloud location where a backup can be stored.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupLocation {
     /// Output only. The id of the cloud location. Example: "us-central1"
     #[serde(default, rename = "locationId")]
@@ -2194,7 +2195,7 @@ pub struct BackupLocation {
 }
 
 /// Point in time recovery settings of the backup configuration resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PitrSettings {
     /// Output only. Number of days to retain the backup.
     #[serde(default, rename = "retentionDays")]
@@ -2202,7 +2203,7 @@ pub struct PitrSettings {
 }
 
 /// Provides the configuration for logging a type of permissions. Example: { "audit_log_configs": [ { "log_type": "DATA_READ", "exempted_members": [ "user:jose@example.com" ] }, { "log_type": "DATA_WRITE" } ] } This enables ''DATA_READ'' and ''DATA_WRITE'' logging, while exempting jose@example.com from DATA_READ logging.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AuditLogConfig {
     /// Specifies the identities that do not cause logging for this type of permission. Follows the same format of Binding.members.
     #[serde(default, rename = "exemptedMembers")]
@@ -2213,7 +2214,7 @@ pub struct AuditLogConfig {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -2230,7 +2231,7 @@ pub struct Expr {
 }
 
 /// StandardSchedule defines a schedule that run within the confines of a defined window of days. We can define recurrence type for schedule as HOURLY, DAILY, WEEKLY, MONTHLY or YEARLY.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StandardSchedule {
     /// Required. A BackupWindow defines the window of day during which backup jobs will run. Jobs are queued at the beginning of the window and will be marked as NOT_RUN if they do not start by the end of the window. Note: running jobs will not be cancelled at the end of the window.
     #[serde(default, rename = "backupWindow")]
@@ -2259,7 +2260,7 @@ pub struct StandardSchedule {
 }
 
 /// A customer-supplied encryption key.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomerEncryptionKey {
     /// Optional. The name of the encryption key that is stored in Google Cloud KMS.
     #[serde(default, rename = "kmsKeyName")]
@@ -2276,7 +2277,7 @@ pub struct CustomerEncryptionKey {
 }
 
 /// Feature type of the Guest OS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GuestOsFeature {
     /// The ID of a supported feature. // TODO: enum values: ["FEATURE_TYPE_UNSPECIFIED", "VIRTIO_SCSI_MULTIQUEUE", "WINDOWS", "MULTI_IP_SUBNET", "UEFI_COMPATIBLE", "SECURE_BOOT", "GVNIC", "SEV_CAPABLE", "BARE_METAL_LINUX_COMPATIBLE", "SUSPEND_RESUME_COMPATIBLE", "SEV_LIVE_MIGRATABLE", "SEV_SNP_CAPABLE", "TDX_CAPABLE", "IDPF", "SEV_LIVE_MIGRATABLE_V2"]
     #[serde(default, rename = "type")]
@@ -2284,7 +2285,7 @@ pub struct GuestOsFeature {
 }
 
 /// Specifies the parameters to initialize this disk.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct InitializeParams {
     /// Optional. Specifies the disk name. If not specified, the default is to use the name of the instance.
     #[serde(default, rename = "diskName")]
@@ -2295,7 +2296,7 @@ pub struct InitializeParams {
 }
 
 /// A key/value pair to be used for storing metadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Entry {
     /// Optional. Key for the metadata entry.
     #[serde(default)]
@@ -2306,7 +2307,7 @@ pub struct Entry {
 }
 
 /// An access configuration attached to an instance''s network interface. Only one access config per instance is supported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessConfig {
     /// Optional. The external IPv6 address of this access configuration.
     #[serde(default, rename = "externalIpv6")]
@@ -2335,7 +2336,7 @@ pub struct AccessConfig {
 }
 
 /// An alias IP range attached to an instance''s network interface.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AliasIpRange {
     /// Optional. The IP alias ranges to allocate for this interface.
     #[serde(default, rename = "ipCidrRange")]
@@ -2346,7 +2347,7 @@ pub struct AliasIpRange {
 }
 
 /// A SchedulingDuration represents a fixed-length span of time represented as a count of seconds and fractions of seconds at nanosecond resolution. It is independent of any calendar and concepts like "day" or "month". Range is approximately 10,000 years.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SchedulingDuration {
     /// Optional. Span of time that''s a fraction of a second at nanosecond resolution.
     #[serde(default)]
@@ -2357,7 +2358,7 @@ pub struct SchedulingDuration {
 }
 
 /// Node Affinity: the configuration of desired nodes onto which this Instance could be scheduled.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct NodeAffinity {
     /// Optional. Corresponds to the label key of Node resource.
     #[serde(default)]
@@ -2371,7 +2372,7 @@ pub struct NodeAffinity {
 }
 
 /// Point in time recovery window for an AlloyDB cluster.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AlloyDbPitrWindow {
     /// Output only. The end time of the PITR window. It is not set if the corresponding Backup Plan Association is active.
     #[serde(default, rename = "endTime")]
@@ -2385,7 +2386,7 @@ pub struct AlloyDbPitrWindow {
 }
 
 /// BackupDrPlanRule has rule specific information of the backup plan resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupDrPlanRule {
     /// Output only. Timestamp of the latest successful backup created via this backup rule.
     #[serde(default, rename = "lastSuccessfulBackupTime")]
@@ -2396,7 +2397,7 @@ pub struct BackupDrPlanRule {
 }
 
 /// BackupWindow defines a window of the day during which backup jobs will run.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BackupWindow {
     /// Required. The hour of day (1-24) when the window end for example if value of end hour of day is 10 that mean backup window end time is 10:00. End hour of day should be greater than start hour of day. 0 &lt;= start_hour_of_day &lt; end_hour_of_day &lt;= 24 End hour of day is not include in backup window that mean if end_hour_of_day= 10 jobs should start before 10:00.
     #[serde(default, rename = "endHourOfDay")]
@@ -2407,7 +2408,7 @@ pub struct BackupWindow {
 }
 
 /// WeekDayOfMonth defines the week day of the month on which the backups will run. The message combines a WeekOfMonth and DayOfWeek to produce values like FIRST/MONDAY or LAST/FRIDAY.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WeekDayOfMonth {
     /// Required. Specifies the day of the week. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default, rename = "dayOfWeek")]

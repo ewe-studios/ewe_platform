@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Request message for AttachTrust
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttachTrustRequest {
     /// Required. The domain trust resource.
     #[serde(default)]
@@ -19,15 +20,15 @@ pub struct AttachTrustRequest {
 }
 
 /// The request message for Operations.CancelOperation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CancelOperationRequest {}
 
 /// CheckMigrationPermissionRequest is the request message for CheckMigrationPermission method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckMigrationPermissionRequest {}
 
 /// CheckMigrationPermissionResponse is the response message for CheckMigrationPermission method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CheckMigrationPermissionResponse {
     /// The state of SID filtering of all the domains which has trust established.
     #[serde(default, rename = "onpremDomains")]
@@ -38,7 +39,7 @@ pub struct CheckMigrationPermissionResponse {
 }
 
 /// Request message for DetachTrust
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DetachTrustRequest {
     /// Required. The domain trust resource to removed.
     #[serde(default)]
@@ -46,11 +47,11 @@ pub struct DetachTrustRequest {
 }
 
 /// DisableMigrationRequest is the request message for DisableMigration method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DisableMigrationRequest {}
 
 /// DomainJoinMachineRequest is the request message for DomainJoinMachine method
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DomainJoinMachineRequest {
     /// Optional. force if True, forces domain join even if the computer account already exists.
     #[serde(default)]
@@ -64,7 +65,7 @@ pub struct DomainJoinMachineRequest {
 }
 
 /// DomainJoinMachineResponse is the response message for DomainJoinMachine method
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DomainJoinMachineResponse {
     /// Offline domain join blob as the response
     #[serde(default, rename = "domainJoinBlob")]
@@ -72,11 +73,11 @@ pub struct DomainJoinMachineResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// EnableMigrationRequest is the request message for EnableMigration method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EnableMigrationRequest {
     /// Required. List of the on-prem domains to be migrated.
     #[serde(default, rename = "migratingDomains")]
@@ -84,7 +85,7 @@ pub struct EnableMigrationRequest {
 }
 
 /// ExtendSchemaRequest is the request message for ExtendSchema method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ExtendSchemaRequest {
     /// Required. Description for Schema Change.
     #[serde(default)]
@@ -98,7 +99,7 @@ pub struct ExtendSchemaRequest {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudManagedidentitiesV1OpMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -121,7 +122,7 @@ pub struct GoogleCloudManagedidentitiesV1OpMetadata {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudManagedidentitiesV1alpha1OpMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -144,7 +145,7 @@ pub struct GoogleCloudManagedidentitiesV1alpha1OpMetadata {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudManagedidentitiesV1beta1OpMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -167,7 +168,7 @@ pub struct GoogleCloudManagedidentitiesV1beta1OpMetadata {
 }
 
 /// Instance represents the interface for SLM services to actuate the state of control plane resources. Example Instance in JSON, where consumer-project-number=123456, producer-project-id=cloud-sql: json Instance: { "name": "projects/123456/locations/us-east1/instances/prod-instance", "create_time": { "seconds": 1526406431, }, "labels": { "env": "prod", "foo": "bar" }, "state": READY, "software_versions": { "software_update": "cloud-sql-09-28-2018", }, "maintenance_policy_names": { "UpdatePolicy": "projects/123456/locations/us-east1/maintenancePolicies/prod-update-policy", } "tenant_project_id": "cloud-sql-test-tenant", "producer_metadata": { "cloud-sql-tier": "basic", "cloud-sql-instance-size": "1G", }, "provisioned_resources": [ { "resource-type": "compute-instance", "resource-url": "https://www.googleapis.com/compute/v1/projects/cloud-sql/zones/us-east1-b/instances/vm-1", } ], "maintenance_schedules": { "csa_rollout": { "start_time": { "seconds": 1526406431, }, "end_time": { "seconds": 1535406431, }, }, "ncsa_rollout": { "start_time": { "seconds": 1526406431, }, "end_time": { "seconds": 1535406431, }, } }, "consumer_defined_name": "my-sql-instance1", }  LINT.IfChange
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1Instance {
     /// consumer_defined_name is the name of the instance set by the service consumers. Generally this is different from the name field which reperesents the system-assigned id of the instance which the service consumers do not recognize. This is a required field for tenants onboarding to Maintenance Window notifications (go/slm-rollout-maintenance-policies#prerequisites).
     #[serde(default, rename = "consumerDefinedName")]
@@ -230,7 +231,7 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1Instance {
 }
 
 /// Maintenance schedule which is exposed to customer and potentially end user, indicating published upcoming future maintenance schedule
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1MaintenanceSchedule {
     /// This field is deprecated, and will be always set to true since reschedule can happen multiple times now. This field should not be removed until all service producers remove this for their customers.
     #[serde(default, rename = "canReschedule")]
@@ -250,7 +251,7 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1MaintenanceSchedule {
 }
 
 /// Contains notification related data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1NotificationParameter {
     /// Optional. Array of string values. e.g. instance''s replica information.
     #[serde(default)]
@@ -258,7 +259,7 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1NotificationParameter 
 }
 
 /// SloEligibility is a tuple containing eligibility value: true if an instance is eligible for SLO calculation or false if it should be excluded from all SLO-related calculations along with a user-defined reason.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1SloEligibility {
     /// Whether an instance is eligible or ineligible.
     #[serde(default)]
@@ -269,7 +270,7 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1SloEligibility {
 }
 
 /// LDAPSSettings represents the ldaps settings for domain resource. LDAP is the Lightweight Directory Access Protocol, defined in https://tools.ietf.org/html/rfc4511. The settings object configures LDAP over SSL/TLS, whether it is over port 636 or the StartTLS operation. If LDAPSSettings is being changed, it will be placed into the UPDATING state, which indicates that the resource is being reconciled. At this point, Get will reflect an intermediate state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LDAPSSettings {
     /// Output only. The certificate used to configure LDAPS. Certificates can be chained with a maximum length of 15.
     #[serde(default)]
@@ -292,7 +293,7 @@ pub struct LDAPSSettings {
 }
 
 /// ListBackupsResponse is the response message for ListBackups method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListBackupsResponse {
     /// A list of Cloud AD backups in the domain.
     #[serde(default)]
@@ -306,7 +307,7 @@ pub struct ListBackupsResponse {
 }
 
 /// Response message for ListDomains
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListDomainsResponse {
     /// A list of Managed Identities Service domains in the project.
     #[serde(default)]
@@ -320,7 +321,7 @@ pub struct ListDomainsResponse {
 }
 
 /// The response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// A list of locations that matches the specified filter in the request.
     #[serde(default)]
@@ -331,7 +332,7 @@ pub struct ListLocationsResponse {
 }
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -345,7 +346,7 @@ pub struct ListOperationsResponse {
 }
 
 /// ListPeeringsResponse is the response message for ListPeerings method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPeeringsResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -359,7 +360,7 @@ pub struct ListPeeringsResponse {
 }
 
 /// ListSqlIntegrationsResponse is the response message for ListSqlIntegrations method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSqlIntegrationsResponse {
     /// Token to retrieve the next page of results, or empty if there are no more results in the list.
     #[serde(default, rename = "nextPageToken")]
@@ -373,7 +374,7 @@ pub struct ListSqlIntegrationsResponse {
 }
 
 /// Defines policies to service maintenance events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaintenancePolicy {
     /// Output only. The time when the resource was created.
     #[serde(default, rename = "createTime")]
@@ -399,7 +400,7 @@ pub struct MaintenancePolicy {
 }
 
 /// Represents the metadata of the long-running operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {
     /// Output only. API version used to start the operation.
     #[serde(default, rename = "apiVersion")]
@@ -425,7 +426,7 @@ pub struct OperationMetadata {
 }
 
 /// Request message for ReconfigureTrust
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReconfigureTrustRequest {
     /// Required. The target DNS server IP addresses to resolve the remote domain involved in the trust.
     #[serde(default, rename = "targetDnsIpAddresses")]
@@ -436,11 +437,11 @@ pub struct ReconfigureTrustRequest {
 }
 
 /// Request message for ResetAdminPassword
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResetAdminPasswordRequest {}
 
 /// Response message for ResetAdminPassword
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ResetAdminPasswordResponse {
     /// A random password. See admin for more information.
     #[serde(default)]
@@ -448,7 +449,7 @@ pub struct ResetAdminPasswordResponse {
 }
 
 /// RestoreDomainRequest is the request received by RestoreDomain rpc
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RestoreDomainRequest {
     /// Required. ID of the backup to be restored
     #[serde(default, rename = "backupId")]
@@ -456,7 +457,7 @@ pub struct RestoreDomainRequest {
 }
 
 /// Request message for SetIamPolicy method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetIamPolicyRequest {
     /// REQUIRED: The complete policy to be applied to the resource. The size of the policy is limited to a few 10s of KB. An empty policy is a valid policy but certain Google Cloud services (such as Projects) might reject them.
     #[serde(default)]
@@ -464,7 +465,7 @@ pub struct SetIamPolicyRequest {
 }
 
 /// Request message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsRequest {
     /// The set of permissions to check for the resource. Permissions with wildcards (such as * or storage.*) are not allowed. For more information see [IAM Overview](https://cloud.google.com/iam/docs/overview#permissions).
     #[serde(default)]
@@ -472,7 +473,7 @@ pub struct TestIamPermissionsRequest {
 }
 
 /// Response message for TestIamPermissions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TestIamPermissionsResponse {
     /// A subset of TestPermissionsRequest.permissions that the caller is allowed.
     #[serde(default)]
@@ -480,7 +481,7 @@ pub struct TestIamPermissionsResponse {
 }
 
 /// Request message for ValidateTrust
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ValidateTrustRequest {
     /// Required. The domain trust to validate trust state for.
     #[serde(default)]
@@ -488,7 +489,7 @@ pub struct ValidateTrustRequest {
 }
 
 /// OnPremDomainDetails is the message which contains details of on-prem domain which is trusted and needs to be migrated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OnPremDomainSIDDetails {
     /// FQDN of the on-prem domain being migrated.
     #[serde(default)]
@@ -499,7 +500,7 @@ pub struct OnPremDomainSIDDetails {
 }
 
 /// OnPremDomainDetails is the message which contains details of on-prem domain which is trusted and needs to be migrated.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OnPremDomainDetails {
     /// Optional. Option to disable SID filtering.
     #[serde(default, rename = "disableSidFiltering")]
@@ -510,7 +511,7 @@ pub struct OnPremDomainDetails {
 }
 
 /// Maintenance settings associated with instance. Allows service producers and end users to assign settings that controls maintenance on this instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1MaintenanceSettings {
     /// Optional. Exclude instance from maintenance. When true, rollout service will not attempt maintenance on the instance. Rollout service will include the instance in reported rollout progress as not attempted.
     #[serde(default)]
@@ -524,7 +525,7 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1MaintenanceSettings {
 }
 
 /// Describes provisioned dataplane resources.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1ProvisionedResource {
     /// Type of the resource. This can be either a GCP resource or a custom one (e.g. another cloud provider''s VM). For GCP compute resources use singular form of the names listed in GCP compute API documentation (https://cloud.google.com/compute/docs/reference/rest/v1/), prefixed with ''compute-'', for example: ''compute-instance'', ''compute-disk'', ''compute-autoscaler''.
     #[serde(default, rename = "resourceType")]
@@ -535,7 +536,7 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1ProvisionedResource {
 }
 
 /// SloMetadata contains resources required for proper SLO classification of the instance.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1SloMetadata {
     /// Optional. List of nodes. Some producers need to use per-node metadata to calculate SLO. This field allows such producers to publish per-node SLO meta data, which will be consumed by SSA Eligibility Exporter and published in the form of per node metric to Monarch.
     #[serde(default)]
@@ -552,7 +553,7 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1SloMetadata {
 }
 
 /// Certificate used to configure LDAPS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Certificate {
     /// The certificate expire time.
     #[serde(default, rename = "expireTime")]
@@ -572,7 +573,7 @@ pub struct Certificate {
 }
 
 /// Represents a Managed Microsoft Identities backup.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Backup {
     /// Output only. The time the backups was created.
     #[serde(default, rename = "createTime")]
@@ -598,7 +599,7 @@ pub struct Backup {
 }
 
 /// Represents a managed Microsoft Active Directory domain. If the domain is being changed, it will be placed into the UPDATING state, which indicates that the resource is being reconciled. At this point, Get will reflect an intermediate state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Domain {
     /// Optional. The name of delegated administrator account used to perform Active Directory operations. If not specified, setupadmin will be used.
     #[serde(default)]
@@ -642,7 +643,7 @@ pub struct Domain {
 }
 
 /// A resource that represents a Google Cloud location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// The friendly name for this location, typically a nearby city name. For example, "Tokyo".
     #[serde(default, rename = "displayName")]
@@ -662,7 +663,7 @@ pub struct Location {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -682,7 +683,7 @@ pub struct Operation {
 }
 
 /// Represents a Managed Service for Microsoft Active Directory Peering.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Peering {
     /// Required. The full names of the Google Compute Engine [networks](/compute/docs/networks-and-firewalls#networks) to which the instance is connected. Caller needs to make sure that CIDR subnets do not overlap between networks, else peering creation will fail.
     #[serde(default, rename = "authorizedNetwork")]
@@ -711,7 +712,7 @@ pub struct Peering {
 }
 
 /// Represents the SQL instance integrated with Managed AD.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SqlIntegration {
     /// Output only. The time the SQL integration was created.
     #[serde(default, rename = "createTime")]
@@ -731,7 +732,7 @@ pub struct SqlIntegration {
 }
 
 /// Maintenance policy applicable to instance updates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdatePolicy {
     /// Optional. Relative scheduling channel applied to resource. // TODO: enum values: ["UPDATE_CHANNEL_UNSPECIFIED", "EARLIER", "LATER", "WEEK1", "WEEK2", "WEEK5"]
     #[serde(default)]
@@ -745,7 +746,7 @@ pub struct UpdatePolicy {
 }
 
 /// An Identity and Access Management (IAM) policy, which specifies access controls for Google Cloud resources. A Policy is a collection of bindings. A binding binds one or more members, or principals, to a single role. Principals can be user accounts, service accounts, Google groups, and domains (such as G Suite). A role is a named list of permissions; each role can be an IAM predefined role or a user-created custom role. For some types of Google Cloud resources, a binding can also specify a condition, which is a logical expression that allows access to a resource only if the expression evaluates to true. A condition can add constraints based on attributes of the request, the resource, or both. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies). **JSON example:**  { "bindings": [ { "role": "roles/resourcemanager.organizationAdmin", "members": [ "user:mike@example.com", "group:admins@example.com", "domain:google.com", "serviceAccount:my-project-id@appspot.gserviceaccount.com" ] }, { "role": "roles/resourcemanager.organizationViewer", "members": [ "user:eve@example.com" ], "condition": { "title": "expirable access", "description": "Does not grant access after Sep 2020", "expression": "request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'')", } } ], "etag": "BwWWja0YfJA=", "version": 3 }  **YAML example:**  bindings: - members: - user:mike@example.com - group:admins@example.com - domain:google.com - serviceAccount:my-project-id@appspot.gserviceaccount.com role: roles/resourcemanager.organizationAdmin - members: - user:eve@example.com role: roles/resourcemanager.organizationViewer condition: title: expirable access description: Does not grant access after Sep 2020 expression: request.time &lt; timestamp(''2020-10-01T00:00:00.000Z'') etag: BwWWja0YfJA= version: 3  For a description of IAM and its features, see the [IAM documentation](https://cloud.google.com/iam/docs/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Policy {
     /// Associates a list of members, or principals, with a role. Optionally, may specify a condition that determines how and when the bindings are applied. Each of the bindings must contain at least one principal. The bindings in a Policy can refer to up to 1,500 principals; up to 250 of these principals can be Google groups. Each occurrence of a principal counts towards these limits. For example, if the bindings grant 50 different roles to user:alice@example.com, and not to any other principal, then you can add another 1,450 principals to the bindings in the Policy.
     #[serde(default)]
@@ -759,7 +760,7 @@ pub struct Policy {
 }
 
 /// Node information for custom per-node SLO implementations. SSA does not support per-node SLO, but producers can populate per-node information in SloMetadata for custom precomputations. SSA Eligibility Exporter will emit per-node metric based on this information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1NodeSloMetadata {
     /// The location of the node, if different from instance location.
     #[serde(default)]
@@ -774,7 +775,7 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1NodeSloMetadata {
 }
 
 /// Represents a relationship between two domains. This allows a controller in one domain to authenticate a user in another domain. If the trust is being changed, it will be placed into the UPDATING state, which indicates that the resource is being reconciled. At this point, Get will reflect an intermediate state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Trust {
     /// Output only. The time the instance was created.
     #[serde(default, rename = "createTime")]
@@ -812,7 +813,7 @@ pub struct Trust {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -826,7 +827,7 @@ pub struct Status {
 }
 
 /// DenyMaintenancePeriod definition. Maintenance is forbidden within the deny period. The start_date must be less than the end_date.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DenyMaintenancePeriod {
     /// Deny period end date. This can be: * A full date, with non-zero year, month and day values. * A month and day value, with a zero year. Allows recurring deny periods each year. Date matching this period will have to be before the end.
     #[serde(default, rename = "endDate")]
@@ -840,7 +841,7 @@ pub struct DenyMaintenancePeriod {
 }
 
 /// MaintenanceWindow definition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MaintenanceWindow {
     /// Daily cycle.
     #[serde(default, rename = "dailyCycle")]
@@ -851,7 +852,7 @@ pub struct MaintenanceWindow {
 }
 
 /// Associates members, or principals, with a role.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Binding {
     /// The condition that is associated with this binding. If the condition evaluates to true, then this binding applies to the current request. If the condition evaluates to false, then this binding does not apply to the current request. However, a different role binding might grant the same role to one or more of the principals in this binding. To learn which resources support conditions in their IAM policies, see the [IAM documentation](https://cloud.google.com/iam/help/conditions/resource-policies).
     #[serde(default)]
@@ -865,7 +866,7 @@ pub struct Binding {
 }
 
 /// PerSliSloEligibility is a mapping from an SLI name to eligibility.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudSaasacceleratorManagementProvidersV1PerSliSloEligibility {
     /// An entry in the eligibilities map specifies an eligibility for a particular SLI for the given instance. The SLI key in the name must be a valid SLI name specified in the Eligibility Exporter binary flags otherwise an error will be emitted by Eligibility Exporter and the oncaller will be alerted. If an SLI has been defined in the binary flags but the eligibilities map does not contain it, the corresponding SLI time series will not be emitted by the Eligibility Exporter. This ensures a smooth rollout and compatibility between the data produced by different versions of the Eligibility Exporters. If eligibilities map contains a key for an SLI which has not been declared in the binary flags, there will be an error message emitted in the Eligibility Exporter log and the metric for the SLI in question will not be emitted.
     #[serde(default)]
@@ -873,7 +874,7 @@ pub struct GoogleCloudSaasacceleratorManagementProvidersV1PerSliSloEligibility {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -887,7 +888,7 @@ pub struct Date {
 }
 
 /// Time window specified for daily operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DailyCycle {
     /// Output only. Duration of the time window, set by service producer.
     #[serde(default)]
@@ -898,7 +899,7 @@ pub struct DailyCycle {
 }
 
 /// Time window specified for weekly operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WeeklyCycle {
     /// User can specify multiple windows in a week. Minimum of 1 window.
     #[serde(default)]
@@ -906,7 +907,7 @@ pub struct WeeklyCycle {
 }
 
 /// Represents a textual expression in the Common Expression Language (CEL) syntax. CEL is a C-like expression language. The syntax and semantics of CEL are documented at https://github.com/google/cel-spec. Example (Comparison): title: "Summary size limit" description: "Determines if a summary is less than 100 chars" expression: "document.summary.size() &lt; 100" Example (Equality): title: "Requestor is owner" description: "Determines if requestor is the document owner" expression: "document.owner == request.auth.claims.email" Example (Logic): title: "Public documents" description: "Determine whether the document should be publicly visible" expression: "document.type != ''private'' && document.type != ''internal''" Example (Data Manipulation): title: "Notification string" description: "Create a notification string with a timestamp." expression: "''New message received at '' + string(document.create_time)" The exact variables and functions that may be referenced within an expression are determined by the service that evaluates it. See the service documentation for additional information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Expr {
     /// Optional. Description of the expression. This is a longer text which describes the expression, e.g. when hovered over it in a UI.
     #[serde(default)]
@@ -923,7 +924,7 @@ pub struct Expr {
 }
 
 /// Configure the schedule.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Schedule {
     /// Allows to define schedule that runs specified day of the week. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default)]
@@ -937,7 +938,7 @@ pub struct Schedule {
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]

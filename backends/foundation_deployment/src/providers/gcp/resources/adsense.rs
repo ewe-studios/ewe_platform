@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Representation of an ad blocking recovery tag. See https://support.google.com/adsense/answer/11575177.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdBlockingRecoveryTag {
     /// Error protection code that can be used in conjunction with the tag. It''ll display a message to users if an [ad blocking extension blocks their access to your site](https://support.google.com/adsense/answer/11575480).
     #[serde(default, rename = "errorProtectionCode")]
@@ -22,7 +23,7 @@ pub struct AdBlockingRecoveryTag {
 }
 
 /// Representation of the AdSense code for a given ad client. For more information, see [About the AdSense code](https://support.google.com/adsense/answer/9274634).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdClientAdCode {
     /// Output only. The AdSense code snippet to add to the head of an HTML page.
     #[serde(default, rename = "adCode")]
@@ -36,7 +37,7 @@ pub struct AdClientAdCode {
 }
 
 /// Representation of the ad unit code for a given ad unit. For more information, see [About the AdSense code](https://support.google.com/adsense/answer/9274634) and [Where to place the ad code in your HTML](https://support.google.com/adsense/answer/9190028).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdUnitAdCode {
     /// Output only. The code snippet to add to the body of an HTML page.
     #[serde(default, rename = "adCode")]
@@ -44,11 +45,11 @@ pub struct AdUnitAdCode {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Message that represents an arbitrary HTTP body. It should only be used for payload formats that can''t be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HttpBody {
     /// The HTTP Content-Type header value specifying the content type of the body.
     #[serde(default, rename = "contentType")]
@@ -62,7 +63,7 @@ pub struct HttpBody {
 }
 
 /// Response definition for the account list rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAccountsResponse {
     /// The accounts returned in this list response.
     #[serde(default)]
@@ -73,7 +74,7 @@ pub struct ListAccountsResponse {
 }
 
 /// Response definition for the ad client list rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAdClientsResponse {
     /// The ad clients returned in this list response.
     #[serde(default, rename = "adClients")]
@@ -84,7 +85,7 @@ pub struct ListAdClientsResponse {
 }
 
 /// Response definition for the adunit list rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAdUnitsResponse {
     /// The ad units returned in the list response.
     #[serde(default, rename = "adUnits")]
@@ -95,7 +96,7 @@ pub struct ListAdUnitsResponse {
 }
 
 /// Response definition for the alerts list rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAlertsResponse {
     /// The alerts returned in this list response.
     #[serde(default)]
@@ -103,7 +104,7 @@ pub struct ListAlertsResponse {
 }
 
 /// Response definition for the child account list rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListChildAccountsResponse {
     /// The accounts returned in this list response.
     #[serde(default)]
@@ -114,7 +115,7 @@ pub struct ListChildAccountsResponse {
 }
 
 /// Response definition for the custom channel list rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCustomChannelsResponse {
     /// The custom channels returned in this list response.
     #[serde(default, rename = "customChannels")]
@@ -125,7 +126,7 @@ pub struct ListCustomChannelsResponse {
 }
 
 /// Response definition for the ad units linked to a custom channel list rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLinkedAdUnitsResponse {
     /// The ad units returned in the list response.
     #[serde(default, rename = "adUnits")]
@@ -136,7 +137,7 @@ pub struct ListLinkedAdUnitsResponse {
 }
 
 /// Response definition for the custom channels linked to an adunit list rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLinkedCustomChannelsResponse {
     /// The custom channels returned in this list response.
     #[serde(default, rename = "customChannels")]
@@ -147,7 +148,7 @@ pub struct ListLinkedCustomChannelsResponse {
 }
 
 /// Response definition for the payments list rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPaymentsResponse {
     /// The payments returned in this list response.
     #[serde(default)]
@@ -155,7 +156,7 @@ pub struct ListPaymentsResponse {
 }
 
 /// Response definition for the policy issues list rpc. Policy issues are reported only if the publisher has at least one AFC ad client in READY or GETTING_READY state. If the publisher has no such AFC ad client, the response will be an empty list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListPolicyIssuesResponse {
     /// Continuation token used to page through policy issues. To retrieve the next page of the results, set the next request''s "page_token" value to this.
     #[serde(default, rename = "nextPageToken")]
@@ -166,7 +167,7 @@ pub struct ListPolicyIssuesResponse {
 }
 
 /// Response definition for the saved reports list rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSavedReportsResponse {
     /// Continuation token used to page through reports. To retrieve the next page of the results, set the next request''s "page_token" value to this.
     #[serde(default, rename = "nextPageToken")]
@@ -177,7 +178,7 @@ pub struct ListSavedReportsResponse {
 }
 
 /// Response definition for the sites list rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSitesResponse {
     /// Continuation token used to page through sites. To retrieve the next page of the results, set the next request''s "page_token" value to this.
     #[serde(default, rename = "nextPageToken")]
@@ -188,7 +189,7 @@ pub struct ListSitesResponse {
 }
 
 /// Response definition for the url channels list rpc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListUrlChannelsResponse {
     /// Continuation token used to page through url channels. To retrieve the next page of the results, set the next request''s "page_token" value to this.
     #[serde(default, rename = "nextPageToken")]
@@ -199,7 +200,7 @@ pub struct ListUrlChannelsResponse {
 }
 
 /// Result of a generated report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReportResult {
     /// The averages of the report. This is the same length as any other row in the report; cells corresponding to dimension columns are empty.
     #[serde(default)]
@@ -228,7 +229,7 @@ pub struct ReportResult {
 }
 
 /// Representation of an ad client. An ad client represents a user''s subscription with a specific AdSense product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdClient {
     /// Output only. Resource name of the ad client. Format: accounts/{account}/adclients/{adclient}
     #[serde(default)]
@@ -245,7 +246,7 @@ pub struct AdClient {
 }
 
 /// Representation of an alert.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Alert {
     /// Output only. The localized alert message. This may contain HTML markup, such as phrase elements or links.
     #[serde(default)]
@@ -262,7 +263,7 @@ pub struct Alert {
 }
 
 /// Representation of an account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Account {
     /// Output only. Creation time of the account.
     #[serde(default, rename = "createTime")]
@@ -288,7 +289,7 @@ pub struct Account {
 }
 
 /// Representation of an ad unit. An ad unit represents a saved ad unit with a specific set of ad settings that have been customized within an account.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdUnit {
     /// Required. Settings specific to content ads (AFC).
     #[serde(default, rename = "contentAdsSettings")]
@@ -308,7 +309,7 @@ pub struct AdUnit {
 }
 
 /// Representation of a custom channel.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomChannel {
     /// Whether the custom channel is active and collecting data. See https://support.google.com/adsense/answer/10077192.
     #[serde(default)]
@@ -325,7 +326,7 @@ pub struct CustomChannel {
 }
 
 /// Representation of an unpaid or paid payment. See [Payment timelines for AdSense](https://support.google.com/adsense/answer/7164703) for more information about payments and the [YouTube homepage and payments account](https://support.google.com/adsense/answer/11622510) article for information about dedicated payments accounts for YouTube.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Payment {
     /// Output only. The amount of unpaid or paid earnings, as a formatted string, including the currency. E.g. "¥1,235 JPY", "$1,234.57", "£87.65".
     #[serde(default)]
@@ -339,7 +340,7 @@ pub struct Payment {
 }
 
 /// Representation of a policy issue for a single entity (site, site-section, or page). All issues for a single entity are represented by a single PolicyIssue resource, though that PolicyIssue can have multiple causes (or "topics") that can change over time. Policy issues are removed if there are no issues detected recently or if there''s a recent successful appeal for the entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyIssue {
     /// Required. The most severe action taken on the entity over the past seven days. // TODO: enum values: ["ENFORCEMENT_ACTION_UNSPECIFIED", "WARNED", "AD_SERVING_RESTRICTED", "AD_SERVING_DISABLED", "AD_SERVED_WITH_CLICK_CONFIRMATION", "AD_PERSONALIZATION_RESTRICTED"]
     #[serde(default)]
@@ -380,7 +381,7 @@ pub struct PolicyIssue {
 }
 
 /// Representation of a saved report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SavedReport {
     /// Output only. Resource name of the report. Format: accounts/{account}/reports/{report}
     #[serde(default)]
@@ -391,7 +392,7 @@ pub struct SavedReport {
 }
 
 /// Representation of a Site.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Site {
     /// Whether auto ads is turned on for the site.
     #[serde(default, rename = "autoAdsEnabled")]
@@ -411,7 +412,7 @@ pub struct Site {
 }
 
 /// Representation of a URL channel. URL channels allow you to track the performance of particular pages in your site; see [URL channels](https://support.google.com/adsense/answer/2923836) for more information.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UrlChannel {
     /// Output only. Resource name of the URL channel. Format: accounts/{account}/adclients/{adclient}/urlchannels/{urlchannel}
     #[serde(default)]
@@ -425,7 +426,7 @@ pub struct UrlChannel {
 }
 
 /// Row representation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Row {
     /// Cells in the row.
     #[serde(default)]
@@ -433,7 +434,7 @@ pub struct Row {
 }
 
 /// The header information of the columns requested in the report.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Header {
     /// The [ISO-4217 currency code](https://en.wikipedia.org/wiki/ISO_4217) of this column. Only present if the header type is METRIC_CURRENCY.
     #[serde(default, rename = "currencyCode")]
@@ -447,7 +448,7 @@ pub struct Header {
 }
 
 /// Represents a time zone from the [IANA Time Zone Database](https://www.iana.org/time-zones).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeZone {
     /// IANA Time Zone Database time zone. For example "America/New_York".
     #[serde(default)]
@@ -458,7 +459,7 @@ pub struct TimeZone {
 }
 
 /// Settings specific to content ads (AFC).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ContentAdsSettings {
     /// Required. Size of the ad unit. e.g. "728x90", "1x3" (for responsive ad units).
     #[serde(default)]
@@ -469,7 +470,7 @@ pub struct ContentAdsSettings {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -483,7 +484,7 @@ pub struct Date {
 }
 
 /// Information about a particular policy topic. A policy topic represents a single class of policy issue that can impact ad serving for your site. For example, sexual content or having ads that obscure your content. A single policy issue can have multiple policy topics for a single entity.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PolicyTopic {
     /// Required. Deprecated. Always set to false.
     #[serde(default, rename = "mustFix")]
@@ -497,7 +498,7 @@ pub struct PolicyTopic {
 }
 
 /// Cell representation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Cell {
     /// Value in the cell. The dimension cells contain strings, and the metric cells contain numbers.
     #[serde(default)]

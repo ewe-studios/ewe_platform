@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// Message that represents an arbitrary HTTP body. It should only be used for payload formats that can''t be represented as JSON, such as raw binary or an HTML page. This message can be used both in streaming and non-streaming API methods in the request as well as the response. It can be used as a top-level request field, which is convenient if one wants to extract parameters from either the URL or HTTP template into the request fields and also want access to the raw HTTP body. Example: message GetResourceRequest { // A unique request id. string request_id = 1; // The raw HTTP body is bound to this field. google.api.HttpBody http_body = 2; } service ResourceService { rpc GetResource(GetResourceRequest) returns (google.api.HttpBody); rpc UpdateResource(google.api.HttpBody) returns (google.protobuf.Empty); } Example with streaming methods: service CaldavService { rpc GetCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); rpc UpdateCalendar(stream google.api.HttpBody) returns (stream google.api.HttpBody); } Use of this type only changes how the request and response bodies are handled, all other features will continue to work unchanged.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleApiHttpBody {
     /// The HTTP Content-Type header value specifying the content type of the body.
     #[serde(default, rename = "contentType")]
@@ -25,7 +26,7 @@ pub struct GoogleApiHttpBody {
 }
 
 /// An error log which is reported to the Error Reporting system. This proto a superset of google.devtools.clouderrorreporting.v1beta1.ReportedErrorEvent.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailLoggingErrorLog {
     /// A description of the context in which the error occurred.
     #[serde(default)]
@@ -51,7 +52,7 @@ pub struct GoogleCloudRetailLoggingErrorLog {
 }
 
 /// Request for CatalogService.AddCatalogAttribute method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2AddCatalogAttributeRequest {
     /// Required. The CatalogAttribute to add.
     #[serde(default, rename = "catalogAttribute")]
@@ -59,7 +60,7 @@ pub struct GoogleCloudRetailV2AddCatalogAttributeRequest {
 }
 
 /// Request for AddControl method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2AddControlRequest {
     /// Required. The id of the control to apply. Assumed to be in the same catalog as the serving config - if id is not found a NOT_FOUND error is returned.
     #[serde(default, rename = "controlId")]
@@ -67,11 +68,11 @@ pub struct GoogleCloudRetailV2AddControlRequest {
 }
 
 /// Metadata related to the progress of the AddFulfillmentPlaces operation. Currently empty because there is no meaningful metadata populated from the ProductService.AddFulfillmentPlaces method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2AddFulfillmentPlacesMetadata {}
 
 /// Request message for ProductService.AddFulfillmentPlaces method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2AddFulfillmentPlacesRequest {
     /// The time when the fulfillment updates are issued, used to prevent out-of-order updates on fulfillment information. If not provided, the internal system time will be used.
     #[serde(default, rename = "addTime")]
@@ -88,15 +89,15 @@ pub struct GoogleCloudRetailV2AddFulfillmentPlacesRequest {
 }
 
 /// Response of the AddFulfillmentPlacesRequest. Currently empty because there is no meaningful response populated from the ProductService.AddFulfillmentPlaces method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2AddFulfillmentPlacesResponse {}
 
 /// Metadata related to the progress of the AddLocalInventories operation. Currently empty because there is no meaningful metadata populated from the ProductService.AddLocalInventories method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2AddLocalInventoriesMetadata {}
 
 /// Request message for ProductService.AddLocalInventories method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2AddLocalInventoriesRequest {
     /// Indicates which inventory fields in the provided list of LocalInventory to update. The field is updated to the provided value. If a field is set while the place does not have a previous local inventory, the local inventory at that store is created. If a field is set while the value of that field is not provided, the original field value, if it exists, is deleted. If the mask is not set or set with empty paths, all inventory fields will be updated. If an unsupported or unknown field is provided, an INVALID_ARGUMENT error is returned and the entire update will be ignored.
     #[serde(default, rename = "addMask")]
@@ -114,11 +115,11 @@ pub struct GoogleCloudRetailV2AddLocalInventoriesRequest {
 }
 
 /// Response of the ProductService.AddLocalInventories API. Currently empty because there is no meaningful response populated from the ProductService.AddLocalInventories method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2AddLocalInventoriesResponse {}
 
 /// Catalog level attribute config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2AttributesConfig {
     /// Output only. The AttributeConfigLevel used for this catalog. // TODO: enum values: ["ATTRIBUTE_CONFIG_LEVEL_UNSPECIFIED", "PRODUCT_LEVEL_ATTRIBUTE_CONFIG", "CATALOG_LEVEL_ATTRIBUTE_CONFIG"]
     #[serde(default, rename = "attributeConfigLevel")]
@@ -132,7 +133,7 @@ pub struct GoogleCloudRetailV2AttributesConfig {
 }
 
 /// Request for BatchUpdateGenerativeQuestionConfig method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2BatchUpdateGenerativeQuestionConfigsRequest {
     /// Required. The updates question configs.
     #[serde(default)]
@@ -142,7 +143,7 @@ pub struct GoogleCloudRetailV2BatchUpdateGenerativeQuestionConfigsRequest {
 }
 
 /// Aggregated response for UpdateGenerativeQuestionConfig method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2BatchUpdateGenerativeQuestionConfigsResponse {
     /// Optional. The updates question configs.
     #[serde(default, rename = "generativeQuestionConfigs")]
@@ -151,7 +152,7 @@ pub struct GoogleCloudRetailV2BatchUpdateGenerativeQuestionConfigsResponse {
 }
 
 /// Request message for CollectUserEvent method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2CollectUserEventRequest {
     /// The event timestamp in milliseconds. This prevents browser caching of otherwise identical get requests. The name is abbreviated to reduce the payload bytes.
     #[serde(default)]
@@ -171,7 +172,7 @@ pub struct GoogleCloudRetailV2CollectUserEventRequest {
 }
 
 /// Response of the autocomplete query.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2CompleteQueryResponse {
     /// A map of matched attribute suggestions. This field is only available for cloud-retail dataset. Current supported keys: * brands * categories
     #[serde(default, rename = "attributeResults")]
@@ -192,7 +193,7 @@ pub struct GoogleCloudRetailV2CompleteQueryResponse {
 }
 
 /// Resource that represents attribute results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2CompleteQueryResponseAttributeResult {
     /// The list of suggestions for the attribute.
     #[serde(default)]
@@ -200,7 +201,7 @@ pub struct GoogleCloudRetailV2CompleteQueryResponseAttributeResult {
 }
 
 /// Catalog level autocomplete config for customers to customize autocomplete feature''s settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2CompletionConfig {
     /// Output only. The source data for the latest import of the autocomplete allowlist phrases.
     #[serde(default, rename = "allowlistInputConfig")]
@@ -240,7 +241,7 @@ pub struct GoogleCloudRetailV2CompletionConfig {
 }
 
 /// The public proto to represent the conversational search customization config. It will be converted to the internal proto in the backend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ConversationalSearchCustomizationConfig {
     /// Required. Resource name of the catalog. Format: projects/{project}/locations/{location}/catalogs/{catalog}
     #[serde(default)]
@@ -255,7 +256,7 @@ pub struct GoogleCloudRetailV2ConversationalSearchCustomizationConfig {
 }
 
 /// Request message for ConversationalSearchService.ConversationalSearch method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ConversationalSearchRequest {
     /// Required. The branch resource name, such as projects/*/locations/global/catalogs/default_catalog/branches/0. Use "default_branch" as the branch ID or leave this field empty, to search products under the default branch.
     #[serde(default)]
@@ -293,7 +294,7 @@ pub struct GoogleCloudRetailV2ConversationalSearchRequest {
 }
 
 /// Response message for ConversationalSearchService.ConversationalSearch method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ConversationalSearchResponse {
     /// Conversation UUID. This field will be stored in client side storage to maintain the conversation session with server and will be used for next search request''s ConversationalSearchRequest.conversation_id to restore conversation state in server.
     #[serde(default, rename = "conversationId")]
@@ -324,7 +325,7 @@ pub struct GoogleCloudRetailV2ConversationalSearchResponse {
 }
 
 /// Metadata associated with a create operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2CreateModelMetadata {
     /// The resource name of the model that this create applies to. Format: projects/{project_number}/locations/{location_id}/catalogs/{catalog_id}/models/{model_id}
     #[serde(default)]
@@ -332,7 +333,7 @@ pub struct GoogleCloudRetailV2CreateModelMetadata {
 }
 
 /// A custom attribute that is not explicitly modeled in Product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2CustomAttribute {
     /// This field is normally ignored unless AttributesConfig.attribute_config_level of the Catalog is set to the deprecated ''PRODUCT_LEVEL_ATTRIBUTE_CONFIG'' mode. For information about product-level attribute configuration, see [Configuration modes](https://cloud.google.com/retail/docs/attribute-config#config-modes). If true, custom attribute values are indexed, so that they can be filtered, faceted or boosted in SearchService.Search. This field is ignored in a UserEvent. See SearchRequest.filter, SearchRequest.facet_specs and SearchRequest.boost_spec for more details.
     #[serde(default)]
@@ -349,7 +350,7 @@ pub struct GoogleCloudRetailV2CustomAttribute {
 }
 
 /// A message with a list of double values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2DoubleList {
     /// The list of double values.
     #[serde(default)]
@@ -357,7 +358,7 @@ pub struct GoogleCloudRetailV2DoubleList {
 }
 
 /// Request message for the ExportAnalyticsMetrics method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ExportAnalyticsMetricsRequest {
     /// A filtering expression to specify restrictions on returned metrics. The expression is a sequence of terms. Each term applies a restriction to the returned metrics. Use this expression to restrict results to a specific time range. Currently we expect only one types of fields: * timestamp: This can be specified twice, once with a less than operator and once with a greater than operator. The timestamp restriction should result in one, contiguous, valid, timestamp range. Some examples of valid filters expressions: * Example 1: timestamp &gt; "2012-04-23T18:25:43.511Z" timestamp &lt; "2012-04-23T18:30:43.511Z" * Example 2: timestamp &gt; "2012-04-23T18:25:43.511Z"
     #[serde(default)]
@@ -368,7 +369,7 @@ pub struct GoogleCloudRetailV2ExportAnalyticsMetricsRequest {
 }
 
 /// Response of the ExportAnalyticsMetricsRequest. If the long running operation was successful, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ExportAnalyticsMetricsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -382,7 +383,7 @@ pub struct GoogleCloudRetailV2ExportAnalyticsMetricsResponse {
 }
 
 /// Metadata related to the progress of the Export operation. This is returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ExportMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -393,7 +394,7 @@ pub struct GoogleCloudRetailV2ExportMetadata {
 }
 
 /// Configuration for overall generative question feature state.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2GenerativeQuestionsFeatureConfig {
     /// Required. Resource name of the affected catalog. Format: projects/{project}/locations/{location}/catalogs/{catalog}
     #[serde(default)]
@@ -407,7 +408,7 @@ pub struct GoogleCloudRetailV2GenerativeQuestionsFeatureConfig {
 }
 
 /// Response message of CatalogService.GetDefaultBranch.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2GetDefaultBranchResponse {
     /// Full resource name of the branch id currently set as default branch.
     #[serde(default)]
@@ -421,7 +422,7 @@ pub struct GoogleCloudRetailV2GetDefaultBranchResponse {
 }
 
 /// Request message for ImportCompletionData methods.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ImportCompletionDataRequest {
     /// Required. The desired input location of the data.
     #[serde(default, rename = "inputConfig")]
@@ -432,7 +433,7 @@ pub struct GoogleCloudRetailV2ImportCompletionDataRequest {
 }
 
 /// Response of the ImportCompletionDataRequest. If the long running operation is done, this message is returned by the google.longrunning.Operations.response field if the operation is successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ImportCompletionDataResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -440,7 +441,7 @@ pub struct GoogleCloudRetailV2ImportCompletionDataResponse {
 }
 
 /// Metadata related to the progress of the Import operation. This is returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ImportMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -463,7 +464,7 @@ pub struct GoogleCloudRetailV2ImportMetadata {
 }
 
 /// Request message for Import methods.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ImportProductsRequest {
     /// The desired location of errors incurred during the Import.
     #[serde(default, rename = "errorsConfig")]
@@ -486,7 +487,7 @@ pub struct GoogleCloudRetailV2ImportProductsRequest {
 }
 
 /// Response of the ImportProductsRequest. If the long running operation is done, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ImportProductsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -497,7 +498,7 @@ pub struct GoogleCloudRetailV2ImportProductsResponse {
 }
 
 /// Request message for the ImportUserEvents request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ImportUserEventsRequest {
     /// The desired location of errors incurred during the Import. Cannot be set for inline user event imports.
     #[serde(default, rename = "errorsConfig")]
@@ -508,7 +509,7 @@ pub struct GoogleCloudRetailV2ImportUserEventsRequest {
 }
 
 /// Response of the ImportUserEventsRequest. If the long running operation was successful, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ImportUserEventsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -522,7 +523,7 @@ pub struct GoogleCloudRetailV2ImportUserEventsResponse {
 }
 
 /// Response for CatalogService.ListCatalogs method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ListCatalogsResponse {
     /// All the customer''s Catalogs.
     #[serde(default)]
@@ -533,7 +534,7 @@ pub struct GoogleCloudRetailV2ListCatalogsResponse {
 }
 
 /// Response for ListControls method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ListControlsResponse {
     /// All the Controls for a given catalog.
     #[serde(default)]
@@ -544,7 +545,7 @@ pub struct GoogleCloudRetailV2ListControlsResponse {
 }
 
 /// Response for ListQuestions method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ListGenerativeQuestionConfigsResponse {
     /// All the questions for a given catalog.
     #[serde(default, rename = "generativeQuestionConfigs")]
@@ -553,7 +554,7 @@ pub struct GoogleCloudRetailV2ListGenerativeQuestionConfigsResponse {
 }
 
 /// Response to a ListModelRequest.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ListModelsResponse {
     /// List of Models.
     #[serde(default)]
@@ -564,7 +565,7 @@ pub struct GoogleCloudRetailV2ListModelsResponse {
 }
 
 /// Response message for ProductService.ListProducts method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ListProductsResponse {
     /// A token that can be sent as ListProductsRequest.page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -575,7 +576,7 @@ pub struct GoogleCloudRetailV2ListProductsResponse {
 }
 
 /// Response for ListServingConfigs method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ListServingConfigsResponse {
     /// Pagination token, if not returned indicates the last page.
     #[serde(default, rename = "nextPageToken")]
@@ -586,11 +587,11 @@ pub struct GoogleCloudRetailV2ListServingConfigsResponse {
 }
 
 /// Request for pausing training of a model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2PauseModelRequest {}
 
 /// List of product ids which have associated pins.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2PinControlMetadataProductPins {
     /// List of product ids which have associated pins.
     #[serde(default, rename = "productId")]
@@ -598,7 +599,7 @@ pub struct GoogleCloudRetailV2PinControlMetadataProductPins {
 }
 
 /// Request message for Predict method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2PredictRequest {
     /// Filter for restricting prediction results with a length limit of 5,000 characters. Accepts values for tags and the filterOutOfStockItems flag. * Tag expressions. Restricts predictions to products that match all of the specified tags. Boolean operators OR and NOT are supported if the expression is enclosed in parentheses, and must be separated from the tag values by a space. -"tagA" is also supported and is equivalent to NOT "tagA". Tag values must be double quoted UTF-8 encoded strings with a size limit of 1,000 characters. Note: "Recently viewed" models don''t support tag filtering at the moment. * filterOutOfStockItems. Restricts predictions to products that do not have a stockState value of OUT_OF_STOCK. Examples: * tag=("Red" OR "Blue") tag="New-Arrival" tag=(NOT "promotional") * filterOutOfStockItems tag=(-"promotional") * filterOutOfStockItems If your filter blocks all prediction results, the API will return *no* results. If instead you want empty result sets to return generic (unfiltered) popular products, set strictFiltering to False in PredictRequest.params. Note that the API will never return items with storageStatus of "EXPIRED" or "DELETED" regardless of filter choices. If filterSyntaxV2 is set to true under the params field, then attribute-based expressions are expected instead of the above described tag-based syntax. Examples: * (colors: ANY("Red", "Blue")) AND NOT (categories: ANY("Phones")) * (availability: ANY("IN_STOCK")) AND (colors: ANY("Red") OR categories: ANY("Phones")) For more information, see [Filter recommendations](https://cloud.google.com/retail/docs/filter-recs).
     #[serde(default)]
@@ -624,7 +625,7 @@ pub struct GoogleCloudRetailV2PredictRequest {
 }
 
 /// Response message for predict method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2PredictResponse {
     /// A unique attribution token. This should be included in the UserEvent logs resulting from this recommendation, which enables accurate attribution of recommendation model performance.
     #[serde(default, rename = "attributionToken")]
@@ -642,11 +643,11 @@ pub struct GoogleCloudRetailV2PredictResponse {
 }
 
 /// Metadata related to the progress of the Purge operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2PurgeMetadata {}
 
 /// Metadata related to the progress of the PurgeProducts operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2PurgeProductsMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -663,7 +664,7 @@ pub struct GoogleCloudRetailV2PurgeProductsMetadata {
 }
 
 /// Request message for PurgeProducts method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2PurgeProductsRequest {
     /// Required. The filter string to specify the products to be deleted with a length limit of 5,000 characters. Empty string filter is not allowed. "*" implies delete all items in a branch. The eligible fields for filtering are: * availability: Double quoted Product.availability string. * create_time : in ISO 8601 "zulu" format. Supported syntax: * Comparators ("&gt;", "&lt;", "&gt;=", "&lt;=", "="). Examples: * create_time &lt;= "2015-02-13T17:05:46Z" * availability = "IN_STOCK" * Conjunctions ("AND") Examples: * create_time &lt;= "2015-02-13T17:05:46Z" AND availability = "PREORDER" * Disjunctions ("OR") Examples: * create_time &lt;= "2015-02-13T17:05:46Z" OR availability = "IN_STOCK" * Can support nested queries. Examples: * (create_time &lt;= "2015-02-13T17:05:46Z" AND availability = "PREORDER") OR (create_time &gt;= "2015-02-14T13:03:32Z" AND availability = "IN_STOCK") * Filter Limits: * Filter should not contain more than 6 conditions. * Max nesting depth should not exceed 2 levels. Examples queries: * Delete back order products created before a timestamp. create_time &lt;= "2015-02-13T17:05:46Z" OR availability = "BACKORDER"
     #[serde(default)]
@@ -674,7 +675,7 @@ pub struct GoogleCloudRetailV2PurgeProductsRequest {
 }
 
 /// Response of the PurgeProductsRequest. If the long running operation is successfully done, then this message is returned by the google.longrunning.Operations.response field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2PurgeProductsResponse {
     /// The total count of products purged as a result of the operation.
     #[serde(default, rename = "purgeCount")]
@@ -685,7 +686,7 @@ pub struct GoogleCloudRetailV2PurgeProductsResponse {
 }
 
 /// Request message for PurgeUserEvents method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2PurgeUserEventsRequest {
     /// Required. The filter string to specify the events to be deleted with a length limit of 5,000 characters. Empty string filter is not allowed. The eligible fields for filtering are: * eventType: Double quoted UserEvent.event_type string. * eventTime: in ISO 8601 "zulu" format. * visitorId: Double quoted string. Specifying this will delete all events associated with a visitor. * userId: Double quoted string. Specifying this will delete all events associated with a user. Examples: * Deleting all events in a time range: eventTime &gt; "2012-04-23T18:25:43.511Z" eventTime &lt; "2012-04-23T18:30:43.511Z" * Deleting specific eventType in time range: eventTime &gt; "2012-04-23T18:25:43.511Z" eventType = "detail-page-view" * Deleting all events for a specific visitor: visitorId = "visitor1024" The filtering fields are assumed to have an implicit AND.
     #[serde(default)]
@@ -696,7 +697,7 @@ pub struct GoogleCloudRetailV2PurgeUserEventsRequest {
 }
 
 /// Response of the PurgeUserEventsRequest. If the long running operation is successfully done, then this message is returned by the google.longrunning.Operations.response field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2PurgeUserEventsResponse {
     /// The total count of events purged as a result of the operation.
     #[serde(default, rename = "purgedEventsCount")]
@@ -704,11 +705,11 @@ pub struct GoogleCloudRetailV2PurgeUserEventsResponse {
 }
 
 /// Metadata for RejoinUserEvents method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2RejoinUserEventsMetadata {}
 
 /// Request message for RejoinUserEvents method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2RejoinUserEventsRequest {
     /// The type of the user event rejoin to define the scope and range of the user events to be rejoined with the latest product catalog. Defaults to USER_EVENT_REJOIN_SCOPE_UNSPECIFIED if this field is not set, or set to an invalid integer value. // TODO: enum values: ["USER_EVENT_REJOIN_SCOPE_UNSPECIFIED", "JOINED_EVENTS", "UNJOINED_EVENTS"]
     #[serde(default, rename = "userEventRejoinScope")]
@@ -716,7 +717,7 @@ pub struct GoogleCloudRetailV2RejoinUserEventsRequest {
 }
 
 /// Response message for RejoinUserEvents method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2RejoinUserEventsResponse {
     /// Number of user events that were joined with latest product catalog.
     #[serde(default, rename = "rejoinedUserEventsCount")]
@@ -724,7 +725,7 @@ pub struct GoogleCloudRetailV2RejoinUserEventsResponse {
 }
 
 /// Request for CatalogService.RemoveCatalogAttribute method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2RemoveCatalogAttributeRequest {
     /// Required. The attribute name key of the CatalogAttribute to remove.
     #[serde(default)]
@@ -732,7 +733,7 @@ pub struct GoogleCloudRetailV2RemoveCatalogAttributeRequest {
 }
 
 /// Request for RemoveControl method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2RemoveControlRequest {
     /// Required. The id of the control to apply. Assumed to be in the same catalog as the serving config.
     #[serde(default, rename = "controlId")]
@@ -740,11 +741,11 @@ pub struct GoogleCloudRetailV2RemoveControlRequest {
 }
 
 /// Metadata related to the progress of the RemoveFulfillmentPlaces operation. Currently empty because there is no meaningful metadata populated from the ProductService.RemoveFulfillmentPlaces method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2RemoveFulfillmentPlacesMetadata {}
 
 /// Request message for ProductService.RemoveFulfillmentPlaces method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2RemoveFulfillmentPlacesRequest {
     /// If set to true, and the Product is not found, the fulfillment information will still be processed and retained for at most 1 day and processed once the Product is created. If set to false, a NOT_FOUND error is returned if the Product is not found.
     #[serde(default, rename = "allowMissing")]
@@ -761,15 +762,15 @@ pub struct GoogleCloudRetailV2RemoveFulfillmentPlacesRequest {
 }
 
 /// Response of the RemoveFulfillmentPlacesRequest. Currently empty because there is no meaningful response populated from the ProductService.RemoveFulfillmentPlaces method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2RemoveFulfillmentPlacesResponse {}
 
 /// Metadata related to the progress of the RemoveLocalInventories operation. Currently empty because there is no meaningful metadata populated from the ProductService.RemoveLocalInventories method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2RemoveLocalInventoriesMetadata {}
 
 /// Request message for ProductService.RemoveLocalInventories method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2RemoveLocalInventoriesRequest {
     /// If set to true, and the Product is not found, the local inventory removal request will still be processed and retained for at most 1 day and processed once the Product is created. If set to false, a NOT_FOUND error is returned if the Product is not found.
     #[serde(default, rename = "allowMissing")]
@@ -783,11 +784,11 @@ pub struct GoogleCloudRetailV2RemoveLocalInventoriesRequest {
 }
 
 /// Response of the ProductService.RemoveLocalInventories API. Currently empty because there is no meaningful response populated from the ProductService.RemoveLocalInventories method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2RemoveLocalInventoriesResponse {}
 
 /// Request for CatalogService.ReplaceCatalogAttribute method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ReplaceCatalogAttributeRequest {
     /// Required. The updated CatalogAttribute.
     #[serde(default, rename = "catalogAttribute")]
@@ -798,11 +799,11 @@ pub struct GoogleCloudRetailV2ReplaceCatalogAttributeRequest {
 }
 
 /// Request for resuming training of a model.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ResumeModelRequest {}
 
 /// Request message for SearchService.Search method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SearchRequest {
     /// Boost specification to boost certain products. For more information, see [Boost results](https://cloud.google.com/retail/docs/boosting). Notice that if both ServingConfig.boost_control_ids and SearchRequest.boost_spec are set, the boost conditions from both places are evaluated. If a search request matches multiple boost conditions, the final boost score is equal to the sum of the boost scores from all matched boost conditions.
     #[serde(default, rename = "boostSpec")]
@@ -895,7 +896,7 @@ pub struct GoogleCloudRetailV2SearchRequest {
 }
 
 /// Response message for SearchService.Search method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SearchResponse {
     /// The fully qualified resource name of applied [controls](https://cloud.google.com/retail/docs/serving-control-rules).
     #[serde(default, rename = "appliedControls")]
@@ -948,7 +949,7 @@ pub struct GoogleCloudRetailV2SearchResponse {
 }
 
 /// Request message to set a specified branch as new default_branch.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SetDefaultBranchRequest {
     /// The final component of the resource name of a branch. This field must be one of "0", "1" or "2". Otherwise, an INVALID_ARGUMENT error is returned. If there are no sufficient active products in the targeted branch and force is not set, a FAILED_PRECONDITION error is returned.
     #[serde(default, rename = "branchId")]
@@ -962,11 +963,11 @@ pub struct GoogleCloudRetailV2SetDefaultBranchRequest {
 }
 
 /// Metadata related to the progress of the SetInventory operation. Currently empty because there is no meaningful metadata populated from the ProductService.SetInventory method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SetInventoryMetadata {}
 
 /// Request message for ProductService.SetInventory method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SetInventoryRequest {
     /// If set to true, and the Product with name Product.name is not found, the inventory update will still be processed and retained for at most 1 day until the Product is created. If set to false, a NOT_FOUND error is returned if the Product is not found.
     #[serde(default, rename = "allowMissing")]
@@ -983,11 +984,11 @@ pub struct GoogleCloudRetailV2SetInventoryRequest {
 }
 
 /// Response of the SetInventoryRequest. Currently empty because there is no meaningful response populated from the ProductService.SetInventory method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SetInventoryResponse {}
 
 /// A list of string values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2StringList {
     /// String values.
     #[serde(default)]
@@ -995,7 +996,7 @@ pub struct GoogleCloudRetailV2StringList {
 }
 
 /// Metadata associated with a tune operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2TuneModelMetadata {
     /// The resource name of the model that this tune applies to. Format: projects/{project_number}/locations/{location_id}/catalogs/{catalog_id}/models/{model_id}
     #[serde(default)]
@@ -1003,31 +1004,31 @@ pub struct GoogleCloudRetailV2TuneModelMetadata {
 }
 
 /// Request to manually start a tuning process now (instead of waiting for the periodically scheduled tuning to happen).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2TuneModelRequest {}
 
 /// Response associated with a tune operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2TuneModelResponse {}
 
 /// Metadata related to the progress of the AddFulfillmentPlaces operation. Currently empty because there is no meaningful metadata populated from the ProductService.AddFulfillmentPlaces method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaAddFulfillmentPlacesMetadata {}
 
 /// Response of the AddFulfillmentPlacesRequest. Currently empty because there is no meaningful response populated from the ProductService.AddFulfillmentPlaces method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaAddFulfillmentPlacesResponse {}
 
 /// Metadata related to the progress of the AddLocalInventories operation. Currently empty because there is no meaningful metadata populated from the ProductService.AddLocalInventories method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaAddLocalInventoriesMetadata {}
 
 /// Response of the ProductService.AddLocalInventories API. Currently empty because there is no meaningful response populated from the ProductService.AddLocalInventories method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaAddLocalInventoriesResponse {}
 
 /// Common metadata related to the progress of the operations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaCreateMerchantCenterAccountLinkMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -1038,7 +1039,7 @@ pub struct GoogleCloudRetailV2alphaCreateMerchantCenterAccountLinkMetadata {
 }
 
 /// Metadata associated with a create operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaCreateModelMetadata {
     /// The resource name of the model that this create applies to. Format: projects/{project_number}/locations/{location_id}/catalogs/{catalog_id}/models/{model_id}
     #[serde(default)]
@@ -1046,11 +1047,11 @@ pub struct GoogleCloudRetailV2alphaCreateModelMetadata {
 }
 
 /// Metadata related to the EnrollSolution method. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaEnrollSolutionMetadata {}
 
 /// Response for EnrollSolution method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaEnrollSolutionResponse {
     /// Retail API solution that the project has enrolled. // TODO: enum values: ["SOLUTION_TYPE_UNSPECIFIED", "SOLUTION_TYPE_RECOMMENDATION", "SOLUTION_TYPE_SEARCH"]
     #[serde(default, rename = "enrolledSolution")]
@@ -1058,7 +1059,7 @@ pub struct GoogleCloudRetailV2alphaEnrollSolutionResponse {
 }
 
 /// Response of the ExportAnalyticsMetricsRequest. If the long running operation was successful, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaExportAnalyticsMetricsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -1072,7 +1073,7 @@ pub struct GoogleCloudRetailV2alphaExportAnalyticsMetricsResponse {
 }
 
 /// Metadata related to the progress of the Export operation. This is returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaExportMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -1083,7 +1084,7 @@ pub struct GoogleCloudRetailV2alphaExportMetadata {
 }
 
 /// Response of the ExportProductsRequest. If the long running operation is done, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaExportProductsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -1097,7 +1098,7 @@ pub struct GoogleCloudRetailV2alphaExportProductsResponse {
 }
 
 /// Response of the ExportUserEventsRequest. If the long running operation was successful, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaExportUserEventsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -1111,7 +1112,7 @@ pub struct GoogleCloudRetailV2alphaExportUserEventsResponse {
 }
 
 /// Response of the ImportCompletionDataRequest. If the long running operation is done, this message is returned by the google.longrunning.Operations.response field if the operation is successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaImportCompletionDataResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -1119,7 +1120,7 @@ pub struct GoogleCloudRetailV2alphaImportCompletionDataResponse {
 }
 
 /// Metadata related to the progress of the Import operation. This is returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaImportMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -1146,7 +1147,7 @@ pub struct GoogleCloudRetailV2alphaImportMetadata {
 }
 
 /// Response of the ImportProductsRequest. If the long running operation is done, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaImportProductsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -1157,7 +1158,7 @@ pub struct GoogleCloudRetailV2alphaImportProductsResponse {
 }
 
 /// Response of the ImportUserEventsRequest. If the long running operation was successful, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaImportUserEventsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -1171,7 +1172,7 @@ pub struct GoogleCloudRetailV2alphaImportUserEventsResponse {
 }
 
 /// Represents a link between a Merchant Center account and a branch. After a link is established, products from the linked Merchant Center account are streamed to the linked branch.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaMerchantCenterAccountLink {
     /// Required. The branch ID (e.g. 0/1/2) within the catalog that products from merchant_center_account_id are streamed to. When updating this field, an empty value will use the currently configured default branch. However, changing the default branch later on won''t change the linked branch here. A single branch ID can only have one linked Merchant Center account ID.
     #[serde(default, rename = "branchId")]
@@ -1208,7 +1209,7 @@ pub struct GoogleCloudRetailV2alphaMerchantCenterAccountLink {
 }
 
 /// Metadata that describes the training and serving parameters of a Model. A Model can be associated with a ServingConfig and then queried through the Predict API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaModel {
     /// Output only. Timestamp the Recommendation Model was created at.
     #[serde(default, rename = "createTime")]
@@ -1264,11 +1265,11 @@ pub struct GoogleCloudRetailV2alphaModel {
 }
 
 /// Metadata related to the progress of the Purge operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaPurgeMetadata {}
 
 /// Metadata related to the progress of the PurgeProducts operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaPurgeProductsMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -1285,7 +1286,7 @@ pub struct GoogleCloudRetailV2alphaPurgeProductsMetadata {
 }
 
 /// Response of the PurgeProductsRequest. If the long running operation is successfully done, then this message is returned by the google.longrunning.Operations.response field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaPurgeProductsResponse {
     /// The total count of products purged as a result of the operation.
     #[serde(default, rename = "purgeCount")]
@@ -1296,7 +1297,7 @@ pub struct GoogleCloudRetailV2alphaPurgeProductsResponse {
 }
 
 /// Response of the PurgeUserEventsRequest. If the long running operation is successfully done, then this message is returned by the google.longrunning.Operations.response field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaPurgeUserEventsResponse {
     /// The total count of events purged as a result of the operation.
     #[serde(default, rename = "purgedEventsCount")]
@@ -1304,11 +1305,11 @@ pub struct GoogleCloudRetailV2alphaPurgeUserEventsResponse {
 }
 
 /// Metadata for RejoinUserEvents method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaRejoinUserEventsMetadata {}
 
 /// Response message for RejoinUserEvents method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaRejoinUserEventsResponse {
     /// Number of user events that were joined with latest product catalog.
     #[serde(default, rename = "rejoinedUserEventsCount")]
@@ -1316,31 +1317,31 @@ pub struct GoogleCloudRetailV2alphaRejoinUserEventsResponse {
 }
 
 /// Metadata related to the progress of the RemoveFulfillmentPlaces operation. Currently empty because there is no meaningful metadata populated from the ProductService.RemoveFulfillmentPlaces method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaRemoveFulfillmentPlacesMetadata {}
 
 /// Response of the RemoveFulfillmentPlacesRequest. Currently empty because there is no meaningful response populated from the ProductService.RemoveFulfillmentPlaces method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaRemoveFulfillmentPlacesResponse {}
 
 /// Metadata related to the progress of the RemoveLocalInventories operation. Currently empty because there is no meaningful metadata populated from the ProductService.RemoveLocalInventories method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaRemoveLocalInventoriesMetadata {}
 
 /// Response of the ProductService.RemoveLocalInventories API. Currently empty because there is no meaningful response populated from the ProductService.RemoveLocalInventories method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaRemoveLocalInventoriesResponse {}
 
 /// Metadata related to the progress of the SetInventory operation. Currently empty because there is no meaningful metadata populated from the ProductService.SetInventory method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaSetInventoryMetadata {}
 
 /// Response of the SetInventoryRequest. Currently empty because there is no meaningful response populated from the ProductService.SetInventory method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaSetInventoryResponse {}
 
 /// Metadata associated with a tune operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaTuneModelMetadata {
     /// The resource name of the model that this tune applies to. Format: projects/{project_number}/locations/{location_id}/catalogs/{catalog_id}/models/{model_id}
     #[serde(default)]
@@ -1348,27 +1349,27 @@ pub struct GoogleCloudRetailV2alphaTuneModelMetadata {
 }
 
 /// Response associated with a tune operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaTuneModelResponse {}
 
 /// Metadata related to the progress of the AddFulfillmentPlaces operation. Currently empty because there is no meaningful metadata populated from the ProductService.AddFulfillmentPlaces method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaAddFulfillmentPlacesMetadata {}
 
 /// Response of the AddFulfillmentPlacesRequest. Currently empty because there is no meaningful response populated from the ProductService.AddFulfillmentPlaces method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaAddFulfillmentPlacesResponse {}
 
 /// Metadata related to the progress of the AddLocalInventories operation. Currently empty because there is no meaningful metadata populated from the ProductService.AddLocalInventories method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaAddLocalInventoriesMetadata {}
 
 /// Response of the ProductService.AddLocalInventories API. Currently empty because there is no meaningful response populated from the ProductService.AddLocalInventories method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaAddLocalInventoriesResponse {}
 
 /// Metadata associated with a create operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaCreateModelMetadata {
     /// The resource name of the model that this create applies to. Format: projects/{project_number}/locations/{location_id}/catalogs/{catalog_id}/models/{model_id}
     #[serde(default)]
@@ -1376,7 +1377,7 @@ pub struct GoogleCloudRetailV2betaCreateModelMetadata {
 }
 
 /// Response of the ExportAnalyticsMetricsRequest. If the long running operation was successful, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaExportAnalyticsMetricsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -1390,7 +1391,7 @@ pub struct GoogleCloudRetailV2betaExportAnalyticsMetricsResponse {
 }
 
 /// Metadata related to the progress of the Export operation. This is returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaExportMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -1401,7 +1402,7 @@ pub struct GoogleCloudRetailV2betaExportMetadata {
 }
 
 /// Response of the ExportProductsRequest. If the long running operation is done, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaExportProductsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -1415,7 +1416,7 @@ pub struct GoogleCloudRetailV2betaExportProductsResponse {
 }
 
 /// Response of the ExportUserEventsRequest. If the long running operation was successful, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaExportUserEventsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -1429,7 +1430,7 @@ pub struct GoogleCloudRetailV2betaExportUserEventsResponse {
 }
 
 /// Response of the ImportCompletionDataRequest. If the long running operation is done, this message is returned by the google.longrunning.Operations.response field if the operation is successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaImportCompletionDataResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -1437,7 +1438,7 @@ pub struct GoogleCloudRetailV2betaImportCompletionDataResponse {
 }
 
 /// Metadata related to the progress of the Import operation. This is returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaImportMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -1460,7 +1461,7 @@ pub struct GoogleCloudRetailV2betaImportMetadata {
 }
 
 /// Response of the ImportProductsRequest. If the long running operation is done, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaImportProductsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -1471,7 +1472,7 @@ pub struct GoogleCloudRetailV2betaImportProductsResponse {
 }
 
 /// Response of the ImportUserEventsRequest. If the long running operation was successful, then this message is returned by the google.longrunning.Operations.response field if the operation was successful.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaImportUserEventsResponse {
     /// A sample of errors encountered while processing the request.
     #[serde(default, rename = "errorSamples")]
@@ -1485,7 +1486,7 @@ pub struct GoogleCloudRetailV2betaImportUserEventsResponse {
 }
 
 /// Metadata that describes the training and serving parameters of a Model. A Model can be associated with a ServingConfig and then queried through the Predict API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaModel {
     /// Output only. Timestamp the Recommendation Model was created at.
     #[serde(default, rename = "createTime")]
@@ -1537,11 +1538,11 @@ pub struct GoogleCloudRetailV2betaModel {
 }
 
 /// Metadata related to the progress of the Purge operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaPurgeMetadata {}
 
 /// Metadata related to the progress of the PurgeProducts operation. This will be returned by the google.longrunning.Operation.metadata field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaPurgeProductsMetadata {
     /// Operation create time.
     #[serde(default, rename = "createTime")]
@@ -1558,7 +1559,7 @@ pub struct GoogleCloudRetailV2betaPurgeProductsMetadata {
 }
 
 /// Response of the PurgeProductsRequest. If the long running operation is successfully done, then this message is returned by the google.longrunning.Operations.response field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaPurgeProductsResponse {
     /// The total count of products purged as a result of the operation.
     #[serde(default, rename = "purgeCount")]
@@ -1569,7 +1570,7 @@ pub struct GoogleCloudRetailV2betaPurgeProductsResponse {
 }
 
 /// Response of the PurgeUserEventsRequest. If the long running operation is successfully done, then this message is returned by the google.longrunning.Operations.response field.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaPurgeUserEventsResponse {
     /// The total count of events purged as a result of the operation.
     #[serde(default, rename = "purgedEventsCount")]
@@ -1577,11 +1578,11 @@ pub struct GoogleCloudRetailV2betaPurgeUserEventsResponse {
 }
 
 /// Metadata for RejoinUserEvents method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaRejoinUserEventsMetadata {}
 
 /// Response message for RejoinUserEvents method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaRejoinUserEventsResponse {
     /// Number of user events that were joined with latest product catalog.
     #[serde(default, rename = "rejoinedUserEventsCount")]
@@ -1589,31 +1590,31 @@ pub struct GoogleCloudRetailV2betaRejoinUserEventsResponse {
 }
 
 /// Metadata related to the progress of the RemoveFulfillmentPlaces operation. Currently empty because there is no meaningful metadata populated from the ProductService.RemoveFulfillmentPlaces method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaRemoveFulfillmentPlacesMetadata {}
 
 /// Response of the RemoveFulfillmentPlacesRequest. Currently empty because there is no meaningful response populated from the ProductService.RemoveFulfillmentPlaces method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaRemoveFulfillmentPlacesResponse {}
 
 /// Metadata related to the progress of the RemoveLocalInventories operation. Currently empty because there is no meaningful metadata populated from the ProductService.RemoveLocalInventories method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaRemoveLocalInventoriesMetadata {}
 
 /// Response of the ProductService.RemoveLocalInventories API. Currently empty because there is no meaningful response populated from the ProductService.RemoveLocalInventories method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaRemoveLocalInventoriesResponse {}
 
 /// Metadata related to the progress of the SetInventory operation. Currently empty because there is no meaningful metadata populated from the ProductService.SetInventory method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaSetInventoryMetadata {}
 
 /// Response of the SetInventoryRequest. Currently empty because there is no meaningful response populated from the ProductService.SetInventory method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaSetInventoryResponse {}
 
 /// Metadata associated with a tune operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaTuneModelMetadata {
     /// The resource name of the model that this tune applies to. Format: projects/{project_number}/locations/{location_id}/catalogs/{catalog_id}/models/{model_id}
     #[serde(default)]
@@ -1621,11 +1622,11 @@ pub struct GoogleCloudRetailV2betaTuneModelMetadata {
 }
 
 /// Response associated with a tune operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaTuneModelResponse {}
 
 /// The response message for Operations.ListOperations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningListOperationsResponse {
     /// The standard List next-page token.
     #[serde(default, rename = "nextPageToken")]
@@ -1639,11 +1640,11 @@ pub struct GoogleLongrunningListOperationsResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleProtobufEmpty {}
 
 /// A description of the context in which an error occurred.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailLoggingErrorContext {
     /// The HTTP request which was processed when the error was triggered.
     #[serde(default, rename = "httpRequest")]
@@ -1654,7 +1655,7 @@ pub struct GoogleCloudRetailLoggingErrorContext {
 }
 
 /// The error payload that is populated on LRO import APIs, including "google.cloud.retail.v2.ProductService.ImportProducts" and "google.cloud.retail.v2.EventService.ImportUserEvents".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailLoggingImportErrorContext {
     /// The detailed content which caused the error on importing a catalog item.
     #[serde(default, rename = "catalogItem")]
@@ -1677,7 +1678,7 @@ pub struct GoogleCloudRetailLoggingImportErrorContext {
 }
 
 /// Describes a running service that sends errors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailLoggingServiceContext {
     /// An identifier of the service. For example, "retail.googleapis.com".
     #[serde(default)]
@@ -1685,7 +1686,7 @@ pub struct GoogleCloudRetailLoggingServiceContext {
 }
 
 /// Request for UpdateGenerativeQuestionConfig method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2UpdateGenerativeQuestionConfigRequest {
     /// Required. The question to update.
     #[serde(default, rename = "generativeQuestionConfig")]
@@ -1697,7 +1698,7 @@ pub struct GoogleCloudRetailV2UpdateGenerativeQuestionConfigRequest {
 }
 
 /// Resource that represents completion results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2CompleteQueryResponseCompletionResult {
     /// Custom attributes for the suggestion term. * For user-data, the attributes are additional custom attributes ingested through BigQuery. * For cloud-retail, the attributes are product attributes generated by Cloud Retail. It requires UserEvent.product_details is imported properly.
     #[serde(default)]
@@ -1708,7 +1709,7 @@ pub struct GoogleCloudRetailV2CompleteQueryResponseCompletionResult {
 }
 
 /// Deprecated: Recent search of this user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2CompleteQueryResponseRecentSearchResult {
     /// The recent search query.
     #[serde(default, rename = "recentSearch")]
@@ -1716,7 +1717,7 @@ pub struct GoogleCloudRetailV2CompleteQueryResponseRecentSearchResult {
 }
 
 /// The public proto to represent the intent classification config. It will be converted to the internal proto in the backend.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2IntentClassificationConfig {
     /// Optional. A list of keywords that will be used to classify the query to the "BLOCKLISTED" intent type. The keywords are case insensitive.
     #[serde(default, rename = "blocklistKeywords")]
@@ -1739,7 +1740,7 @@ pub struct GoogleCloudRetailV2IntentClassificationConfig {
 }
 
 /// This field specifies all conversational filtering related parameters addition to conversational retail search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ConversationalSearchRequestConversationalFilteringSpec {
     /// Optional. Mode to control Conversational Filtering. Defaults to Mode.DISABLED if it''s unset. // TODO: enum values: ["MODE_UNSPECIFIED", "DISABLED", "ENABLED", "CONVERSATIONAL_FILTER_ONLY"]
     #[serde(default, rename = "conversationalFilteringMode")]
@@ -1754,7 +1755,7 @@ pub struct GoogleCloudRetailV2ConversationalSearchRequestConversationalFiltering
 }
 
 /// Safety settings.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SafetySetting {
     /// Harm category. // TODO: enum values: ["HARM_CATEGORY_UNSPECIFIED", "HARM_CATEGORY_HATE_SPEECH", "HARM_CATEGORY_DANGEROUS_CONTENT", "HARM_CATEGORY_HARASSMENT", "HARM_CATEGORY_SEXUALLY_EXPLICIT", "HARM_CATEGORY_CIVIC_INTEGRITY"]
     #[serde(default)]
@@ -1768,7 +1769,7 @@ pub struct GoogleCloudRetailV2SafetySetting {
 }
 
 /// Search parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ConversationalSearchRequestSearchParams {
     /// Optional. The boost spec to specify the boosting of search results. The syntax of the boost spec is the same as SearchRequest.boost_spec.
     #[serde(default, rename = "boostSpec")]
@@ -1785,7 +1786,7 @@ pub struct GoogleCloudRetailV2ConversationalSearchRequestSearchParams {
 }
 
 /// This field specifies all related information that is needed on client side for UI rendering of conversational filtering search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ConversationalSearchResponseConversationalFilteringResult {
     /// This is the incremental additional filters implied from the current user answer. User should add the suggested addition filters to the previous ConversationalSearchRequest.SearchParams.filter and SearchRequest.filter, and use the merged filter in the follow up requests.
     #[serde(default, rename = "additionalFilter")]
@@ -1796,7 +1797,7 @@ pub struct GoogleCloudRetailV2ConversationalSearchResponseConversationalFilterin
 }
 
 /// The proposed refined search for intent-refinement/bundled shopping conversation. When using CONVERSATIONAL_FILTER_ONLY mode, the refined_query from search response will be populated here.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ConversationalSearchResponseRefinedSearch {
     /// The query to be used for search.
     #[serde(default)]
@@ -1804,7 +1805,7 @@ pub struct GoogleCloudRetailV2ConversationalSearchResponseRefinedSearch {
 }
 
 /// The output configuration setting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2OutputConfig {
     /// The BigQuery location where the output is to be written to.
     #[serde(default, rename = "bigqueryDestination")]
@@ -1816,7 +1817,7 @@ pub struct GoogleCloudRetailV2OutputConfig {
 }
 
 /// Configuration of destination for Export related errors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ExportErrorsConfig {
     /// Google Cloud Storage path for import errors. This must be an empty, existing Cloud Storage bucket. Export errors will be written to a file in this bucket, one per line, as a JSON-encoded google.rpc.Status message.
     #[serde(default, rename = "gcsPrefix")]
@@ -1824,7 +1825,7 @@ pub struct GoogleCloudRetailV2ExportErrorsConfig {
 }
 
 /// Output result that stores the information about where the exported data is stored.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2OutputResult {
     /// The BigQuery location where the result is stored.
     #[serde(default, rename = "bigqueryResult")]
@@ -1836,7 +1837,7 @@ pub struct GoogleCloudRetailV2OutputResult {
 }
 
 /// The input config source for completion data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2CompletionDataInputConfig {
     /// Required. BigQuery input source. Add the IAM permission "BigQuery Data Viewer" for cloud-retail-customer-data-access@system.gserviceaccount.com before using this feature otherwise an error is thrown.
     #[serde(default, rename = "bigQuerySource")]
@@ -1844,7 +1845,7 @@ pub struct GoogleCloudRetailV2CompletionDataInputConfig {
 }
 
 /// The input config source for products.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ProductInputConfig {
     /// BigQuery input source.
     #[serde(default, rename = "bigQuerySource")]
@@ -1858,7 +1859,7 @@ pub struct GoogleCloudRetailV2ProductInputConfig {
 }
 
 /// The input config source for user events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2UserEventInputConfig {
     /// Required. BigQuery input source.
     #[serde(default, rename = "bigQuerySource")]
@@ -1872,7 +1873,7 @@ pub struct GoogleCloudRetailV2UserEventInputConfig {
 }
 
 /// Configuration of destination for Import related errors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ImportErrorsConfig {
     /// Google Cloud Storage prefix for import errors. This must be an empty, existing Cloud Storage directory. Import errors are written to sharded files in this directory, one per line, as a JSON-encoded google.rpc.Status message.
     #[serde(default, rename = "gcsPrefix")]
@@ -1880,7 +1881,7 @@ pub struct GoogleCloudRetailV2ImportErrorsConfig {
 }
 
 /// A summary of import result. The UserEventImportSummary summarizes the import status for user events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2UserEventImportSummary {
     /// Count of user events imported with complete existing catalog information.
     #[serde(default, rename = "joinedEventsCount")]
@@ -1891,7 +1892,7 @@ pub struct GoogleCloudRetailV2UserEventImportSummary {
 }
 
 /// The catalog configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2Catalog {
     /// Required. Immutable. The catalog display name. This field must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "displayName")]
@@ -1905,7 +1906,7 @@ pub struct GoogleCloudRetailV2Catalog {
 }
 
 /// Configures dynamic metadata that can be linked to a ServingConfig and affect search or recommendation results at serving time.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2Control {
     /// Output only. List of serving config ids that are associated with this control in the same Catalog. Note the association is managed via the ServingConfig, this is an output only denormalized view.
     #[serde(default, rename = "associatedServingConfigIds")]
@@ -1928,7 +1929,7 @@ pub struct GoogleCloudRetailV2Control {
 }
 
 /// Metadata that describes the training and serving parameters of a Model. A Model can be associated with a ServingConfig and then queried through the Predict API.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2Model {
     /// Output only. Timestamp the Recommendation Model was created at.
     #[serde(default, rename = "createTime")]
@@ -1979,7 +1980,7 @@ pub struct GoogleCloudRetailV2Model {
 }
 
 /// Configures metadata that is used to generate serving time results (e.g. search results or recommendation predictions).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ServingConfig {
     /// Condition boost specifications. If a product matches multiple conditions in the specifications, boost scores from these specifications are all applied and combined in a non-linear way. Maximum number of specifications is 100. Notice that if both ServingConfig.boost_control_ids and SearchRequest.boost_spec are set, the boost conditions from both places are evaluated. If a search request matches multiple boost conditions, the final boost score is equal to the sum of the boost scores from all matched boost conditions. Can only be set if solution_types is SOLUTION_TYPE_SEARCH.
     #[serde(default, rename = "boostControlIds")]
@@ -2046,7 +2047,7 @@ pub struct GoogleCloudRetailV2ServingConfig {
 }
 
 /// PredictionResult represents the recommendation prediction results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2PredictResponsePredictionResult {
     /// ID of the recommended product
     #[serde(default)]
@@ -2057,7 +2058,7 @@ pub struct GoogleCloudRetailV2PredictResponsePredictionResult {
 }
 
 /// Catalog level attribute config for an attribute. For example, if customers want to enable/disable facet for a specific attribute.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2CatalogAttribute {
     /// If DYNAMIC_FACETABLE_ENABLED, attribute values are available for dynamic facet. Could only be DYNAMIC_FACETABLE_DISABLED if CatalogAttribute.indexable_option is INDEXABLE_DISABLED. Otherwise, an INVALID_ARGUMENT error is returned. Must be specified, otherwise throws INVALID_FORMAT error. // TODO: enum values: ["DYNAMIC_FACETABLE_OPTION_UNSPECIFIED", "DYNAMIC_FACETABLE_ENABLED", "DYNAMIC_FACETABLE_DISABLED"]
     #[serde(default, rename = "dynamicFacetableOption")]
@@ -2089,7 +2090,7 @@ pub struct GoogleCloudRetailV2CatalogAttribute {
 }
 
 /// This field specifies all conversational related parameters addition to traditional retail search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SearchRequestConversationalSearchSpec {
     /// This field specifies the conversation id, which maintains the state of the conversation between client side and server side. Use the value from the previous SearchResponse.ConversationalSearchResult.conversation_id. For the initial request, this should be empty.
     #[serde(default, rename = "conversationId")]
@@ -2104,7 +2105,7 @@ pub struct GoogleCloudRetailV2SearchRequestConversationalSearchSpec {
 }
 
 /// A facet specification to perform faceted search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SearchRequestFacetSpec {
     /// Enables dynamic position for this facet. If set to true, the position of this facet among all facets in the response is determined by Google Retail Search. It is ordered together with dynamic facets if dynamic facets is enabled. If set to false, the position of this facet in the response is the same as in the request, and it is ranked before the facets with dynamic position enable and all dynamic facets. For example, you may always want to have rating facet returned in the response, but it''s not necessarily to always display the rating facet at the top. In that case, you can set enable_dynamic_position to true so that the position of rating facet in response is determined by Google Retail Search. Another example, assuming you have the following facets in the request: * "rating", enable_dynamic_position = true * "price", enable_dynamic_position = false * "brands", enable_dynamic_position = false And also you have a dynamic facets enable, which generates a facet "gender". Then, the final order of the facets in the response can be ("price", "brands", "rating", "gender") or ("price", "brands", "gender", "rating") depends on how Google Retail Search orders "gender" and "rating" facets. However, notice that "price" and "brands" are always ranked at first and second position because their enable_dynamic_position values are false.
     #[serde(default, rename = "enableDynamicPosition")]
@@ -2121,7 +2122,7 @@ pub struct GoogleCloudRetailV2SearchRequestFacetSpec {
 }
 
 /// Specification to determine under which conditions query expansion should occur.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SearchRequestQueryExpansionSpec {
     /// The condition under which query expansion should occur. Default to Condition.DISABLED. // TODO: enum values: ["CONDITION_UNSPECIFIED", "DISABLED", "AUTO"]
     #[serde(default)]
@@ -2132,7 +2133,7 @@ pub struct GoogleCloudRetailV2SearchRequestQueryExpansionSpec {
 }
 
 /// The specification for query spell correction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SearchRequestSpellCorrectionSpec {
     /// The mode under which spell correction should take effect to replace the original search query. Default to Mode.AUTO. // TODO: enum values: ["MODE_UNSPECIFIED", "SUGGESTION_ONLY", "AUTO"]
     #[serde(default)]
@@ -2140,7 +2141,7 @@ pub struct GoogleCloudRetailV2SearchRequestSpellCorrectionSpec {
 }
 
 /// This field specifies tile navigation related parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SearchRequestTileNavigationSpec {
     /// This optional field specifies the tiles which are already clicked in client side. While the feature works without this field set, particularly for an initial query, it is highly recommended to set this field because it can improve the quality of the search response and removes possible duplicate tiles. NOTE: This field is not being used for filtering search products. Client side should also put all the applied tiles in SearchRequest.filter.
     #[serde(default, rename = "appliedTiles")]
@@ -2151,7 +2152,7 @@ pub struct GoogleCloudRetailV2SearchRequestTileNavigationSpec {
 }
 
 /// This field specifies all related information that is needed on client side for UI rendering of conversational retail search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SearchResponseConversationalSearchResult {
     /// This is the incremental additional filters implied from the current user answer. User should add the suggested addition filters to the previous SearchRequest.filter, and use the merged filter in the follow up search request.
     #[serde(default, rename = "additionalFilter")]
@@ -2182,7 +2183,7 @@ pub struct GoogleCloudRetailV2SearchResponseConversationalSearchResult {
 }
 
 /// Metadata for active A/B testing experiment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ExperimentInfo {
     /// The fully qualified resource name of the experiment that provides the serving config under test, should an active experiment exist. For example: projects/*/locations/global/catalogs/default_catalog/experiments/experiment_id
     #[serde(default)]
@@ -2194,7 +2195,7 @@ pub struct GoogleCloudRetailV2ExperimentInfo {
 }
 
 /// A facet result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SearchResponseFacet {
     /// Whether the facet is dynamically generated.
     #[serde(default, rename = "dynamicFacet")]
@@ -2209,7 +2210,7 @@ pub struct GoogleCloudRetailV2SearchResponseFacet {
 }
 
 /// Metadata for pinning to be returned in the response. This is used for distinguishing between applied vs dropped pins.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2PinControlMetadata {
     /// Map of all matched pins, keyed by pin position.
     #[serde(default, rename = "allMatchedPins")]
@@ -2220,7 +2221,7 @@ pub struct GoogleCloudRetailV2PinControlMetadata {
 }
 
 /// Information describing query expansion including whether expansion has occurred.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SearchResponseQueryExpansionInfo {
     /// Bool describing whether query expansion has occurred.
     #[serde(default, rename = "expandedQuery")]
@@ -2231,7 +2232,7 @@ pub struct GoogleCloudRetailV2SearchResponseQueryExpansionInfo {
 }
 
 /// Represents the search results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SearchResponseSearchResult {
     /// Product.id of the searched Product.
     #[serde(default)]
@@ -2257,7 +2258,7 @@ pub struct GoogleCloudRetailV2SearchResponseSearchResult {
 }
 
 /// This field specifies all related information for tile navigation that will be used in client side.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SearchResponseTileNavigationResult {
     /// The current tiles that are used for tile navigation, sorted by engagement.
     #[serde(default)]
@@ -2265,7 +2266,7 @@ pub struct GoogleCloudRetailV2SearchResponseTileNavigationResult {
 }
 
 /// Configuration of destination for Export related errors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaExportErrorsConfig {
     /// Google Cloud Storage path for import errors. This must be an empty, existing Cloud Storage bucket. Export errors will be written to a file in this bucket, one per line, as a JSON-encoded google.rpc.Status message.
     #[serde(default, rename = "gcsPrefix")]
@@ -2273,7 +2274,7 @@ pub struct GoogleCloudRetailV2alphaExportErrorsConfig {
 }
 
 /// Output result that stores the information about where the exported data is stored.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaOutputResult {
     /// The BigQuery location where the result is stored.
     #[serde(default, rename = "bigqueryResult")]
@@ -2286,7 +2287,7 @@ pub struct GoogleCloudRetailV2alphaOutputResult {
 }
 
 /// Metadata related to transform user events operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaTransformedUserEventsMetadata {
     /// Count of entries in the source user events BigQuery table.
     #[serde(default, rename = "sourceEventsCount")]
@@ -2297,7 +2298,7 @@ pub struct GoogleCloudRetailV2alphaTransformedUserEventsMetadata {
 }
 
 /// Configuration of destination for Import related errors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaImportErrorsConfig {
     /// Google Cloud Storage prefix for import errors. This must be an empty, existing Cloud Storage directory. Import errors are written to sharded files in this directory, one per line, as a JSON-encoded google.rpc.Status message.
     #[serde(default, rename = "gcsPrefix")]
@@ -2305,7 +2306,7 @@ pub struct GoogleCloudRetailV2alphaImportErrorsConfig {
 }
 
 /// A summary of import result. The UserEventImportSummary summarizes the import status for user events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaUserEventImportSummary {
     /// Count of user events imported with complete existing catalog information.
     #[serde(default, rename = "joinedEventsCount")]
@@ -2316,7 +2317,7 @@ pub struct GoogleCloudRetailV2alphaUserEventImportSummary {
 }
 
 /// Merchant Center Feed filter criterion.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaMerchantCenterAccountLinkMerchantCenterFeedFilter {
     /// AFM data source ID.
     #[serde(default, rename = "dataSourceId")]
@@ -2330,7 +2331,7 @@ pub struct GoogleCloudRetailV2alphaMerchantCenterAccountLinkMerchantCenterFeedFi
 }
 
 /// Additional model features config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaModelModelFeaturesConfig {
     /// Additional configs for frequently-bought-together models.
     #[serde(default, rename = "frequentlyBoughtTogetherConfig")]
@@ -2339,7 +2340,7 @@ pub struct GoogleCloudRetailV2alphaModelModelFeaturesConfig {
 }
 
 /// The PageOptimizationConfig for model training. This determines how many panels to optimize for, and which serving configs to consider for each panel. The purpose of this model is to optimize which ServingConfig to show on which panels in way that optimizes the visitors shopping journey.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaModelPageOptimizationConfig {
     /// Required. The type of UserEvent this page optimization is shown for. Each page has an associated event type - this will be the corresponding event type for the page that the page optimization model is used on. Supported types: * add-to-cart: Products being added to cart. * detail-page-view: Products detail page viewed. * home-page-view: Homepage viewed * category-page-view: Homepage viewed * shopping-cart-page-view: User viewing a shopping cart. home-page-view only allows models with type recommended-for-you. All other page_optimization_event_type allow all Model.types.
     #[serde(default, rename = "pageOptimizationEventType")]
@@ -2355,7 +2356,7 @@ pub struct GoogleCloudRetailV2alphaModelPageOptimizationConfig {
 }
 
 /// Represents an ordered combination of valid serving configs, which can be used for PAGE_OPTIMIZATION recommendations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaModelServingConfigList {
     /// Optional. A set of valid serving configs that may be used for PAGE_OPTIMIZATION.
     #[serde(default, rename = "servingConfigIds")]
@@ -2363,7 +2364,7 @@ pub struct GoogleCloudRetailV2alphaModelServingConfigList {
 }
 
 /// Configuration of destination for Export related errors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaExportErrorsConfig {
     /// Google Cloud Storage path for import errors. This must be an empty, existing Cloud Storage bucket. Export errors will be written to a file in this bucket, one per line, as a JSON-encoded google.rpc.Status message.
     #[serde(default, rename = "gcsPrefix")]
@@ -2371,7 +2372,7 @@ pub struct GoogleCloudRetailV2betaExportErrorsConfig {
 }
 
 /// Output result that stores the information about where the exported data is stored.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaOutputResult {
     /// The BigQuery location where the result is stored.
     #[serde(default, rename = "bigqueryResult")]
@@ -2383,7 +2384,7 @@ pub struct GoogleCloudRetailV2betaOutputResult {
 }
 
 /// Configuration of destination for Import related errors.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaImportErrorsConfig {
     /// Google Cloud Storage prefix for import errors. This must be an empty, existing Cloud Storage directory. Import errors are written to sharded files in this directory, one per line, as a JSON-encoded google.rpc.Status message.
     #[serde(default, rename = "gcsPrefix")]
@@ -2391,7 +2392,7 @@ pub struct GoogleCloudRetailV2betaImportErrorsConfig {
 }
 
 /// A summary of import result. The UserEventImportSummary summarizes the import status for user events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaUserEventImportSummary {
     /// Count of user events imported with complete existing catalog information.
     #[serde(default, rename = "joinedEventsCount")]
@@ -2402,7 +2403,7 @@ pub struct GoogleCloudRetailV2betaUserEventImportSummary {
 }
 
 /// Additional model features config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaModelModelFeaturesConfig {
     /// Additional configs for frequently-bought-together models.
     #[serde(default, rename = "frequentlyBoughtTogetherConfig")]
@@ -2411,7 +2412,7 @@ pub struct GoogleCloudRetailV2betaModelModelFeaturesConfig {
 }
 
 /// Represents an ordered combination of valid serving configs, which can be used for PAGE_OPTIMIZATION recommendations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaModelServingConfigList {
     /// Optional. A set of valid serving configs that may be used for PAGE_OPTIMIZATION.
     #[serde(default, rename = "servingConfigIds")]
@@ -2419,7 +2420,7 @@ pub struct GoogleCloudRetailV2betaModelServingConfigList {
 }
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLongrunningOperation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -2439,7 +2440,7 @@ pub struct GoogleLongrunningOperation {
 }
 
 /// HTTP request data that is related to a reported error.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailLoggingHttpRequestContext {
     /// The HTTP response status code for the request.
     #[serde(default, rename = "responseStatusCode")]
@@ -2447,7 +2448,7 @@ pub struct GoogleCloudRetailLoggingHttpRequestContext {
 }
 
 /// Indicates a location in the source code of the service for which errors are reported.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailLoggingSourceLocation {
     /// Human-readable name of a function or method. For example, "google.cloud.retail.v2.UserEventService.ImportUserEvents".
     #[serde(default, rename = "functionName")]
@@ -2455,7 +2456,7 @@ pub struct GoogleCloudRetailLoggingSourceLocation {
 }
 
 /// Configuration for a single generated question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2GenerativeQuestionConfig {
     /// Optional. Whether the question is asked at serving time.
     #[serde(default, rename = "allowedInConversation")]
@@ -2481,7 +2482,7 @@ pub struct GoogleCloudRetailV2GenerativeQuestionConfig {
 }
 
 /// An example for intent classification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2IntentClassificationConfigExample {
     /// Required. Whether the example is classified positively.
     #[serde(default, rename = "classifiedPositive")]
@@ -2498,7 +2499,7 @@ pub struct GoogleCloudRetailV2IntentClassificationConfigExample {
 }
 
 /// Inline source for intent classifications.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2IntentClassificationConfigInlineSource {
     /// Optional. A list of inline force intent classifications.
     #[serde(default, rename = "inlineForceIntents")]
@@ -2508,7 +2509,7 @@ pub struct GoogleCloudRetailV2IntentClassificationConfigInlineSource {
 }
 
 /// This field specifies the current user answer during the conversational filtering search. This can be either user selected from suggested answers or user input plain text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ConversationalSearchRequestUserAnswer {
     /// Optional. This field specifies the selected answer during the conversational search. This should be a subset of ConversationalSearchResponse.FollowupQuestion.SuggestedAnswer.
     #[serde(default, rename = "selectedAnswer")]
@@ -2521,7 +2522,7 @@ pub struct GoogleCloudRetailV2ConversationalSearchRequestUserAnswer {
 }
 
 /// Boost specification to boost certain items.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SearchRequestBoostSpec {
     /// Condition boost specifications. If a product matches multiple conditions in the specifications, boost scores from these specifications are all applied and combined in a non-linear way. Maximum number of specifications is 20.
     #[serde(default, rename = "conditionBoostSpecs")]
@@ -2534,7 +2535,7 @@ pub struct GoogleCloudRetailV2SearchRequestBoostSpec {
 }
 
 /// Additional filter that client side need to apply.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ConversationalSearchResponseConversationalFilteringResultAdditionalFilter
 {
     /// Product attribute value, including an attribute key and an attribute value. Other types can be added here in the future.
@@ -2543,7 +2544,7 @@ pub struct GoogleCloudRetailV2ConversationalSearchResponseConversationalFilterin
 }
 
 /// The conversational followup question generated for Intent refinement.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestion {
     /// The conversational followup question generated for Intent refinement.
     #[serde(default, rename = "followupQuestion")]
@@ -2558,7 +2559,7 @@ pub struct GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestion {
 }
 
 /// The BigQuery output destination configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2OutputConfigBigQueryDestination {
     /// Required. The ID of a BigQuery Dataset.
     #[serde(default, rename = "datasetId")]
@@ -2572,7 +2573,7 @@ pub struct GoogleCloudRetailV2OutputConfigBigQueryDestination {
 }
 
 /// The Google Cloud Storage output destination configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2OutputConfigGcsDestination {
     /// Required. The output uri prefix for saving output data to json files. Some mapping examples are as follows: output_uri_prefix sample output(assuming the object is foo.json) ======================== ============================================= gs://bucket/ gs://bucket/foo.json gs://bucket/folder/ gs://bucket/folder/foo.json gs://bucket/folder/item_ gs://bucket/folder/item_foo.json
     #[serde(default, rename = "outputUriPrefix")]
@@ -2580,7 +2581,7 @@ pub struct GoogleCloudRetailV2OutputConfigGcsDestination {
 }
 
 /// A BigQuery output result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2BigQueryOutputResult {
     /// The ID of a BigQuery Dataset.
     #[serde(default, rename = "datasetId")]
@@ -2591,7 +2592,7 @@ pub struct GoogleCloudRetailV2BigQueryOutputResult {
 }
 
 /// A Gcs output result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2GcsOutputResult {
     /// The uri of Gcs output
     #[serde(default, rename = "outputUri")]
@@ -2599,7 +2600,7 @@ pub struct GoogleCloudRetailV2GcsOutputResult {
 }
 
 /// The inline source for the input config for ImportProducts method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ProductInlineSource {
     /// Required. A list of products to update/create. Each product must have a valid Product.id. Recommended max of 100 items.
     #[serde(default)]
@@ -2607,7 +2608,7 @@ pub struct GoogleCloudRetailV2ProductInlineSource {
 }
 
 /// BigQuery source import data from.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2BigQuerySource {
     /// The schema to use when parsing the data from the source. Supported values for product imports: * product (default): One JSON Product per line. Each product must have a valid Product.id. * product_merchant_center: See [Importing catalog data from Merchant Center](https://cloud.google.com/retail/recommendations-ai/docs/upload-catalog#mc). Supported values for user events imports: * user_event (default): One JSON UserEvent per line. * user_event_ga360: The schema is available here: https://support.google.com/analytics/answer/3437719. * user_event_ga4: The schema is available here: https://support.google.com/analytics/answer/7029846. Supported values for autocomplete imports: * suggestions (default): One JSON completion suggestion per line. * denylist: One JSON deny suggestion per line. * allowlist: One JSON allow suggestion per line.
     #[serde(default, rename = "dataSchema")]
@@ -2630,7 +2631,7 @@ pub struct GoogleCloudRetailV2BigQuerySource {
 }
 
 /// Google Cloud Storage location for input content.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2GcsSource {
     /// The schema to use when parsing the data from the source. Supported values for product imports: * product (default): One JSON Product per line. Each product must have a valid Product.id. * product_merchant_center: See [Importing catalog data from Merchant Center](https://cloud.google.com/retail/recommendations-ai/docs/upload-catalog#mc). Supported values for user events imports: * user_event (default): One JSON UserEvent per line. * user_event_ga360: Using https://support.google.com/analytics/answer/3437719. Supported values for control imports: * control (default): One JSON Control per line. Supported values for catalog attribute imports: * catalog_attribute (default): One CSV CatalogAttribute per line.
     #[serde(default, rename = "dataSchema")]
@@ -2641,7 +2642,7 @@ pub struct GoogleCloudRetailV2GcsSource {
 }
 
 /// The inline source for the input config for ImportUserEvents method.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2UserEventInlineSource {
     /// Required. A list of user events to import. Recommended max of 10k items.
     #[serde(default, rename = "userEvents")]
@@ -2649,7 +2650,7 @@ pub struct GoogleCloudRetailV2UserEventInlineSource {
 }
 
 /// Configures what level the product should be uploaded with regards to how users will be send events and how predictions will be made.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ProductLevelConfig {
     /// The type of Products allowed to be ingested into the catalog. Acceptable values are: * primary (default): You can ingest Products of all types. When ingesting a Product, its type will default to Product.Type.PRIMARY if unset. * variant (incompatible with Retail Search): You can only ingest Product.Type.VARIANT Products. This means Product.primary_product_id cannot be empty. If this field is set to an invalid value other than these, an INVALID_ARGUMENT error is returned. If this field is variant and merchant_center_product_id_field is itemGroupId, an INVALID_ARGUMENT error is returned. See [Product levels](https://cloud.google.com/retail/docs/catalog#product-levels) for more details.
     #[serde(default, rename = "ingestionProductType")]
@@ -2660,7 +2661,7 @@ pub struct GoogleCloudRetailV2ProductLevelConfig {
 }
 
 /// A rule is a condition-action pair * A condition defines when a rule is to be triggered. * An action specifies what occurs on that trigger. Currently rules only work for controls with SOLUTION_TYPE_SEARCH.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2Rule {
     /// A boost action.
     #[serde(default, rename = "boostAction")]
@@ -2703,7 +2704,7 @@ pub struct GoogleCloudRetailV2Rule {
 }
 
 /// Additional model features config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ModelModelFeaturesConfig {
     /// Additional configs for frequently-bought-together models.
     #[serde(default, rename = "frequentlyBoughtTogetherConfig")]
@@ -2712,7 +2713,7 @@ pub struct GoogleCloudRetailV2ModelModelFeaturesConfig {
 }
 
 /// Represents an ordered combination of valid serving configs, which can be used for PAGE_OPTIMIZATION recommendations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ModelServingConfigList {
     /// Optional. A set of valid serving configs that may be used for PAGE_OPTIMIZATION.
     #[serde(default, rename = "servingConfigIds")]
@@ -2720,7 +2721,7 @@ pub struct GoogleCloudRetailV2ModelServingConfigList {
 }
 
 /// The specifications of dynamically generated facets.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SearchRequestDynamicFacetSpec {
     /// Mode of the DynamicFacet feature. Defaults to Mode.DISABLED if it''s unset. // TODO: enum values: ["MODE_UNSPECIFIED", "DISABLED", "ENABLED"]
     #[serde(default)]
@@ -2728,7 +2729,7 @@ pub struct GoogleCloudRetailV2SearchRequestDynamicFacetSpec {
 }
 
 /// The specification for personalization.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SearchRequestPersonalizationSpec {
     /// Defaults to Mode.AUTO. // TODO: enum values: ["MODE_UNSPECIFIED", "AUTO", "DISABLED"]
     #[serde(default)]
@@ -2736,7 +2737,7 @@ pub struct GoogleCloudRetailV2SearchRequestPersonalizationSpec {
 }
 
 /// Possible options for the facet that corresponds to the current attribute config.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2CatalogAttributeFacetConfig {
     /// If you don''t set the facet SearchRequest.FacetSpec.FacetKey.intervals in the request to a numerical attribute, then we use the computed intervals with rounded bounds obtained from all its product numerical attribute values. The computed intervals might not be ideal for some attributes. Therefore, we give you the option to overwrite them with the facet_intervals field. The maximum of facet intervals per CatalogAttribute is 40. Each interval must have a lower bound or an upper bound. If both bounds are provided, then the lower bound must be smaller or equal than the upper bound.
     #[serde(default, rename = "facetIntervals")]
@@ -2762,7 +2763,7 @@ pub struct GoogleCloudRetailV2CatalogAttributeFacetConfig {
 }
 
 /// This field specifies the current user answer during the conversational search. This can be either user selected from suggested answers or user input plain text.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SearchRequestConversationalSearchSpecUserAnswer {
     /// This field specifies the selected attributes during the conversational search. This should be a subset of SearchResponse.ConversationalSearchResult.suggested_answers.
     #[serde(default, rename = "selectedAnswer")]
@@ -2775,7 +2776,7 @@ pub struct GoogleCloudRetailV2SearchRequestConversationalSearchSpecUserAnswer {
 }
 
 /// Specifies how a facet is computed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SearchRequestFacetSpecFacetKey {
     /// True to make facet keys case insensitive when getting faceting values with prefixes or contains; false otherwise.
     #[serde(default, rename = "caseInsensitive")]
@@ -2807,7 +2808,7 @@ pub struct GoogleCloudRetailV2SearchRequestFacetSpecFacetKey {
 }
 
 /// Additional filter that client side need to apply.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SearchResponseConversationalSearchResultAdditionalFilter {
     /// Product attribute value, including an attribute key and an attribute value. Other types can be added here in the future.
     #[serde(default, rename = "productAttributeValue")]
@@ -2815,7 +2816,7 @@ pub struct GoogleCloudRetailV2SearchResponseConversationalSearchResultAdditional
 }
 
 /// Suggested answers to the follow-up question.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SearchResponseConversationalSearchResultSuggestedAnswer {
     /// Product attribute value, including an attribute key and an attribute value. Other types can be added here in the future.
     #[serde(default, rename = "productAttributeValue")]
@@ -2823,7 +2824,7 @@ pub struct GoogleCloudRetailV2SearchResponseConversationalSearchResultSuggestedA
 }
 
 /// Metadata for active serving config A/B tests.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ExperimentInfoServingConfigExperiment {
     /// The fully qualified resource name of the serving config Experiment.VariantArm.serving_config_id responsible for generating the search response. For example: projects/*/locations/*/catalogs/*/servingConfigs/*.
     #[serde(default, rename = "experimentServingConfig")]
@@ -2834,7 +2835,7 @@ pub struct GoogleCloudRetailV2ExperimentInfoServingConfigExperiment {
 }
 
 /// A facet value which contains value names and their count.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SearchResponseFacetFacetValue {
     /// Number of items that have this facet value.
     #[serde(default)]
@@ -2854,7 +2855,7 @@ pub struct GoogleCloudRetailV2SearchResponseFacetFacetValue {
 }
 
 /// This field specifies the tile information including an attribute key, attribute value. More fields will be added in the future, eg: product id or product counts, etc.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2Tile {
     /// The product attribute key-numeric interval.
     #[serde(default, rename = "productAttributeInterval")]
@@ -2869,7 +2870,7 @@ pub struct GoogleCloudRetailV2Tile {
 }
 
 /// A BigQuery output result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaBigQueryOutputResult {
     /// The ID of a BigQuery Dataset.
     #[serde(default, rename = "datasetId")]
@@ -2880,7 +2881,7 @@ pub struct GoogleCloudRetailV2alphaBigQueryOutputResult {
 }
 
 /// A Gcs output result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaGcsOutputResult {
     /// The uri of Gcs output
     #[serde(default, rename = "outputUri")]
@@ -2888,7 +2889,7 @@ pub struct GoogleCloudRetailV2alphaGcsOutputResult {
 }
 
 /// Additional configs for the frequently-bought-together model type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaModelFrequentlyBoughtTogetherFeaturesConfig {
     /// Optional. Specifies the context of the model when it is used in predict requests. Can only be set for the frequently-bought-together type. If it isn''t specified, it defaults to MULTIPLE_CONTEXT_PRODUCTS. // TODO: enum values: ["CONTEXT_PRODUCTS_TYPE_UNSPECIFIED", "SINGLE_CONTEXT_PRODUCT", "MULTIPLE_CONTEXT_PRODUCTS"]
     #[serde(default, rename = "contextProductsType")]
@@ -2896,7 +2897,7 @@ pub struct GoogleCloudRetailV2alphaModelFrequentlyBoughtTogetherFeaturesConfig {
 }
 
 /// An individual panel with a list of ServingConfigs to consider for it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaModelPageOptimizationConfigPanel {
     /// Required. The candidates to consider on the panel.
     #[serde(default)]
@@ -2913,7 +2914,7 @@ pub struct GoogleCloudRetailV2alphaModelPageOptimizationConfigPanel {
 }
 
 /// A BigQuery output result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaBigQueryOutputResult {
     /// The ID of a BigQuery Dataset.
     #[serde(default, rename = "datasetId")]
@@ -2924,7 +2925,7 @@ pub struct GoogleCloudRetailV2betaBigQueryOutputResult {
 }
 
 /// A Gcs output result.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaGcsOutputResult {
     /// The uri of Gcs output
     #[serde(default, rename = "outputUri")]
@@ -2932,7 +2933,7 @@ pub struct GoogleCloudRetailV2betaGcsOutputResult {
 }
 
 /// Additional configs for the frequently-bought-together model type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2betaModelFrequentlyBoughtTogetherFeaturesConfig {
     /// Optional. Specifies the context of the model when it is used in predict requests. Can only be set for the frequently-bought-together type. If it isn''t specified, it defaults to MULTIPLE_CONTEXT_PRODUCTS. // TODO: enum values: ["CONTEXT_PRODUCTS_TYPE_UNSPECIFIED", "SINGLE_CONTEXT_PRODUCT", "MULTIPLE_CONTEXT_PRODUCTS"]
     #[serde(default, rename = "contextProductsType")]
@@ -2940,7 +2941,7 @@ pub struct GoogleCloudRetailV2betaModelFrequentlyBoughtTogetherFeaturesConfig {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleRpcStatus {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -2954,7 +2955,7 @@ pub struct GoogleRpcStatus {
 }
 
 /// An inline force intent classification configuration.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2IntentClassificationConfigInlineForceIntent {
     /// Optional. The intent_type must match one of the predefined intent types defined at https://cloud.google.com/retail/docs/reference/rpc/google.cloud.retail.v2alpha#querytype
     #[serde(default, rename = "intentType")]
@@ -2968,7 +2969,7 @@ pub struct GoogleCloudRetailV2IntentClassificationConfigInlineForceIntent {
 }
 
 /// This field specifies the selected answers during the conversational search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ConversationalSearchRequestUserAnswerSelectedAnswer {
     /// Optional. This field specifies the selected answer which is a attribute key-value.
     #[serde(default, rename = "productAttributeValue")]
@@ -2976,7 +2977,7 @@ pub struct GoogleCloudRetailV2ConversationalSearchRequestUserAnswerSelectedAnswe
 }
 
 /// Boost applies to products which match a condition.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SearchRequestBoostSpecConditionBoostSpec {
     /// Strength of the condition boost, which should be in [-1, 1]. Negative boost means demotion. Default is 0.0. Setting to 1.0 gives the item a big promotion. However, it does not necessarily mean that the boosted item will be the top result at all times, nor that other items will be excluded. Results could still be shown even when none of them matches the condition. And results that are significantly more relevant to the search query can still trump your heavily favored but irrelevant items. Setting to -1.0 gives the item a big demotion. However, results that are deeply relevant might still be shown. The item will have an upstream battle to get a fairly high ranking, but it is not blocked out completely. Setting to 0.0 means no boost applied. The boosting condition is ignored.
     #[serde(default)]
@@ -2987,7 +2988,7 @@ pub struct GoogleCloudRetailV2SearchRequestBoostSpecConditionBoostSpec {
 }
 
 /// Suggested answers to the follow-up question. If it''s numerical attribute, only ProductAttributeInterval will be set. If it''s textual attribute, only productAttributeValue will be set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestionSuggestedAnswer {
     /// Product attribute value, including an attribute key and an attribute value. Other types can be added here in the future.
     #[serde(default, rename = "productAttributeValue")]
@@ -2995,7 +2996,7 @@ pub struct GoogleCloudRetailV2ConversationalSearchResponseFollowupQuestionSugges
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleTypeDate {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]
@@ -3009,7 +3010,7 @@ pub struct GoogleTypeDate {
 }
 
 /// UserEvent captures all metadata information Retail API needs to know about how end users interact with customers'' website.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2UserEvent {
     /// Extra user event features to include in the recommendation model. If you provide custom attributes for ingested user events, also include them in the user events that you associate with prediction requests. Custom attribute formatting must be consistent between imported events and events provided with prediction requests. This lets the Retail API use those custom attributes when training models and serving predictions, which helps improve recommendation quality. This field needs to pass all below criteria, otherwise an INVALID_ARGUMENT error is returned: * The key must be a UTF-8 encoded string with a length limit of 5,000 characters. * For text attributes, at most 400 values are allowed. Empty values are not allowed. Each value must be a UTF-8 encoded string with a length limit of 256 characters. * For number attributes, at most 400 values are allowed. For product recommendations, an example of extra user information is traffic_channel, which is how a user arrives at the site. Users can arrive at the site by coming to the site directly, coming through Google search, or in other ways.
     #[serde(default)]
@@ -3080,7 +3081,7 @@ pub struct GoogleCloudRetailV2UserEvent {
 }
 
 /// A boost action to apply to results matching condition specified above.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2RuleBoostAction {
     /// Strength of the condition boost, which must be in [-1, 1]. Negative boost means demotion. Default is 0.0. Setting to 1.0 gives the item a big promotion. However, it does not necessarily mean that the boosted item will be the top result at all times, nor that other items will be excluded. Results could still be shown even when none of them matches the condition. And results that are significantly more relevant to the search query can still trump your heavily favored but irrelevant items. Setting to -1.0 gives the item a big demotion. However, results that are deeply relevant might still be shown. The item will have an upstream battle to get a fairly high ranking, but it is not blocked out completely. Setting to 0.0 means no boost applied. The boosting condition is ignored.
     #[serde(default)]
@@ -3091,7 +3092,7 @@ pub struct GoogleCloudRetailV2RuleBoostAction {
 }
 
 /// Metadata that is used to define a condition that triggers an action. A valid condition must specify at least one of ''query_terms'' or ''products_filter''. If multiple fields are specified, the condition is met if all the fields are satisfied e.g. if a set of query terms and product_filter are set, then only items matching the product_filter for requests with a query matching the query terms wil get boosted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2Condition {
     /// Range of time(s) specifying when Condition is active. Condition true if any time range matches.
     #[serde(default, rename = "activeTimeRange")]
@@ -3106,7 +3107,7 @@ pub struct GoogleCloudRetailV2Condition {
 }
 
 /// Prevents query_term from being associated with specified terms during search. Example: Don''t associate "gShoe" and "cheap".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2RuleDoNotAssociateAction {
     /// Cannot contain duplicates or the query term. Can specify up to 100 terms.
     #[serde(default, rename = "doNotAssociateTerms")]
@@ -3120,7 +3121,7 @@ pub struct GoogleCloudRetailV2RuleDoNotAssociateAction {
 }
 
 /// * Rule Condition: - No Condition.query_terms provided is a global match. - 1 or more Condition.query_terms provided are combined with OR operator. * Action Input: The request query and filter that are applied to the retrieved products, in addition to any filters already provided with the SearchRequest. The AND operator is used to combine the query''s existing filters with the filter rule(s). NOTE: May result in 0 results when filters conflict. * Action Result: Filters the returned objects to be ONLY those that passed the filter.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2RuleFilterAction {
     /// A filter to apply on the matching condition results. Supported features: * filter must be set. * Filter syntax is identical to SearchRequest.filter. For more information, see [Filter](/retail/docs/filter-and-order#filter). * To filter products with product ID "product_1" or "product_2", and color "Red" or "Blue": *(id: ANY("product_1", "product_2")) * *AND * *(colorFamilies: ANY("Red", "Blue")) *
     #[serde(default)]
@@ -3128,7 +3129,7 @@ pub struct GoogleCloudRetailV2RuleFilterAction {
 }
 
 /// Force returns an attribute/facet in the request around a certain position or above. * Rule Condition: Must specify non-empty Condition.query_terms (for search only) or Condition.page_categories (for browse only), but can''t specify both. * Action Inputs: attribute name, position * Action Result: Will force return a facet key around a certain position or above if the condition is satisfied. Example: Suppose the query is "shoes", the Condition.query_terms is "shoes", the ForceReturnFacetAction.FacetPositionAdjustment.attribute_name is "size" and the ForceReturnFacetAction.FacetPositionAdjustment.position is 8. Two cases: a) The facet key "size" is not already in the top 8 slots, then the facet "size" will appear at a position close to 8. b) The facet key "size" in among the top 8 positions in the request, then it will stay at its current rank.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2RuleForceReturnFacetAction {
     /// Each instance corresponds to a force return attribute for the given condition. There can''t be more 15 instances here.
     #[serde(default, rename = "facetPositionAdjustments")]
@@ -3138,7 +3139,7 @@ pub struct GoogleCloudRetailV2RuleForceReturnFacetAction {
 }
 
 /// Prevents a term in the query from being used in search. Example: Don''t search for "shoddy".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2RuleIgnoreAction {
     /// Terms to ignore in the search query.
     #[serde(default, rename = "ignoreTerms")]
@@ -3146,7 +3147,7 @@ pub struct GoogleCloudRetailV2RuleIgnoreAction {
 }
 
 /// Maps a set of terms to a set of synonyms. Set of synonyms will be treated as synonyms of each query term only. query_terms will not be treated as synonyms of each other. Example: "sneakers" will use a synonym of "shoes". "shoes" will not use a synonym of "sneakers".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2RuleOnewaySynonymsAction {
     /// Will be [deprecated = true] post migration;
     #[serde(default, rename = "onewayTerms")]
@@ -3160,7 +3161,7 @@ pub struct GoogleCloudRetailV2RuleOnewaySynonymsAction {
 }
 
 /// Pins one or more specified products to a specific position in the results. * Rule Condition: Must specify non-empty Condition.query_terms (for search only) or Condition.page_categories (for browse only), but can''t specify both. * Action Input: mapping of [pin_position, product_id] pairs (pin position uses 1-based indexing). * Action Result: Will pin products with matching ids to the position specified in the final result order. Example: Suppose the query is shoes, the Condition.query_terms is shoes and the pin_map has {1, "pid1"}, then product with pid1 will be pinned to the top position in the final results. If multiple PinActions are matched to a single request the actions will be processed from most to least recently updated. Pins to positions larger than the max allowed page size of 120 are not allowed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2RulePinAction {
     /// Required. A map of positions to product_ids. Partial matches per action are allowed, if a certain position in the map is already filled that [position, product_id] pair will be ignored but the rest may still be applied. This case will only occur if multiple pin actions are matched to a single request, as the map guarantees that pin positions are unique within the same action. Duplicate product_ids are not permitted within a single pin map. The max size of this map is 120, equivalent to the max [request page size](https://cloud.google.com/retail/docs/reference/rest/v2/projects.locations.catalogs.placements/search#request-body).
     #[serde(default, rename = "pinMap")]
@@ -3168,7 +3169,7 @@ pub struct GoogleCloudRetailV2RulePinAction {
 }
 
 /// Redirects a shopper to a specific page. * Rule Condition: Must specify Condition.query_terms. * Action Input: Request Query * Action Result: Redirects shopper to provided uri.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2RuleRedirectAction {
     /// URL must have length equal or less than 2000 characters.
     #[serde(default, rename = "redirectUri")]
@@ -3176,7 +3177,7 @@ pub struct GoogleCloudRetailV2RuleRedirectAction {
 }
 
 /// Removes an attribute/facet in the request if is present. * Rule Condition: Must specify non-empty Condition.query_terms (for search only) or Condition.page_categories (for browse only), but can''t specify both. * Action Input: attribute name * Action Result: Will remove the attribute (as a facet) from the request if it is present. Example: Suppose the query is "shoes", the Condition.query_terms is "shoes" and the attribute name "size", then facet key "size" will be removed from the request (if it is present).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2RuleRemoveFacetAction {
     /// The attribute names (i.e. facet keys) to remove from the dynamic facets (if present in the request). There can''t be more 3 attribute names. Each attribute name should be a valid attribute name, be non-empty and contain at most 80 characters.
     #[serde(default, rename = "attributeNames")]
@@ -3184,7 +3185,7 @@ pub struct GoogleCloudRetailV2RuleRemoveFacetAction {
 }
 
 /// Replaces a term in the query. Multiple replacement candidates can be specified. All query_terms will be replaced with the replacement term. Example: Replace "gShoe" with "google shoe".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2RuleReplacementAction {
     /// Terms from the search query. Will be replaced by replacement term. Can specify up to 100 terms.
     #[serde(default, rename = "queryTerms")]
@@ -3198,7 +3199,7 @@ pub struct GoogleCloudRetailV2RuleReplacementAction {
 }
 
 /// Creates a set of terms that will be treated as synonyms of each other. Example: synonyms of "sneakers" and "shoes": * "sneakers" will use a synonym of "shoes". * "shoes" will use a synonym of "sneakers".
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2RuleTwowaySynonymsAction {
     /// Defines a set of synonyms. Can specify up to 100 synonyms. Must specify at least 2 synonyms.
     #[serde(default)]
@@ -3206,7 +3207,7 @@ pub struct GoogleCloudRetailV2RuleTwowaySynonymsAction {
 }
 
 /// Additional configs for the frequently-bought-together model type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ModelFrequentlyBoughtTogetherFeaturesConfig {
     /// Optional. Specifies the context of the model when it is used in predict requests. Can only be set for the frequently-bought-together type. If it isn''t specified, it defaults to MULTIPLE_CONTEXT_PRODUCTS. // TODO: enum values: ["CONTEXT_PRODUCTS_TYPE_UNSPECIFIED", "SINGLE_CONTEXT_PRODUCT", "MULTIPLE_CONTEXT_PRODUCTS"]
     #[serde(default, rename = "contextProductsType")]
@@ -3214,7 +3215,7 @@ pub struct GoogleCloudRetailV2ModelFrequentlyBoughtTogetherFeaturesConfig {
 }
 
 /// Facet values to ignore on facets during the specified time range for the given SearchResponse.Facet.key attribute.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2CatalogAttributeFacetConfigIgnoredFacetValues {
     /// If start time is empty and end time is not empty, then ignore these facet values before end time.
     #[serde(default, rename = "endTime")]
@@ -3228,7 +3229,7 @@ pub struct GoogleCloudRetailV2CatalogAttributeFacetConfigIgnoredFacetValues {
 }
 
 /// The current facet key (i.e. attribute config) maps into the merged_facet_key. A facet key can have at most one child. The current facet key and the merged facet key need both to be textual custom attributes or both numerical custom attributes (same type).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2CatalogAttributeFacetConfigMergedFacet {
     /// The merged facet key should be a valid facet key that is different than the facet key of the current catalog attribute. We refer this is merged facet key as the child of the current catalog attribute. This merged facet key can''t be a parent of another facet key (i.e. no directed path of length 2). This merged facet key needs to be either a textual custom attribute or a numerical custom attribute.
     #[serde(default, rename = "mergedFacetKey")]
@@ -3236,7 +3237,7 @@ pub struct GoogleCloudRetailV2CatalogAttributeFacetConfigMergedFacet {
 }
 
 /// Replaces a set of textual facet values by the same (possibly different) merged facet value. Each facet value should appear at most once as a value per CatalogAttribute. This feature is available only for textual custom attributes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2CatalogAttributeFacetConfigMergedFacetValue {
     /// All the previous values are replaced by this merged facet value. This merged_value must be non-empty and can have up to 128 characters.
     #[serde(default, rename = "mergedValue")]
@@ -3247,7 +3248,7 @@ pub struct GoogleCloudRetailV2CatalogAttributeFacetConfigMergedFacetValue {
 }
 
 /// Options to rerank based on facet values engaged by the user for the current key. That key needs to be a custom textual key and facetable. To use this control, you also need to pass all the facet keys engaged by the user in the request using the field [SearchRequest.FacetSpec]. In particular, if you don''t pass the facet keys engaged that you want to rerank on, this control won''t be effective. Moreover, to obtain better results, the facet values that you want to rerank on should be close to English (ideally made of words, underscores, and spaces).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2CatalogAttributeFacetConfigRerankConfig {
     /// If empty, rerank on all facet values for the current key. Otherwise, will rerank on the facet values from this list only.
     #[serde(default, rename = "facetValues")]
@@ -3258,7 +3259,7 @@ pub struct GoogleCloudRetailV2CatalogAttributeFacetConfigRerankConfig {
 }
 
 /// This field specifies the selected answers during the conversational search.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2SearchRequestConversationalSearchSpecUserAnswerSelectedAnswer {
     /// This field specifies the selected answer which is a attribute key-value.
     #[serde(default, rename = "productAttributeValue")]
@@ -3270,7 +3271,7 @@ pub struct GoogleCloudRetailV2SearchRequestConversationalSearchSpecUserAnswerSel
 }
 
 /// Product attribute name and numeric interval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ProductAttributeInterval {
     /// The numeric interval (e.g. [10, 20))
     #[serde(default)]
@@ -3281,7 +3282,7 @@ pub struct GoogleCloudRetailV2ProductAttributeInterval {
 }
 
 /// A candidate to consider for a given panel. Currently only ServingConfig are valid candidates.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2alphaModelPageOptimizationConfigCandidate {
     /// This has to be a valid ServingConfig identifier. For example, for a ServingConfig with full name: projects/*/locations/global/catalogs/default_catalog/servingConfigs/my_candidate_config, this would be my_candidate_config.
     #[serde(default, rename = "servingConfigId")]
@@ -3289,7 +3290,7 @@ pub struct GoogleCloudRetailV2alphaModelPageOptimizationConfigCandidate {
 }
 
 /// Detailed completion information including completion attribution token and clicked completion info.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2CompletionDetail {
     /// Completion attribution token in CompleteQueryResponse.attribution_token.
     #[serde(default, rename = "completionAttributionToken")]
@@ -3303,7 +3304,7 @@ pub struct GoogleCloudRetailV2CompletionDetail {
 }
 
 /// Detailed panel information associated with a user event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2PanelInfo {
     /// Optional. The attribution token of the panel.
     #[serde(default, rename = "attributionToken")]
@@ -3326,7 +3327,7 @@ pub struct GoogleCloudRetailV2PanelInfo {
 }
 
 /// A transaction represents the entire purchase transaction.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2PurchaseTransaction {
     /// All the costs associated with the products. These can be manufacturing costs, shipping expenses not borne by the end user, or any other costs, such that: * Profit = revenue - tax - cost
     #[serde(default)]
@@ -3346,7 +3347,7 @@ pub struct GoogleCloudRetailV2PurchaseTransaction {
 }
 
 /// Information of an end user.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2UserInfo {
     /// True if the request is made directly from the end user, in which case the ip_address and user_agent can be populated from the HTTP request. This flag should be set only if the API request is made directly from the end user such as a mobile app (and not if a gateway or a server is processing and pushing the user events). This should not be set when using the JavaScript tag in UserEventService.CollectUserEvent.
     #[serde(default, rename = "directUserRequest")]
@@ -3363,7 +3364,7 @@ pub struct GoogleCloudRetailV2UserInfo {
 }
 
 /// Used for time-dependent conditions. Example: Want to have rule applied for week long sale.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ConditionTimeRange {
     /// End of time range. Range is inclusive.
     #[serde(default, rename = "endTime")]
@@ -3374,7 +3375,7 @@ pub struct GoogleCloudRetailV2ConditionTimeRange {
 }
 
 /// Query terms that we want to match on.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ConditionQueryTerm {
     /// Whether this is supposed to be a full or partial match.
     #[serde(default, rename = "fullMatch")]
@@ -3385,7 +3386,7 @@ pub struct GoogleCloudRetailV2ConditionQueryTerm {
 }
 
 /// Each facet position adjustment consists of a single attribute name (i.e. facet key) along with a specified position.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2RuleForceReturnFacetActionFacetPositionAdjustment {
     /// The attribute name to force return as a facet. Each attribute name should be a valid attribute name, be non-empty and contain at most 80 characters long.
     #[serde(default, rename = "attributeName")]
@@ -3396,7 +3397,7 @@ pub struct GoogleCloudRetailV2RuleForceReturnFacetActionFacetPositionAdjustment 
 }
 
 /// Product attribute which structured by an attribute name and value. This structure is used in conversational search filters and answers. For example, if we have name=color and value=red, this means that the color is red.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ProductAttributeValue {
     /// The attribute name.
     #[serde(default)]
@@ -3407,7 +3408,7 @@ pub struct GoogleCloudRetailV2ProductAttributeValue {
 }
 
 /// Detailed product information associated with a user event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ProductDetail {
     /// Required. Product information. Required field(s): * Product.id Optional override field(s): * Product.price_info If any supported optional fields are provided, we will treat them as a full override when looking up product information from the catalog. Thus, it is important to ensure that the overriding fields are accurate and complete. All other product fields are ignored and instead populated via catalog lookup after event ingestion.
     #[serde(default)]
@@ -3418,7 +3419,7 @@ pub struct GoogleCloudRetailV2ProductDetail {
 }
 
 /// Product captures all metadata information of items to be recommended or searched.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2Product {
     /// Highly encouraged. Extra product attributes to be included. For example, for products, this could include the store name, vendor, style, color, etc. These are very strong signals for recommendation model, thus we highly recommend providing the attributes here. Features that can take on one of a limited number of possible values. Two types of features can be set are: Textual features. some examples would be the brand/maker of a product, or country of a customer. Numerical features. Some examples would be the height/weight of a product, or age of a customer. For example: { "vendor": {"text": ["vendor123", "vendor456"]}, "lengths_cm": {"numbers":[2.3, 15.4]}, "heights_cm": {"numbers":[8.1, 6.4]} }. This field needs to pass all below criteria, otherwise an INVALID_ARGUMENT error is returned: * Max entries count: 200. * The key must be a UTF-8 encoded string with a length limit of 128 characters. * For indexable attribute, the key must match the pattern: a-zA-Z0-9*. For example, key0LikeThis or KEY_1_LIKE_THIS. * For text attributes, at most 400 values are allowed. Empty values are not allowed. Each value must be a non-empty UTF-8 encoded string with a length limit of 256 characters. * For number attributes, at most 400 values are allowed.
     #[serde(default)]
@@ -3527,7 +3528,7 @@ pub struct GoogleCloudRetailV2Product {
 }
 
 /// An intended audience of the Product for whom it''s sold.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2Audience {
     /// The age groups of the audience. Strongly encouraged to use the standard values: "newborn" (up to 3 months old), "infant" (3–12 months old), "toddler" (1–5 years old), "kids" (5–13 years old), "adult" (typically teens or older). At most 5 values are allowed. Each value must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned. Google Merchant Center property [age_group](https://support.google.com/merchants/answer/6324463). Schema.org property [Product.audience.suggestedMinAge](https://schema.org/suggestedMinAge) and [Product.audience.suggestedMaxAge](https://schema.org/suggestedMaxAge).
     #[serde(default, rename = "ageGroups")]
@@ -3538,7 +3539,7 @@ pub struct GoogleCloudRetailV2Audience {
 }
 
 /// The color information of a Product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2ColorInfo {
     /// The standard color families. Strongly recommended to use the following standard color groups: "Red", "Pink", "Orange", "Yellow", "Purple", "Green", "Cyan", "Blue", "Brown", "White", "Gray", "Black" and "Mixed". Normally it is expected to have only 1 color family. May consider using single "Mixed" instead of multiple values. A maximum of 5 values are allowed. Each value must be a UTF-8 encoded string with a length limit of 128 characters. Otherwise, an INVALID_ARGUMENT error is returned. Google Merchant Center property [color](https://support.google.com/merchants/answer/6324487). Schema.org property [Product.color](https://schema.org/color). The colorFamilies field as a system attribute is not a required field but strongly recommended to be specified. Google Search models treat this field as more important than a custom product attribute when specified.
     #[serde(default, rename = "colorFamilies")]
@@ -3549,7 +3550,7 @@ pub struct GoogleCloudRetailV2ColorInfo {
 }
 
 /// Fulfillment information, such as the store IDs for in-store pickup or region IDs for different shipping methods.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2FulfillmentInfo {
     /// The IDs for this type, such as the store IDs for FulfillmentInfo.type.pickup-in-store or the region IDs for FulfillmentInfo.type.same-day-delivery. A maximum of 3000 values are allowed. Each value must be a string with a length limit of 30 characters, matching the pattern [a-zA-Z0-9_-]+, such as "store1" or "REGION-2". Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "placeIds")]
@@ -3560,7 +3561,7 @@ pub struct GoogleCloudRetailV2FulfillmentInfo {
 }
 
 /// Product image. Recommendations AI and Retail Search use product images to improve prediction and search results. Product images can be returned in results, and are shown in prediction or search previews in the console. Please try to provide correct product images and avoid using images with size too small.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2Image {
     /// Height of the image in number of pixels. This field must be nonnegative. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default)]
@@ -3574,7 +3575,7 @@ pub struct GoogleCloudRetailV2Image {
 }
 
 /// The inventory information at a place (e.g. a store) identified by a place ID.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2LocalInventory {
     /// Optional. Additional local inventory attributes, for example, store name, promotion tags, etc. This field needs to pass all below criteria, otherwise an INVALID_ARGUMENT error is returned: * At most 30 attributes are allowed. * The key must be a UTF-8 encoded string with a length limit of 32 characters. * The key must match the pattern: a-zA-Z0-9*. For example, key0LikeThis or KEY_1_LIKE_THIS. * The attribute values must be of the same type (text or number). * Only 1 value is allowed for each attribute. * For text values, the length limit is 256 UTF-8 characters. * The attribute does not support search. The searchable field should be unset or set to false. * The max summed total bytes of custom attribute keys and values per product is 5MiB.
     #[serde(default)]
@@ -3591,7 +3592,7 @@ pub struct GoogleCloudRetailV2LocalInventory {
 }
 
 /// Promotion specification.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2Promotion {
     /// Promotion identifier, which is the final component of name. For example, this field is "free_gift", if name is projects/*/locations/global/catalogs/default_catalog/promotions/free_gift. The value must be a UTF-8 encoded string with a length limit of 128 characters, and match the pattern: a-zA-Z*. For example, id0LikeThis or ID_1_LIKE_THIS. Otherwise, an INVALID_ARGUMENT error is returned. Corresponds to Google Merchant Center property [promotion_id](https://support.google.com/merchants/answer/7050148).
     #[serde(default, rename = "promotionId")]
@@ -3599,7 +3600,7 @@ pub struct GoogleCloudRetailV2Promotion {
 }
 
 /// The rating of a Product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2Rating {
     /// The average rating of the Product. The rating is scaled at 1-5. Otherwise, an INVALID_ARGUMENT error is returned.
     #[serde(default, rename = "averageRating")]
@@ -3613,7 +3614,7 @@ pub struct GoogleCloudRetailV2Rating {
 }
 
 /// The price information of a Product.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2PriceInfo {
     /// The costs associated with the sale of a particular product. Used for gross profit reporting. * Profit = price - cost Google Merchant Center property [cost_of_goods_sold](https://support.google.com/merchants/answer/9017895).
     #[serde(default)]
@@ -3639,7 +3640,7 @@ pub struct GoogleCloudRetailV2PriceInfo {
 }
 
 /// The price range of all variant Product having the same Product.primary_product_id.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2PriceInfoPriceRange {
     /// The inclusive Product.pricing_info.original_price internal of all variant Product having the same Product.primary_product_id.
     #[serde(default, rename = "originalPrice")]
@@ -3650,7 +3651,7 @@ pub struct GoogleCloudRetailV2PriceInfoPriceRange {
 }
 
 /// A floating point interval.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleCloudRetailV2Interval {
     /// Exclusive upper bound.
     #[serde(default, rename = "exclusiveMaximum")]

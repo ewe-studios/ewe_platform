@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// All fields are required.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddFirebaseRequest {
     /// **DEPRECATED.** _Instead, use product-specific REST APIs to work with the location of each resource in a Project. This field may be ignored, especially for newly provisioned projects after October 30, 2024._ The ID of the Project''s ["location for default Google Cloud resources"](https://firebase.google.com/docs/projects/locations#default-cloud-location), which are resources associated with Google App Engine. The location must be one of the available [Google App Engine locations](https://cloud.google.com/about/locations#region).
     #[serde(default, rename = "locationId")]
@@ -19,7 +20,7 @@ pub struct AddFirebaseRequest {
 }
 
 /// AddGoogleAnalyticsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AddGoogleAnalyticsRequest {
     /// The ID for the existing [Google Analytics account](http://www.google.com/analytics/) that you want to link with the FirebaseProject. Specifying this field will provision a new Google Analytics property in your Google Analytics account and associate the new property with the FirebaseProject.
     #[serde(default, rename = "analyticsAccountId")]
@@ -30,7 +31,7 @@ pub struct AddGoogleAnalyticsRequest {
 }
 
 /// AdminSdkConfig resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdminSdkConfig {
     /// **DEPRECATED.** _Instead, find the URL of the default Realtime Database instance using the [list endpoint](https://firebase.google.com/docs/reference/rest/database/database-management/rest/v1beta/projects.locations.instances/list) within the Firebase Realtime Database REST API. If the default instance for the Project has not yet been provisioned, the return might not contain a default instance. Note that the config that''s generated for the Firebase console or the Firebase CLI uses the Realtime Database endpoint to populate this value for that config._ The URL of the default Firebase Realtime Database instance.
     #[serde(default, rename = "databaseURL")]
@@ -47,7 +48,7 @@ pub struct AdminSdkConfig {
 }
 
 /// AnalyticsDetails resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyticsDetails {
     /// The Analytics Property object associated with the specified FirebaseProject. This object contains the details of the Google Analytics property associated with the Project.
     #[serde(default, rename = "analyticsProperty")]
@@ -58,7 +59,7 @@ pub struct AnalyticsDetails {
 }
 
 /// Configuration metadata of a single Firebase App for Android.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AndroidAppConfig {
     /// The contents of the JSON configuration file.
     #[serde(default, rename = "configFileContents")]
@@ -69,11 +70,11 @@ pub struct AndroidAppConfig {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// FinalizeDefaultLocationRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FinalizeDefaultLocationRequest {
     /// **DEPRECATED** The ID of the Project''s ["location for default Google Cloud resources"](https://firebase.google.com/docs/projects/locations#default-cloud-location), which are resources associated with Google App Engine. The location must be one of the available [Google App Engine locations](https://cloud.google.com/about/locations#region).
     #[serde(default, rename = "locationId")]
@@ -81,7 +82,7 @@ pub struct FinalizeDefaultLocationRequest {
 }
 
 /// Configuration metadata of a single Firebase App for iOS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IosAppConfig {
     /// The content of the XML configuration file.
     #[serde(default, rename = "configFileContents")]
@@ -92,7 +93,7 @@ pub struct IosAppConfig {
 }
 
 /// ListAndroidAppsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAndroidAppsResponse {
     /// List of each AndroidApp associated with the specified FirebaseProject.
     #[serde(default)]
@@ -103,7 +104,7 @@ pub struct ListAndroidAppsResponse {
 }
 
 /// ListAvailableLocationsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAvailableLocationsResponse {
     /// One page of results from a call to ListAvailableLocations.
     #[serde(default)]
@@ -114,7 +115,7 @@ pub struct ListAvailableLocationsResponse {
 }
 
 /// ListAvailableProjectsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAvailableProjectsResponse {
     /// If the result list is too large to fit in a single response, then a token is returned. If the string is empty, then this response is the last page of results. This token can be used in a subsequent calls to ListAvailableProjects to find the next group of Projects. Page tokens are short-lived and should not be persisted.
     #[serde(default, rename = "nextPageToken")]
@@ -125,7 +126,7 @@ pub struct ListAvailableProjectsResponse {
 }
 
 /// ListFirebaseProjectsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListFirebaseProjectsResponse {
     /// If the result list is too large to fit in a single response, then a token is returned. If the string is empty, then this response is the last page of results. This token can be used in a subsequent calls to ListFirebaseProjects to find the next group of Projects. Page tokens are short-lived and should not be persisted.
     #[serde(default, rename = "nextPageToken")]
@@ -136,7 +137,7 @@ pub struct ListFirebaseProjectsResponse {
 }
 
 /// ListIosAppsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListIosAppsResponse {
     /// List of each IosApp associated with the specified FirebaseProject.
     #[serde(default)]
@@ -147,7 +148,7 @@ pub struct ListIosAppsResponse {
 }
 
 /// ListShaCertificatesResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListShaCertificatesResponse {
     /// The list of each ShaCertificate associated with the AndroidApp.
     #[serde(default)]
@@ -155,7 +156,7 @@ pub struct ListShaCertificatesResponse {
 }
 
 /// ListWebAppsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListWebAppsResponse {
     /// List of each WebApp associated with the specified FirebaseProject.
     #[serde(default)]
@@ -166,11 +167,11 @@ pub struct ListWebAppsResponse {
 }
 
 /// This is proto2''s version of MessageSet. DEPRECATED: DO NOT USE FOR NEW FIELDS. If you are using editions or proto2, please make your own extendable messages for your use case. If you are using proto3, please use Any instead. MessageSet was the implementation of extensions for proto1. When proto2 was introduced, extensions were implemented as a first-class feature. This schema for MessageSet was meant to be a "bridge" solution to migrate MessageSet-bearing messages from proto1 to proto2. This schema has been open-sourced only to facilitate the migration of Google products with MessageSet-bearing messages to open-source environments.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MessageSet {}
 
 /// This resource represents a long-running operation that is the result of a network API call.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Operation {
     /// If the value is false, it means the operation is still in progress. If true, the operation is completed, and either error or response is available.
     #[serde(default)]
@@ -190,11 +191,11 @@ pub struct Operation {
 }
 
 /// Describes the progress of an LRO. It is included in the metadata field of the Operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OperationMetadata {}
 
 /// Metadata about a long-running Product operation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProductMetadata {
     /// List of warnings related to the associated operation.
     #[serde(default, rename = "warningMessages")]
@@ -202,7 +203,7 @@ pub struct ProductMetadata {
 }
 
 /// RemoveAnalyticsRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveAnalyticsRequest {
     /// Optional. The ID of the Google Analytics property associated with the specified FirebaseProject. - If not set, then the Google Analytics property that is currently associated with the specified FirebaseProject is removed. - If set, and the specified FirebaseProject is currently associated with a *different* Google Analytics property, then the response is a 412 Precondition Failed error.
     #[serde(default, rename = "analyticsPropertyId")]
@@ -210,7 +211,7 @@ pub struct RemoveAnalyticsRequest {
 }
 
 /// RemoveAndroidAppRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveAndroidAppRequest {
     /// If set to true, and the App is not found, the request will succeed but no action will be taken on the server.
     #[serde(default, rename = "allowMissing")]
@@ -227,7 +228,7 @@ pub struct RemoveAndroidAppRequest {
 }
 
 /// RemoveIosAppRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveIosAppRequest {
     /// If set to true, and the App is not found, the request will succeed but no action will be taken on the server.
     #[serde(default, rename = "allowMissing")]
@@ -244,7 +245,7 @@ pub struct RemoveIosAppRequest {
 }
 
 /// RemoveWebAppRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RemoveWebAppRequest {
     /// If set to true, and the App is not found, the request will succeed but no action will be taken on the server.
     #[serde(default, rename = "allowMissing")]
@@ -261,7 +262,7 @@ pub struct RemoveWebAppRequest {
 }
 
 /// SearchFirebaseAppsResponse resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchFirebaseAppsResponse {
     /// One page of results from a call to SearchFirebaseApps.
     #[serde(default)]
@@ -272,7 +273,7 @@ pub struct SearchFirebaseAppsResponse {
 }
 
 /// Wire-format for a Status object
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StatusProto {
     /// copybara:strip_begin(b/383363683) copybara:strip_end_and_replace optional int32 canonical_code = 6;
     #[serde(default, rename = "canonicalCode")]
@@ -292,7 +293,7 @@ pub struct StatusProto {
 }
 
 /// UndeleteAndroidAppRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UndeleteAndroidAppRequest {
     /// Checksum provided in the AndroidApp resource. If provided, this checksum ensures that the client has an up-to-date value before proceeding.
     #[serde(default)]
@@ -303,7 +304,7 @@ pub struct UndeleteAndroidAppRequest {
 }
 
 /// UndeleteIosAppRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UndeleteIosAppRequest {
     /// Checksum provided in the IosApp resource. If provided, this checksum ensures that the client has an up-to-date value before proceeding.
     #[serde(default)]
@@ -314,7 +315,7 @@ pub struct UndeleteIosAppRequest {
 }
 
 /// UndeleteWebAppRequest resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UndeleteWebAppRequest {
     /// Checksum provided in the WebApp resource. If provided, this checksum ensures that the client has an up-to-date value before proceeding.
     #[serde(default)]
@@ -325,7 +326,7 @@ pub struct UndeleteWebAppRequest {
 }
 
 /// Configuration metadata of a single Firebase App for the web.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WebAppConfig {
     /// The [keyString](https://cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys#Key.FIELDS.key_string) of the API key associated with the WebApp. Note that this value is _not_ the [apiKeyId](../projects.webApps#WebApp.FIELDS.api_key_id) (the UID) of the API key associated with the WebApp.
     #[serde(default, rename = "apiKey")]
@@ -366,7 +367,7 @@ pub struct WebAppConfig {
 }
 
 /// Details of a Google Analytics property
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AnalyticsProperty {
     /// Output only. The ID of the [Google Analytics account](https://www.google.com/analytics/) for the Google Analytics property associated with the specified FirebaseProject.
     #[serde(default, rename = "analyticsAccountId")]
@@ -380,7 +381,7 @@ pub struct AnalyticsProperty {
 }
 
 /// A mapping of a Firebase App to a Google Analytics data stream
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StreamMapping {
     /// The resource name of the Firebase App associated with the Google Analytics data stream, in the format: projects/PROJECT_IDENTIFIER/androidApps/APP_ID or projects/PROJECT_IDENTIFIER/iosApps/APP_ID or projects/PROJECT_IDENTIFIER /webApps/APP_ID Refer to the FirebaseProject [name](../projects#FirebaseProject.FIELDS.name) field for details about PROJECT_IDENTIFIER values.
     #[serde(default)]
@@ -394,7 +395,7 @@ pub struct StreamMapping {
 }
 
 /// Details of a Firebase App for Android.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AndroidApp {
     /// The globally unique, Google-assigned identifier (UID) for the Firebase API key associated with the AndroidApp. Be aware that this value is the UID of the API key, _not_ the [keyString](https://cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys#Key.FIELDS.key_string) of the API key. The keyString is the value that can be found in the App''s [configuration artifact](../../rest/v1beta1/projects.androidApps/getConfig). If api_key_id is not set in requests to [androidApps.Create](../../rest/v1beta1/projects.androidApps/create), then Firebase automatically associates an api_key_id with the AndroidApp. This auto-associated key may be an existing valid key or, if no valid key exists, a new one will be provisioned. In patch requests, api_key_id cannot be set to an empty value, and the new UID must have no restrictions or only have restrictions that are valid for the associated AndroidApp. We recommend using the [Google Cloud Console](https://console.cloud.google.com/apis/credentials) to manage API keys.
     #[serde(default, rename = "apiKeyId")]
@@ -432,7 +433,7 @@ pub struct AndroidApp {
 }
 
 /// **DEPRECATED.** _This Location is no longer used to determine Firebase resource locations. Instead, consult product documentation to determine valid locations for each resource used in your Project._ A ["location for default Google Cloud resources"](https://firebase.google.com/docs/projects/locations#default-cloud-location) that can be selected for a FirebaseProject. These are resources associated with Google App Engine.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// Products and services that are available in the location for default Google Cloud resources.
     #[serde(default)]
@@ -446,7 +447,7 @@ pub struct Location {
 }
 
 /// A reference to a Google Cloud Project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectInfo {
     /// The user-assigned display name of the Google Cloud Project, for example: My App.
     #[serde(default, rename = "displayName")]
@@ -460,7 +461,7 @@ pub struct ProjectInfo {
 }
 
 /// A FirebaseProject is the top-level Firebase entity. It is the container for Firebase Apps, Firebase Hosting sites, storage systems (Firebase Realtime Database, Cloud Firestore, Cloud Storage buckets), and other Firebase and Google Cloud resources. You create a FirebaseProject by calling AddFirebase and specifying an *existing* [Google Cloud Project](https://cloud.google.com/resource-manager/reference/rest/v1/projects). This adds Firebase resources to the existing Google Cloud Project. Since a FirebaseProject is actually also a Google Cloud Project, a FirebaseProject has the same underlying Google Cloud identifiers (projectNumber and projectId). This allows for easy interop with Google APIs.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirebaseProject {
     /// A set of user-defined annotations for the FirebaseProject. Learn more about annotations in Google''s [AIP-128 standard](https://google.aip.dev/128#annotations). These annotations are intended solely for developers and client-side tools. Firebase services will not mutate this annotations set.
     #[serde(default)]
@@ -489,7 +490,7 @@ pub struct FirebaseProject {
 }
 
 /// Details of a Firebase App for iOS.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct IosApp {
     /// The globally unique, Google-assigned identifier (UID) for the Firebase API key associated with the IosApp. Be aware that this value is the UID of the API key, _not_ the [keyString](https://cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys#Key.FIELDS.key_string) of the API key. The keyString is the value that can be found in the App''s [configuration artifact](../../rest/v1beta1/projects.iosApps/getConfig). If api_key_id is not set in requests to [iosApps.Create](../../rest/v1beta1/projects.iosApps/create), then Firebase automatically associates an api_key_id with the IosApp. This auto-associated key may be an existing valid key or, if no valid key exists, a new one will be provisioned. In patch requests, api_key_id cannot be set to an empty value, and the new UID must have no restrictions or only have restrictions that are valid for the associated IosApp. We recommend using the [Google Cloud Console](https://console.cloud.google.com/apis/credentials) to manage API keys.
     #[serde(default, rename = "apiKeyId")]
@@ -527,7 +528,7 @@ pub struct IosApp {
 }
 
 /// A SHA-1 or SHA-256 certificate associated with the AndroidApp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ShaCertificate {
     /// The type of SHA certificate encoded in the hash. // TODO: enum values: ["SHA_CERTIFICATE_TYPE_UNSPECIFIED", "SHA_1", "SHA_256"]
     #[serde(default, rename = "certType")]
@@ -541,7 +542,7 @@ pub struct ShaCertificate {
 }
 
 /// Details of a Firebase App for the web.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WebApp {
     /// The globally unique, Google-assigned identifier (UID) for the Firebase API key associated with the WebApp. Be aware that this value is the UID of the API key, _not_ the [keyString](https://cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys#Key.FIELDS.key_string) of the API key. The keyString is the value that can be found in the App''s [configuration artifact](../../rest/v1beta1/projects.webApps/getConfig). If api_key_id is not set in requests to [webApps.Create](../../rest/v1beta1/projects.webApps/create), then Firebase automatically associates an api_key_id with the WebApp. This auto-associated key may be an existing valid key or, if no valid key exists, a new one will be provisioned. In patch requests, api_key_id cannot be set to an empty value, and the new UID must have no restrictions or only have restrictions that are valid for the associated WebApp. We recommend using the [Google Cloud Console](https://console.cloud.google.com/apis/credentials) to manage API keys.
     #[serde(default, rename = "apiKeyId")]
@@ -576,7 +577,7 @@ pub struct WebApp {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -590,7 +591,7 @@ pub struct Status {
 }
 
 /// A high-level summary of an App.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FirebaseAppInfo {
     /// The globally unique, Google-assigned identifier (UID) for the Firebase API key associated with the App. Be aware that this value is the UID of the API key, _not_ the [keyString](https://cloud.google.com/api-keys/docs/reference/rest/v2/projects.locations.keys#Key.FIELDS.key_string) of the API key. The keyString is the value that can be found in the App''s configuration artifact ([AndroidApp](../../rest/v1beta1/projects.androidApps/getConfig) | [IosApp](../../rest/v1beta1/projects.iosApps/getConfig) | [WebApp](../../rest/v1beta1/projects.webApps/getConfig)). If api_key_id is not set in requests to create the App ([AndroidApp](../../rest/v1beta1/projects.androidApps/create) | [IosApp](../../rest/v1beta1/projects.iosApps/create) | [WebApp](../../rest/v1beta1/projects.webApps/create)), then Firebase automatically associates an api_key_id with the App. This auto-associated key may be an existing valid key or, if no valid key exists, a new one will be provisioned.
     #[serde(default, rename = "apiKeyId")]
@@ -619,7 +620,7 @@ pub struct FirebaseAppInfo {
 }
 
 /// **DEPRECATED.** _Auto-provisioning of these resources is changing, so this object no longer reliably provides information about the resources within the Project. Instead, retrieve information about each resource directly from its resource-specific API._ The default auto-provisioned resources associated with the Project.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DefaultResources {
     /// Output only. **DEPRECATED.** _Instead, find the name of the default Firebase Hosting site using [ListSites](https://firebase.google.com/docs/reference/hosting/rest/v1beta1/projects.sites/list) within the Firebase Hosting REST API. If the default Hosting site for the Project has not yet been provisioned, the return might not contain a default site._ The name of the default Firebase Hosting site, in the format: PROJECT_ID Though rare, your projectId might already be used as the name for an existing Hosting site in another project (learn more about creating non-default, [additional sites](https://firebase.google.com/docs/hosting/multisites)). In these cases, your projectId is appended with a hyphen then five alphanumeric characters to create your default Hosting site name. For example, if your projectId is myproject123, your default Hosting site name might be: myproject123-a5c16
     #[serde(default, rename = "hostingSite")]

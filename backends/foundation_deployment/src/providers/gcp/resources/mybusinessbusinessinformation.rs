@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// A container for all the attributes for a given location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Attributes {
     /// A collection of attributes that need to be updated.
     #[serde(default)]
@@ -22,7 +23,7 @@ pub struct Attributes {
 }
 
 /// Response message for BusinessCategories.BatchGetBusinessCategories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BatchGetCategoriesResponse {
     /// Categories that match the GConcept ids provided in the request. They will not come in the same order as category ids in the request.
     #[serde(default)]
@@ -30,11 +31,11 @@ pub struct BatchGetCategoriesResponse {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Represents a location that was modified by Google.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleUpdatedLocation {
     /// The fields that Google updated.
     #[serde(default, rename = "diffMask")]
@@ -48,7 +49,7 @@ pub struct GoogleUpdatedLocation {
 }
 
 /// Response for AttributesService.ListAttributeMetadata.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListAttributeMetadataResponse {
     /// A collection of attribute metadata for the available attributes.
     #[serde(default, rename = "attributeMetadata")]
@@ -59,7 +60,7 @@ pub struct ListAttributeMetadataResponse {
 }
 
 /// Response message for BusinessCategories.ListCategories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCategoriesResponse {
     /// The matching categories based on the requested parameters.
     #[serde(default)]
@@ -70,7 +71,7 @@ pub struct ListCategoriesResponse {
 }
 
 /// Response message for Locations.ListLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListLocationsResponse {
     /// The locations.
     #[serde(default)]
@@ -84,7 +85,7 @@ pub struct ListLocationsResponse {
 }
 
 /// Response message for Locations.SearchChains.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchChainsResponse {
     /// Chains that match the queried chain_display_name in SearchChainsRequest. If there are no matches, this field will be empty. Results are listed in order of relevance.
     #[serde(default)]
@@ -92,7 +93,7 @@ pub struct SearchChainsResponse {
 }
 
 /// Request message for GoogleLocations.SearchGoogleLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchGoogleLocationsRequest {
     /// Location to search for. If provided, will find locations which match the provided location details, which must include a value for the title.
     #[serde(default)]
@@ -106,7 +107,7 @@ pub struct SearchGoogleLocationsRequest {
 }
 
 /// Response message for GoogleLocations.SearchGoogleLocations.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchGoogleLocationsResponse {
     /// A collection of GoogleLocations that are potential matches to the specified request, listed in order from most to least accuracy.
     #[serde(default, rename = "googleLocations")]
@@ -114,7 +115,7 @@ pub struct SearchGoogleLocationsResponse {
 }
 
 /// A location attribute. Attributes provide additional information about a location. The attributes that can be set on a location may vary based on the properties of that location (for example, category). Available attributes are determined by Google and may be added and removed without API changes.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Attribute {
     /// Required. The resource name for this attribute.
     #[serde(default)]
@@ -134,7 +135,7 @@ pub struct Attribute {
 }
 
 /// Metadata for an attribute. Contains display information for the attribute, including a localized name and a heading for grouping related attributes together.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttributeMetadata {
     /// If true, the attribute is deprecated and should no longer be used. If deprecated, updating this attribute will not result in an error, but updates will not be saved. At some point after being deprecated, the attribute will be removed entirely and it will become an error.
     #[serde(default)]
@@ -160,7 +161,7 @@ pub struct AttributeMetadata {
 }
 
 /// A chain is a brand that your business''s locations can be affiliated with.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Chain {
     /// Names of the chain.
     #[serde(default, rename = "chainNames")]
@@ -177,7 +178,7 @@ pub struct Chain {
 }
 
 /// Represents a Location that is present on Google. This can be a location that has been claimed by the user, someone else, or could be unclaimed.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleLocation {
     /// The sparsely populated Location information. This field can be re-used in CreateLocation if it is not currently claimed by a user.
     #[serde(default)]
@@ -191,7 +192,7 @@ pub struct GoogleLocation {
 }
 
 /// Values for an attribute with a value_type of REPEATED_ENUM. This consists of two lists of value IDs: those that are set (true) and those that are unset (false). Values absent are considered unknown. At least one value must be specified.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RepeatedEnumAttributeValue {
     /// Enum values that are set.
     #[serde(default, rename = "setValues")]
@@ -202,7 +203,7 @@ pub struct RepeatedEnumAttributeValue {
 }
 
 /// Values for an attribute with a value_type of URL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UriAttributeValue {
     /// Required. The proposed URI value for this attribute.
     #[serde(default)]
@@ -210,7 +211,7 @@ pub struct UriAttributeValue {
 }
 
 /// Metadata for supported attribute values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttributeValueMetadata {
     /// The display name for this value, localized where available; otherwise, in English. The value display name is intended to be used in context with the attribute display name. For example, for a "WiFi" enum attribute, this could contain "Paid" to represent paid Wi-Fi.
     #[serde(default, rename = "displayName")]
@@ -221,7 +222,7 @@ pub struct AttributeValueMetadata {
 }
 
 /// Name to be used when displaying the chain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChainName {
     /// The display name for this chain.
     #[serde(default, rename = "displayName")]
@@ -232,7 +233,7 @@ pub struct ChainName {
 }
 
 /// Url to be used when displaying the chain.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChainUri {
     /// The uri for this chain.
     #[serde(default)]
@@ -240,7 +241,7 @@ pub struct ChainUri {
 }
 
 /// A location. See the [help center article] (https://support.google.com/business/answer/3038177) for a detailed description of these fields, or the [category endpoint](/my-business/reference/rest/v4/categories) for a list of valid business categories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Location {
     /// Optional. Additional information that is surfaced in AdWords.
     #[serde(default, rename = "adWordsLocationExtensions")]
@@ -305,7 +306,7 @@ pub struct Location {
 }
 
 /// Additional information that is surfaced in AdWords.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AdWordsLocationExtensions {
     /// Required. An alternate phone number to display on AdWords location extensions instead of the location''s primary phone number.
     #[serde(default, rename = "adPhone")]
@@ -313,7 +314,7 @@ pub struct AdWordsLocationExtensions {
 }
 
 /// A collection of categories that describes the business. During updates, both fields must be set. Clients are prohibited from individually updating the primary or additional categories using the update mask.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Categories {
     /// Optional. Additional categories to describe your business. Categories help your customers find accurate, specific results for services they''re interested in. To keep your business information accurate and live, make sure that you use as few categories as possible to describe your overall core business. Choose categories that are as specific as possible, but representative of your main business.
     #[serde(default, rename = "additionalCategories")]
@@ -324,7 +325,7 @@ pub struct Categories {
 }
 
 /// An object that represents a latitude/longitude pair. This is expressed as a pair of doubles to represent degrees latitude and degrees longitude. Unless specified otherwise, this object must conform to the WGS84 standard. Values must be within normalized ranges.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct LatLng {
     /// The latitude in degrees. It must be in the range [-90.0, +90.0].
     #[serde(default)]
@@ -335,7 +336,7 @@ pub struct LatLng {
 }
 
 /// Additional non-user-editable information about the location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Metadata {
     /// Output only. Indicates whether the location can be deleted using the API.
     #[serde(default, rename = "canDelete")]
@@ -385,7 +386,7 @@ pub struct Metadata {
 }
 
 /// The time periods during which a location is open for certain types of business.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoreHours {
     /// Required. Type of hours. Clients should call {#link businessCategories:BatchGet} to get supported hours types for categories of their locations.
     #[serde(default, rename = "hoursTypeId")]
@@ -396,7 +397,7 @@ pub struct MoreHours {
 }
 
 /// Information related to the opening state of the business.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OpenInfo {
     /// Output only. Indicates whether this business is eligible for re-open.
     #[serde(default, rename = "canReopen")]
@@ -410,7 +411,7 @@ pub struct OpenInfo {
 }
 
 /// A collection of phone numbers for the business. During updates, both fields must be set. Clients may not update just the primary or additional phone numbers using the update mask. International phone format is preferred, such as "+1 415 555 0132", see more in (https://developers.google.com/style/phone-numbers#international-phone-numbers).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PhoneNumbers {
     /// Optional. Up to two phone numbers (mobile or landline, no fax) at which your business can be called, in addition to your primary phone number.
     #[serde(default, rename = "additionalPhones")]
@@ -421,7 +422,7 @@ pub struct PhoneNumbers {
 }
 
 /// All information pertaining to the location''s profile.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Profile {
     /// Required. Description of the location in your own voice, not editable by anyone else.
     #[serde(default)]
@@ -429,7 +430,7 @@ pub struct Profile {
 }
 
 /// Represents the time periods that this location is open for business. Holds a collection of TimePeriod instances.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct BusinessHours {
     /// Required. A collection of times that this location is open for business. Each period represents a range of hours when the location is open during the week.
     #[serde(default)]
@@ -437,7 +438,7 @@ pub struct BusinessHours {
 }
 
 /// Information of all parent and children locations related to this one.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RelationshipData {
     /// The list of children locations that this location has relations with.
     #[serde(default, rename = "childrenLocations")]
@@ -451,7 +452,7 @@ pub struct RelationshipData {
 }
 
 /// Service area businesses provide their service at the customer''s location (for example, a locksmith or plumber).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceAreaBusiness {
     /// Required. Indicates the type of the service area business. // TODO: enum values: ["BUSINESS_TYPE_UNSPECIFIED", "CUSTOMER_LOCATION_ONLY", "CUSTOMER_AND_BUSINESS_LOCATION"]
     #[serde(default, rename = "businessType")]
@@ -465,7 +466,7 @@ pub struct ServiceAreaBusiness {
 }
 
 /// A message that describes a single service item. It is used to describe the type of service that the merchant provides. For example, haircut can be a service.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceItem {
     /// Optional. This field will be set case of free-form services data.
     #[serde(default, rename = "freeFormServiceItem")]
@@ -479,7 +480,7 @@ pub struct ServiceItem {
 }
 
 /// Represents a set of time periods when a location''s operational hours differ from its normal business hours.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpecialHours {
     /// Required. A list of exceptions to the business''s regular hours.
     #[serde(default, rename = "specialHourPeriods")]
@@ -487,7 +488,7 @@ pub struct SpecialHours {
 }
 
 /// Represents a postal address, such as for postal delivery or payments addresses. With a postal address, a postal service can deliver items to a premise, P.O. box, or similar. A postal address is not intended to model geographical locations like roads, towns, or mountains. In typical usage, an address would be created by user input or from importing existing data, depending on the type of process. Advice on address input or editing: - Use an internationalization-ready address widget such as https://github.com/google/libaddressinput. - Users should not be presented with UI elements for input or editing of fields outside countries where that field is used. For more guidance on how to use this schema, see: https://support.google.com/business/answer/6397478.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PostalAddress {
     /// Unstructured address lines describing the lower levels of an address. Because values in address_lines do not have type information and may sometimes contain multiple values in a single field (for example, "Austin, TX"), it is important that the line order is clear. The order of address lines should be "envelope order" for the country or region of the address. In places where this can vary (for example, Japan), address_language is used to make it explicit (for example, "ja" for large-to-small ordering and "ja-Latn" or "en" for small-to-large). In this way, the most specific line of an address can be selected based on the language. The minimum permitted structural representation of an address consists of a region_code with all remaining information placed in the address_lines. It would be possible to format such an address very approximately without geocoding, but no semantic reasoning could be made about any of the address components until it was at least partially resolved. Creating an address only containing a region_code and address_lines and then geocoding is the recommended way to handle completely unstructured addresses (as opposed to guessing which parts of the address should be localities or administrative areas).
     #[serde(default, rename = "addressLines")]
@@ -525,7 +526,7 @@ pub struct PostalAddress {
 }
 
 /// A category describing what this business is (not what it does). For a list of valid category IDs, and the mappings to their human-readable names, see categories.list.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Category {
     /// Output only. The human-readable name of the category. This is set when reading the location. When modifying the location, category_id must be set.
     #[serde(default, rename = "displayName")]
@@ -542,7 +543,7 @@ pub struct Category {
 }
 
 /// Represents a span of time that the business is open, starting on the specified open day/time and closing on the specified close day/time. The closing time must occur after the opening time, for example later in the same day, or on a subsequent day.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimePeriod {
     /// Required. Indicates the day of the week this period ends on. // TODO: enum values: ["DAY_OF_WEEK_UNSPECIFIED", "MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY", "SATURDAY", "SUNDAY"]
     #[serde(default, rename = "closeDay")]
@@ -559,7 +560,7 @@ pub struct TimePeriod {
 }
 
 /// Information about another location that is related to current one. The relation can be any one of DEPARTMENT_OF or INDEPENDENT_ESTABLISHMENT_OF, and the location specified here can be on either side (parent/child) of the location.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RelevantLocation {
     /// Required. Specify the location that is on the other side of the relation by its placeID.
     #[serde(default, rename = "placeId")]
@@ -570,7 +571,7 @@ pub struct RelevantLocation {
 }
 
 /// Defines the union of areas represented by a set of places.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Places {
     /// The areas represented by place IDs. Limited to a maximum of 20 places.
     #[serde(default, rename = "placeInfos")]
@@ -578,7 +579,7 @@ pub struct Places {
 }
 
 /// Represents a free-form service offered by the merchant. These are services that are not exposed as part of our structure service data. The merchant manually enters the names for of such services via a geomerchant surface.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FreeFormServiceItem {
     /// Required. This field represents the category name (i.e. the category''s stable ID). The category and service_type_id should match the possible combinations provided in the Category message.
     #[serde(default)]
@@ -589,7 +590,7 @@ pub struct FreeFormServiceItem {
 }
 
 /// Represents an amount of money with its currency type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Money {
     /// The three-letter currency code defined in ISO 4217.
     #[serde(default, rename = "currencyCode")]
@@ -603,7 +604,7 @@ pub struct Money {
 }
 
 /// Represents a structured service offered by the merchant. For eg: toilet_installation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StructuredServiceItem {
     /// Optional. Description of structured service item. The character limit is 300.
     #[serde(default)]
@@ -614,7 +615,7 @@ pub struct StructuredServiceItem {
 }
 
 /// Represents a single time period when a location''s operational hours differ from its normal business hours. A special hour period must represent a range of less than 24 hours. The open_time and start_date must predate the close_time and end_date. The close_time and end_date can extend to 11:59 a.m. on the day after the specified start_date. For example, the following inputs are valid: start_date=2015-11-23, open_time=08:00, close_time=18:00 start_date=2015-11-23, end_date=2015-11-23, open_time=08:00, close_time=18:00 start_date=2015-11-23, end_date=2015-11-24, open_time=13:00, close_time=11:59 The following inputs are not valid: start_date=2015-11-23, open_time=13:00, close_time=11:59 start_date=2015-11-23, end_date=2015-11-24, open_time=13:00, close_time=12:00 start_date=2015-11-23, end_date=2015-11-25, open_time=08:00, close_time=18:00
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpecialHourPeriod {
     /// Optional. Valid values are 00:00-24:00, where 24:00 represents midnight at the end of the specified day field. Must be specified if closed is false.
     #[serde(default, rename = "closeTime")]
@@ -634,7 +635,7 @@ pub struct SpecialHourPeriod {
 }
 
 /// More hours types that a business can offers, in addition to its regular hours.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoreHoursType {
     /// Output only. The human-readable English display name for the hours type.
     #[serde(default, rename = "displayName")]
@@ -648,7 +649,7 @@ pub struct MoreHoursType {
 }
 
 /// A message describing a service type that the business offers.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ServiceType {
     /// Output only. The human-readable display name for the service type.
     #[serde(default, rename = "displayName")]
@@ -659,7 +660,7 @@ pub struct ServiceType {
 }
 
 /// Defines an area that''s represented by a place ID.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PlaceInfo {
     /// Required. The ID of the place. Must correspond to a region. (https://developers.google.com/places/web-service/supported_types#table3)
     #[serde(default, rename = "placeId")]
@@ -670,7 +671,7 @@ pub struct PlaceInfo {
 }
 
 /// Label to be used when displaying the price list, section, or item.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Label {
     /// Optional. Description of the price list, section, or item.
     #[serde(default)]
@@ -684,7 +685,7 @@ pub struct Label {
 }
 
 /// Represents a time of day. The date and time zone are either not significant or are specified elsewhere. An API may choose to allow leap seconds. Related types are google.type.Date and google.protobuf.Timestamp.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeOfDay {
     /// Hours of a day in 24 hour format. Must be greater than or equal to 0 and typically must be less than or equal to 23. An API may choose to allow the value "24:00:00" for scenarios like business closing time.
     #[serde(default)]
@@ -701,7 +702,7 @@ pub struct TimeOfDay {
 }
 
 /// Represents a whole or partial calendar date, such as a birthday. The time of day and time zone are either specified elsewhere or are insignificant. The date is relative to the Gregorian Calendar. This can represent one of the following: * A full date, with non-zero year, month, and day values. * A month and day, with a zero year (for example, an anniversary). * A year on its own, with a zero month and a zero day. * A year and month, with a zero day (for example, a credit card expiration date). Related types: * google.type.TimeOfDay * google.type.DateTime * google.protobuf.Timestamp
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Date {
     /// Day of a month. Must be from 1 to 31 and valid for the year and month, or 0 to specify a year by itself or a year and month where the day isn''t significant.
     #[serde(default)]

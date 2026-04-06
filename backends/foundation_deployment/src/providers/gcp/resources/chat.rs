@@ -8,10 +8,11 @@
 #![cfg(feature = "gcp")]
 
 use super::*;
+use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
 
 /// JSON payload of error messages. If the Cloud Logging API is enabled, these error messages are logged to [Google Cloud Logging](https://cloud.google.com/logging/docs).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChatAppLogEntry {
     /// The deployment that caused the error. For Chat apps built in Apps Script, this is the deployment ID defined by Apps Script.
     #[serde(default)]
@@ -25,11 +26,11 @@ pub struct ChatAppLogEntry {
 }
 
 /// Request message for completing the import process for a space.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompleteImportSpaceRequest {}
 
 /// Response message for completing the import process for a space.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CompleteImportSpaceResponse {
     /// The import mode space.
     #[serde(default)]
@@ -37,7 +38,7 @@ pub struct CompleteImportSpaceResponse {
 }
 
 ///  A Google Chat app interaction event that represents and contains data about a user''s interaction with a Chat app. To configure your Chat app to receive interaction events, see [Receive and respond to user interactions](https://developers.google.com/workspace/chat/receive-respond-interactions). In addition to receiving events from user interactions, Chat apps can receive events about changes to spaces, such as when a new member is added to a space. To learn about space events, see [Work with events from Google Chat](https://developers.google.com/workspace/chat/events-overview). Note: This event is only used for [Chat interaction events](https://developers.google.com/workspace/chat/receive-respond-interactions). If your Chat app is built as a [Google Workspace add-on](https://developers.google.com/workspace/add-ons/chat/build), see [Chat event objects](https://developers.google.com/workspace/add-ons/concepts/event-objects#chat-event-object) in the add-ons documentation.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeprecatedEvent {
     /// For CARD_CLICKED interaction events, the form action data associated when a user clicks a card or dialog. To learn more, see [Read form data input by users on cards](https://developers.google.com/workspace/chat/read-form-data).
     #[serde(default)]
@@ -84,15 +85,15 @@ pub struct DeprecatedEvent {
 }
 
 /// A generic empty message that you can re-use to avoid defining duplicated empty messages in your APIs. A typical example is to use it as the request or the response type of an API method. For instance: service Foo { rpc Bar(google.protobuf.Empty) returns (google.protobuf.Empty); }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Empty {}
 
 /// Displays a divider between widgets as a horizontal line. For an example in Google Chat apps, see [Add a horizontal divider between widgets](https://developers.google.com/workspace/chat/format-structure-card-dialog#add_a_horizontal_divider_between_widgets). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend): For example, the following JSON creates a divider:  "divider": {}
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1Divider {}
 
 /// Types of data that users can [input on cards or dialogs](https://developers.google.com/chat/ui/read-form-data). The input type depends on the type of values that the widget accepts.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Inputs {
     /// Date input values from a [DateTimePicker](https://developers.google.com/chat/api/reference/rest/v1/cards#DateTimePicker) widget that only accepts date values.
     #[serde(default, rename = "dateInput")]
@@ -109,7 +110,7 @@ pub struct Inputs {
 }
 
 /// A response to list custom emojis.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListCustomEmojisResponse {
     /// Unordered list. List of custom emojis.
     #[serde(default, rename = "customEmojis")]
@@ -120,7 +121,7 @@ pub struct ListCustomEmojisResponse {
 }
 
 /// Response to list memberships of the space.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMembershipsResponse {
     /// Unordered list. List of memberships in the requested (or first) page.
     #[serde(default)]
@@ -131,7 +132,7 @@ pub struct ListMembershipsResponse {
 }
 
 /// Response message for listing messages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListMessagesResponse {
     /// List of messages.
     #[serde(default)]
@@ -142,7 +143,7 @@ pub struct ListMessagesResponse {
 }
 
 /// Response to a list reactions request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListReactionsResponse {
     /// Continuation token to retrieve the next page of results. It''s empty for the last page of results.
     #[serde(default, rename = "nextPageToken")]
@@ -153,7 +154,7 @@ pub struct ListReactionsResponse {
 }
 
 /// Response message for listing section items. [Developer Preview](https://developers.google.com/workspace/preview).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSectionItemsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -164,7 +165,7 @@ pub struct ListSectionItemsResponse {
 }
 
 /// Response message for listing sections. [Developer Preview](https://developers.google.com/workspace/preview).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSectionsResponse {
     /// A token, which can be sent as page_token to retrieve the next page. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -175,7 +176,7 @@ pub struct ListSectionsResponse {
 }
 
 /// Response message for listing space events.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSpaceEventsResponse {
     /// Continuation token used to fetch more events. If this field is omitted, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -186,7 +187,7 @@ pub struct ListSpaceEventsResponse {
 }
 
 /// The response for a list spaces request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ListSpacesResponse {
     /// You can send a token as pageToken to retrieve the next page of results. If empty, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -197,7 +198,7 @@ pub struct ListSpacesResponse {
 }
 
 /// Media resource.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Media {
     /// Name of the media resource.
     #[serde(default, rename = "resourceName")]
@@ -205,7 +206,7 @@ pub struct Media {
 }
 
 /// Request message for moving a section item across sections. [Developer Preview](https://developers.google.com/workspace/preview).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoveSectionItemRequest {
     /// Required. The resource name of the section to move the section item to. Format: users/{user}/sections/{section}
     #[serde(default, rename = "targetSection")]
@@ -213,7 +214,7 @@ pub struct MoveSectionItemRequest {
 }
 
 /// Response message for moving a section item. [Developer Preview](https://developers.google.com/workspace/preview).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MoveSectionItemResponse {
     /// The updated section item.
     #[serde(default, rename = "sectionItem")]
@@ -221,7 +222,7 @@ pub struct MoveSectionItemResponse {
 }
 
 /// Request message for positioning a section. [Developer Preview](https://developers.google.com/workspace/preview).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PositionSectionRequest {
     /// Optional. The relative position of the section in the list of sections. // TODO: enum values: ["POSITION_UNSPECIFIED", "START", "END"]
     #[serde(default, rename = "relativePosition")]
@@ -232,7 +233,7 @@ pub struct PositionSectionRequest {
 }
 
 /// Response message for positioning a section. [Developer Preview](https://developers.google.com/workspace/preview).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PositionSectionResponse {
     /// The updated section.
     #[serde(default)]
@@ -240,7 +241,7 @@ pub struct PositionSectionResponse {
 }
 
 /// Response with a list of spaces corresponding to the search spaces request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SearchSpacesResponse {
     /// A token that can be used to retrieve the next page. If this field is empty, there are no subsequent pages.
     #[serde(default, rename = "nextPageToken")]
@@ -254,7 +255,7 @@ pub struct SearchSpacesResponse {
 }
 
 /// Request to create a space and add specified users to it.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SetUpSpaceRequest {
     /// Optional. The Google Chat users or groups to invite to join the space. Omit the calling user, as they are added automatically. The set currently allows up to 49 memberships (in addition to the caller). For human membership, the Membership.member field must contain a user with name populated (format: users/{user}) and type set to User.Type.HUMAN. You can only add human users when setting up a space (adding Chat apps is only supported for direct message setup with the calling app). You can also add members using the user''s email as an alias for {user}. For example, the user.name can be users/example@gmail.com. To invite Gmail users or users from external Google Workspace domains, user''s email must be used for {user}. For Google group membership, the Membership.group_member field must contain a group with name populated (format groups/{group}). You can only add Google groups when setting Space.spaceType to SPACE. Optional when setting Space.spaceType to SPACE. Required when setting Space.spaceType to GROUP_CHAT, along with at least two memberships. Required when setting Space.spaceType to DIRECT_MESSAGE with a human user, along with exactly one membership. Must be empty when creating a 1:1 conversation between a human and the calling Chat app (when setting Space.spaceType to DIRECT_MESSAGE and Space.singleUserBotDm to true).
     #[serde(default)]
@@ -268,7 +269,7 @@ pub struct SetUpSpaceRequest {
 }
 
 /// The notification setting of a user in a space.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpaceNotificationSetting {
     /// The space notification mute setting. // TODO: enum values: ["MUTE_SETTING_UNSPECIFIED", "UNMUTED", "MUTED"]
     #[serde(default, rename = "muteSetting")]
@@ -282,7 +283,7 @@ pub struct SpaceNotificationSetting {
 }
 
 /// A user''s read state within a space, used to identify read and unread messages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpaceReadState {
     /// Optional. The time when the user''s space read state was updated. Usually this corresponds with either the timestamp of the last read message, or a timestamp specified by the user to mark the last read position in a space.
     #[serde(default, rename = "lastReadTime")]
@@ -293,7 +294,7 @@ pub struct SpaceReadState {
 }
 
 /// Input parameter for regular widgets. For single-valued widgets, it is a single value list. For multi-valued widgets, such as checkbox, all the values are presented.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct StringInputs {
     /// An list of strings entered by the user.
     #[serde(default)]
@@ -301,7 +302,7 @@ pub struct StringInputs {
 }
 
 /// A user''s read state within a thread, used to identify read and unread messages.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ThreadReadState {
     /// The time when the user''s thread read state was updated. Usually this corresponds with the timestamp of the last read message in a thread.
     #[serde(default, rename = "lastReadTime")]
@@ -312,7 +313,7 @@ pub struct ThreadReadState {
 }
 
 /// Request to upload an attachment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadAttachmentRequest {
     /// Required. The filename of the attachment, including the file extension.
     #[serde(default)]
@@ -320,7 +321,7 @@ pub struct UploadAttachmentRequest {
 }
 
 /// Response of uploading an attachment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UploadAttachmentResponse {
     /// Reference to the uploaded attachment.
     #[serde(default, rename = "attachmentDataRef")]
@@ -328,7 +329,7 @@ pub struct UploadAttachmentResponse {
 }
 
 /// The Status type defines a logical error model that is suitable for different programming environments, including REST APIs and RPC APIs. It is used by [gRPC](https://github.com/grpc). Each Status message contains three pieces of data: error code, error message, and error details. You can find out more about this error model and how to work with it in the [API Design Guide](https://cloud.google.com/apis/design/errors).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Status {
     /// The status code, which should be an enum value of google.rpc.Code.
     #[serde(default)]
@@ -342,7 +343,7 @@ pub struct Status {
 }
 
 /// Metadata about a [Chat app command](https://developers.google.com/workspace/chat/commands).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AppCommandMetadata {
     /// The ID for the command specified in the Chat API configuration.
     #[serde(default, rename = "appCommandId")]
@@ -353,7 +354,7 @@ pub struct AppCommandMetadata {
 }
 
 /// The common event object is the portion of the overall event object that carries general, host-independent information to the add-on from the user''s client. This information includes details such as the user''s locale, host app, and platform. In addition to homepage and contextual triggers, add-ons construct and pass event objects to [action callback functions](https://developers.google.com/workspace/add-ons/concepts/actions#callback_functions) when the user interacts with widgets. Your add-on''s callback function can query the common event object to determine the contents of open widgets in the user''s client. For example, your add-on can locate the text a user has entered into a [TextInput](https://developers.google.com/apps-script/reference/card-service/text-input) widget in the eventObject.commentEventObject.formInputs object. For Chat apps, the name of the function that the user invoked when interacting with a widget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CommonEventObject {
     /// A map containing the current values of the widgets in the displayed card. The map keys are the string IDs assigned with each widget. The structure of the map value object is dependent on the widget type: **Note**: The following examples are formatted for Apps Script''s V8 runtime. If you''re using Rhino runtime, you must add [""] after the value. For example, instead of e.commonEventObject.formInputs.employeeName.stringInputs.value[0], format the event object as e.commonEventObject.formInputs.employeeName[""].stringInputs.value[0]. To learn more about runtimes in Apps Script, see the [V8 Runtime Overview](https://developers.google.com/apps-script/guides/v8-runtime). * Single-valued widgets (for example, a text box): a list of strings (only one element). **Example**: for a text input widget with employeeName as its ID, access the text input value with: e.commonEventObject.formInputs.employeeName.stringInputs.value[0]. * Multi-valued widgets (for example, checkbox groups): a list of strings. **Example**: for a multi-value widget with participants as its ID, access the value array with: e.commonEventObject.formInputs.participants.stringInputs.value. * **A date-time picker**: a [DateTimeInput object](https://developers.google.com/workspace/add-ons/concepts/event-objects#date-time-input). **Example**: For a picker with an ID of myDTPicker, access the [DateTimeInput](https://developers.google.com/workspace/add-ons/concepts/event-objects#date-time-input) object using e.commonEventObject.formInputs.myDTPicker.dateTimeInput. * **A date-only picker**: a [DateInput object](https://developers.google.com/workspace/add-ons/concepts/event-objects#date-input). **Example**: For a picker with an ID of myDatePicker, access the [DateInput](https://developers.google.com/workspace/add-ons/concepts/event-objects#date-input) object using e.commonEventObject.formInputs.myDatePicker.dateInput. * **A time-only picker**: a [TimeInput object](https://developers.google.com/workspace/add-ons/concepts/event-objects#time-input). **Example**: For a picker with an ID of myTimePicker, access the [TimeInput](https://developers.google.com/workspace/add-ons/concepts/event-objects#time-input) object using e.commonEventObject.formInputs.myTimePicker.timeInput.
     #[serde(default, rename = "formInputs")]
@@ -379,7 +380,7 @@ pub struct CommonEventObject {
 }
 
 /// Date input values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DateInput {
     /// Time since epoch time, in milliseconds.
     #[serde(default, rename = "msSinceEpoch")]
@@ -387,7 +388,7 @@ pub struct DateInput {
 }
 
 /// Date and time input values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DateTimeInput {
     /// Whether the datetime input includes a calendar date.
     #[serde(default, rename = "hasDate")]
@@ -401,7 +402,7 @@ pub struct DateTimeInput {
 }
 
 /// Time input values.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeInput {
     /// The hour on a 24-hour clock.
     #[serde(default)]
@@ -412,7 +413,7 @@ pub struct TimeInput {
 }
 
 /// An event that represents a change or activity in a Google Chat space. To learn more, see [Work with events from Google Chat](https://developers.google.com/workspace/chat/events-overview).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpaceEvent {
     /// Time when the event occurred.
     #[serde(default, rename = "eventTime")]
@@ -483,7 +484,7 @@ pub struct SpaceEvent {
 }
 
 /// A user''s defined section item. This is used to represent section items, such as spaces, grouped under a section. [Developer Preview](https://developers.google.com/workspace/preview).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SectionItem {
     /// Identifier. The resource name of the section item. Format: users/{user}/sections/{section}/items/{item}
     #[serde(default)]
@@ -494,7 +495,7 @@ pub struct SectionItem {
 }
 
 /// Represents a [section](https://support.google.com/chat/answer/16059854) in Google Chat. Sections help users organize their spaces. There are two types of sections: 1. **System Sections:** These are predefined sections managed by Google Chat. Their resource names are fixed, and they cannot be created, deleted, or have their display_name modified. Examples include: * users/{user}/sections/default-direct-messages * users/{user}/sections/default-spaces * users/{user}/sections/default-apps 2. **Custom Sections:** These are sections created and managed by the user. Creating a custom section using CreateSection **requires** a display_name. Custom sections can be updated using UpdateSection and deleted using DeleteSection. [Developer Preview](https://developers.google.com/workspace/preview).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleChatV1Section {
     /// Optional. The section''s display name. Only populated for sections of type CUSTOM_SECTION. Supports up to 80 characters. Required when creating a CUSTOM_SECTION.
     #[serde(default, rename = "displayName")]
@@ -511,7 +512,7 @@ pub struct GoogleChatV1Section {
 }
 
 /// The timezone ID and offset from Coordinated Universal Time (UTC). Only supported for the event types [CARD_CLICKED](https://developers.google.com/chat/api/reference/rest/v1/EventType#ENUM_VALUES.CARD_CLICKED) and [SUBMIT_DIALOG](https://developers.google.com/chat/api/reference/rest/v1/DialogEventType#ENUM_VALUES.SUBMIT_DIALOG).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TimeZone {
     /// The [IANA TZ](https://www.iana.org/time-zones) time zone database code, such as "America/Toronto".
     #[serde(default)]
@@ -522,7 +523,7 @@ pub struct TimeZone {
 }
 
 /// Event payload for multiple new memberships. Event type: google.workspace.chat.membership.v1.batchCreated
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MembershipBatchCreatedEventData {
     /// A list of new memberships.
     #[serde(default)]
@@ -530,7 +531,7 @@ pub struct MembershipBatchCreatedEventData {
 }
 
 /// Event payload for multiple deleted memberships. Event type: google.workspace.chat.membership.v1.batchDeleted
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MembershipBatchDeletedEventData {
     /// A list of deleted memberships.
     #[serde(default)]
@@ -538,7 +539,7 @@ pub struct MembershipBatchDeletedEventData {
 }
 
 /// Event payload for multiple updated memberships. Event type: google.workspace.chat.membership.v1.batchUpdated
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MembershipBatchUpdatedEventData {
     /// A list of updated memberships.
     #[serde(default)]
@@ -546,7 +547,7 @@ pub struct MembershipBatchUpdatedEventData {
 }
 
 /// Event payload for multiple new messages. Event type: google.workspace.chat.message.v1.batchCreated
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MessageBatchCreatedEventData {
     /// A list of new messages.
     #[serde(default)]
@@ -554,7 +555,7 @@ pub struct MessageBatchCreatedEventData {
 }
 
 /// Event payload for multiple deleted messages. Event type: google.workspace.chat.message.v1.batchDeleted
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MessageBatchDeletedEventData {
     /// A list of deleted messages.
     #[serde(default)]
@@ -562,7 +563,7 @@ pub struct MessageBatchDeletedEventData {
 }
 
 /// Event payload for multiple updated messages. Event type: google.workspace.chat.message.v1.batchUpdated
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MessageBatchUpdatedEventData {
     /// A list of updated messages.
     #[serde(default)]
@@ -570,7 +571,7 @@ pub struct MessageBatchUpdatedEventData {
 }
 
 /// Event payload for multiple new reactions. Event type: google.workspace.chat.reaction.v1.batchCreated
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReactionBatchCreatedEventData {
     /// A list of new reactions.
     #[serde(default)]
@@ -578,7 +579,7 @@ pub struct ReactionBatchCreatedEventData {
 }
 
 /// Event payload for multiple deleted reactions. Event type: google.workspace.chat.reaction.v1.batchDeleted
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReactionBatchDeletedEventData {
     /// A list of deleted reactions.
     #[serde(default)]
@@ -586,7 +587,7 @@ pub struct ReactionBatchDeletedEventData {
 }
 
 /// Event payload for multiple updates to a space. Event type: google.workspace.chat.space.v1.batchUpdated
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpaceBatchUpdatedEventData {
     /// A list of updated spaces.
     #[serde(default)]
@@ -594,7 +595,7 @@ pub struct SpaceBatchUpdatedEventData {
 }
 
 /// Event payload for a new membership. Event type: google.workspace.chat.membership.v1.created.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MembershipCreatedEventData {
     /// The new membership.
     #[serde(default)]
@@ -602,7 +603,7 @@ pub struct MembershipCreatedEventData {
 }
 
 /// Event payload for a deleted membership. Event type: google.workspace.chat.membership.v1.deleted
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MembershipDeletedEventData {
     /// The deleted membership. Only the name and state fields are populated.
     #[serde(default)]
@@ -610,7 +611,7 @@ pub struct MembershipDeletedEventData {
 }
 
 /// Event payload for an updated membership. Event type: google.workspace.chat.membership.v1.updated
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MembershipUpdatedEventData {
     /// The updated membership.
     #[serde(default)]
@@ -618,7 +619,7 @@ pub struct MembershipUpdatedEventData {
 }
 
 /// Event payload for a new message. Event type: google.workspace.chat.message.v1.created
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MessageCreatedEventData {
     /// The new message.
     #[serde(default)]
@@ -626,7 +627,7 @@ pub struct MessageCreatedEventData {
 }
 
 /// Event payload for a deleted message. Event type: google.workspace.chat.message.v1.deleted
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MessageDeletedEventData {
     /// The deleted message. Only the name, createTime, and deletionMetadata fields are populated.
     #[serde(default)]
@@ -634,7 +635,7 @@ pub struct MessageDeletedEventData {
 }
 
 /// Event payload for an updated message. Event type: google.workspace.chat.message.v1.updated
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MessageUpdatedEventData {
     /// The updated message.
     #[serde(default)]
@@ -642,7 +643,7 @@ pub struct MessageUpdatedEventData {
 }
 
 /// Event payload for a new reaction. Event type: google.workspace.chat.reaction.v1.created
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReactionCreatedEventData {
     /// The new reaction.
     #[serde(default)]
@@ -650,7 +651,7 @@ pub struct ReactionCreatedEventData {
 }
 
 /// Event payload for a deleted reaction. Type: google.workspace.chat.reaction.v1.deleted
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ReactionDeletedEventData {
     /// The deleted reaction.
     #[serde(default)]
@@ -658,7 +659,7 @@ pub struct ReactionDeletedEventData {
 }
 
 /// Event payload for an updated space. Event type: google.workspace.chat.space.v1.updated
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpaceUpdatedEventData {
     /// The updated space.
     #[serde(default)]
@@ -666,7 +667,7 @@ pub struct SpaceUpdatedEventData {
 }
 
 /// Represents a membership relation in Google Chat, such as whether a user or Chat app is invited to, part of, or absent from a space.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Membership {
     /// Optional. Immutable. The creation time of the membership, such as when a member joined or was invited to join a space. This field is output only, except when used to import historical memberships in import mode spaces.
     #[serde(default, rename = "createTime")]
@@ -692,7 +693,7 @@ pub struct Membership {
 }
 
 /// A message in a Google Chat space.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Message {
     /// Optional. One or more interactive widgets that appear at the bottom of a message. You can add accessory widgets to messages that contain text, cards, or both text and cards. Not supported for messages that contain dialogs. For details, see [Add interactive widgets at the bottom of a message](https://developers.google.com/workspace/chat/create-messages#add-accessory-widgets). Creating a message with accessory widgets requires [app authentication] (https://developers.google.com/workspace/chat/authenticate-authorize-chat-app).
     #[serde(default, rename = "accessoryWidgets")]
@@ -775,7 +776,7 @@ pub struct Message {
 }
 
 /// A reaction to a message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Reaction {
     /// Required. The emoji used in the reaction.
     #[serde(default)]
@@ -789,7 +790,7 @@ pub struct Reaction {
 }
 
 /// A Google Group in Google Chat.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Group {
     /// Resource name for a Google Group. Represents a [group](https://cloud.google.com/identity/docs/reference/rest/v1/groups) in Cloud Identity Groups API. Format: groups/{group}
     #[serde(default)]
@@ -797,7 +798,7 @@ pub struct Group {
 }
 
 /// One or more interactive widgets that appear at the bottom of a message. For details, see [Add interactive widgets at the bottom of a message](https://developers.google.com/workspace/chat/create-messages#add-accessory-widgets).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessoryWidget {
     /// A list of buttons.
     #[serde(default, rename = "buttonList")]
@@ -805,7 +806,7 @@ pub struct AccessoryWidget {
 }
 
 /// Parameters that a Chat app can use to configure how its response is posted.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActionResponse {
     /// Input only. A response to an interaction event related to a [dialog](https://developers.google.com/workspace/chat/dialogs). Must be accompanied by ResponseType.Dialog.
     #[serde(default, rename = "dialogAction")]
@@ -822,7 +823,7 @@ pub struct ActionResponse {
 }
 
 /// A GIF image that''s specified by a URL.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttachedGif {
     /// Output only. The URL that hosts the GIF image.
     #[serde(default)]
@@ -830,7 +831,7 @@ pub struct AttachedGif {
 }
 
 /// A card is a UI element that can contain UI widgets such as text and images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Card {
     /// The actions of this card.
     #[serde(default, rename = "cardActions")]
@@ -847,7 +848,7 @@ pub struct Card {
 }
 
 /// A [card](https://developers.google.com/workspace/chat/api/reference/rest/v1/cards) in a Google Chat message. Chat apps can create cards with [app authentication](https://developers.google.com/workspace/chat/authenticate-authorize-chat-app). As part of the [Developer Preview Program](https://developers.google.com/workspace/preview), if your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), it can create card messages. If your Chat app is not part of Developer Preview Program, it can''t create cards with user authentication. To learn how to create a message that contains cards, see [Send a message](https://developers.google.com/workspace/chat/create-messages). [Card builder](https://addons.gsuite.google.com/uikit/builder)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CardWithId {
     /// A card. Maximum size is 32 KB.
     #[serde(default)]
@@ -858,7 +859,7 @@ pub struct CardWithId {
 }
 
 /// Information about a deleted message. A message is deleted when delete_time is set.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DeletionMetadata {
     /// Indicates who deleted the message. // TODO: enum values: ["DELETION_TYPE_UNSPECIFIED", "CREATOR", "SPACE_OWNER", "ADMIN", "APP_MESSAGE_EXPIRY", "CREATOR_VIA_APP", "SPACE_OWNER_VIA_APP", "SPACE_MEMBER"]
     #[serde(default, rename = "deletionType")]
@@ -866,7 +867,7 @@ pub struct DeletionMetadata {
 }
 
 /// The number of people who reacted to a message with a specific emoji.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct EmojiReactionSummary {
     /// Output only. Emoji associated with the reactions.
     #[serde(default)]
@@ -877,7 +878,7 @@ pub struct EmojiReactionSummary {
 }
 
 /// A matched URL in a Chat message. Chat apps can preview matched URLs. For more information, see [Preview links](https://developers.google.com/chat/how-tos/preview-links).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MatchedUrl {
     /// Output only. The URL that was matched.
     #[serde(default)]
@@ -885,7 +886,7 @@ pub struct MatchedUrl {
 }
 
 /// Information about a message that another message quotes. When you create a message, you can quote messages within the same thread, or quote a root message to create a new root message. However, you can''t quote a message reply from a different thread. When you update a message, you can''t add or replace the quotedMessageMetadata field, but you can remove it. For example usage, see [Quote another message](https://developers.google.com/workspace/chat/create-messages#quote-a-message).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuotedMessageMetadata {
     /// Output only. Metadata about the source space of the quoted message. Populated only for FORWARD quote type.
     #[serde(default, rename = "forwardedMetadata")]
@@ -905,7 +906,7 @@ pub struct QuotedMessageMetadata {
 }
 
 /// Metadata about a [slash command](https://developers.google.com/workspace/chat/commands) in Google Chat.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SlashCommand {
     /// The ID of the slash command.
     #[serde(default, rename = "commandId")]
@@ -913,7 +914,7 @@ pub struct SlashCommand {
 }
 
 /// A space in Google Chat. Spaces are conversations between two or more users or 1:1 messages between a user and a Chat app.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Space {
     /// Optional. Specifies the [access setting](https://support.google.com/chat/answer/11971020) of the space. Only populated when the space_type is SPACE.
     #[serde(default, rename = "accessSettings")]
@@ -981,7 +982,7 @@ pub struct Space {
 }
 
 /// A thread in a Google Chat space. For example usage, see [Start or reply to a message thread](https://developers.google.com/workspace/chat/create-messages#create-message-thread). If you specify a thread when creating a message, you can set the [messageReplyOption](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages/create#messagereplyoption) field to determine what happens if no matching thread is found.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Thread {
     /// Identifier. Resource name of the thread. Example: spaces/{space}/threads/{thread}
     #[serde(default)]
@@ -992,7 +993,7 @@ pub struct Thread {
 }
 
 /// Contains a [dialog](https://developers.google.com/workspace/chat/dialogs) and request status code.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DialogAction {
     /// Input only. Status for a request to either invoke or submit a [dialog](https://developers.google.com/workspace/chat/dialogs). Displays a status and message to users, if necessary. For example, in case of an error or success.
     #[serde(default, rename = "actionStatus")]
@@ -1003,7 +1004,7 @@ pub struct DialogAction {
 }
 
 /// For selectionInput widgets, returns autocomplete suggestions for a multiselect menu.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UpdatedWidget {
     /// List of widget autocomplete results
     #[serde(default)]
@@ -1014,7 +1015,7 @@ pub struct UpdatedWidget {
 }
 
 /// A card action is the action associated with the card. For an invoice card, a typical action would be: delete invoice, email invoice or open the invoice in browser. Not supported by Google Chat apps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CardAction {
     /// The label used to be displayed in the action menu item.
     #[serde(default, rename = "actionLabel")]
@@ -1025,7 +1026,7 @@ pub struct CardAction {
 }
 
 /// CardHeader resource type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CardHeader {
     /// The image''s type (for example, square border or circular border). // TODO: enum values: ["IMAGE_STYLE_UNSPECIFIED", "IMAGE", "AVATAR"]
     #[serde(default, rename = "imageStyle")]
@@ -1042,7 +1043,7 @@ pub struct CardHeader {
 }
 
 /// A section contains a collection of widgets that are rendered (vertically) in the order that they are specified. Across all platforms, cards have a narrow fixed width, so there''s currently no need for layout properties (for example, float).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Section {
     /// The header of the section. Formatted text is supported. For more information about formatting text, see [Formatting text in Google Chat apps](https://developers.google.com/workspace/chat/format-messages#card-formatting) and [Formatting text in Google Workspace Add-ons](https://developers.google.com/apps-script/add-ons/concepts/widgets#text_formatting).
     #[serde(default)]
@@ -1053,7 +1054,7 @@ pub struct Section {
 }
 
 /// An emoji that is used as a reaction to a message.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Emoji {
     /// A custom emoji.
     #[serde(default, rename = "customEmoji")]
@@ -1064,7 +1065,7 @@ pub struct Emoji {
 }
 
 /// Metadata about the source space from which a message was forwarded.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ForwardedMetadata {
     /// Output only. The resource name of the source space. Format: spaces/{space}
     #[serde(default)]
@@ -1075,7 +1076,7 @@ pub struct ForwardedMetadata {
 }
 
 /// Provides a snapshot of the content of the quoted message at the time of quoting or forwarding
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct QuotedMessageSnapshot {
     /// Output only. Annotations parsed from the text body of the quoted message. Populated only for FORWARD quote type.
     #[serde(default)]
@@ -1095,7 +1096,7 @@ pub struct QuotedMessageSnapshot {
 }
 
 /// Represents the [access setting](https://support.google.com/chat/answer/11971020) of the space.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AccessSettings {
     /// Output only. Indicates the access state of the space. // TODO: enum values: ["ACCESS_STATE_UNSPECIFIED", "PRIVATE", "DISCOVERABLE"]
     #[serde(default, rename = "accessState")]
@@ -1106,7 +1107,7 @@ pub struct AccessSettings {
 }
 
 /// Represents the count of memberships of a space, grouped into categories.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MembershipCount {
     /// Output only. Count of human users that have directly joined the space, not counting users joined by having membership in a joined group.
     #[serde(default, rename = "joinedDirectHumanUserCount")]
@@ -1117,7 +1118,7 @@ pub struct MembershipCount {
 }
 
 /// [Permission settings](https://support.google.com/chat/answer/13340792) that you can specify when updating an existing named space. To set permission settings when creating a space, specify the PredefinedPermissionSettings field in your request.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PermissionSettings {
     /// Optional. Setting for managing apps in a space.
     #[serde(default, rename = "manageApps")]
@@ -1146,7 +1147,7 @@ pub struct PermissionSettings {
 }
 
 /// Details about the space including description and rules.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpaceDetails {
     /// Optional. A description of the space. For example, describe the space''s discussion topic, functional purpose, or participants. Supports up to 150 characters.
     #[serde(default)]
@@ -1157,7 +1158,7 @@ pub struct SpaceDetails {
 }
 
 /// Represents the status for a request to either invoke or submit a [dialog](https://developers.google.com/workspace/chat/dialogs).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActionStatus {
     /// The status code. // TODO: enum values: ["OK", "CANCELLED", "UNKNOWN", "INVALID_ARGUMENT", "DEADLINE_EXCEEDED", "NOT_FOUND", "ALREADY_EXISTS", "PERMISSION_DENIED", "UNAUTHENTICATED", "RESOURCE_EXHAUSTED", "FAILED_PRECONDITION", "ABORTED", "OUT_OF_RANGE", "UNIMPLEMENTED", "INTERNAL", "UNAVAILABLE", "DATA_LOSS"]
     #[serde(default, rename = "statusCode")]
@@ -1168,7 +1169,7 @@ pub struct ActionStatus {
 }
 
 /// Wrapper around the card body of the dialog.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Dialog {
     /// Input only. Body of the dialog, which is rendered in a modal. Google Chat apps don''t support the following card entities: DateTimePicker, OnChangeAction.
     #[serde(default)]
@@ -1176,7 +1177,7 @@ pub struct Dialog {
 }
 
 /// List of widget autocomplete results.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SelectionItems {
     /// An array of the SelectionItem objects.
     #[serde(default)]
@@ -1184,7 +1185,7 @@ pub struct SelectionItems {
 }
 
 /// A widget is a UI element that presents text and images.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WidgetMarkup {
     /// A list of buttons. Buttons is also oneof data and only one of these fields should be set.
     #[serde(default)]
@@ -1201,7 +1202,7 @@ pub struct WidgetMarkup {
 }
 
 /// Output only. Annotations can be associated with the plain-text body of the message or with chips that link to Google Workspace resources like Google Docs or Sheets with start_index and length of 0. To add basic formatting to a text message, see [Format text messages](https://developers.google.com/workspace/chat/format-messages). Example plain-text message body:  Hello @FooBot how are you!"  The corresponding annotations metadata:  "annotations":[{ "type":"USER_MENTION", "startIndex":6, "length":7, "userMention": { "user": { "name":"users/{user}", "displayName":"FooBot", "avatarUrl":"https://goo.gl/aeDtrS", "type":"BOT" }, "type":"MENTION" } }]
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Annotation {
     /// The metadata for a custom emoji.
     #[serde(default, rename = "customEmojiMetadata")]
@@ -1227,7 +1228,7 @@ pub struct Annotation {
 }
 
 /// An attachment in Google Chat.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Attachment {
     /// Optional. A reference to the attachment data. This field is used to create or update messages with attachments, or with the media API to download the attachment data.
     #[serde(default, rename = "attachmentDataRef")]
@@ -1256,7 +1257,7 @@ pub struct Attachment {
 }
 
 /// Represents a space permission setting.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct PermissionSetting {
     /// Optional. Whether space managers ROLE_ASSISTANT_MANAGER) have this permission.
     #[serde(default, rename = "assistantManagersAllowed")]
@@ -1270,7 +1271,7 @@ pub struct PermissionSetting {
 }
 
 /// An image that''s specified by a URL and can have an onclick action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Image {
     /// The aspect ratio of this image (width and height). This field lets you reserve the right height for the image while waiting for it to load. It''s not meant to override the built-in aspect ratio of the image. If unset, the server fills it by prefetching the image.
     #[serde(default, rename = "aspectRatio")]
@@ -1284,7 +1285,7 @@ pub struct Image {
 }
 
 /// A UI element contains a key (label) and a value (content). This element can also contain some actions such as onclick button.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct KeyValue {
     /// The text of the bottom label. Formatted text supported. For more information about formatting text, see [Formatting text in Google Chat apps](https://developers.google.com/workspace/chat/format-messages#card-formatting) and [Formatting text in Google Workspace Add-ons](https://developers.google.com/apps-script/add-ons/concepts/widgets#text_formatting).
     #[serde(default, rename = "bottomLabel")]
@@ -1313,14 +1314,14 @@ pub struct KeyValue {
 }
 
 /// A paragraph of text. Formatted text supported. For more information about formatting text, see [Formatting text in Google Chat apps](https://developers.google.com/workspace/chat/format-messages#card-formatting) and [Formatting text in Google Workspace Add-ons](https://developers.google.com/apps-script/add-ons/concepts/widgets#text_formatting).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextParagraph {
     #[serde(default)]
     pub text: ::core::option::Option<String>,
 }
 
 /// Annotation metadata for custom emoji.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomEmojiMetadata {
     /// The custom emoji.
     #[serde(default, rename = "customEmoji")]
@@ -1328,7 +1329,7 @@ pub struct CustomEmojiMetadata {
 }
 
 /// A rich link to a resource. Rich links can be associated with the plain-text body of the message or represent chips that link to Google Workspace resources like Google Docs or Sheets with start_index and length of 0.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RichLinkMetadata {
     /// Data for a Calendar event link.
     #[serde(default, rename = "calendarEventLinkData")]
@@ -1351,7 +1352,7 @@ pub struct RichLinkMetadata {
 }
 
 /// Annotation metadata for slash commands (/).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SlashCommandMetadata {
     /// The Chat app whose command was invoked.
     #[serde(default)]
@@ -1371,7 +1372,7 @@ pub struct SlashCommandMetadata {
 }
 
 /// Annotation metadata for user mentions (@).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct UserMentionMetadata {
     /// The type of user mention. // TODO: enum values: ["TYPE_UNSPECIFIED", "ADD", "MENTION"]
     #[serde(default, rename = "type")]
@@ -1382,7 +1383,7 @@ pub struct UserMentionMetadata {
 }
 
 /// A reference to the attachment data.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct AttachmentDataRef {
     /// Optional. Opaque token containing a reference to an uploaded attachment. Treated by clients as an opaque string and used to create or update Chat messages with attachments.
     #[serde(default, rename = "attachmentUploadToken")]
@@ -1393,7 +1394,7 @@ pub struct AttachmentDataRef {
 }
 
 /// A button. Can be a text button or an image button.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Button {
     /// A button with image and onclick action.
     #[serde(default, rename = "imageButton")]
@@ -1404,7 +1405,7 @@ pub struct Button {
 }
 
 /// Represents a [custom emoji](https://support.google.com/chat/answer/12800149).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomEmoji {
     /// Optional. Immutable. User-provided name for the custom emoji, which is unique within the organization. Required when the custom emoji is created, output only otherwise. Emoji names must start and end with colons, must be lowercase and can only contain alphanumeric characters, hyphens, and underscores. Hyphens and underscores should be used to separate words and cannot be used consecutively. Example: :valid-emoji-name:
     #[serde(default, rename = "emojiName")]
@@ -1424,7 +1425,7 @@ pub struct CustomEmoji {
 }
 
 /// Data for Calendar event links.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CalendarEventLinkData {
     /// The [Calendar identifier](https://developers.google.com/workspace/calendar/api/v3/reference/calendars) of the linked Calendar.
     #[serde(default, rename = "calendarId")]
@@ -1435,7 +1436,7 @@ pub struct CalendarEventLinkData {
 }
 
 /// Data for Chat space links.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChatSpaceLinkData {
     /// The message of the linked Chat space resource. Format: spaces/{space}/messages/{message}
     #[serde(default)]
@@ -1449,7 +1450,7 @@ pub struct ChatSpaceLinkData {
 }
 
 /// Data for Google Drive links.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DriveLinkData {
     /// A [DriveDataRef](https://developers.google.com/workspace/chat/api/reference/rest/v1/spaces.messages.attachments#drivedataref) which references a Google Drive file.
     #[serde(default, rename = "driveDataRef")]
@@ -1460,7 +1461,7 @@ pub struct DriveLinkData {
 }
 
 /// Data for Meet space links.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct MeetSpaceLinkData {
     /// Optional. Output only. If the Meet is a Huddle, indicates the status of the huddle. Otherwise, this is unset. // TODO: enum values: ["HUDDLE_STATUS_UNSPECIFIED", "STARTED", "ENDED", "MISSED"]
     #[serde(default, rename = "huddleStatus")]
@@ -1474,7 +1475,7 @@ pub struct MeetSpaceLinkData {
 }
 
 /// A user in Google Chat. When returned as an output from a request, if your Chat app [authenticates as a user](https://developers.google.com/workspace/chat/authenticate-authorize-chat-user), the output for a User resource only populates the user''s name and type.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct User {
     /// Output only. The user''s display name.
     #[serde(default, rename = "displayName")]
@@ -1494,7 +1495,7 @@ pub struct User {
 }
 
 /// An image button with an onclick action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ImageButton {
     /// The icon specified by an enum that indices to an icon provided by Chat API. // TODO: enum values: ["ICON_UNSPECIFIED", "AIRPLANE", "BOOKMARK", "BUS", "CAR", "CLOCK", "CONFIRMATION_NUMBER_ICON", "DOLLAR", "DESCRIPTION", "EMAIL", "EVENT_PERFORMER", "EVENT_SEAT", "FLIGHT_ARRIVAL", "FLIGHT_DEPARTURE", "HOTEL", "HOTEL_ROOM_TYPE", "INVITE", "MAP_PIN", "MEMBERSHIP", "MULTIPLE_PEOPLE", "OFFER", "PERSON", "PHONE", "RESTAURANT_ICON", "SHOPPING_CART", "STAR", "STORE", "TICKET", "TRAIN", "VIDEO_CAMERA", "VIDEO_PLAY"]
     #[serde(default)]
@@ -1511,7 +1512,7 @@ pub struct ImageButton {
 }
 
 /// A button with text and onclick action.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct TextButton {
     /// The onclick action of the button.
     #[serde(default, rename = "onClick")]
@@ -1522,7 +1523,7 @@ pub struct TextButton {
 }
 
 /// Payload data for the custom emoji.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct CustomEmojiPayload {
     /// Required. Input only. The image used for the custom emoji. The payload must be under 256 KB and the dimension of the image must be square and between 64 and 500 pixels. The restrictions are subject to change.
     #[serde(default, rename = "fileContent")]
@@ -1533,7 +1534,7 @@ pub struct CustomEmojiPayload {
 }
 
 /// A reference to the data of a drive attachment.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DriveDataRef {
     /// The ID for the drive file. Use with the Drive API.
     #[serde(default, rename = "driveFileId")]
@@ -1541,7 +1542,7 @@ pub struct DriveDataRef {
 }
 
 /// An onclick action (for example, open a link).
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OnClick {
     /// A form action is triggered by this onclick action if specified.
     #[serde(default)]
@@ -1552,7 +1553,7 @@ pub struct OnClick {
 }
 
 /// A form action describes the behavior when the form is submitted. For example, you can invoke Apps Script to handle the form.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct FormAction {
     /// The method name is used to identify which part of the form triggered the form submission. This information is echoed back to the Chat app as part of the card click event. You can use the same method name for several elements that trigger a common behavior.
     #[serde(default, rename = "actionMethodName")]
@@ -1563,7 +1564,7 @@ pub struct FormAction {
 }
 
 /// A link that opens a new window.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct OpenLink {
     /// The URL to open.
     #[serde(default)]
@@ -1571,7 +1572,7 @@ pub struct OpenLink {
 }
 
 /// List of string parameters to supply when the action method is invoked. For example, consider three snooze buttons: snooze now, snooze one day, snooze next week. You might use action method = snooze(), passing the snooze type and snooze time in the list of string parameters.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ActionParameter {
     /// The name of the parameter for the action script.
     #[serde(default)]
@@ -1582,7 +1583,7 @@ pub struct ActionParameter {
 }
 
 /// For a SelectionInput widget that uses a multiselect menu, a data source from Google Chat. The data source populates selection items for the multiselect menu. For example, a user can select Google Chat spaces that they''re a member of. [Google Chat apps](https://developers.google.com/workspace/chat):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ChatClientDataSourceMarkup {
     /// Google Chat spaces that the user is a member of.
     #[serde(default, rename = "spaceDataSource")]
@@ -1590,7 +1591,7 @@ pub struct ChatClientDataSourceMarkup {
 }
 
 /// Represents a color in the RGBA color space. This representation is designed for simplicity of conversion to and from color representations in various languages over compactness. For example, the fields of this representation can be trivially provided to the constructor of java.awt.Color in Java; it can also be trivially provided to UIColor''s +colorWithRed:green:blue:alpha method in iOS; and, with just a little work, it can be easily formatted into a CSS rgba() string in JavaScript. This reference page doesn''t have information about the absolute color space that should be used to interpret the RGB value—for example, sRGB, Adobe RGB, DCI-P3, and BT.2020. By default, applications should assume the sRGB color space. When color equality needs to be decided, implementations, unless documented otherwise, treat two colors as equal if all their red, green, blue, and alpha values each differ by at most 1e-5. Example (Java): import com.google.type.Color; // ... public static java.awt.Color fromProto(Color protocolor) { float alpha = protocolor.hasAlpha() ? protocolor.getAlpha().getValue() : 1.0; return new java.awt.Color( protocolor.getRed(), protocolor.getGreen(), protocolor.getBlue(), alpha); } public static Color toProto(java.awt.Color color) { float red = (float) color.getRed(); float green = (float) color.getGreen(); float blue = (float) color.getBlue(); float denominator = 255.0; Color.Builder resultBuilder = Color .newBuilder() .setRed(red / denominator) .setGreen(green / denominator) .setBlue(blue / denominator); int alpha = color.getAlpha(); if (alpha != 255) { result.setAlpha( FloatValue .newBuilder() .setValue(((float) alpha) / denominator) .build()); } return resultBuilder.build(); } // ... Example (iOS / Obj-C): // ... static UIColor* fromProto(Color* protocolor) { float red = [protocolor red]; float green = [protocolor green]; float blue = [protocolor blue]; FloatValue* alpha_wrapper = [protocolor alpha]; float alpha = 1.0; if (alpha_wrapper != nil) { alpha = [alpha_wrapper value]; } return [UIColor colorWithRed:red green:green blue:blue alpha:alpha]; } static Color* toProto(UIColor* color) { CGFloat red, green, blue, alpha; if (![color getRed:&red green:&green blue:&blue alpha:&alpha]) { return nil; } Color* result = [[Color alloc] init]; [result setRed:red]; [result setGreen:green]; [result setBlue:blue]; if (alpha &lt;= 0.9999) { [result setAlpha:floatWrapperWithValue(alpha)]; } [result autorelease]; return result; } // ... Example (JavaScript): // ... var protoToCssColor = function(rgb_color) { var redFrac = rgb_color.red || 0.0; var greenFrac = rgb_color.green || 0.0; var blueFrac = rgb_color.blue || 0.0; var red = Math.floor(redFrac * 255); var green = Math.floor(greenFrac * 255); var blue = Math.floor(blueFrac * 255); if (!(''alpha'' in rgb_color)) { return rgbToCssColor(red, green, blue); } var alphaFrac = rgb_color.alpha.value || 0.0; var rgbParams = [red, green, blue].join('',''); return [''rgba('', rgbParams, '','', alphaFrac, '')''].join(''''); }; var rgbToCssColor = function(red, green, blue) { var rgbNumber = new Number((red &lt;&lt; 16) | (green &lt;&lt; 8) | blue); var hexString = rgbNumber.toString(16); var missingZeros = 6 - hexString.length; var resultBuilder = [''#'']; for (var i = 0; i &lt; missingZeros; i++) { resultBuilder.push(''0''); } resultBuilder.push(hexString); return resultBuilder.join(''''); }; // ...
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct Color {
     /// The fraction of this color that should be applied to the pixel. That is, the final pixel color is defined by the equation: pixel color = alpha * (this color) + (1.0 - alpha) * (background color) This means that a value of 1.0 corresponds to a solid color, whereas a value of 0.0 corresponds to a completely transparent color. This uses a wrapper message rather than a simple float scalar so that it is possible to distinguish between a default value and the value being unset. If omitted, this color object is rendered as a solid color (as if the alpha value had been explicitly given a value of 1.0).
     #[serde(default)]
@@ -1607,7 +1608,7 @@ pub struct Color {
 }
 
 /// An action that describes the behavior when the form is submitted. For example, you can invoke an Apps Script script to handle the form. If the action is triggered, the form values are sent to the server. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1Action {
     /// Optional. If this is true, then all widgets are considered required by this action. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
     #[serde(default, rename = "allWidgetsAreRequired")]
@@ -1633,7 +1634,7 @@ pub struct GoogleAppsCardV1Action {
 }
 
 /// List of string parameters to supply when the action method is invoked. For example, consider three snooze buttons: snooze now, snooze one day, or snooze next week. You might use action method = snooze(), passing the snooze type and snooze time in the list of string parameters. To learn more, see [CommonEventObject](https://developers.google.com/workspace/chat/api/reference/rest/v1/Event#commoneventobject). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1ActionParameter {
     /// The name of the parameter for the action script.
     #[serde(default)]
@@ -1644,7 +1645,7 @@ pub struct GoogleAppsCardV1ActionParameter {
 }
 
 /// The style options for the border of a card or widget, including the border type and color. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1BorderStyle {
     /// The corner radius for the border.
     #[serde(default, rename = "cornerRadius")]
@@ -1658,7 +1659,7 @@ pub struct GoogleAppsCardV1BorderStyle {
 }
 
 /// A text, icon, or text and icon button that users can click. For an example in Google Chat apps, see [Add a button](https://developers.google.com/workspace/chat/design-interactive-card-dialog#add_a_button). To make an image a clickable button, specify an Image (not an ImageComponent) and set an onClick action. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1Button {
     /// The alternative text that''s used for accessibility. Set descriptive text that lets users know what the button does. For example, if a button opens a hyperlink, you might write: "Opens a new browser tab and navigates to the Google Chat developer documentation at https://developers.google.com/workspace/chat".
     #[serde(default, rename = "altText")]
@@ -1684,7 +1685,7 @@ pub struct GoogleAppsCardV1Button {
 }
 
 /// A list of buttons layed out horizontally. For an example in Google Chat apps, see [Add a button](https://developers.google.com/workspace/chat/design-interactive-card-dialog#add_a_button). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1ButtonList {
     /// An array of buttons.
     #[serde(default)]
@@ -1692,7 +1693,7 @@ pub struct GoogleAppsCardV1ButtonList {
 }
 
 /// A card interface displayed in a Google Chat message or Google Workspace add-on. Cards support a defined layout, interactive UI elements like buttons, and rich media like images. Use cards to present detailed information, gather information from users, and guide users to take a next step. [Card builder](https://addons.gsuite.google.com/uikit/builder) To learn how to build cards, see the following documentation: * For Google Chat apps, see [Design the components of a card or dialog](https://developers.google.com/workspace/chat/design-components-card-dialog). * For Google Workspace add-ons, see [Card-based interfaces](https://developers.google.com/apps-script/add-ons/concepts/cards). Note: You can add up to 100 widgets per card. If a section''s widgets push the total count above 100, that entire section and all following sections are ignored. This limit applies to both card messages and dialogs in Google Chat apps, and to cards in Google Workspace add-ons. **Example: Card message for a Google Chat app** ![Example contact card](https://developers.google.com/workspace/chat/images/card_api_reference.png) To create the sample card message in Google Chat, use the following JSON:  { "cardsV2": [ { "cardId": "unique-card-id", "card": { "header": { "title": "Sasha", "subtitle": "Software Engineer", "imageUrl": "https://developers.google.com/workspace/chat/images/quickstart-app-avatar.png", "imageType": "CIRCLE", "imageAltText": "Avatar for Sasha" }, "sections": [ { "header": "Contact Info", "collapsible": true, "uncollapsibleWidgetsCount": 1, "widgets": [ { "decoratedText": { "startIcon": { "knownIcon": "EMAIL" }, "text": "sasha@example.com" } }, { "decoratedText": { "startIcon": { "knownIcon": "PERSON" }, "text": "Online" } }, { "decoratedText": { "startIcon": { "knownIcon": "PHONE" }, "text": "+1 (555) 555-1234" } }, { "buttonList": { "buttons": [ { "text": "Share", "onClick": { "openLink": { "url": "https://example.com/share" } } }, { "text": "Edit", "onClick": { "action": { "function": "goToView", "parameters": [ { "key": "viewType", "value": "EDIT" } ] } } } ] } } ] } ] } } ] }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1Card {
     /// The card''s actions. Actions are added to the card''s toolbar menu. [Google Workspace add-ons](https://developers.google.com/workspace/add-ons): For example, the following JSON constructs a card action menu with Settings and Send Feedback options:  "card_actions": [ { "actionLabel": "Settings", "onClick": { "action": { "functionName": "goToView", "parameters": [ { "key": "viewType", "value": "SETTING" } ], "loadIndicator": "LoadIndicator.SPINNER" } } }, { "actionLabel": "Send Feedback", "onClick": { "openLink": { "url": "https://example.com/feedback" } } } ]
     #[serde(default, rename = "cardActions")]
@@ -1724,7 +1725,7 @@ pub struct GoogleAppsCardV1Card {
 }
 
 /// A card action is the action associated with the card. For example, an invoice card might include actions such as delete invoice, email invoice, or open the invoice in a browser. [Google Workspace add-ons](https://developers.google.com/workspace/add-ons):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1CardAction {
     /// The label that displays as the action menu item.
     #[serde(default, rename = "actionLabel")]
@@ -1735,7 +1736,7 @@ pub struct GoogleAppsCardV1CardAction {
 }
 
 /// A persistent (sticky) footer that that appears at the bottom of the card. Setting fixedFooter without specifying a primaryButton or a secondaryButton causes an error. For Chat apps, you can use fixed footers in [dialogs](https://developers.google.com/workspace/chat/dialogs), but not [card messages](https://developers.google.com/workspace/chat/create-messages#create). For an example in Google Chat apps, see [Add a persistent footer](https://developers.google.com/workspace/chat/design-components-card-dialog#add_a_persistent_footer). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1CardFixedFooter {
     /// The primary button of the fixed footer. The button must be a text button with text and color set.
     #[serde(default, rename = "primaryButton")]
@@ -1746,7 +1747,7 @@ pub struct GoogleAppsCardV1CardFixedFooter {
 }
 
 /// Represents a card header. For an example in Google Chat apps, see [Add a header](https://developers.google.com/workspace/chat/design-components-card-dialog#add_a_header). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1CardHeader {
     /// The alternative text of this image that''s used for accessibility.
     #[serde(default, rename = "imageAltText")]
@@ -1766,7 +1767,7 @@ pub struct GoogleAppsCardV1CardHeader {
 }
 
 /// A carousel, also known as a slider, rotates and displays a list of widgets in a slideshow format, with buttons navigating to the previous or next widget. For example, this is a JSON representation of a carousel that contains three text paragraph widgets.  { "carouselCards": [ { "widgets": [ { "textParagraph": { "text": "First text paragraph in carousel", } } ] }, { "widgets": [ { "textParagraph": { "text": "Second text paragraph in carousel", } } ] }, { "widgets": [ { "textParagraph": { "text": "Third text paragraph in carousel", } } ] } ] }  [Google Chat apps](https://developers.google.com/workspace/chat):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1Carousel {
     /// A list of cards included in the carousel.
     #[serde(default, rename = "carouselCards")]
@@ -1774,7 +1775,7 @@ pub struct GoogleAppsCardV1Carousel {
 }
 
 /// A card that can be displayed as a carousel item. [Google Chat apps](https://developers.google.com/workspace/chat):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1CarouselCard {
     /// A list of widgets displayed at the bottom of the carousel card. The widgets are displayed in the order that they are specified.
     #[serde(default, rename = "footerWidgets")]
@@ -1785,7 +1786,7 @@ pub struct GoogleAppsCardV1CarouselCard {
 }
 
 /// A text, icon, or text and icon chip that users can click. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1Chip {
     /// The alternative text that''s used for accessibility. Set descriptive text that lets users know what the chip does. For example, if a chip opens a hyperlink, write: "Opens a new browser tab and navigates to the Google Chat developer documentation at https://developers.google.com/workspace/chat".
     #[serde(default, rename = "altText")]
@@ -1808,7 +1809,7 @@ pub struct GoogleAppsCardV1Chip {
 }
 
 /// A list of chips layed out horizontally, which can either scroll horizontally or wrap to the next line. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1ChipList {
     /// An array of chips.
     #[serde(default)]
@@ -1819,7 +1820,7 @@ pub struct GoogleAppsCardV1ChipList {
 }
 
 /// Represent an expand and collapse control. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1CollapseControl {
     /// Optional. Define a customizable button to collapse the section. Both expand_button and collapse_button field must be set. Only one field set will not take into effect. If this field isn''t set, the default button is used.
     #[serde(default, rename = "collapseButton")]
@@ -1833,7 +1834,7 @@ pub struct GoogleAppsCardV1CollapseControl {
 }
 
 /// A column. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1Column {
     /// Specifies whether widgets align to the left, right, or center of a column. // TODO: enum values: ["HORIZONTAL_ALIGNMENT_UNSPECIFIED", "START", "CENTER", "END"]
     #[serde(default, rename = "horizontalAlignment")]
@@ -1850,7 +1851,7 @@ pub struct GoogleAppsCardV1Column {
 }
 
 /// The Columns widget displays up to 2 columns in a card or dialog. You can add widgets to each column; the widgets appear in the order that they are specified. For an example in Google Chat apps, see [Display cards and dialogs in columns](https://developers.google.com/workspace/chat/format-structure-card-dialog#display_cards_and_dialogs_in_columns). The height of each column is determined by the taller column. For example, if the first column is taller than the second column, both columns have the height of the first column. Because each column can contain a different number of widgets, you can''t define rows or align widgets between the columns. Columns are displayed side-by-side. You can customize the width of each column using the HorizontalSizeStyle field. If the user''s screen width is too narrow, the second column wraps below the first: * On web, the second column wraps if the screen width is less than or equal to 480 pixels. * On iOS devices, the second column wraps if the screen width is less than or equal to 300 pt. * On Android devices, the second column wraps if the screen width is less than or equal to 320 dp. To include more than two columns, or to use rows, use the Grid widget. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend): The add-on UIs that support columns include: * The dialog displayed when users open the add-on from an email draft. * The dialog displayed when users open the add-on from the **Add attachment** menu in a Google Calendar event.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1Columns {
     /// An array of columns. You can include up to 2 columns in a card or dialog.
     #[serde(default, rename = "columnItems")]
@@ -1858,7 +1859,7 @@ pub struct GoogleAppsCardV1Columns {
 }
 
 /// Represents an action that is not specific to a widget. Available for Google Workspace add-ons that extend Google Workspace Studio. Unavailable for Google Chat apps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1CommonWidgetAction {
     /// The action to update the visibility of a widget.
     #[serde(default, rename = "updateVisibilityAction")]
@@ -1867,7 +1868,7 @@ pub struct GoogleAppsCardV1CommonWidgetAction {
 }
 
 /// Represents a condition that can be used to trigger an action. Available for Google Workspace add-ons that extend Google Workspace Studio. Unavailable for Google Chat apps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1Condition {
     /// The unique identifier of the ActionRule.
     #[serde(default, rename = "actionRuleId")]
@@ -1879,7 +1880,7 @@ pub struct GoogleAppsCardV1Condition {
 }
 
 /// A configuration object that helps configure the data sources for a widget. Available for Google Chat apps and Google Workspace add-ons that extend Google Workspace Studio.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1DataSourceConfig {
     /// The minimum number of characters the user must enter before this data provider is triggered (i.e., before it starts returning results).
     #[serde(default, rename = "minCharactersTrigger")]
@@ -1894,7 +1895,7 @@ pub struct GoogleAppsCardV1DataSourceConfig {
 }
 
 /// Lets users input a date, a time, or both a date and a time. Supports form submission validation. When Action.all_widgets_are_required is set to true or this widget is specified in Action.required_widgets, the submission action is blocked unless a value is selected. For an example in Google Chat apps, see [Let a user pick a date and time](https://developers.google.com/workspace/chat/design-interactive-card-dialog#let_a_user_pick_a_date_and_time). Users can input text or use the picker to select dates and times. If users input an invalid date or time, the picker shows an error that prompts users to input the information correctly. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1DateTimePicker {
     /// A data source that''s unique to a Google Workspace host application, such as Gmail emails, Google Calendar events, or Google Chat messages. Available for Google Workspace add-ons that extend Google Workspace Studio. Unavailable for Google Chat apps.
     #[serde(default, rename = "hostAppDataSource")]
@@ -1920,7 +1921,7 @@ pub struct GoogleAppsCardV1DateTimePicker {
 }
 
 /// A widget that displays text with optional decorations such as a label above or below the text, an icon in front of the text, a selection widget, or a button after the text. For an example in Google Chat apps, see [Display text with decorative text](https://developers.google.com/workspace/chat/add-text-image-card-dialog#display_text_with_decorative_elements). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1DecoratedText {
     /// The text that appears below text. Always wraps.
     #[serde(default, rename = "bottomLabel")]
@@ -1967,7 +1968,7 @@ pub struct GoogleAppsCardV1DecoratedText {
 }
 
 /// Represents an actionthat can be performed on an ui element. Available for Google Workspace add-ons that extend Google Workspace Studio. Unavailable for Google Chat apps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1EventAction {
     /// The unique identifier of the ActionRule.
     #[serde(default, rename = "actionRuleId")]
@@ -1982,7 +1983,7 @@ pub struct GoogleAppsCardV1EventAction {
 }
 
 /// Represents the data that is used to evaluate an expression. Available for Google Workspace add-ons that extend Google Workspace Studio. Unavailable for Google Chat apps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1ExpressionData {
     /// The list of conditions that are determined by the expression evaluation result.
     #[serde(default)]
@@ -1999,7 +2000,7 @@ pub struct GoogleAppsCardV1ExpressionData {
 }
 
 /// Represents a condition that is evaluated using CEL. Available for Google Workspace add-ons that extend Google Workspace Studio. Unavailable for Google Chat apps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1ExpressionDataCondition {
     /// The type of the condition. // TODO: enum values: ["CONDITION_TYPE_UNSPECIFIED", "EXPRESSION_EVALUATION_SUCCESS", "EXPRESSION_EVALUATION_FAILURE"]
     #[serde(default, rename = "conditionType")]
@@ -2007,7 +2008,7 @@ pub struct GoogleAppsCardV1ExpressionDataCondition {
 }
 
 /// Displays a grid with a collection of items. Items can only include text or images. For responsive columns, or to include more than text or images, use Columns. For an example in Google Chat apps, see [Display a Grid with a collection of items](https://developers.google.com/workspace/chat/format-structure-card-dialog#display_a_grid_with_a_collection_of_items). A grid supports any number of columns and items. The number of rows is determined by items divided by columns. A grid with 10 items and 2 columns has 5 rows. A grid with 11 items and 2 columns has 6 rows. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend): For example, the following JSON creates a 2 column grid with a single item:  "grid": { "title": "A fine collection of items", "columnCount": 2, "borderStyle": { "type": "STROKE", "cornerRadius": 4 }, "items": [ { "image": { "imageUri": "https://www.example.com/image.png", "cropStyle": { "type": "SQUARE" }, "borderStyle": { "type": "STROKE" } }, "title": "An item", "textAlignment": "CENTER" } ], "onClick": { "openLink": { "url": "https://www.example.com" } } }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1Grid {
     /// The border style to apply to each grid item.
     #[serde(default, rename = "borderStyle")]
@@ -2027,7 +2028,7 @@ pub struct GoogleAppsCardV1Grid {
 }
 
 /// Represents an item in a grid layout. Items can contain text, an image, or both text and an image. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1GridItem {
     /// A user-specified identifier for this grid item. This identifier is returned in the parent grid''s onClick callback parameters.
     #[serde(default)]
@@ -2047,7 +2048,7 @@ pub struct GoogleAppsCardV1GridItem {
 }
 
 /// An icon displayed in a widget on a card. For an example in Google Chat apps, see [Add an icon](https://developers.google.com/workspace/chat/add-text-image-card-dialog#add_an_icon). Supports [built-in](https://developers.google.com/workspace/chat/format-messages#builtinicons) and [custom](https://developers.google.com/workspace/chat/format-messages#customicons) icons. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1Icon {
     /// Optional. A description of the icon used for accessibility. If unspecified, the default value Button is provided. As a best practice, you should set a helpful description for what the icon displays, and if applicable, what it does. For example, A user''s account portrait, or Opens a new browser tab and navigates to the Google Chat developer documentation at https://developers.google.com/workspace/chat. If the icon is set in a Button, the altText appears as helper text when the user hovers over the button. However, if the button also sets text, the icon''s altText is ignored.
     #[serde(default, rename = "altText")]
@@ -2067,7 +2068,7 @@ pub struct GoogleAppsCardV1Icon {
 }
 
 /// An image that is specified by a URL and can have an onClick action. For an example, see [Add an image](https://developers.google.com/workspace/chat/add-text-image-card-dialog#add_an_image). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1Image {
     /// The alternative text of this image that''s used for accessibility.
     #[serde(default, rename = "altText")]
@@ -2081,7 +2082,7 @@ pub struct GoogleAppsCardV1Image {
 }
 
 /// Represents an image. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1ImageComponent {
     /// The accessibility label for the image.
     #[serde(default, rename = "altText")]
@@ -2098,7 +2099,7 @@ pub struct GoogleAppsCardV1ImageComponent {
 }
 
 /// Represents the crop style applied to an image. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend): For example, here''s how to apply a 16:9 aspect ratio:  cropStyle { "type": "RECTANGLE_CUSTOM", "aspectRatio": 16/9 }
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1ImageCropStyle {
     /// The aspect ratio to use if the crop type is RECTANGLE_CUSTOM. For example, here''s how to apply a 16:9 aspect ratio:  cropStyle { "type": "RECTANGLE_CUSTOM", "aspectRatio": 16/9 }
     #[serde(default, rename = "aspectRatio")]
@@ -2109,7 +2110,7 @@ pub struct GoogleAppsCardV1ImageCropStyle {
 }
 
 /// A [Google Material Icon](https://fonts.google.com/icons), which includes over 2500+ options. For example, to display a [checkbox icon](https://fonts.google.com/icons?selected=Material%20Symbols%20Outlined%3Acheck_box%3AFILL%400%3Bwght%40400%3BGRAD%400%3Bopsz%4048) with customized weight and grade, write the following:  { "name": "check_box", "fill": true, "weight": 300, "grade": -25 }  [Google Chat apps](https://developers.google.com/workspace/chat):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1MaterialIcon {
     /// Whether the icon renders as filled. Default value is false. To preview different icon settings, go to [Google Font Icons](https://fonts.google.com/icons) and adjust the settings under **Customize**.
     #[serde(default)]
@@ -2126,7 +2127,7 @@ pub struct GoogleAppsCardV1MaterialIcon {
 }
 
 /// A list of widgets that can be displayed in a containing layout, such as a CarouselCard. [Google Chat apps](https://developers.google.com/workspace/chat):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1NestedWidget {
     /// A button list widget.
     #[serde(default, rename = "buttonList")]
@@ -2140,7 +2141,7 @@ pub struct GoogleAppsCardV1NestedWidget {
 }
 
 /// Represents how to respond when users click an interactive element on a card, such as a button. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1OnClick {
     /// If specified, an action is triggered by this onClick.
     #[serde(default)]
@@ -2160,7 +2161,7 @@ pub struct GoogleAppsCardV1OnClick {
 }
 
 /// Represents an onClick event that opens a hyperlink. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1OpenLink {
     /// Whether the client forgets about a link after opening it, or observes it until the window closes. [Google Workspace add-ons](https://developers.google.com/workspace/add-ons): // TODO: enum values: ["NOTHING", "RELOAD"]
     #[serde(default, rename = "onClose")]
@@ -2174,7 +2175,7 @@ pub struct GoogleAppsCardV1OpenLink {
 }
 
 /// A widget that presents a pop-up menu with one or more actions that users can invoke. For example, showing non-primary actions in a card. You can use this widget when actions don''t fit in the available space. To use, specify this widget in the OnClick action of widgets that support it. For example, in a Button. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1OverflowMenu {
     /// Required. The list of menu options.
     #[serde(default)]
@@ -2182,7 +2183,7 @@ pub struct GoogleAppsCardV1OverflowMenu {
 }
 
 /// An option that users can invoke in an overflow menu. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1OverflowMenuItem {
     /// Whether the menu option is disabled. Defaults to false.
     #[serde(default)]
@@ -2199,7 +2200,7 @@ pub struct GoogleAppsCardV1OverflowMenuItem {
 }
 
 /// For a SelectionInput widget that uses a multiselect menu, a data source from Google Workspace. Used to populate items in a multiselect menu. [Google Chat apps](https://developers.google.com/workspace/chat):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1PlatformDataSource {
     /// A data source shared by all Google Workspace applications, such as users in a Google Workspace organization. // TODO: enum values: ["UNKNOWN", "USER"]
     #[serde(default, rename = "commonDataSource")]
@@ -2210,7 +2211,7 @@ pub struct GoogleAppsCardV1PlatformDataSource {
 }
 
 /// A section contains a collection of widgets that are rendered vertically in the order that they''re specified. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1Section {
     /// Optional. Define the expand and collapse button of the section. This button will be shown only if the section is collapsible. If this field isn''t set, the default button is used.
     #[serde(default, rename = "collapseControl")]
@@ -2234,7 +2235,7 @@ pub struct GoogleAppsCardV1Section {
 }
 
 /// A widget that creates one or more UI items that users can select. Supports form submission validation for dropdown and multiselect menus only. When Action.all_widgets_are_required is set to true or this widget is specified in Action.required_widgets, the submission action is blocked unless a value is selected. For example, a dropdown menu or checkboxes. You can use this widget to collect data that can be predicted or enumerated. For an example in Google Chat apps, see [Add selectable UI elements](/workspace/chat/design-interactive-card-dialog#add_selectable_ui_elements). Chat apps can process the value of items that users select or input. For details about working with form inputs, see [Receive form data](https://developers.google.com/workspace/chat/read-form-data). To collect undefined or abstract data from users, use the TextInput widget. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1SelectionInput {
     /// Optional. The data source configs for the selection control. This field provides more fine-grained control over the data source. If specified, the multi_select_max_selected_items field, multi_select_min_query_length field, external_data_source field and platform_data_source field are ignored. Available for Google Workspace add-ons that extend Google Workspace Studio. Available for the Dropdown widget in Google Chat apps. For the Dropdown widget in Google Chat apps, only one DataSourceConfig is supported. If multiple DataSourceConfigs are set, only the first one is used.
     #[serde(default, rename = "dataSourceConfigs")]
@@ -2273,7 +2274,7 @@ pub struct GoogleAppsCardV1SelectionInput {
 }
 
 /// An item that users can select in a selection input, such as a checkbox or switch. Supports up to 100 items. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1SelectionItem {
     /// For multiselect menus, a text description or label that''s displayed below the item''s text field.
     #[serde(default, rename = "bottomText")]
@@ -2292,7 +2293,7 @@ pub struct GoogleAppsCardV1SelectionItem {
 }
 
 /// One suggested value that users can enter in a text input field. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1SuggestionItem {
     /// The value of a suggested input to a text input field. This is equivalent to what users enter themselves.
     #[serde(default)]
@@ -2300,7 +2301,7 @@ pub struct GoogleAppsCardV1SuggestionItem {
 }
 
 /// Suggested values that users can enter. These values appear when users click inside the text input field. As users type, the suggested values dynamically filter to match what the users have typed. For example, a text input field for programming language might suggest Java, JavaScript, Python, and C++. When users start typing Jav, the list of suggestions filters to show Java and JavaScript. Suggested values help guide users to enter values that your app can make sense of. When referring to JavaScript, some users might enter javascript and others java script. Suggesting JavaScript can standardize how users interact with your app. When specified, TextInput.type is always SINGLE_LINE, even if it''s set to MULTIPLE_LINE. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1Suggestions {
     /// A list of suggestions used for autocomplete recommendations in text input fields.
     #[serde(default)]
@@ -2308,7 +2309,7 @@ pub struct GoogleAppsCardV1Suggestions {
 }
 
 /// Either a toggle-style switch or a checkbox inside a decoratedText widget. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend): Only supported in the decoratedText widget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1SwitchControl {
     /// How the switch appears in the user interface. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend): // TODO: enum values: ["SWITCH", "CHECKBOX", "CHECK_BOX"]
     #[serde(default, rename = "controlType")]
@@ -2328,7 +2329,7 @@ pub struct GoogleAppsCardV1SwitchControl {
 }
 
 /// A field in which users can enter text. Supports suggestions and on-change actions. Supports form submission validation. When Action.all_widgets_are_required is set to true or this widget is specified in Action.required_widgets, the submission action is blocked unless a value is entered. For an example in Google Chat apps, see [Add a field in which a user can enter text](https://developers.google.com/workspace/chat/design-interactive-card-dialog#add_a_field_in_which_a_user_can_enter_text). Chat apps receive and can process the value of entered text during form input events. For details about working with form inputs, see [Receive form data](https://developers.google.com/workspace/chat/read-form-data). When you need to collect undefined or abstract data from users, use a text input. To collect defined or enumerated data from users, use the SelectionInput widget. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1TextInput {
     /// Optional. Specify what action to take when the text input field provides suggestions to users who interact with it. If unspecified, the suggestions are set by initialSuggestions and are processed by the client. If specified, the app takes the action specified here, such as running a custom function. [Google Workspace add-ons](https://developers.google.com/workspace/add-ons):
     #[serde(default, rename = "autoCompleteAction")]
@@ -2366,7 +2367,7 @@ pub struct GoogleAppsCardV1TextInput {
 }
 
 /// A paragraph of text that supports formatting. For an example in Google Chat apps, see [Add a paragraph of formatted text](https://developers.google.com/workspace/chat/add-text-image-card-dialog#add_a_paragraph_of_formatted_text). For more information about formatting text, see [Formatting text in Google Chat apps](https://developers.google.com/workspace/chat/format-messages#card-formatting) and [Formatting text in Google Workspace add-ons](https://developers.google.com/apps-script/add-ons/concepts/widgets#text_formatting). [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1TextParagraph {
     /// The maximum number of lines of text that are displayed in the widget. If the text exceeds the specified maximum number of lines, the excess content is concealed behind a **show more** button. If the text is equal or shorter than the specified maximum number of lines, a **show more** button isn''t displayed. The default value is 0, in which case all context is displayed. Negative values are ignored.
     #[serde(default, rename = "maxLines")]
@@ -2380,7 +2381,7 @@ pub struct GoogleAppsCardV1TextParagraph {
 }
 
 /// Represents a trigger. Available for Google Workspace add-ons that extend Google Workspace Studio. Unavailable for Google Chat apps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1Trigger {
     /// The unique identifier of the ActionRule.
     #[serde(default, rename = "actionRuleId")]
@@ -2388,7 +2389,7 @@ pub struct GoogleAppsCardV1Trigger {
 }
 
 /// Represents an action that updates the visibility of a widget. Available for Google Workspace add-ons that extend Google Workspace Studio. Unavailable for Google Chat apps.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1UpdateVisibilityAction {
     /// The new visibility. // TODO: enum values: ["VISIBILITY_UNSPECIFIED", "VISIBLE", "HIDDEN"]
     #[serde(default)]
@@ -2396,7 +2397,7 @@ pub struct GoogleAppsCardV1UpdateVisibilityAction {
 }
 
 /// Represents the necessary data for validating the widget it''s attached to. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1Validation {
     /// Specify the character limit for text input widgets. Note that this is only used for text input and is ignored for other widgets. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend):
     #[serde(default, rename = "characterLimit")]
@@ -2407,7 +2408,7 @@ pub struct GoogleAppsCardV1Validation {
 }
 
 /// Each card is made up of widgets. A widget is a composite object that can represent one of text, images, buttons, and other object types.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1Widget {
     /// A list of buttons. For example, the following JSON creates two buttons. The first is a blue text button and the second is an image button that opens a link:  "buttonList": { "buttons": [ { "text": "Edit", "color": { "red": 0, "green": 0, "blue": 1, }, "disabled": true, }, { "icon": { "knownIcon": "INVITE", "altText": "check calendar" }, "onClick": { "openLink": { "url": "https://example.com/calendar" } } } ] }
     #[serde(default, rename = "buttonList")]
@@ -2460,7 +2461,7 @@ pub struct GoogleAppsCardV1Widget {
 }
 
 /// The supported widgets that you can include in a column. [Google Workspace add-ons and Chat apps](https://developers.google.com/workspace/extend)
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct GoogleAppsCardV1Widgets {
     /// ButtonList widget.
     #[serde(default, rename = "buttonList")]
@@ -2489,7 +2490,7 @@ pub struct GoogleAppsCardV1Widgets {
 }
 
 /// A data source from a Google Workspace application. The data source populates available items for a widget.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct HostAppDataSourceMarkup {
     /// A data source from Google Chat.
     #[serde(default, rename = "chatDataSource")]
@@ -2500,7 +2501,7 @@ pub struct HostAppDataSourceMarkup {
 }
 
 /// A data source that populates Google Chat spaces as selection items for a multiselect menu. Only populates spaces that the user is a member of. [Google Chat apps](https://developers.google.com/workspace/chat):
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct SpaceDataSource {
     /// If set to true, the multiselect menu selects the current Google Chat space as an item by default.
     #[serde(default, rename = "defaultToCurrentSpace")]
@@ -2508,7 +2509,7 @@ pub struct SpaceDataSource {
 }
 
 /// * Only supported by Google Workspace Workflow, but not Google Chat apps or Google Workspace add-ons. In a TextInput or SelectionInput widget with MULTI_SELECT type or a DateTimePicker, provide data source from Google.
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct WorkflowDataSourceMarkup {
     /// Whether to include variables from the previous step in the data source.
     #[serde(default, rename = "includeVariables")]
