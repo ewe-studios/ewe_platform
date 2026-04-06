@@ -1,0 +1,32 @@
+error[E0277]: the trait bound `InvalidStruct: serde::Serialize` is not satisfied
+ --> tests/trybuild/fail/json_hash_missing_serialize.rs:4:10
+  |
+4 | #[derive(JsonHash)]
+  |          ^^^^^^^^ unsatisfied trait bound
+  |
+help: the trait `serde_core::ser::Serialize` is not implemented for `InvalidStruct`
+ --> tests/trybuild/fail/json_hash_missing_serialize.rs:5:1
+  |
+5 | pub struct InvalidStruct {
+  | ^^^^^^^^^^^^^^^^^^^^^^^^
+  = note: for local types consider adding `#[derive(serde::Serialize)]` to your `InvalidStruct` type
+  = note: for types from other crates check whether the crate offers a `serde` feature flag
+  = help: the following other types implement trait `serde_core::ser::Serialize`:
+            &'a T
+            &'a mut T
+            ()
+            (T,)
+            (T0, T1)
+            (T0, T1, T2)
+            (T0, T1, T2, T3)
+            (T0, T1, T2, T3, T4)
+          and $N others
+note: required by a bound in `serde_json::to_string`
+ --> $CARGO/serde_json-$VERSION/src/ser.rs
+  |
+  | pub fn to_string<T>(value: &T) -> Result<String>
+  |        --------- required by a bound in this function
+  | where
+  |     T: ?Sized + Serialize,
+  |                 ^^^^^^^^^ required by this bound in `to_string`
+  = note: this error originates in the derive macro `JsonHash` (in Nightly builds, run with -Z macro-backtrace for more info)
