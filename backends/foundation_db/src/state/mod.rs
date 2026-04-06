@@ -11,33 +11,33 @@
 //! `StateStoreStream<T>` (lazy iterators). The factory selects a backend
 //! from environment variables.
 
-pub mod types;
-pub mod traits;
-pub mod helpers;
-pub mod hash;
+pub mod d1;
 pub mod file;
-#[cfg(feature = "libsql")]
-pub mod sqlite;
+pub mod hash;
+pub mod helpers;
 #[cfg(feature = "libsql")]
 pub mod libsql_state;
+pub mod r2;
+#[cfg(feature = "libsql")]
+pub mod sqlite;
+pub mod traits;
 #[cfg(feature = "libsql")]
 pub mod turso;
-pub mod r2;
-pub mod d1;
+pub mod types;
 
-pub use types::{ResourceState, StateStatus};
-pub use traits::{StateStore, StateStoreStream};
-pub use helpers::{collect_first, collect_all, drive_to_completion};
-pub use hash::config_hash;
-pub use file::FileStateStore;
-#[cfg(feature = "libsql")]
-pub use sqlite::SqliteStateStore;
-#[cfg(feature = "libsql")]
-pub use libsql_state::LibSQLStateStore;
 #[cfg(feature = "libsql")]
 pub use self::turso::TursoStateStore;
-pub use r2::R2StateStore;
 pub use d1::D1StateStore;
+pub use file::FileStateStore;
+pub use hash::config_hash;
+pub use helpers::{collect_all, collect_first, drive_to_completion};
+#[cfg(feature = "libsql")]
+pub use libsql_state::LibSQLStateStore;
+pub use r2::R2StateStore;
+#[cfg(feature = "libsql")]
+pub use sqlite::SqliteStateStore;
+pub use traits::{StateStore, StateStoreStream};
+pub use types::{ResourceState, StateStatus};
 
 use std::path::Path;
 

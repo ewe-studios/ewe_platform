@@ -22,8 +22,8 @@ use crate::errors::StorageError;
 ///
 /// Returns an error if JSON serialization fails.
 pub fn config_hash<T: Serialize>(value: &T) -> Result<String, StorageError> {
-    let json = serde_json::to_string(value)
-        .map_err(|e| StorageError::Serialization(e.to_string()))?;
+    let json =
+        serde_json::to_string(value).map_err(|e| StorageError::Serialization(e.to_string()))?;
     let mut hasher = Sha256::new();
     hasher.update(json.as_bytes());
     let result = hasher.finalize();

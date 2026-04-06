@@ -13,9 +13,9 @@ use std::path::{Path, PathBuf};
 
 use foundation_core::valtron::ThreadedValue;
 
-use crate::errors::StorageError;
 use super::traits::{StateStore, StateStoreStream};
 use super::types::ResourceState;
+use crate::errors::StorageError;
 
 /// JSON file-based state store.
 ///
@@ -34,10 +34,7 @@ impl FileStateStore {
     #[must_use]
     pub fn new(project_dir: &Path, provider: &str, stage: &str) -> Self {
         Self {
-            root_dir: project_dir
-                .join(".deployment")
-                .join(provider)
-                .join(stage),
+            root_dir: project_dir.join(".deployment").join(provider).join(stage),
         }
     }
 
@@ -91,11 +88,7 @@ impl StateStore for FileStateStore {
         if self.root_dir.exists() {
             for entry in std::fs::read_dir(&self.root_dir)? {
                 let entry = entry?;
-                if entry
-                    .path()
-                    .extension()
-                    .is_some_and(|ext| ext == "json")
-                {
+                if entry.path().extension().is_some_and(|ext| ext == "json") {
                     count += 1;
                 }
             }

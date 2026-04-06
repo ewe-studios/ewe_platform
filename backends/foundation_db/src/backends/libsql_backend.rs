@@ -182,7 +182,9 @@ impl KeyValueStore for LibsqlStorage {
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(opt) => ShortCircuit::Continue(Stream::Next(Ok(opt))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                        StorageError::Backend(e.to_string()),
+                    ))),
                 },
                 _ => ShortCircuit::Continue(Stream::Ignore),
             }
@@ -219,13 +221,17 @@ impl KeyValueStore for LibsqlStorage {
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                        StorageError::Backend(e.to_string()),
+                    ))),
                 },
                 _ => ShortCircuit::Continue(Stream::Ignore),
             }
         });
 
-        Ok(Box::new(circuit_stream.map_done(|result| result.map(|_rows| ()))))
+        Ok(Box::new(
+            circuit_stream.map_done(|result| result.map(|_rows| ())),
+        ))
     }
 
     fn delete(&self, key: &str) -> StorageResult<StorageItemStream<'_, ()>> {
@@ -243,13 +249,17 @@ impl KeyValueStore for LibsqlStorage {
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                        StorageError::Backend(e.to_string()),
+                    ))),
                 },
                 _ => ShortCircuit::Continue(Stream::Ignore),
             }
         });
 
-        Ok(Box::new(circuit_stream.map_done(|result| result.map(|_rows| ()))))
+        Ok(Box::new(
+            circuit_stream.map_done(|result| result.map(|_rows| ())),
+        ))
     }
 
     fn exists(&self, key: &str) -> StorageResult<StorageItemStream<'_, bool>> {
@@ -270,7 +280,9 @@ impl KeyValueStore for LibsqlStorage {
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(b) => ShortCircuit::Continue(Stream::Next(Ok(b))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                        StorageError::Backend(e.to_string()),
+                    ))),
                 },
                 _ => ShortCircuit::Continue(Stream::Ignore),
             }
@@ -313,16 +325,20 @@ impl KeyValueStore for LibsqlStorage {
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(keys) => ShortCircuit::Continue(Stream::Next(Ok(keys))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                        StorageError::Backend(e.to_string()),
+                    ))),
                 },
                 _ => ShortCircuit::Continue(Stream::Ignore),
             }
         });
 
-        Ok(Box::new(circuit_stream.flat_map_next(|keys_result| match keys_result {
-            Ok(keys) => keys.into_iter().map(Ok).collect(),
-            Err(e) => vec![Err(e)],
-        })))
+        Ok(Box::new(circuit_stream.flat_map_next(
+            |keys_result| match keys_result {
+                Ok(keys) => keys.into_iter().map(Ok).collect(),
+                Err(e) => vec![Err(e)],
+            },
+        )))
     }
 }
 
@@ -342,9 +358,13 @@ impl QueryStore for LibsqlStorage {
         // Use run_future_iter to spawn worker thread that owns !Send libsql::Rows
         let iter = run_future_iter(
             move || async move {
-                let mut stmt = conn.prepare(&sql).await
+                let mut stmt = conn
+                    .prepare(&sql)
+                    .await
                     .map_err(|e| StorageError::Backend(e.to_string()))?;
-                let rows = stmt.query(libsql_params).await
+                let rows = stmt
+                    .query(libsql_params)
+                    .await
                     .map_err(|e| StorageError::Backend(e.to_string()))?;
                 Ok::<_, StorageError>(LibsqlRowsIterator::new(rows))
             },
@@ -378,7 +398,9 @@ impl QueryStore for LibsqlStorage {
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(rows) => ShortCircuit::Continue(Stream::Next(Ok(rows as u64))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                        StorageError::Backend(e.to_string()),
+                    ))),
                 },
                 _ => ShortCircuit::Continue(Stream::Ignore),
             }
@@ -399,7 +421,9 @@ impl QueryStore for LibsqlStorage {
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(_) => ShortCircuit::Continue(Stream::Next(Ok(()))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                        StorageError::Backend(e.to_string()),
+                    ))),
                 },
                 _ => ShortCircuit::Continue(Stream::Ignore),
             }
@@ -461,7 +485,9 @@ impl RateLimiterStore for LibsqlStorage {
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(b) => ShortCircuit::Continue(Stream::Next(Ok(b))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                        StorageError::Backend(e.to_string()),
+                    ))),
                 },
                 _ => ShortCircuit::Continue(Stream::Ignore),
             }
@@ -509,7 +535,9 @@ impl RateLimiterStore for LibsqlStorage {
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(count) => ShortCircuit::Continue(Stream::Next(Ok(count))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                        StorageError::Backend(e.to_string()),
+                    ))),
                 },
                 _ => ShortCircuit::Continue(Stream::Ignore),
             }
@@ -533,7 +561,9 @@ impl RateLimiterStore for LibsqlStorage {
             match stream_item {
                 Stream::Next(result) => match result {
                     Ok(_) => ShortCircuit::Continue(Stream::Next(Ok(()))),
-                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string())))),
+                    Err(e) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
+                        StorageError::Backend(e.to_string()),
+                    ))),
                 },
                 _ => ShortCircuit::Continue(Stream::Ignore),
             }

@@ -62,7 +62,7 @@ impl DeploymentProvider for CloudflareCliProvider {
     type Config = CloudflareConfig;
     type Resources = CloudflareResources;
 
-    fn name(&self) -> &str {
+    fn name(&self) -> &'static str {
         "cloudflare"
     }
 

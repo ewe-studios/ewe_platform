@@ -49,9 +49,8 @@ impl RowsIterator {
         for i in 0..column_count {
             let name = format!("col{i}");
             let value = Self::turso_value_to_data_value(
-                row.get_value(i).map_err(|e| {
-                    StorageError::SqlConversion(format!("Column {i} error: {e}"))
-                })?
+                row.get_value(i)
+                    .map_err(|e| StorageError::SqlConversion(format!("Column {i} error: {e}")))?,
             );
             columns.push((name, value));
         }
@@ -105,9 +104,8 @@ impl LibsqlRowsIterator {
         for i in 0..column_count {
             let name = format!("col{i}");
             let value = Self::libsql_value_to_data_value(
-                row.get_value(i).map_err(|e| {
-                    StorageError::SqlConversion(format!("Column {i} error: {e}"))
-                })?
+                row.get_value(i)
+                    .map_err(|e| StorageError::SqlConversion(format!("Column {i} error: {e}")))?,
             );
             columns.push((name, value));
         }

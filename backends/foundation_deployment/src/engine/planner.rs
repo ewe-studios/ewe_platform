@@ -134,7 +134,6 @@ impl<P: DeploymentProvider> DeploymentPlanner<P> {
 
     /// Generate resource ID from config.
     fn resource_id(&self) -> String {
-        // Use provider name + config identifier as resource key
         format!("{}:{}", self.provider.name(), self.config_hash())
     }
 
@@ -206,8 +205,152 @@ impl<P: DeploymentProvider> DeploymentPlanner<P> {
     ) -> Result<Option<foundation_db::state::ResourceState>, DeploymentError> {
         let resource_id = self.resource_id();
         let stream = self.state_store.get(&resource_id)?;
-        // collect_first returns Option<Option<ResourceState>> - flatten to Option<ResourceState>
         Ok(collect_first(stream)?.flatten())
+    }
+
+    // State transition helpers extracted to reduce transition() line count
+
+    fn transition_detecting(&self) -> StateTransition<DeployState, DeployOutcome, DeploymentError, NoAction> {
+        StateTransition::Continue(DeployState::Validating {
+            target: DeploymentTarget::from_provider_name(self.provider.name())
+                .unwrap_or(DeploymentTarget::Cloudflare),
+        })
+    }
+
+    fn transition_validating(
+        &mut self,
+    ) -> StateTransition<DeployState, DeployOutcome, DeploymentError, NoAction> {
+        match self.provider.validate(&self.config) {
+            Ok(()) => {
+                let hash = self.config_hash();
+                StateTransition::Continue(DeployState::CheckingState { config_hash: hash })
+            }
+            Err(e) => StateTransition::Complete(Err(e)),
+        }
+    }
+
+    fn transition_checking_state(
+        &mut self,
+        config_hash: &str,
+    ) -> StateTransition<DeployState, DeployOutcome, DeploymentError, NoAction> {
+        let existing = match self.get_existing_state() {
+            Ok(state) => state,
+            Err(e) => return StateTransition::Complete(Err(e)),
+        };
+        match existing {
+            Some(state) if !state.needs_deploy(config_hash) => {
+                StateTransition::Complete(Ok(
+                    crate::core::types::DeploymentResult::skipped(
+                        &format!("config unchanged: {config_hash}"),
+                    )
+                ))
+            }
+            _ => {
+                if let Err(e) = self.update_state(StateStatus::Creating) {
+                    return StateTransition::Complete(Err(e));
+                }
+                StateTransition::Continue(DeployState::Building)
+            }
+        }
+    }
+
+    fn transition_building(
+        &mut self,
+    ) -> StateTransition<DeployState, DeployOutcome, DeploymentError, NoAction> {
+        match self.provider.build(&self.config, self.environment.as_deref()) {
+            Ok(output) => StateTransition::Continue(DeployState::Packaging { build_output: output }),
+            Err(e) => {
+                let _ = self.update_state(StateStatus::Failed { error: e.to_string() });
+                StateTransition::Complete(Err(e))
+            }
+        }
+    }
+
+    fn transition_packaging(
+        &self,
+    ) -> StateTransition<DeployState, DeployOutcome, DeploymentError, NoAction> {
+        StateTransition::Continue(DeployState::Deploying { dry_run: self.dry_run })
+    }
+
+    fn transition_deploying(
+        &mut self,
+        dry_run: bool,
+    ) -> StateTransition<DeployState, DeployOutcome, DeploymentError, NoAction> {
+        if dry_run {
+            return StateTransition::Complete(Ok(
+                crate::core::types::DeploymentResult::dry_run(
+                    self.provider.name(),
+                    &self.resource_id(),
+                )
+            ));
+        }
+        if let Err(e) = self.update_state(StateStatus::Updating) {
+            return StateTransition::Complete(Err(e));
+        }
+        match self.provider.deploy(&self.config, self.environment.as_deref(), false) {
+            Ok(result) => StateTransition::Continue(DeployState::Verifying {
+                result,
+                retries_remaining: self.verify_retries,
+            }),
+            Err(e) => {
+                let _ = self.update_state(StateStatus::Failed { error: e.to_string() });
+                StateTransition::Complete(Err(e))
+            }
+        }
+    }
+
+    fn transition_verifying(
+        &mut self,
+        result: crate::core::types::DeploymentResult,
+        retries_remaining: u32,
+    ) -> StateTransition<DeployState, DeployOutcome, DeploymentError, NoAction> {
+        match self.provider.verify(&result) {
+            Ok(true) => {
+                let _ = self.update_state(StateStatus::Created);
+                let _ = self.persist_result(&result);
+                StateTransition::Complete(Ok(result))
+            }
+            Ok(false) if retries_remaining > 0 => {
+                StateTransition::Delay(
+                    self.verify_delay,
+                    DeployState::Verifying {
+                        result,
+                        retries_remaining: retries_remaining - 1,
+                    },
+                )
+            }
+            Ok(false) => {
+                let _ = self.update_state(StateStatus::Failed {
+                    error: "health check failed after retries".to_string(),
+                });
+                StateTransition::Complete(Err(DeploymentError::DeployRejected {
+                    reason: "health check failed after retries".to_string(),
+                }))
+            }
+            Err(e) => {
+                let _ = self.update_state(StateStatus::Failed { error: e.to_string() });
+                StateTransition::Complete(Err(DeploymentError::DeployRejected {
+                    reason: e.to_string(),
+                }))
+            }
+        }
+    }
+
+    fn transition_rolling_back(
+        &mut self,
+        error: String,
+    ) -> StateTransition<DeployState, DeployOutcome, DeploymentError, NoAction> {
+        let _ = self.provider.destroy(&self.config, self.environment.as_deref());
+        let _ = self.update_state(StateStatus::Failed { error: error.clone() });
+        StateTransition::Continue(DeployState::Failed { error })
+    }
+
+    fn transition_failed(error: String) -> StateTransition<DeployState, DeployOutcome, DeploymentError, NoAction> {
+        StateTransition::Complete(Err(DeploymentError::DeployRejected { reason: error }))
+    }
+
+    fn transition_skipped(reason: &str) -> StateTransition<DeployState, DeployOutcome, DeploymentError, NoAction> {
+        StateTransition::Complete(Ok(crate::core::types::DeploymentResult::skipped(reason)))
     }
 }
 
@@ -226,188 +369,18 @@ impl<P: DeploymentProvider> StateMachine for DeploymentPlanner<P> {
         state: DeployState,
     ) -> StateTransition<DeployState, DeployOutcome, DeploymentError, NoAction> {
         match state {
-            DeployState::Detecting => {
-                // Yield progress, then continue to Validating
-                StateTransition::Continue(DeployState::Validating {
-                    target: DeploymentTarget::from_provider_name(self.provider.name())
-                        .unwrap_or(DeploymentTarget::Cloudflare),
-                })
-            }
-
-            DeployState::Validating { target: _ } => {
-                match self.provider.validate(&self.config) {
-                    Ok(()) => {
-                        let hash = self.config_hash();
-                        StateTransition::Continue(DeployState::CheckingState {
-                            config_hash: hash,
-                        })
-                    }
-                    // Propagate error via Complete(Err(...)), NOT StateTransition::Error
-                    Err(e) => StateTransition::Complete(Err(e)),
-                }
-            }
-
-            DeployState::CheckingState { config_hash } => {
-                // StateStore::get returns StateStoreStream — consume at boundary
-                let existing = match self.get_existing_state() {
-                    Ok(state) => state,
-                    Err(e) => return StateTransition::Complete(Err(e)),
-                };
-                match existing {
-                    Some(state) if !state.needs_deploy(&config_hash) => {
-                        // Config unchanged, skip deployment
-                        StateTransition::Complete(Ok(
-                            crate::core::types::DeploymentResult::skipped(
-                                &format!("config unchanged: {config_hash}"),
-                            )
-                        ))
-                    }
-                    _ => {
-                        // Needs deployment
-                        if let Err(e) = self.update_state(StateStatus::Creating) {
-                            return StateTransition::Complete(Err(e));
-                        }
-                        StateTransition::Continue(DeployState::Building)
-                    }
-                }
-            }
-
-            DeployState::Building => {
-                match self.provider.build(&self.config, self.environment.as_deref()) {
-                    Ok(output) => StateTransition::Continue(DeployState::Packaging {
-                        build_output: output,
-                    }),
-                    Err(e) => {
-                        if let Err(update_err) = self.update_state(StateStatus::Failed {
-                            error: e.to_string(),
-                        }) {
-                            tracing::warn!("Failed to update state to Failed: {update_err}");
-                        }
-                        StateTransition::Complete(Err(e))
-                    }
-                }
-            }
-
-            DeployState::Packaging { build_output: _ } => {
-                // Packaging is provider-specific but abstracted via build output
-                StateTransition::Continue(DeployState::Deploying {
-                    dry_run: self.dry_run,
-                })
-            }
-
-            DeployState::Deploying { dry_run } => {
-                if dry_run {
-                    return StateTransition::Complete(Ok(
-                        crate::core::types::DeploymentResult::dry_run(
-                            self.provider.name(),
-                            &self.resource_id(),
-                        )
-                    ));
-                }
-                if let Err(e) = self.update_state(StateStatus::Updating) {
-                    return StateTransition::Complete(Err(e));
-                }
-                match self.provider.deploy(
-                    &self.config,
-                    self.environment.as_deref(),
-                    false,
-                ) {
-                    Ok(result) => StateTransition::Continue(DeployState::Verifying {
-                        result,
-                        retries_remaining: self.verify_retries,
-                    }),
-                    Err(e) => {
-                        // Attempt rollback via provider
-                        // Note: For now we skip rollback since it requires provider-specific Resources type
-                        // TODO: Implement proper rollback with type mapping
-                        if let Err(update_err) = self.update_state(StateStatus::Failed {
-                            error: e.to_string(),
-                        }) {
-                            tracing::warn!("Failed to update state to Failed: {update_err}");
-                        }
-                        StateTransition::Complete(Err(e))
-                    }
-                }
-            }
-
+            DeployState::Detecting => self.transition_detecting(),
+            DeployState::Validating { .. } => self.transition_validating(),
+            DeployState::CheckingState { ref config_hash } => self.transition_checking_state(config_hash),
+            DeployState::Building => self.transition_building(),
+            DeployState::Packaging { .. } => self.transition_packaging(),
+            DeployState::Deploying { dry_run } => self.transition_deploying(dry_run),
             DeployState::Verifying { result, retries_remaining } => {
-                // Health-check: verify deployment is responsive
-                match self.provider.verify(&result) {
-                    Ok(true) => {
-                        // Healthy — persist and complete
-                        if let Err(e) = self.update_state(StateStatus::Created) {
-                            tracing::warn!("Failed to update state to Created: {e}");
-                        }
-                        if let Err(e) = self.persist_result(&result) {
-                            tracing::warn!("Failed to persist result: {e}");
-                        }
-                        StateTransition::Complete(Ok(result))
-                    }
-                    Ok(false) if retries_remaining > 0 => {
-                        // Not healthy yet — use Delay for native executor backoff
-                        StateTransition::Delay(
-                            self.verify_delay,
-                            DeployState::Verifying {
-                                result,
-                                retries_remaining: retries_remaining - 1,
-                            },
-                        )
-                    }
-                    Ok(false) => {
-                        // Retries exhausted — rollback then propagate error
-                        // Note: For now we skip rollback since it requires provider-specific Resources type
-                        // TODO: Implement proper rollback with type mapping
-                        if let Err(update_err) = self.update_state(StateStatus::Failed {
-                            error: "health check failed after retries".to_string(),
-                        }) {
-                            tracing::warn!("Failed to update state to Failed: {update_err}");
-                        }
-                        StateTransition::Complete(Err(DeploymentError::DeployRejected {
-                            reason: "health check failed after retries".to_string(),
-                        }))
-                    }
-                    Err(e) => {
-                        // Verify itself failed — rollback then propagate error
-                        // Note: For now we skip rollback since it requires provider-specific Resources type
-                        // TODO: Implement proper rollback with type mapping
-                        if let Err(update_err) = self.update_state(StateStatus::Failed {
-                            error: e.to_string(),
-                        }) {
-                            tracing::warn!("Failed to update state to Failed: {update_err}");
-                        }
-                        StateTransition::Complete(Err(DeploymentError::DeployRejected {
-                            reason: e.to_string(),
-                        }))
-                    }
-                }
+                self.transition_verifying(result, retries_remaining)
             }
-
-            DeployState::RollingBack { error } => {
-                // Attempt provider rollback if supported
-                let _ = self.provider.destroy(
-                    &self.config,
-                    self.environment.as_deref(),
-                );
-                if let Err(update_err) = self.update_state(StateStatus::Failed {
-                    error: error.clone()
-                }) {
-                    tracing::warn!("Failed to update state to Failed: {update_err}");
-                }
-                StateTransition::Continue(DeployState::Failed { error })
-            }
-
-            DeployState::Failed { error } => {
-                // Terminal — propagate error via Complete(Err(...))
-                StateTransition::Complete(Err(
-                    DeploymentError::DeployRejected { reason: error }
-                ))
-            }
-
-            DeployState::Skipped { reason } => {
-                StateTransition::Complete(Ok(
-                    crate::core::types::DeploymentResult::skipped(&reason)
-                ))
-            }
+            DeployState::RollingBack { error } => self.transition_rolling_back(error),
+            DeployState::Failed { error } => Self::transition_failed(error),
+            DeployState::Skipped { ref reason } => Self::transition_skipped(reason),
         }
     }
 }

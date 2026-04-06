@@ -1,6 +1,6 @@
-//! Standard OpenAPI spec fetcher for providers with simple HTTP GET requirements.
+//! Standard `` `OpenAPI` `` spec fetcher for providers with simple HTTP GET requirements.
 //!
-//! Uses curl via std::process::Command to fetch OpenAPI specs from public URLs.
+//! Uses curl via `` `std::process::Command` `` to fetch `` `OpenAPI` `` specs from public URLs.
 //! This is a simple, reliable approach for providers without custom auth requirements.
 
 use crate::error::DeploymentError;
@@ -9,20 +9,24 @@ use std::path::PathBuf;
 use std::process::Command;
 use tracing::{debug, info};
 
-/// Fetch a standard OpenAPI spec from a URL and write it to the output directory.
+/// Fetch a standard `` `OpenAPI` `` spec from a URL and write it to the output directory.
 ///
-/// This function is used by providers that have publicly accessible OpenAPI specs
+/// This function is used by providers that have publicly accessible `` `OpenAPI` `` specs
 /// without custom authentication requirements.
 ///
 /// # Arguments
 ///
 /// * `provider_name` - Name of the provider (used for logging and filename)
-/// * `spec_url` - URL to fetch the OpenAPI spec from
+/// * `spec_url` - URL to fetch the `` `OpenAPI` `` spec from
 /// * `output_dir` - Directory to write the spec to
 ///
 /// # Returns
 ///
-/// StreamIterator yielding Result<PathBuf, DeploymentError> when complete.
+/// `` `StreamIterator` `` yielding `` `Result` ``<`` `PathBuf` ``, `` `DeploymentError` ``> when complete.
+///
+/// # Errors
+///
+/// Returns `DeploymentError` if the HTTP fetch fails or writing the file fails.
 pub fn fetch_standard_spec(
     provider_name: &str,
     spec_url: &str,
@@ -39,10 +43,9 @@ pub fn fetch_standard_spec(
 
         // Ensure output directory exists
         std::fs::create_dir_all(&output_dir).map_err(|e| {
-            DeploymentError::IoError(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("Failed to create output directory: {e}"),
-            ))
+            DeploymentError::IoError(std::io::Error::other(format!(
+                "Failed to create output directory: {e}"
+            )))
         })?;
 
         // Fetch using curl
@@ -72,15 +75,14 @@ pub fn fetch_standard_spec(
 
         // Read and validate as JSON
         let content = std::fs::read_to_string(&output_path).map_err(|e| {
-            DeploymentError::IoError(std::io::Error::new(
-                std::io::ErrorKind::Other,
-                format!("Failed to read fetched spec: {e}"),
-            ))
+            DeploymentError::IoError(std::io::Error::other(format!(
+                "Failed to read fetched spec: {e}"
+            )))
         })?;
 
         let spec: serde_json::Value = serde_json::from_str(&content).map_err(|e| {
             DeploymentError::ConfigInvalid {
-                file: format!("{} OpenAPI spec", provider_name),
+                file: format!("{provider_name} OpenAPI spec"),
                 reason: format!("Invalid JSON: {e}"),
             }
         })?;

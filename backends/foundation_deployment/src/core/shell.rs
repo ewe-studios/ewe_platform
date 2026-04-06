@@ -84,6 +84,7 @@ pub struct ShellExecutor {
 
 impl ShellExecutor {
     /// Create a new executor for the given command.
+    #[must_use]
     pub fn new(command: &str) -> Self {
         Self {
             command: command.to_string(),
@@ -94,12 +95,14 @@ impl ShellExecutor {
     }
 
     /// Append a single argument.
+    #[must_use]
     pub fn arg<S: AsRef<OsStr>>(mut self, arg: S) -> Self {
         self.args.push(arg.as_ref().to_string_lossy().into_owned());
         self
     }
 
     /// Append multiple arguments.
+    #[must_use]
     pub fn args<I, S>(mut self, args: I) -> Self
     where
         I: IntoIterator<Item = S>,
@@ -112,6 +115,7 @@ impl ShellExecutor {
     }
 
     /// Set an environment variable for the child process.
+    #[must_use]
     pub fn env<K: AsRef<OsStr>, V: AsRef<OsStr>>(mut self, key: K, val: V) -> Self {
         self.envs.push((
             key.as_ref().to_string_lossy().into_owned(),
@@ -121,6 +125,7 @@ impl ShellExecutor {
     }
 
     /// Set the working directory for the child process.
+    #[must_use]
     pub fn current_dir<P: AsRef<Path>>(mut self, dir: P) -> Self {
         self.working_dir = Some(dir.as_ref().to_path_buf());
         self

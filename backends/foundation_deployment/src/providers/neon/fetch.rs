@@ -1,8 +1,8 @@
-//! Neon OpenAPI spec fetcher.
+//! Neon `` `OpenAPI` `` spec fetcher.
 //!
 //! WHY: Neon is a serverless Postgres platform used as a deployment backend.
 //!
-//! WHAT: Fetches the Neon v2 API OpenAPI spec and writes it to the provider's
+//! WHAT: Fetches the Neon v2 API `` `OpenAPI` `` spec and writes it to the provider's
 //! output directory.
 //!
 //! HOW: Delegates to `standard::fetch::fetch_standard_spec` for HTTP download.
@@ -16,13 +16,17 @@ use crate::providers::standard;
 use foundation_core::valtron::StreamIterator;
 use std::path::PathBuf;
 
-/// Neon v2 API OpenAPI spec URL.
+/// Neon v2 API `` `OpenAPI` `` spec URL.
 pub const SPEC_URL: &str = "https://neon.com/api_spec/release/v2.json";
 
 /// Provider identifier.
 pub const PROVIDER_NAME: &str = "neon";
 
-/// Fetch the Neon OpenAPI spec.
+/// Fetch the Neon `` `OpenAPI` `` spec.
+///
+/// # Errors
+///
+/// Returns `DeploymentError` if the HTTP fetch fails or writing the file fails.
 pub fn fetch_neon_specs(
     output_dir: PathBuf,
 ) -> Result<
@@ -33,6 +37,11 @@ pub fn fetch_neon_specs(
 }
 
 /// Process a fetched Neon spec.
+///
+/// # Returns
+///
+/// Returns a `ProcessedSpec` with extracted endpoints and metadata.
+#[must_use]
 pub fn process_spec(spec: &serde_json::Value) -> ProcessedSpec {
     openapi::process_spec(spec)
 }

@@ -97,20 +97,16 @@ pub fn fetch_gcp_specs(
 > {
     let pool = client.client_pool().expect("should have pool");
     let config = client.client_config();
-
-    // Wrap output_dir in Arc for use across closure boundaries
     let output_dir = Arc::new(output_dir);
 
     debug!("GCP fetch: output_dir={:?}", output_dir);
 
-    // Stage 1: Build directory fetch request
     let request = client
         .get(GCP_DISCOVERY_URL)
         .map_err(|e| DeploymentError::Generic(format!("Failed to build request: {e}")))?
         .build()
         .map_err(|e| DeploymentError::Generic(format!("Failed to build request: {e}")))?;
 
-    // Stage 1: Fetch directory
     let directory_stream = SendRequestTask::new(request, 5, pool.clone(), config.clone())
         .map_ready(|intro| match intro {
             RequestIntro::Success { stream, .. } => {
@@ -121,115 +117,116 @@ pub fn fetch_gcp_specs(
             }
             RequestIntro::Failed(e) => {
                 error!("GCP directory fetch failed: {e}");
-                Err(DeploymentError::Generic(format!(
-                    "HTTP request failed: {e}"
-                )))
+                Err(DeploymentError::Generic(format!("HTTP request failed: {e}")))
             }
         })
         .map_pending(|_| GcpFetchPending::FetchingDirectory);
 
-    // Execute directory fetch
     let executed = execute(directory_stream, None)
         .map_err(|e| DeploymentError::Generic(format!("Valtron scheduling failed: {e}")))?;
 
-    // Stage 2: Transform directory result into API spec fetch stream using map_iter_done
     let api_fetch_stream = executed.map_iter_done(move |directory_result| {
-        match directory_result {
-            Ok(directory) => {
-                let total_apis = directory.items.len();
-                info!("gcp: Found {} APIs in directory", total_apis);
-
-                // Select only the latest version of each API.
-                // The directory lists multiple versions per API (e.g. compute:v1,
-                // compute:beta, compute:alpha). We group by name and pick the best
-                // version for each using: preferred flag > stable > beta > alpha,
-                // then highest version number within each tier.
-                let latest_items = select_latest_versions(directory.items);
-
-                info!(
-                    "gcp: {} total entries, {} unique APIs (latest versions only)",
-                    total_apis,
-                    latest_items.len()
-                );
-
-                // Apply optional name filter
-                let filtered_items: Vec<GcpApiEntry> = if let Some(ref filter) = api_filter {
-                    latest_items
-                        .into_iter()
-                        .filter(|item| filter.contains(&item.name))
-                        .collect()
-                } else {
-                    latest_items
-                };
-
-                info!(
-                    "gcp: Fetching {} APIs after filter",
-                    filtered_items.len()
-                );
-
-                // Create fetch streams for all APIs - execute each task immediately
-                let mut streams: Vec<Box<dyn StreamIterator<D = _, P = _, Item = _> + Send>> =
-                    Vec::new();
-
-                for entry in filtered_items {
-                    let output_dir = Arc::clone(&output_dir);
-                    match create_api_fetch_task(entry, pool.clone(), config.clone()) {
-                        Ok(task) => match execute(task, None) {
-                            Ok(stream) => streams.push(Box::new(stream.map_done(move |result| {
-                                match result {
-                                    Some(Ok((entry, spec))) => {
-                                        info!("Fetched: {} ({})", entry.name, entry.version);
-                                        // Write this single spec immediately
-                                        let write_result =
-                                            write_single_spec(&output_dir, &entry, &spec);
-                                        match write_result {
-                                            Ok(path) => {
-                                                info!(
-                                                    "Written to: {} ({}) - {:?}",
-                                                    entry.name, entry.version, &path
-                                                );
-                                                Ok(path)
-                                            }
-                                            Err(e) => {
-                                                error!("Failed to write {}: {}", entry.name, e);
-                                                Err(e)
-                                            }
-                                        }
-                                    }
-                                    Some(Err(e)) => {
-                                        warn!("Spec fetch failed for API: {}", e);
-                                        Err(e)
-                                    }
-                                    None => unreachable!(
-                                        "collect_next_from_streams should not produce None"
-                                    ),
-                                }
-                            }))),
-                            Err(e) => warn!("Failed to execute fetch task: {}", e),
-                        },
-                        Err(e) => warn!("Failed to create fetch task: {}", e),
-                    }
-                }
-
-                // Write each API spec as soon as it's fetched to avoid OOM.
-                // Each stream produces one (entry, spec) result, which we write immediately.
-                tracing::info!("Collecting results from {} streams", streams.len());
-                Box::new(
-                    collect_next_from_streams(streams)
-                        .map_pending(|_| GcpFetchPending::FetchingApiSpecs { remaining: 0 }),
-                ) as ApiFetchStream
-            }
-            Err(e) => {
-                error!("Failed to successfully fetch GCP API specs: {}", e);
-                Box::new(
-                    one_shot::<_, GcpFetchPending>(Err(e))
-                        .map_pending(|_| GcpFetchPending::FetchingApiSpecs { remaining: 0 }),
-                ) as ApiFetchStream
-            }
-        }
+        create_api_fetches_result(
+            directory_result,
+            api_filter.clone(),
+            &output_dir,
+            &pool,
+            &config,
+        )
     });
 
     Ok(api_fetch_stream)
+}
+
+/// Helper to create API fetch streams from directory result.
+#[allow(clippy::needless_pass_by_value)]
+fn create_api_fetches_result(
+    directory_result: Result<GcpDirectoryResponse, DeploymentError>,
+    api_filter: Option<Vec<String>>,
+    output_dir: &Arc<PathBuf>,
+    pool: &Arc<HttpConnectionPool<SystemDnsResolver>>,
+    config: &ClientConfig,
+) -> ApiFetchStream {
+    match directory_result {
+        Ok(directory) => {
+            let total_apis = directory.items.len();
+            info!("gcp: Found {} APIs in directory", total_apis);
+
+            let latest_items = select_latest_versions(directory.items);
+
+            info!(
+                "gcp: {} total entries, {} unique APIs (latest versions only)",
+                total_apis,
+                latest_items.len()
+            );
+
+            let filtered_items: Vec<GcpApiEntry> = if let Some(filter) = &api_filter {
+                latest_items
+                    .into_iter()
+                    .filter(|item| filter.contains(&item.name))
+                    .collect()
+            } else {
+                latest_items
+            };
+
+            info!("gcp: Fetching {} APIs after filter", filtered_items.len());
+
+            let mut streams: Vec<Box<dyn StreamIterator<D = _, P = _, Item = _> + Send>> =
+                Vec::new();
+
+            for entry in filtered_items {
+                let output_dir = Arc::clone(output_dir);
+                if let Ok(task) = create_api_fetch_task(entry, pool.clone(), config.clone()) {
+                    if let Ok(stream) = execute(task, None) {
+                        streams.push(Box::new(stream.map_done(move |result| {
+                            match result {
+                                Some(Ok((entry, spec))) => {
+                                    info!("Fetched: {} ({})", entry.name, entry.version);
+                                    match write_single_spec(&output_dir, &entry, &spec) {
+                                        Ok(path) => {
+                                            info!(
+                                                "Written to: {} ({}) - {:?}",
+                                                entry.name, entry.version, &path
+                                            );
+                                            Ok(path)
+                                        }
+                                        Err(e) => {
+                                            error!("Failed to write {}: {}", entry.name, e);
+                                            Err(e)
+                                        }
+                                    }
+                                }
+                                Some(Err(e)) => {
+                                    warn!("Spec fetch failed for API: {}", e);
+                                    Err(e)
+                                }
+                                None => unreachable!(
+                                    "collect_next_from_streams should not produce None"
+                                ),
+                            }
+                        })));
+                    } else {
+                        warn!("Failed to execute fetch task");
+                    }
+                } else {
+                    warn!("Failed to create fetch task");
+                }
+            }
+
+            tracing::info!("Collecting results from {} streams", streams.len());
+            Box::new(
+                collect_next_from_streams(streams)
+                    .map_pending(|_| GcpFetchPending::FetchingApiSpecs { remaining: 0 }),
+            ) as ApiFetchStream
+        }
+        Err(e) => {
+            error!("Failed to successfully fetch GCP API specs: {}", e);
+            Box::new(
+                one_shot::<_, GcpFetchPending>(Err(e))
+                    .map_pending(|_| GcpFetchPending::FetchingApiSpecs { remaining: 0 }),
+            ) as ApiFetchStream
+        }
+    }
 }
 
 /// Create a task to fetch a single API spec.

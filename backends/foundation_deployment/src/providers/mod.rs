@@ -2,7 +2,7 @@
 //!
 //! Each provider gets its own directory containing:
 //! - `provider.rs` — `DeploymentProvider` trait implementation
-//! - `fetch.rs` — OpenAPI spec fetcher
+//! - `fetch.rs` — `OpenAPI` spec fetcher
 //! - `resources.rs` — (future) auto-generated resource types from the spec
 
 pub mod aws;

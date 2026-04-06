@@ -26,6 +26,7 @@ impl DeploymentTarget {
     /// Detect provider from project directory by checking for native config files.
     ///
     /// Returns the first matching provider, or `None` if no config file is found.
+    #[must_use]
     pub fn detect(project_dir: &Path) -> Option<Self> {
         if project_dir.join("wrangler.toml").exists() {
             Some(Self::Cloudflare)
@@ -39,6 +40,7 @@ impl DeploymentTarget {
     }
 
     /// Returns the native config file name for this provider.
+    #[must_use]
     pub fn config_file(self) -> &'static str {
         match self {
             Self::Cloudflare => "wrangler.toml",
@@ -48,6 +50,7 @@ impl DeploymentTarget {
     }
 
     /// Create a target from a provider name string.
+    #[must_use]
     pub fn from_provider_name(name: &str) -> Option<Self> {
         match name {
             "cloudflare" => Some(Self::Cloudflare),
@@ -58,6 +61,7 @@ impl DeploymentTarget {
     }
 
     /// Returns the canonical provider name string.
+    #[must_use]
     pub fn provider_name(self) -> &'static str {
         match self {
             Self::Cloudflare => "cloudflare",

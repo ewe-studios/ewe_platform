@@ -1,9 +1,9 @@
-//! Stripe OpenAPI spec fetcher.
+//! Stripe `OpenAPI` spec fetcher.
 //!
 //! WHY: Stripe is a payment processing platform whose API is critical for
 //! applications that handle billing and subscriptions.
 //!
-//! WHAT: Fetches the Stripe OpenAPI 3.0 spec from GitHub and writes it to
+//! WHAT: Fetches the Stripe `OpenAPI` 3.0 spec from GitHub and writes it to
 //! the provider's output directory.
 //!
 //! HOW: Delegates to `standard::fetch::fetch_standard_spec` for HTTP download.
@@ -16,14 +16,18 @@ use crate::providers::standard;
 use foundation_core::valtron::StreamIterator;
 use std::path::PathBuf;
 
-/// Stripe OpenAPI 3.0 spec URL (from GitHub raw).
+/// Stripe `OpenAPI` 3.0 spec URL (from GitHub raw).
 pub const SPEC_URL: &str =
     "https://raw.githubusercontent.com/stripe/openapi/master/openapi/spec3.json";
 
 /// Provider identifier.
 pub const PROVIDER_NAME: &str = "stripe";
 
-/// Fetch the Stripe OpenAPI spec.
+/// Fetch the Stripe `OpenAPI` spec.
+///
+/// # Errors
+///
+/// Returns `DeploymentError` if the HTTP fetch fails or writing the file fails.
 pub fn fetch_stripe_specs(
     output_dir: PathBuf,
 ) -> Result<
@@ -37,6 +41,11 @@ pub fn fetch_stripe_specs(
 ///
 /// Stripe's spec is large (~10MB+), so the content hash computation
 /// may take longer than other providers.
+///
+/// # Returns
+///
+/// Returns a `ProcessedSpec` with extracted endpoints and metadata.
+#[must_use]
 pub fn process_spec(spec: &serde_json::Value) -> ProcessedSpec {
     openapi::process_spec(spec)
 }

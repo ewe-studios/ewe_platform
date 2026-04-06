@@ -1,18 +1,18 @@
-//! Shared OpenAPI 3.x extraction utilities.
+//! Shared `` `OpenAPI` `` 3.x extraction utilities.
 //!
-//! WHY: All standard providers use OpenAPI 3.0 format with the same structure
+//! WHY: All standard providers use `` `OpenAPI` `` 3.0 format with the same structure
 //! for version info and endpoint paths. Centralizing extraction avoids
 //! duplicating identical logic across provider modules.
 //!
 //! WHAT: Functions to extract version strings, API endpoints, and content
-//! hashes from parsed OpenAPI JSON specs.
+//! hashes from parsed `` `OpenAPI` `` JSON specs.
 //!
 //! HOW: Reads `info.version` for versions, iterates `paths` for endpoints,
 //! and hashes the serialized JSON for change detection.
 
 use serde::{Deserialize, Serialize};
 
-/// A single API endpoint extracted from an OpenAPI spec.
+/// A single API endpoint extracted from an `` `OpenAPI` `` spec.
 #[derive(Debug, Clone, PartialEq, Serialize, Deserialize)]
 pub struct ApiEndpoint {
     /// URL path (e.g. "/v1/projects").
@@ -25,7 +25,7 @@ pub struct ApiEndpoint {
     pub summary: Option<String>,
 }
 
-/// Processed result from an OpenAPI spec.
+/// Processed result from an `` `OpenAPI` `` spec.
 #[derive(Debug, Clone)]
 pub struct ProcessedSpec {
     /// API version extracted from `info.version`.
@@ -36,7 +36,7 @@ pub struct ProcessedSpec {
     pub content_hash: String,
 }
 
-/// Extract the API version from an OpenAPI spec's `info.version` field.
+/// Extract the API version from an `` `OpenAPI` `` spec's `info.version` field.
 pub fn extract_version(spec: &serde_json::Value) -> Option<String> {
     spec.get("info")
         .and_then(|info| info.get("version"))
@@ -44,9 +44,10 @@ pub fn extract_version(spec: &serde_json::Value) -> Option<String> {
         .map(String::from)
 }
 
-/// Extract API endpoints from an OpenAPI spec's `paths` object.
+/// Extract API endpoints from an `` `OpenAPI` `` spec's `paths` object.
 ///
 /// Each HTTP method on each path becomes a separate `ApiEndpoint`.
+#[must_use]
 pub fn extract_endpoints(spec: &serde_json::Value) -> Option<Vec<ApiEndpoint>> {
     let paths_obj = spec.get("paths").and_then(|p| p.as_object())?;
 
@@ -91,6 +92,7 @@ pub fn extract_endpoints(spec: &serde_json::Value) -> Option<Vec<ApiEndpoint>> {
 ///
 /// Uses `DefaultHasher` for speed — not cryptographic, just for detecting
 /// whether a spec has changed between fetches.
+#[must_use]
 pub fn compute_content_hash(content: &str) -> String {
     use std::collections::hash_map::DefaultHasher;
     use std::hash::{Hash, Hasher};
@@ -100,7 +102,8 @@ pub fn compute_content_hash(content: &str) -> String {
     format!("{:016x}", hasher.finish())
 }
 
-/// Process an OpenAPI spec JSON into version, endpoints, and hash.
+/// Process an `` `OpenAPI` `` spec JSON into version, endpoints, and hash.
+#[must_use]
 pub fn process_spec(spec: &serde_json::Value) -> ProcessedSpec {
     let version = extract_version(spec);
     let endpoints = extract_endpoints(spec);

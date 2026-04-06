@@ -15,11 +15,13 @@ use std::sync::Arc;
 
 use foundation_core::valtron::ThreadedValue;
 
-use crate::backends::async_utils::{exec_future, schedule_future};
-use crate::errors::StorageError;
-use super::sqlite::{CREATE_TABLE_SQL, UPSERT_SQL, parse_resource_row, state_to_params, to_state_stream};
+use super::sqlite::{
+    parse_resource_row, state_to_params, to_state_stream, CREATE_TABLE_SQL, UPSERT_SQL,
+};
 use super::traits::{StateStore, StateStoreStream};
 use super::types::ResourceState;
+use crate::backends::async_utils::{exec_future, schedule_future};
+use crate::errors::StorageError;
 
 /// Remote-first Turso state store via libsql.
 ///
@@ -39,9 +41,7 @@ impl TursoStateStore {
     pub fn remote(turso_url: &str, auth_token: &str) -> Result<Self, StorageError> {
         let url = turso_url.to_string();
         let token = auth_token.to_string();
-        let db = exec_future(async move {
-            libsql::Builder::new_remote(url, token).build().await
-        })?;
+        let db = exec_future(async move { libsql::Builder::new_remote(url, token).build().await })?;
         let conn = db
             .connect()
             .map_err(|e| StorageError::Connection(format!("Turso connection failed: {e}")))?;
@@ -72,9 +72,9 @@ impl TursoStateStore {
                 .build()
                 .await
         })?;
-        let conn = db
-            .connect()
-            .map_err(|e| StorageError::Connection(format!("Turso replica connection failed: {e}")))?;
+        let conn = db.connect().map_err(|e| {
+            StorageError::Connection(format!("Turso replica connection failed: {e}"))
+        })?;
         Ok(Self {
             conn: Arc::new(conn),
             db: Arc::new(db),
@@ -91,12 +91,10 @@ impl TursoStateStore {
     ///
     /// Returns an error if required env vars are missing or connection fails.
     pub fn from_env() -> Result<Self, StorageError> {
-        let url = std::env::var("TURSO_DATABASE_URL").map_err(|_| {
-            StorageError::Connection("TURSO_DATABASE_URL must be set".to_string())
-        })?;
-        let token = std::env::var("TURSO_AUTH_TOKEN").map_err(|_| {
-            StorageError::Connection("TURSO_AUTH_TOKEN must be set".to_string())
-        })?;
+        let url = std::env::var("TURSO_DATABASE_URL")
+            .map_err(|_| StorageError::Connection("TURSO_DATABASE_URL must be set".to_string()))?;
+        let token = std::env::var("TURSO_AUTH_TOKEN")
+            .map_err(|_| StorageError::Connection("TURSO_AUTH_TOKEN must be set".to_string()))?;
         match std::env::var("TURSO_LOCAL_REPLICA") {
             Ok(path) => Self::embedded_replica(Path::new(&path), &url, &token),
             Err(_) => Self::remote(&url, &token),
@@ -129,9 +127,9 @@ impl StateStore for TursoStateStore {
         use foundation_core::valtron::{ShortCircuit, Stream, StreamIteratorExt};
         let circuit = stream.map_circuit(|item| match item {
             Stream::Next(Ok(ids)) => ShortCircuit::Continue(Stream::Next(Ok(ids))),
-            Stream::Next(Err(e)) => ShortCircuit::ReturnAndStop(Stream::Next(Err(
-                StorageError::Backend(e.to_string()),
-            ))),
+            Stream::Next(Err(e)) => {
+                ShortCircuit::ReturnAndStop(Stream::Next(Err(StorageError::Backend(e.to_string()))))
+            }
             _ => ShortCircuit::Continue(Stream::Ignore),
         });
         let flat = circuit.flat_map_next(|result| match result {
@@ -180,7 +178,11 @@ impl StateStore for TursoStateStore {
                 .query([id])
                 .await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
-            match rows.next().await.map_err(|e| StorageError::Backend(e.to_string()))? {
+            match rows
+                .next()
+                .await
+                .map_err(|e| StorageError::Backend(e.to_string()))?
+            {
                 Some(row) => Ok::<_, StorageError>(Some(parse_resource_row(&row)?)),
                 None => Ok(None),
             }
@@ -205,7 +207,11 @@ impl StateStore for TursoStateStore {
                     .query([id.clone()])
                     .await
                     .map_err(|e| StorageError::Backend(e.to_string()))?;
-                if let Some(row) = rows.next().await.map_err(|e| StorageError::Backend(e.to_string()))? {
+                if let Some(row) = rows
+                    .next()
+                    .await
+                    .map_err(|e| StorageError::Backend(e.to_string()))?
+                {
                     results.push(parse_resource_row(&row)?);
                 }
             }
@@ -243,7 +249,11 @@ impl StateStore for TursoStateStore {
                 .await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
             let mut results = Vec::new();
-            while let Some(row) = rows.next().await.map_err(|e| StorageError::Backend(e.to_string()))? {
+            while let Some(row) = rows
+                .next()
+                .await
+                .map_err(|e| StorageError::Backend(e.to_string()))?
+            {
                 results.push(parse_resource_row(&row)?);
             }
             Ok::<_, StorageError>(results)

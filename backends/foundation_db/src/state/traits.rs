@@ -13,8 +13,8 @@
 
 use foundation_core::valtron::ThreadedValue;
 
-use crate::errors::StorageError;
 use super::types::ResourceState;
+use crate::errors::StorageError;
 
 /// Lazy stream of state store results.
 ///
@@ -61,7 +61,10 @@ pub trait StateStore: Send + Sync {
     /// # Errors
     ///
     /// Returns an error if scheduling or I/O fails.
-    fn get(&self, resource_id: &str) -> Result<StateStoreStream<Option<ResourceState>>, StorageError>;
+    fn get(
+        &self,
+        resource_id: &str,
+    ) -> Result<StateStoreStream<Option<ResourceState>>, StorageError>;
 
     /// Get state for multiple resources. Stream yields one `ResourceState` per match.
     ///
@@ -82,7 +85,11 @@ pub trait StateStore: Send + Sync {
     /// # Errors
     ///
     /// Returns an error if scheduling, serialization, or I/O fails.
-    fn set(&self, resource_id: &str, state: &ResourceState) -> Result<StateStoreStream<()>, StorageError>;
+    fn set(
+        &self,
+        resource_id: &str,
+        state: &ResourceState,
+    ) -> Result<StateStoreStream<()>, StorageError>;
 
     /// Delete state. Stream yields `()` on completion.
     ///
