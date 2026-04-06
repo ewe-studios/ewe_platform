@@ -92,7 +92,7 @@ impl TestHarness {
 
     /// Internal download function using foundation_deployment huggingface provider.
     fn download_model_internal(&self, repo_id: &str, filename: &str) -> Result<PathBuf, Box<dyn std::error::Error + Send + Sync>> {
-        use foundation_deployment::providers::huggingface::{HFClientBuilder, RepoDownloadFileParams};
+        use foundation_deployment::providers::huggingface::{HFClientBuilder, client, repository, RepoDownloadFileParams};
 
         // Initialize valtron pool for blocking execution
         let _guard = foundation_core::valtron::initialize_pool(42, Some(4));
@@ -117,16 +117,16 @@ impl TestHarness {
         let repo = client.model(owner, name);
 
         // Download to temp location first
-        let temp_path = std::env::temp_dir().join(filename);
+        let temp_dir = std::env::temp_dir();
         let params = RepoDownloadFileParams {
             filename: filename.to_string(),
             revision: None,
-            destination: Some(temp_path.clone()),
+            directory: temp_dir,
         };
 
-        repo.download_file(&params)?;
+        repository::repo_download_file(&repo, &params)?;
 
-        Ok(temp_path)
+        Ok(temp_dir.join(filename))
     }
 
     /// Get the default SmolLM2 model for testing.
