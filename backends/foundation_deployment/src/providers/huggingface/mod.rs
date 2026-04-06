@@ -16,6 +16,7 @@
 //! ```rust,no_run
 //! use foundation_deployment::providers::huggingface::{HFClient, client, repository, types};
 //!
+//! # fn main() -> Result<(), Box<dyn std::error::Error>> {
 //! // Initialize client
 //! let client = HFClient::builder().token("hf_...").build()?;
 //!
@@ -26,6 +27,8 @@
 //! // Repository operations
 //! let repo = client.model("owner", "repo-name");
 //! let info = repository::repo_info(&repo, &types::RepoInfoParams::default())?;
+//! # Ok(())
+//! # }
 //! ```
 
 pub mod client;

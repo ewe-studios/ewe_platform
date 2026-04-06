@@ -169,7 +169,8 @@ mod tests {
     fn test_harness_creation() {
         let temp_dir = std::env::temp_dir();
         let harness = TestHarness::new(&temp_dir);
-        assert!(harness.artefacts_dir.ends_with(DEFAULT_ARTEFACTS_DIR));
+        // artefacts_dir should be: temp_dir/artefacts/models
         assert!(harness.artefacts_dir.ends_with(MODELS_SUBDIR));
+        assert!(harness.artefacts_dir.parent().unwrap().ends_with(DEFAULT_ARTEFACTS_DIR));
     }
 }
