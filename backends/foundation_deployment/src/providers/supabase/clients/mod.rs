@@ -15,6 +15,8 @@ use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskI
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
+use foundation_macros::JsonHash;
+use serde::Serialize;
 
 /// GET /v1/branches/{branch_id_or_ref}
 /// Get database branch config
@@ -27,7 +29,7 @@ pub fn get_v1_branches_branch_id_or_ref_builder(
     branch_id_or_ref: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/branches/{}", branch_id_or_ref,);
+    let url = format!("https://api.supabase.com/v1/branches/{}", branch_id_or_ref,);
 
     // Build request
     let builder = client
@@ -73,9 +75,17 @@ pub fn get_v1_branches_branch_id_or_ref_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -97,6 +107,13 @@ pub fn get_v1_branches_branch_id_or_ref_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_branches_branch_id_or_ref`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1BranchesBranchIdOrRefArgs {
+    /// Path parameter: branch_id_or_ref
+    pub branch_id_or_ref: String,
+}
+
 /// GET /v1/branches/{branch_id_or_ref}
 /// Get database branch config
 ///
@@ -109,14 +126,14 @@ pub fn get_v1_branches_branch_id_or_ref_execute(
 
 pub fn get_v1_branches_branch_id_or_ref(
     client: &SimpleHttpClient,
-    branch_id_or_ref: &str,
+    args: &GetV1BranchesBranchIdOrRefArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BranchDetailResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_branches_branch_id_or_ref_builder(client, branch_id_or_ref)?;
+    let builder = get_v1_branches_branch_id_or_ref_builder(client, &args.branch_id_or_ref)?;
     get_v1_branches_branch_id_or_ref_execute(builder)
 }
 
@@ -132,7 +149,7 @@ pub fn patch_v1_branches_branch_id_or_ref_builder(
     body: &UpdateBranchBody,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/branches/{}", branch_id_or_ref,);
+    let url = format!("https://api.supabase.com/v1/branches/{}", branch_id_or_ref,);
 
     // Build request
     let builder = client
@@ -180,9 +197,17 @@ pub fn patch_v1_branches_branch_id_or_ref_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -204,6 +229,15 @@ pub fn patch_v1_branches_branch_id_or_ref_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_v1_branches_branch_id_or_ref`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchV1BranchesBranchIdOrRefArgs {
+    /// Path parameter: branch_id_or_ref
+    pub branch_id_or_ref: String,
+    /// Request body.
+    pub body: UpdateBranchBody,
+}
+
 /// PATCH /v1/branches/{branch_id_or_ref}
 /// Update database branch config
 ///
@@ -216,15 +250,15 @@ pub fn patch_v1_branches_branch_id_or_ref_execute(
 
 pub fn patch_v1_branches_branch_id_or_ref(
     client: &SimpleHttpClient,
-    branch_id_or_ref: &str,
-    body: &UpdateBranchBody,
+    args: &PatchV1BranchesBranchIdOrRefArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BranchResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = patch_v1_branches_branch_id_or_ref_builder(client, branch_id_or_ref, body)?;
+    let builder =
+        patch_v1_branches_branch_id_or_ref_builder(client, &args.branch_id_or_ref, &args.body)?;
     patch_v1_branches_branch_id_or_ref_execute(builder)
 }
 
@@ -240,7 +274,7 @@ pub fn delete_v1_branches_branch_id_or_ref_builder(
     force: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/branches/{}", branch_id_or_ref,);
+    let url = format!("https://api.supabase.com/v1/branches/{}", branch_id_or_ref,);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -297,9 +331,17 @@ pub fn delete_v1_branches_branch_id_or_ref_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -321,6 +363,15 @@ pub fn delete_v1_branches_branch_id_or_ref_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_v1_branches_branch_id_or_ref`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteV1BranchesBranchIdOrRefArgs {
+    /// Path parameter: branch_id_or_ref
+    pub branch_id_or_ref: String,
+    /// Query parameter: force
+    pub force: Option<bool>,
+}
+
 /// DELETE /v1/branches/{branch_id_or_ref}
 /// Delete a database branch
 ///
@@ -333,15 +384,15 @@ pub fn delete_v1_branches_branch_id_or_ref_execute(
 
 pub fn delete_v1_branches_branch_id_or_ref(
     client: &SimpleHttpClient,
-    branch_id_or_ref: &str,
-    force: Option<bool>,
+    args: &DeleteV1BranchesBranchIdOrRefArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BranchDeleteResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_branches_branch_id_or_ref_builder(client, branch_id_or_ref, force)?;
+    let builder =
+        delete_v1_branches_branch_id_or_ref_builder(client, &args.branch_id_or_ref, args.force)?;
     delete_v1_branches_branch_id_or_ref_execute(builder)
 }
 
@@ -359,7 +410,7 @@ pub fn get_v1_branches_branch_id_or_ref_diff_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/branches/{}/diff",
+        "https://api.supabase.com/v1/branches/{}/diff",
         branch_id_or_ref,
     );
 
@@ -419,9 +470,17 @@ pub fn get_v1_branches_branch_id_or_ref_diff_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -440,6 +499,17 @@ pub fn get_v1_branches_branch_id_or_ref_diff_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_branches_branch_id_or_ref_diff`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1BranchesBranchIdOrRefDiffArgs {
+    /// Path parameter: branch_id_or_ref
+    pub branch_id_or_ref: String,
+    /// Query parameter: included_schemas
+    pub included_schemas: Option<String>,
+    /// Query parameter: pgdelta
+    pub pgdelta: Option<bool>,
+}
+
 /// GET /v1/branches/{branch_id_or_ref}/diff
 /// [Beta] Diffs a database branch
 ///
@@ -452,18 +522,16 @@ pub fn get_v1_branches_branch_id_or_ref_diff_execute(
 
 pub fn get_v1_branches_branch_id_or_ref_diff(
     client: &SimpleHttpClient,
-    branch_id_or_ref: &str,
-    included_schemas: Option<&str>,
-    pgdelta: Option<bool>,
+    args: &GetV1BranchesBranchIdOrRefDiffArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = get_v1_branches_branch_id_or_ref_diff_builder(
         client,
-        branch_id_or_ref,
-        included_schemas,
-        pgdelta,
+        &args.branch_id_or_ref,
+        args.included_schemas.as_deref(),
+        args.pgdelta,
     )?;
     get_v1_branches_branch_id_or_ref_diff_execute(builder)
 }
@@ -481,7 +549,7 @@ pub fn post_v1_branches_branch_id_or_ref_merge_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/branches/{}/merge",
+        "https://api.supabase.com/v1/branches/{}/merge",
         branch_id_or_ref,
     );
 
@@ -531,9 +599,17 @@ pub fn post_v1_branches_branch_id_or_ref_merge_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -555,6 +631,15 @@ pub fn post_v1_branches_branch_id_or_ref_merge_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_branches_branch_id_or_ref_merge`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1BranchesBranchIdOrRefMergeArgs {
+    /// Path parameter: branch_id_or_ref
+    pub branch_id_or_ref: String,
+    /// Request body.
+    pub body: BranchActionBody,
+}
+
 /// POST /v1/branches/{branch_id_or_ref}/merge
 /// Merges a database branch
 ///
@@ -567,15 +652,18 @@ pub fn post_v1_branches_branch_id_or_ref_merge_execute(
 
 pub fn post_v1_branches_branch_id_or_ref_merge(
     client: &SimpleHttpClient,
-    branch_id_or_ref: &str,
-    body: &BranchActionBody,
+    args: &PostV1BranchesBranchIdOrRefMergeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BranchUpdateResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_branches_branch_id_or_ref_merge_builder(client, branch_id_or_ref, body)?;
+    let builder = post_v1_branches_branch_id_or_ref_merge_builder(
+        client,
+        &args.branch_id_or_ref,
+        &args.body,
+    )?;
     post_v1_branches_branch_id_or_ref_merge_execute(builder)
 }
 
@@ -592,7 +680,7 @@ pub fn post_v1_branches_branch_id_or_ref_push_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/branches/{}/push",
+        "https://api.supabase.com/v1/branches/{}/push",
         branch_id_or_ref,
     );
 
@@ -642,9 +730,17 @@ pub fn post_v1_branches_branch_id_or_ref_push_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -666,6 +762,15 @@ pub fn post_v1_branches_branch_id_or_ref_push_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_branches_branch_id_or_ref_push`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1BranchesBranchIdOrRefPushArgs {
+    /// Path parameter: branch_id_or_ref
+    pub branch_id_or_ref: String,
+    /// Request body.
+    pub body: BranchActionBody,
+}
+
 /// POST /v1/branches/{branch_id_or_ref}/push
 /// Pushes a database branch
 ///
@@ -678,15 +783,15 @@ pub fn post_v1_branches_branch_id_or_ref_push_execute(
 
 pub fn post_v1_branches_branch_id_or_ref_push(
     client: &SimpleHttpClient,
-    branch_id_or_ref: &str,
-    body: &BranchActionBody,
+    args: &PostV1BranchesBranchIdOrRefPushArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BranchUpdateResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_branches_branch_id_or_ref_push_builder(client, branch_id_or_ref, body)?;
+    let builder =
+        post_v1_branches_branch_id_or_ref_push_builder(client, &args.branch_id_or_ref, &args.body)?;
     post_v1_branches_branch_id_or_ref_push_execute(builder)
 }
 
@@ -703,7 +808,7 @@ pub fn post_v1_branches_branch_id_or_ref_reset_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/branches/{}/reset",
+        "https://api.supabase.com/v1/branches/{}/reset",
         branch_id_or_ref,
     );
 
@@ -753,9 +858,17 @@ pub fn post_v1_branches_branch_id_or_ref_reset_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -777,6 +890,15 @@ pub fn post_v1_branches_branch_id_or_ref_reset_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_branches_branch_id_or_ref_reset`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1BranchesBranchIdOrRefResetArgs {
+    /// Path parameter: branch_id_or_ref
+    pub branch_id_or_ref: String,
+    /// Request body.
+    pub body: BranchActionBody,
+}
+
 /// POST /v1/branches/{branch_id_or_ref}/reset
 /// Resets a database branch
 ///
@@ -789,15 +911,18 @@ pub fn post_v1_branches_branch_id_or_ref_reset_execute(
 
 pub fn post_v1_branches_branch_id_or_ref_reset(
     client: &SimpleHttpClient,
-    branch_id_or_ref: &str,
-    body: &BranchActionBody,
+    args: &PostV1BranchesBranchIdOrRefResetArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BranchUpdateResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_branches_branch_id_or_ref_reset_builder(client, branch_id_or_ref, body)?;
+    let builder = post_v1_branches_branch_id_or_ref_reset_builder(
+        client,
+        &args.branch_id_or_ref,
+        &args.body,
+    )?;
     post_v1_branches_branch_id_or_ref_reset_execute(builder)
 }
 
@@ -813,7 +938,7 @@ pub fn post_v1_branches_branch_id_or_ref_restore_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/branches/{}/restore",
+        "https://api.supabase.com/v1/branches/{}/restore",
         branch_id_or_ref,
     );
 
@@ -861,9 +986,17 @@ pub fn post_v1_branches_branch_id_or_ref_restore_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -885,6 +1018,13 @@ pub fn post_v1_branches_branch_id_or_ref_restore_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_branches_branch_id_or_ref_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1BranchesBranchIdOrRefRestoreArgs {
+    /// Path parameter: branch_id_or_ref
+    pub branch_id_or_ref: String,
+}
+
 /// POST /v1/branches/{branch_id_or_ref}/restore
 /// Restore a scheduled branch deletion
 ///
@@ -897,14 +1037,15 @@ pub fn post_v1_branches_branch_id_or_ref_restore_execute(
 
 pub fn post_v1_branches_branch_id_or_ref_restore(
     client: &SimpleHttpClient,
-    branch_id_or_ref: &str,
+    args: &PostV1BranchesBranchIdOrRefRestoreArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BranchRestoreResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_branches_branch_id_or_ref_restore_builder(client, branch_id_or_ref)?;
+    let builder =
+        post_v1_branches_branch_id_or_ref_restore_builder(client, &args.branch_id_or_ref)?;
     post_v1_branches_branch_id_or_ref_restore_execute(builder)
 }
 
@@ -928,7 +1069,7 @@ pub fn get_v1_oauth_authorize_builder(
     resource: Option<&str>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/oauth/authorize",);
+    let url = format!("https://api.supabase.com/v1/oauth/authorize",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1010,9 +1151,17 @@ pub fn get_v1_oauth_authorize_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1031,6 +1180,31 @@ pub fn get_v1_oauth_authorize_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_oauth_authorize`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1OauthAuthorizeArgs {
+    /// Query parameter: client_id
+    pub client_id: Option<String>,
+    /// Query parameter: response_type
+    pub response_type: Option<String>,
+    /// Query parameter: redirect_uri
+    pub redirect_uri: Option<String>,
+    /// Query parameter: scope
+    pub scope: Option<String>,
+    /// Query parameter: state
+    pub state: Option<String>,
+    /// Query parameter: response_mode
+    pub response_mode: Option<String>,
+    /// Query parameter: code_challenge
+    pub code_challenge: Option<String>,
+    /// Query parameter: code_challenge_method
+    pub code_challenge_method: Option<String>,
+    /// Query parameter: organization_slug
+    pub organization_slug: Option<String>,
+    /// Query parameter: resource
+    pub resource: Option<String>,
+}
+
 /// GET /v1/oauth/authorize
 /// [Beta] Authorize user through oauth
 ///
@@ -1043,32 +1217,23 @@ pub fn get_v1_oauth_authorize_execute(
 
 pub fn get_v1_oauth_authorize(
     client: &SimpleHttpClient,
-    client_id: Option<&str>,
-    response_type: Option<&str>,
-    redirect_uri: Option<&str>,
-    scope: Option<&str>,
-    state: Option<&str>,
-    response_mode: Option<&str>,
-    code_challenge: Option<&str>,
-    code_challenge_method: Option<&str>,
-    organization_slug: Option<&str>,
-    resource: Option<&str>,
+    args: &GetV1OauthAuthorizeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = get_v1_oauth_authorize_builder(
         client,
-        client_id,
-        response_type,
-        redirect_uri,
-        scope,
-        state,
-        response_mode,
-        code_challenge,
-        code_challenge_method,
-        organization_slug,
-        resource,
+        args.client_id.as_deref(),
+        args.response_type.as_deref(),
+        args.redirect_uri.as_deref(),
+        args.scope.as_deref(),
+        args.state.as_deref(),
+        args.response_mode.as_deref(),
+        args.code_challenge.as_deref(),
+        args.code_challenge_method.as_deref(),
+        args.organization_slug.as_deref(),
+        args.resource.as_deref(),
     )?;
     get_v1_oauth_authorize_execute(builder)
 }
@@ -1091,7 +1256,7 @@ pub fn get_v1_oauth_authorize_project_claim_builder(
     code_challenge_method: Option<&str>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/oauth/authorize/project-claim",);
+    let url = format!("https://api.supabase.com/v1/oauth/authorize/project-claim",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -1167,9 +1332,17 @@ pub fn get_v1_oauth_authorize_project_claim_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1188,6 +1361,27 @@ pub fn get_v1_oauth_authorize_project_claim_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_oauth_authorize_project_claim`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1OauthAuthorizeProjectClaimArgs {
+    /// Query parameter: project_ref
+    pub project_ref: Option<String>,
+    /// Query parameter: client_id
+    pub client_id: Option<String>,
+    /// Query parameter: response_type
+    pub response_type: Option<String>,
+    /// Query parameter: redirect_uri
+    pub redirect_uri: Option<String>,
+    /// Query parameter: state
+    pub state: Option<String>,
+    /// Query parameter: response_mode
+    pub response_mode: Option<String>,
+    /// Query parameter: code_challenge
+    pub code_challenge: Option<String>,
+    /// Query parameter: code_challenge_method
+    pub code_challenge_method: Option<String>,
+}
+
 /// GET /v1/oauth/authorize/project-claim
 /// Authorize user through oauth and claim a project
 ///
@@ -1200,28 +1394,21 @@ pub fn get_v1_oauth_authorize_project_claim_execute(
 
 pub fn get_v1_oauth_authorize_project_claim(
     client: &SimpleHttpClient,
-    project_ref: Option<&str>,
-    client_id: Option<&str>,
-    response_type: Option<&str>,
-    redirect_uri: Option<&str>,
-    state: Option<&str>,
-    response_mode: Option<&str>,
-    code_challenge: Option<&str>,
-    code_challenge_method: Option<&str>,
+    args: &GetV1OauthAuthorizeProjectClaimArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = get_v1_oauth_authorize_project_claim_builder(
         client,
-        project_ref,
-        client_id,
-        response_type,
-        redirect_uri,
-        state,
-        response_mode,
-        code_challenge,
-        code_challenge_method,
+        args.project_ref.as_deref(),
+        args.client_id.as_deref(),
+        args.response_type.as_deref(),
+        args.redirect_uri.as_deref(),
+        args.state.as_deref(),
+        args.response_mode.as_deref(),
+        args.code_challenge.as_deref(),
+        args.code_challenge_method.as_deref(),
     )?;
     get_v1_oauth_authorize_project_claim_execute(builder)
 }
@@ -1237,7 +1424,7 @@ pub fn post_v1_oauth_revoke_builder(
     body: &OAuthRevokeTokenBody,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/oauth/revoke",);
+    let url = format!("https://api.supabase.com/v1/oauth/revoke",);
 
     // Build request
     let builder = client
@@ -1283,9 +1470,17 @@ pub fn post_v1_oauth_revoke_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1304,6 +1499,13 @@ pub fn post_v1_oauth_revoke_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_oauth_revoke`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1OauthRevokeArgs {
+    /// Request body.
+    pub body: OAuthRevokeTokenBody,
+}
+
 /// POST /v1/oauth/revoke
 /// [Beta] Revoke oauth app authorization and it's corresponding tokens
 ///
@@ -1316,12 +1518,12 @@ pub fn post_v1_oauth_revoke_execute(
 
 pub fn post_v1_oauth_revoke(
     client: &SimpleHttpClient,
-    body: &OAuthRevokeTokenBody,
+    args: &PostV1OauthRevokeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_oauth_revoke_builder(client, body)?;
+    let builder = post_v1_oauth_revoke_builder(client, &args.body)?;
     post_v1_oauth_revoke_execute(builder)
 }
 
@@ -1335,7 +1537,7 @@ pub fn post_v1_oauth_token_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/oauth/token",);
+    let url = format!("https://api.supabase.com/v1/oauth/token",);
 
     // Build request
     let builder = client
@@ -1381,9 +1583,17 @@ pub fn post_v1_oauth_token_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1437,7 +1647,7 @@ pub fn get_v1_organizations_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/organizations",);
+    let url = format!("https://api.supabase.com/v1/organizations",);
 
     // Build request
     let builder = client
@@ -1481,9 +1691,17 @@ pub fn get_v1_organizations_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1533,7 +1751,7 @@ pub fn post_v1_organizations_builder(
     body: &CreateOrganizationV1,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/organizations",);
+    let url = format!("https://api.supabase.com/v1/organizations",);
 
     // Build request
     let builder = client
@@ -1581,9 +1799,17 @@ pub fn post_v1_organizations_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1605,6 +1831,13 @@ pub fn post_v1_organizations_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_organizations`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1OrganizationsArgs {
+    /// Request body.
+    pub body: CreateOrganizationV1,
+}
+
 /// POST /v1/organizations
 /// Create an organization
 ///
@@ -1617,14 +1850,14 @@ pub fn post_v1_organizations_execute(
 
 pub fn post_v1_organizations(
     client: &SimpleHttpClient,
-    body: &CreateOrganizationV1,
+    args: &PostV1OrganizationsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<OrganizationResponseV1>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_organizations_builder(client, body)?;
+    let builder = post_v1_organizations_builder(client, &args.body)?;
     post_v1_organizations_execute(builder)
 }
 
@@ -1639,7 +1872,7 @@ pub fn get_v1_organizations_slug_builder(
     slug: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/organizations/{}", slug,);
+    let url = format!("https://api.supabase.com/v1/organizations/{}", slug,);
 
     // Build request
     let builder = client
@@ -1687,9 +1920,17 @@ pub fn get_v1_organizations_slug_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1711,6 +1952,13 @@ pub fn get_v1_organizations_slug_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_organizations_slug`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1OrganizationsSlugArgs {
+    /// Path parameter: slug
+    pub slug: String,
+}
+
 /// GET /v1/organizations/{slug}
 /// Gets information about the organization
 ///
@@ -1723,7 +1971,7 @@ pub fn get_v1_organizations_slug_execute(
 
 pub fn get_v1_organizations_slug(
     client: &SimpleHttpClient,
-    slug: &str,
+    args: &GetV1OrganizationsSlugArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<V1OrganizationSlugResponse>, ApiError>,
@@ -1732,7 +1980,7 @@ pub fn get_v1_organizations_slug(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_organizations_slug_builder(client, slug)?;
+    let builder = get_v1_organizations_slug_builder(client, &args.slug)?;
     get_v1_organizations_slug_execute(builder)
 }
 
@@ -1748,7 +1996,7 @@ pub fn get_v1_organizations_slug_entitlements_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/organizations/{}/entitlements",
+        "https://api.supabase.com/v1/organizations/{}/entitlements",
         slug,
     );
 
@@ -1798,9 +2046,17 @@ pub fn get_v1_organizations_slug_entitlements_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1822,6 +2078,13 @@ pub fn get_v1_organizations_slug_entitlements_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_organizations_slug_entitlements`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1OrganizationsSlugEntitlementsArgs {
+    /// Path parameter: slug
+    pub slug: String,
+}
+
 /// GET /v1/organizations/{slug}/entitlements
 /// Get entitlements for an organization
 ///
@@ -1834,7 +2097,7 @@ pub fn get_v1_organizations_slug_entitlements_execute(
 
 pub fn get_v1_organizations_slug_entitlements(
     client: &SimpleHttpClient,
-    slug: &str,
+    args: &GetV1OrganizationsSlugEntitlementsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<V1ListEntitlementsResponse>, ApiError>,
@@ -1843,7 +2106,7 @@ pub fn get_v1_organizations_slug_entitlements(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_organizations_slug_entitlements_builder(client, slug)?;
+    let builder = get_v1_organizations_slug_entitlements_builder(client, &args.slug)?;
     get_v1_organizations_slug_entitlements_execute(builder)
 }
 
@@ -1858,7 +2121,7 @@ pub fn get_v1_organizations_slug_members_builder(
     slug: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/organizations/{}/members", slug,);
+    let url = format!("https://api.supabase.com/v1/organizations/{}/members", slug,);
 
     // Build request
     let builder = client
@@ -1902,9 +2165,17 @@ pub fn get_v1_organizations_slug_members_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -1923,6 +2194,13 @@ pub fn get_v1_organizations_slug_members_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_organizations_slug_members`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1OrganizationsSlugMembersArgs {
+    /// Path parameter: slug
+    pub slug: String,
+}
+
 /// GET /v1/organizations/{slug}/members
 /// List members of an organization
 ///
@@ -1935,12 +2213,12 @@ pub fn get_v1_organizations_slug_members_execute(
 
 pub fn get_v1_organizations_slug_members(
     client: &SimpleHttpClient,
-    slug: &str,
+    args: &GetV1OrganizationsSlugMembersArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_organizations_slug_members_builder(client, slug)?;
+    let builder = get_v1_organizations_slug_members_builder(client, &args.slug)?;
     get_v1_organizations_slug_members_execute(builder)
 }
 
@@ -1957,7 +2235,7 @@ pub fn get_v1_organizations_slug_project_claim_token_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/organizations/{}/project-claim/{}",
+        "https://api.supabase.com/v1/organizations/{}/project-claim/{}",
         slug, token,
     );
 
@@ -2007,9 +2285,17 @@ pub fn get_v1_organizations_slug_project_claim_token_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2031,6 +2317,15 @@ pub fn get_v1_organizations_slug_project_claim_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_organizations_slug_project_claim_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1OrganizationsSlugProjectClaimTokenArgs {
+    /// Path parameter: slug
+    pub slug: String,
+    /// Path parameter: token
+    pub token: String,
+}
+
 /// GET /v1/organizations/{slug}/project-claim/{token}
 /// Gets project details for the specified organization and claim token
 ///
@@ -2043,8 +2338,7 @@ pub fn get_v1_organizations_slug_project_claim_token_execute(
 
 pub fn get_v1_organizations_slug_project_claim_token(
     client: &SimpleHttpClient,
-    slug: &str,
-    token: &str,
+    args: &GetV1OrganizationsSlugProjectClaimTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<OrganizationProjectClaimResponse>, ApiError>,
@@ -2053,7 +2347,8 @@ pub fn get_v1_organizations_slug_project_claim_token(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_organizations_slug_project_claim_token_builder(client, slug, token)?;
+    let builder =
+        get_v1_organizations_slug_project_claim_token_builder(client, &args.slug, &args.token)?;
     get_v1_organizations_slug_project_claim_token_execute(builder)
 }
 
@@ -2070,7 +2365,7 @@ pub fn post_v1_organizations_slug_project_claim_token_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/organizations/{}/project-claim/{}",
+        "https://api.supabase.com/v1/organizations/{}/project-claim/{}",
         slug, token,
     );
 
@@ -2116,9 +2411,17 @@ pub fn post_v1_organizations_slug_project_claim_token_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2137,6 +2440,15 @@ pub fn post_v1_organizations_slug_project_claim_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_organizations_slug_project_claim_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1OrganizationsSlugProjectClaimTokenArgs {
+    /// Path parameter: slug
+    pub slug: String,
+    /// Path parameter: token
+    pub token: String,
+}
+
 /// POST /v1/organizations/{slug}/project-claim/{token}
 /// Claims project for the specified organization
 ///
@@ -2149,13 +2461,13 @@ pub fn post_v1_organizations_slug_project_claim_token_execute(
 
 pub fn post_v1_organizations_slug_project_claim_token(
     client: &SimpleHttpClient,
-    slug: &str,
-    token: &str,
+    args: &PostV1OrganizationsSlugProjectClaimTokenArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_organizations_slug_project_claim_token_builder(client, slug, token)?;
+    let builder =
+        post_v1_organizations_slug_project_claim_token_builder(client, &args.slug, &args.token)?;
     post_v1_organizations_slug_project_claim_token_execute(builder)
 }
 
@@ -2175,7 +2487,10 @@ pub fn get_v1_organizations_slug_projects_builder(
     statuses: Option<&str>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/organizations/{}/projects", slug,);
+    let url = format!(
+        "https://api.supabase.com/v1/organizations/{}/projects",
+        slug,
+    );
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2246,9 +2561,17 @@ pub fn get_v1_organizations_slug_projects_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2270,6 +2593,23 @@ pub fn get_v1_organizations_slug_projects_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_organizations_slug_projects`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1OrganizationsSlugProjectsArgs {
+    /// Path parameter: slug
+    pub slug: String,
+    /// Query parameter: offset
+    pub offset: Option<i32>,
+    /// Query parameter: limit
+    pub limit: Option<i32>,
+    /// Query parameter: search
+    pub search: Option<String>,
+    /// Query parameter: sort
+    pub sort: Option<String>,
+    /// Query parameter: statuses
+    pub statuses: Option<String>,
+}
+
 /// GET /v1/organizations/{slug}/projects
 /// Gets all projects for the given organization
 ///
@@ -2282,12 +2622,7 @@ pub fn get_v1_organizations_slug_projects_execute(
 
 pub fn get_v1_organizations_slug_projects(
     client: &SimpleHttpClient,
-    slug: &str,
-    offset: Option<i32>,
-    limit: Option<i32>,
-    search: Option<&str>,
-    sort: Option<&str>,
-    statuses: Option<&str>,
+    args: &GetV1OrganizationsSlugProjectsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<OrganizationProjectsResponse>, ApiError>,
@@ -2297,7 +2632,13 @@ pub fn get_v1_organizations_slug_projects(
     ApiError,
 > {
     let builder = get_v1_organizations_slug_projects_builder(
-        client, slug, offset, limit, search, sort, statuses,
+        client,
+        &args.slug,
+        args.offset,
+        args.limit,
+        args.search.as_deref(),
+        args.sort.as_deref(),
+        args.statuses.as_deref(),
     )?;
     get_v1_organizations_slug_projects_execute(builder)
 }
@@ -2312,7 +2653,7 @@ pub fn get_v1_profile_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/profile",);
+    let url = format!("https://api.supabase.com/v1/profile",);
 
     // Build request
     let builder = client
@@ -2358,9 +2699,17 @@ pub fn get_v1_profile_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2414,7 +2763,7 @@ pub fn get_v1_projects_builder(
     client: &SimpleHttpClient,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects",);
+    let url = format!("https://api.supabase.com/v1/projects",);
 
     // Build request
     let builder = client
@@ -2458,9 +2807,17 @@ pub fn get_v1_projects_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2510,7 +2867,7 @@ pub fn post_v1_projects_builder(
     body: &V1CreateProjectBody,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects",);
+    let url = format!("https://api.supabase.com/v1/projects",);
 
     // Build request
     let builder = client
@@ -2558,9 +2915,17 @@ pub fn post_v1_projects_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2582,6 +2947,13 @@ pub fn post_v1_projects_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsArgs {
+    /// Request body.
+    pub body: V1CreateProjectBody,
+}
+
 /// POST /v1/projects
 /// Create a project
 ///
@@ -2594,14 +2966,14 @@ pub fn post_v1_projects_execute(
 
 pub fn post_v1_projects(
     client: &SimpleHttpClient,
-    body: &V1CreateProjectBody,
+    args: &PostV1ProjectsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<V1ProjectResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_builder(client, body)?;
+    let builder = post_v1_projects_builder(client, &args.body)?;
     post_v1_projects_execute(builder)
 }
 
@@ -2618,7 +2990,7 @@ pub fn get_v1_projects_available_regions_builder(
     desired_instance_size: Option<&str>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/available-regions",);
+    let url = format!("https://api.supabase.com/v1/projects/available-regions",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -2679,9 +3051,17 @@ pub fn get_v1_projects_available_regions_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2703,6 +3083,17 @@ pub fn get_v1_projects_available_regions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_available_regions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsAvailableRegionsArgs {
+    /// Query parameter: organization_slug
+    pub organization_slug: Option<String>,
+    /// Query parameter: continent
+    pub continent: Option<String>,
+    /// Query parameter: desired_instance_size
+    pub desired_instance_size: Option<String>,
+}
+
 /// GET /v1/projects/available-regions
 /// [Beta] Gets the list of available regions that can be used for a new project
 ///
@@ -2715,18 +3106,16 @@ pub fn get_v1_projects_available_regions_execute(
 
 pub fn get_v1_projects_available_regions(
     client: &SimpleHttpClient,
-    organization_slug: Option<&str>,
-    continent: Option<&str>,
-    desired_instance_size: Option<&str>,
+    args: &GetV1ProjectsAvailableRegionsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RegionsInfo>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
     let builder = get_v1_projects_available_regions_builder(
         client,
-        organization_slug,
-        continent,
-        desired_instance_size,
+        args.organization_slug.as_deref(),
+        args.continent.as_deref(),
+        args.desired_instance_size.as_deref(),
     )?;
     get_v1_projects_available_regions_execute(builder)
 }
@@ -2742,7 +3131,7 @@ pub fn get_v1_projects_ref_builder(
     ref_rs: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}", ref_rs,);
 
     // Build request
     let builder = client
@@ -2790,9 +3179,17 @@ pub fn get_v1_projects_ref_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2814,6 +3211,13 @@ pub fn get_v1_projects_ref_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}
 /// Gets a specific project that belongs to the authenticated user
 ///
@@ -2826,7 +3230,7 @@ pub fn get_v1_projects_ref_execute(
 
 pub fn get_v1_projects_ref(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<V1ProjectWithDatabaseResponse>, ApiError>,
@@ -2835,7 +3239,7 @@ pub fn get_v1_projects_ref(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_execute(builder)
 }
 
@@ -2851,7 +3255,7 @@ pub fn patch_v1_projects_ref_builder(
     body: &V1UpdateProjectBody,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}", ref_rs,);
 
     // Build request
     let builder = client
@@ -2899,9 +3303,17 @@ pub fn patch_v1_projects_ref_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -2923,6 +3335,15 @@ pub fn patch_v1_projects_ref_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_v1_projects_ref`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchV1ProjectsRefArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: V1UpdateProjectBody,
+}
+
 /// PATCH /v1/projects/{ref}
 /// Updates the given project
 ///
@@ -2935,15 +3356,14 @@ pub fn patch_v1_projects_ref_execute(
 
 pub fn patch_v1_projects_ref(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &V1UpdateProjectBody,
+    args: &PatchV1ProjectsRefArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<V1ProjectRefResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = patch_v1_projects_ref_builder(client, ref_rs, body)?;
+    let builder = patch_v1_projects_ref_builder(client, &args.ref_rs, &args.body)?;
     patch_v1_projects_ref_execute(builder)
 }
 
@@ -2958,7 +3378,7 @@ pub fn delete_v1_projects_ref_builder(
     ref_rs: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}", ref_rs,);
 
     // Build request
     let builder = client
@@ -3004,9 +3424,17 @@ pub fn delete_v1_projects_ref_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3028,6 +3456,13 @@ pub fn delete_v1_projects_ref_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_v1_projects_ref`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteV1ProjectsRefArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// DELETE /v1/projects/{ref}
 /// Deletes the given project
 ///
@@ -3040,14 +3475,14 @@ pub fn delete_v1_projects_ref_execute(
 
 pub fn delete_v1_projects_ref(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &DeleteV1ProjectsRefArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<V1ProjectRefResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_projects_ref_builder(client, ref_rs)?;
+    let builder = delete_v1_projects_ref_builder(client, &args.ref_rs)?;
     delete_v1_projects_ref_execute(builder)
 }
 
@@ -3064,7 +3499,7 @@ pub fn get_v1_projects_ref_actions_builder(
     limit: Option<f64>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/actions", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}/actions", ref_rs,);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -3124,9 +3559,17 @@ pub fn get_v1_projects_ref_actions_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3148,6 +3591,17 @@ pub fn get_v1_projects_ref_actions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_actions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefActionsArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Query parameter: offset
+    pub offset: Option<f64>,
+    /// Query parameter: limit
+    pub limit: Option<f64>,
+}
+
 /// GET /v1/projects/{ref}/actions
 /// List all action runs
 ///
@@ -3160,16 +3614,15 @@ pub fn get_v1_projects_ref_actions_execute(
 
 pub fn get_v1_projects_ref_actions(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    offset: Option<f64>,
-    limit: Option<f64>,
+    args: &GetV1ProjectsRefActionsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListActionRunResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_actions_builder(client, ref_rs, offset, limit)?;
+    let builder =
+        get_v1_projects_ref_actions_builder(client, &args.ref_rs, args.offset, args.limit)?;
     get_v1_projects_ref_actions_execute(builder)
 }
 
@@ -3186,7 +3639,7 @@ pub fn get_v1_projects_ref_actions_run_id_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/actions/{}",
+        "https://api.supabase.com/v1/projects/{}/actions/{}",
         ref_rs, run_id,
     );
 
@@ -3234,9 +3687,17 @@ pub fn get_v1_projects_ref_actions_run_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3258,6 +3719,15 @@ pub fn get_v1_projects_ref_actions_run_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_actions_run_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefActionsRunIdArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Path parameter: run_id
+    pub run_id: String,
+}
+
 /// GET /v1/projects/{ref}/actions/{run_id}
 /// Get the status of an action run
 ///
@@ -3270,15 +3740,14 @@ pub fn get_v1_projects_ref_actions_run_id_execute(
 
 pub fn get_v1_projects_ref_actions_run_id(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    run_id: &str,
+    args: &GetV1ProjectsRefActionsRunIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ActionRunResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_actions_run_id_builder(client, ref_rs, run_id)?;
+    let builder = get_v1_projects_ref_actions_run_id_builder(client, &args.ref_rs, &args.run_id)?;
     get_v1_projects_ref_actions_run_id_execute(builder)
 }
 
@@ -3295,7 +3764,7 @@ pub fn get_v1_projects_ref_actions_run_id_logs_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/actions/{}/logs",
+        "https://api.supabase.com/v1/projects/{}/actions/{}/logs",
         ref_rs, run_id,
     );
 
@@ -3341,9 +3810,17 @@ pub fn get_v1_projects_ref_actions_run_id_logs_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3362,6 +3839,15 @@ pub fn get_v1_projects_ref_actions_run_id_logs_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_actions_run_id_logs`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefActionsRunIdLogsArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Path parameter: run_id
+    pub run_id: String,
+}
+
 /// GET /v1/projects/{ref}/actions/{run_id}/logs
 /// Get the logs of an action run
 ///
@@ -3374,13 +3860,13 @@ pub fn get_v1_projects_ref_actions_run_id_logs_execute(
 
 pub fn get_v1_projects_ref_actions_run_id_logs(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    run_id: &str,
+    args: &GetV1ProjectsRefActionsRunIdLogsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_actions_run_id_logs_builder(client, ref_rs, run_id)?;
+    let builder =
+        get_v1_projects_ref_actions_run_id_logs_builder(client, &args.ref_rs, &args.run_id)?;
     get_v1_projects_ref_actions_run_id_logs_execute(builder)
 }
 
@@ -3398,7 +3884,7 @@ pub fn patch_v1_projects_ref_actions_run_id_status_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/actions/{}/status",
+        "https://api.supabase.com/v1/projects/{}/actions/{}/status",
         ref_rs, run_id,
     );
 
@@ -3448,9 +3934,17 @@ pub fn patch_v1_projects_ref_actions_run_id_status_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3472,6 +3966,17 @@ pub fn patch_v1_projects_ref_actions_run_id_status_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_v1_projects_ref_actions_run_id_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchV1ProjectsRefActionsRunIdStatusArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Path parameter: run_id
+    pub run_id: String,
+    /// Request body.
+    pub body: UpdateRunStatusBody,
+}
+
 /// PATCH /v1/projects/{ref}/actions/{run_id}/status
 /// Update the status of an action run
 ///
@@ -3484,17 +3989,19 @@ pub fn patch_v1_projects_ref_actions_run_id_status_execute(
 
 pub fn patch_v1_projects_ref_actions_run_id_status(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    run_id: &str,
-    body: &UpdateRunStatusBody,
+    args: &PatchV1ProjectsRefActionsRunIdStatusArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UpdateRunStatusResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        patch_v1_projects_ref_actions_run_id_status_builder(client, ref_rs, run_id, body)?;
+    let builder = patch_v1_projects_ref_actions_run_id_status_builder(
+        client,
+        &args.ref_rs,
+        &args.run_id,
+        &args.body,
+    )?;
     patch_v1_projects_ref_actions_run_id_status_execute(builder)
 }
 
@@ -3510,7 +4017,7 @@ pub fn get_v1_projects_ref_advisors_performance_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/advisors/performance",
+        "https://api.supabase.com/v1/projects/{}/advisors/performance",
         ref_rs,
     );
 
@@ -3558,9 +4065,17 @@ pub fn get_v1_projects_ref_advisors_performance_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3582,6 +4097,13 @@ pub fn get_v1_projects_ref_advisors_performance_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_advisors_performance`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefAdvisorsPerformanceArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/advisors/performance
 /// Gets project performance advisors.
 ///
@@ -3594,14 +4116,14 @@ pub fn get_v1_projects_ref_advisors_performance_execute(
 
 pub fn get_v1_projects_ref_advisors_performance(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefAdvisorsPerformanceArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<V1ProjectAdvisorsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_advisors_performance_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_advisors_performance_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_advisors_performance_execute(builder)
 }
 
@@ -3618,7 +4140,7 @@ pub fn get_v1_projects_ref_advisors_security_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/advisors/security",
+        "https://api.supabase.com/v1/projects/{}/advisors/security",
         ref_rs,
     );
 
@@ -3677,9 +4199,17 @@ pub fn get_v1_projects_ref_advisors_security_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3701,6 +4231,15 @@ pub fn get_v1_projects_ref_advisors_security_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_advisors_security`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefAdvisorsSecurityArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Query parameter: lint_type
+    pub lint_type: Option<String>,
+}
+
 /// GET /v1/projects/{ref}/advisors/security
 /// Gets project security advisors.
 ///
@@ -3713,15 +4252,18 @@ pub fn get_v1_projects_ref_advisors_security_execute(
 
 pub fn get_v1_projects_ref_advisors_security(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    lint_type: Option<&str>,
+    args: &GetV1ProjectsRefAdvisorsSecurityArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<V1ProjectAdvisorsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_advisors_security_builder(client, ref_rs, lint_type)?;
+    let builder = get_v1_projects_ref_advisors_security_builder(
+        client,
+        &args.ref_rs,
+        args.lint_type.as_deref(),
+    )?;
     get_v1_projects_ref_advisors_security_execute(builder)
 }
 
@@ -3739,7 +4281,7 @@ pub fn get_v1_projects_ref_analytics_endpoints_functions_combined_stats_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/analytics/endpoints/functions.combined-stats",
+        "https://api.supabase.com/v1/projects/{}/analytics/endpoints/functions.combined-stats",
         ref_rs,
     );
 
@@ -3801,9 +4343,17 @@ pub fn get_v1_projects_ref_analytics_endpoints_functions_combined_stats_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3825,6 +4375,17 @@ pub fn get_v1_projects_ref_analytics_endpoints_functions_combined_stats_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_analytics_endpoints_functions_combined_stats`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefAnalyticsEndpointsFunctionsCombinedStatsArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Query parameter: interval
+    pub interval: Option<String>,
+    /// Query parameter: function_id
+    pub function_id: Option<String>,
+}
+
 /// GET /v1/projects/{ref}/analytics/endpoints/functions.combined-stats
 /// Gets a project's function combined statistics
 ///
@@ -3837,9 +4398,7 @@ pub fn get_v1_projects_ref_analytics_endpoints_functions_combined_stats_execute(
 
 pub fn get_v1_projects_ref_analytics_endpoints_functions_combined_stats(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    interval: Option<&str>,
-    function_id: Option<&str>,
+    args: &GetV1ProjectsRefAnalyticsEndpointsFunctionsCombinedStatsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AnalyticsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3848,9 +4407,9 @@ pub fn get_v1_projects_ref_analytics_endpoints_functions_combined_stats(
 > {
     let builder = get_v1_projects_ref_analytics_endpoints_functions_combined_stats_builder(
         client,
-        ref_rs,
-        interval,
-        function_id,
+        &args.ref_rs,
+        args.interval.as_deref(),
+        args.function_id.as_deref(),
     )?;
     get_v1_projects_ref_analytics_endpoints_functions_combined_stats_execute(builder)
 }
@@ -3870,7 +4429,7 @@ pub fn get_v1_projects_ref_analytics_endpoints_logs_all_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/analytics/endpoints/logs.all",
+        "https://api.supabase.com/v1/projects/{}/analytics/endpoints/logs.all",
         ref_rs,
     );
 
@@ -3935,9 +4494,17 @@ pub fn get_v1_projects_ref_analytics_endpoints_logs_all_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -3959,6 +4526,19 @@ pub fn get_v1_projects_ref_analytics_endpoints_logs_all_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_analytics_endpoints_logs_all`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefAnalyticsEndpointsLogsAllArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Query parameter: sql
+    pub sql: Option<String>,
+    /// Query parameter: iso_timestamp_start
+    pub iso_timestamp_start: Option<String>,
+    /// Query parameter: iso_timestamp_end
+    pub iso_timestamp_end: Option<String>,
+}
+
 /// GET /v1/projects/{ref}/analytics/endpoints/logs.all
 /// Gets project's logs
 ///
@@ -3971,10 +4551,7 @@ pub fn get_v1_projects_ref_analytics_endpoints_logs_all_execute(
 
 pub fn get_v1_projects_ref_analytics_endpoints_logs_all(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    sql: Option<&str>,
-    iso_timestamp_start: Option<&str>,
-    iso_timestamp_end: Option<&str>,
+    args: &GetV1ProjectsRefAnalyticsEndpointsLogsAllArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AnalyticsResponse>, ApiError>, P = ApiPending>
         + Send
@@ -3983,10 +4560,10 @@ pub fn get_v1_projects_ref_analytics_endpoints_logs_all(
 > {
     let builder = get_v1_projects_ref_analytics_endpoints_logs_all_builder(
         client,
-        ref_rs,
-        sql,
-        iso_timestamp_start,
-        iso_timestamp_end,
+        &args.ref_rs,
+        args.sql.as_deref(),
+        args.iso_timestamp_start.as_deref(),
+        args.iso_timestamp_end.as_deref(),
     )?;
     get_v1_projects_ref_analytics_endpoints_logs_all_execute(builder)
 }
@@ -4004,7 +4581,7 @@ pub fn get_v1_projects_ref_analytics_endpoints_usage_api_counts_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/analytics/endpoints/usage.api-counts",
+        "https://api.supabase.com/v1/projects/{}/analytics/endpoints/usage.api-counts",
         ref_rs,
     );
 
@@ -4065,9 +4642,17 @@ pub fn get_v1_projects_ref_analytics_endpoints_usage_api_counts_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4089,6 +4674,15 @@ pub fn get_v1_projects_ref_analytics_endpoints_usage_api_counts_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_analytics_endpoints_usage_api_counts`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefAnalyticsEndpointsUsageApiCountsArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Query parameter: interval
+    pub interval: Option<String>,
+}
+
 /// GET /v1/projects/{ref}/analytics/endpoints/usage.api-counts
 /// Gets project's usage api counts
 ///
@@ -4101,8 +4695,7 @@ pub fn get_v1_projects_ref_analytics_endpoints_usage_api_counts_execute(
 
 pub fn get_v1_projects_ref_analytics_endpoints_usage_api_counts(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    interval: Option<&str>,
+    args: &GetV1ProjectsRefAnalyticsEndpointsUsageApiCountsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<V1GetUsageApiCountResponse>, ApiError>,
@@ -4111,8 +4704,11 @@ pub fn get_v1_projects_ref_analytics_endpoints_usage_api_counts(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_projects_ref_analytics_endpoints_usage_api_counts_builder(client, ref_rs, interval)?;
+    let builder = get_v1_projects_ref_analytics_endpoints_usage_api_counts_builder(
+        client,
+        &args.ref_rs,
+        args.interval.as_deref(),
+    )?;
     get_v1_projects_ref_analytics_endpoints_usage_api_counts_execute(builder)
 }
 
@@ -4128,7 +4724,7 @@ pub fn get_v1_projects_ref_analytics_endpoints_usage_api_requests_count_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/analytics/endpoints/usage.api-requests-count",
+        "https://api.supabase.com/v1/projects/{}/analytics/endpoints/usage.api-requests-count",
         ref_rs,
     );
 
@@ -4178,9 +4774,17 @@ pub fn get_v1_projects_ref_analytics_endpoints_usage_api_requests_count_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4202,6 +4806,13 @@ pub fn get_v1_projects_ref_analytics_endpoints_usage_api_requests_count_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_analytics_endpoints_usage_api_requests_count`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefAnalyticsEndpointsUsageApiRequestsCountArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/analytics/endpoints/usage.api-requests-count
 /// Gets project's usage api requests count
 ///
@@ -4214,7 +4825,7 @@ pub fn get_v1_projects_ref_analytics_endpoints_usage_api_requests_count_execute(
 
 pub fn get_v1_projects_ref_analytics_endpoints_usage_api_requests_count(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefAnalyticsEndpointsUsageApiRequestsCountArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<V1GetUsageApiRequestsCountResponse>, ApiError>,
@@ -4223,8 +4834,10 @@ pub fn get_v1_projects_ref_analytics_endpoints_usage_api_requests_count(
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_projects_ref_analytics_endpoints_usage_api_requests_count_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_analytics_endpoints_usage_api_requests_count_builder(
+        client,
+        &args.ref_rs,
+    )?;
     get_v1_projects_ref_analytics_endpoints_usage_api_requests_count_execute(builder)
 }
 
@@ -4240,7 +4853,7 @@ pub fn get_v1_projects_ref_api_keys_builder(
     reveal: Option<bool>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/api-keys", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}/api-keys", ref_rs,);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -4295,9 +4908,17 @@ pub fn get_v1_projects_ref_api_keys_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4316,6 +4937,15 @@ pub fn get_v1_projects_ref_api_keys_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_api_keys`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefApiKeysArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Query parameter: reveal
+    pub reveal: Option<bool>,
+}
+
 /// GET /v1/projects/{ref}/api-keys
 /// Get project api keys
 ///
@@ -4328,13 +4958,12 @@ pub fn get_v1_projects_ref_api_keys_execute(
 
 pub fn get_v1_projects_ref_api_keys(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    reveal: Option<bool>,
+    args: &GetV1ProjectsRefApiKeysArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_api_keys_builder(client, ref_rs, reveal)?;
+    let builder = get_v1_projects_ref_api_keys_builder(client, &args.ref_rs, args.reveal)?;
     get_v1_projects_ref_api_keys_execute(builder)
 }
 
@@ -4351,7 +4980,7 @@ pub fn post_v1_projects_ref_api_keys_builder(
     body: &CreateApiKeyBody,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/api-keys", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}/api-keys", ref_rs,);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -4410,9 +5039,17 @@ pub fn post_v1_projects_ref_api_keys_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4434,6 +5071,17 @@ pub fn post_v1_projects_ref_api_keys_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_api_keys`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefApiKeysArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Query parameter: reveal
+    pub reveal: Option<bool>,
+    /// Request body.
+    pub body: CreateApiKeyBody,
+}
+
 /// POST /v1/projects/{ref}/api-keys
 /// Creates a new API key for the project
 ///
@@ -4446,16 +5094,15 @@ pub fn post_v1_projects_ref_api_keys_execute(
 
 pub fn post_v1_projects_ref_api_keys(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    reveal: Option<bool>,
-    body: &CreateApiKeyBody,
+    args: &PostV1ProjectsRefApiKeysArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiKeyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_api_keys_builder(client, ref_rs, reveal, body)?;
+    let builder =
+        post_v1_projects_ref_api_keys_builder(client, &args.ref_rs, args.reveal, &args.body)?;
     post_v1_projects_ref_api_keys_execute(builder)
 }
 
@@ -4471,7 +5118,7 @@ pub fn get_v1_projects_ref_api_keys_legacy_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/api-keys/legacy",
+        "https://api.supabase.com/v1/projects/{}/api-keys/legacy",
         ref_rs,
     );
 
@@ -4519,9 +5166,17 @@ pub fn get_v1_projects_ref_api_keys_legacy_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4543,6 +5198,13 @@ pub fn get_v1_projects_ref_api_keys_legacy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_api_keys_legacy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefApiKeysLegacyArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/api-keys/legacy
 /// Check whether JWT based legacy (anon, service_role) API keys are enabled. This API endpoint will be removed in the future, check for HTTP 404 Not Found.
 ///
@@ -4555,14 +5217,14 @@ pub fn get_v1_projects_ref_api_keys_legacy_execute(
 
 pub fn get_v1_projects_ref_api_keys_legacy(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefApiKeysLegacyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LegacyApiKeysResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_api_keys_legacy_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_api_keys_legacy_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_api_keys_legacy_execute(builder)
 }
 
@@ -4579,7 +5241,7 @@ pub fn put_v1_projects_ref_api_keys_legacy_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/api-keys/legacy",
+        "https://api.supabase.com/v1/projects/{}/api-keys/legacy",
         ref_rs,
     );
 
@@ -4638,9 +5300,17 @@ pub fn put_v1_projects_ref_api_keys_legacy_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4662,6 +5332,15 @@ pub fn put_v1_projects_ref_api_keys_legacy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`put_v1_projects_ref_api_keys_legacy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PutV1ProjectsRefApiKeysLegacyArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Query parameter: enabled
+    pub enabled: Option<bool>,
+}
+
 /// PUT /v1/projects/{ref}/api-keys/legacy
 /// Disable or re-enable JWT based legacy (anon, service_role) API keys. This API endpoint will be removed in the future, check for HTTP 404 Not Found.
 ///
@@ -4674,15 +5353,14 @@ pub fn put_v1_projects_ref_api_keys_legacy_execute(
 
 pub fn put_v1_projects_ref_api_keys_legacy(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    enabled: Option<bool>,
+    args: &PutV1ProjectsRefApiKeysLegacyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<LegacyApiKeysResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = put_v1_projects_ref_api_keys_legacy_builder(client, ref_rs, enabled)?;
+    let builder = put_v1_projects_ref_api_keys_legacy_builder(client, &args.ref_rs, args.enabled)?;
     put_v1_projects_ref_api_keys_legacy_execute(builder)
 }
 
@@ -4700,7 +5378,7 @@ pub fn get_v1_projects_ref_api_keys_id_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/api-keys/{}",
+        "https://api.supabase.com/v1/projects/{}/api-keys/{}",
         ref_rs, id,
     );
 
@@ -4759,9 +5437,17 @@ pub fn get_v1_projects_ref_api_keys_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4783,6 +5469,17 @@ pub fn get_v1_projects_ref_api_keys_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_api_keys_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefApiKeysIdArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: reveal
+    pub reveal: Option<bool>,
+}
+
 /// GET /v1/projects/{ref}/api-keys/{id}
 /// Get API key
 ///
@@ -4795,16 +5492,15 @@ pub fn get_v1_projects_ref_api_keys_id_execute(
 
 pub fn get_v1_projects_ref_api_keys_id(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    id: &str,
-    reveal: Option<bool>,
+    args: &GetV1ProjectsRefApiKeysIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiKeyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_api_keys_id_builder(client, ref_rs, id, reveal)?;
+    let builder =
+        get_v1_projects_ref_api_keys_id_builder(client, &args.ref_rs, &args.id, args.reveal)?;
     get_v1_projects_ref_api_keys_id_execute(builder)
 }
 
@@ -4823,7 +5519,7 @@ pub fn patch_v1_projects_ref_api_keys_id_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/api-keys/{}",
+        "https://api.supabase.com/v1/projects/{}/api-keys/{}",
         ref_rs, id,
     );
 
@@ -4884,9 +5580,17 @@ pub fn patch_v1_projects_ref_api_keys_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -4908,6 +5612,19 @@ pub fn patch_v1_projects_ref_api_keys_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_v1_projects_ref_api_keys_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchV1ProjectsRefApiKeysIdArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: reveal
+    pub reveal: Option<bool>,
+    /// Request body.
+    pub body: UpdateApiKeyBody,
+}
+
 /// PATCH /v1/projects/{ref}/api-keys/{id}
 /// Updates an API key for the project
 ///
@@ -4920,17 +5637,20 @@ pub fn patch_v1_projects_ref_api_keys_id_execute(
 
 pub fn patch_v1_projects_ref_api_keys_id(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    id: &str,
-    reveal: Option<bool>,
-    body: &UpdateApiKeyBody,
+    args: &PatchV1ProjectsRefApiKeysIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiKeyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = patch_v1_projects_ref_api_keys_id_builder(client, ref_rs, id, reveal, body)?;
+    let builder = patch_v1_projects_ref_api_keys_id_builder(
+        client,
+        &args.ref_rs,
+        &args.id,
+        args.reveal,
+        &args.body,
+    )?;
     patch_v1_projects_ref_api_keys_id_execute(builder)
 }
 
@@ -4950,7 +5670,7 @@ pub fn delete_v1_projects_ref_api_keys_id_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/api-keys/{}",
+        "https://api.supabase.com/v1/projects/{}/api-keys/{}",
         ref_rs, id,
     );
 
@@ -5015,9 +5735,17 @@ pub fn delete_v1_projects_ref_api_keys_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5039,6 +5767,21 @@ pub fn delete_v1_projects_ref_api_keys_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_v1_projects_ref_api_keys_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteV1ProjectsRefApiKeysIdArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Path parameter: id
+    pub id: String,
+    /// Query parameter: reveal
+    pub reveal: Option<bool>,
+    /// Query parameter: was_compromised
+    pub was_compromised: Option<bool>,
+    /// Query parameter: reason
+    pub reason: Option<String>,
+}
+
 /// DELETE /v1/projects/{ref}/api-keys/{id}
 /// Deletes an API key for the project
 ///
@@ -5051,11 +5794,7 @@ pub fn delete_v1_projects_ref_api_keys_id_execute(
 
 pub fn delete_v1_projects_ref_api_keys_id(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    id: &str,
-    reveal: Option<bool>,
-    was_compromised: Option<bool>,
-    reason: Option<&str>,
+    args: &DeleteV1ProjectsRefApiKeysIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ApiKeyResponse>, ApiError>, P = ApiPending>
         + Send
@@ -5064,11 +5803,11 @@ pub fn delete_v1_projects_ref_api_keys_id(
 > {
     let builder = delete_v1_projects_ref_api_keys_id_builder(
         client,
-        ref_rs,
-        id,
-        reveal,
-        was_compromised,
-        reason,
+        &args.ref_rs,
+        &args.id,
+        args.reveal,
+        args.was_compromised,
+        args.reason.as_deref(),
     )?;
     delete_v1_projects_ref_api_keys_id_execute(builder)
 }
@@ -5085,7 +5824,7 @@ pub fn get_v1_projects_ref_billing_addons_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/billing/addons",
+        "https://api.supabase.com/v1/projects/{}/billing/addons",
         ref_rs,
     );
 
@@ -5133,9 +5872,17 @@ pub fn get_v1_projects_ref_billing_addons_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5157,6 +5904,13 @@ pub fn get_v1_projects_ref_billing_addons_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_billing_addons`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefBillingAddonsArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/billing/addons
 /// List billing addons and compute instance selections
 ///
@@ -5169,14 +5923,14 @@ pub fn get_v1_projects_ref_billing_addons_execute(
 
 pub fn get_v1_projects_ref_billing_addons(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefBillingAddonsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListProjectAddonsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_billing_addons_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_billing_addons_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_billing_addons_execute(builder)
 }
 
@@ -5193,7 +5947,7 @@ pub fn patch_v1_projects_ref_billing_addons_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/billing/addons",
+        "https://api.supabase.com/v1/projects/{}/billing/addons",
         ref_rs,
     );
 
@@ -5241,9 +5995,17 @@ pub fn patch_v1_projects_ref_billing_addons_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5262,6 +6024,15 @@ pub fn patch_v1_projects_ref_billing_addons_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_v1_projects_ref_billing_addons`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchV1ProjectsRefBillingAddonsArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: ApplyProjectAddonBody,
+}
+
 /// PATCH /v1/projects/{ref}/billing/addons
 /// Apply or update billing addons, including compute instance size
 ///
@@ -5274,13 +6045,12 @@ pub fn patch_v1_projects_ref_billing_addons_execute(
 
 pub fn patch_v1_projects_ref_billing_addons(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &ApplyProjectAddonBody,
+    args: &PatchV1ProjectsRefBillingAddonsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = patch_v1_projects_ref_billing_addons_builder(client, ref_rs, body)?;
+    let builder = patch_v1_projects_ref_billing_addons_builder(client, &args.ref_rs, &args.body)?;
     patch_v1_projects_ref_billing_addons_execute(builder)
 }
 
@@ -5297,7 +6067,7 @@ pub fn delete_v1_projects_ref_billing_addons_addon_variant_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/billing/addons/{}",
+        "https://api.supabase.com/v1/projects/{}/billing/addons/{}",
         ref_rs, addon_variant,
     );
 
@@ -5343,9 +6113,17 @@ pub fn delete_v1_projects_ref_billing_addons_addon_variant_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5364,6 +6142,15 @@ pub fn delete_v1_projects_ref_billing_addons_addon_variant_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_v1_projects_ref_billing_addons_addon_variant`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteV1ProjectsRefBillingAddonsAddonVariantArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Path parameter: addon_variant
+    pub addon_variant: String,
+}
+
 /// DELETE /v1/projects/{ref}/billing/addons/{addon_variant}
 /// Remove billing addons or revert compute instance sizing
 ///
@@ -5376,14 +6163,16 @@ pub fn delete_v1_projects_ref_billing_addons_addon_variant_execute(
 
 pub fn delete_v1_projects_ref_billing_addons_addon_variant(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    addon_variant: &str,
+    args: &DeleteV1ProjectsRefBillingAddonsAddonVariantArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        delete_v1_projects_ref_billing_addons_addon_variant_builder(client, ref_rs, addon_variant)?;
+    let builder = delete_v1_projects_ref_billing_addons_addon_variant_builder(
+        client,
+        &args.ref_rs,
+        &args.addon_variant,
+    )?;
     delete_v1_projects_ref_billing_addons_addon_variant_execute(builder)
 }
 
@@ -5398,7 +6187,7 @@ pub fn get_v1_projects_ref_branches_builder(
     ref_rs: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/branches", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}/branches", ref_rs,);
 
     // Build request
     let builder = client
@@ -5442,9 +6231,17 @@ pub fn get_v1_projects_ref_branches_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5463,6 +6260,13 @@ pub fn get_v1_projects_ref_branches_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_branches`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefBranchesArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/branches
 /// List all database branches
 ///
@@ -5475,12 +6279,12 @@ pub fn get_v1_projects_ref_branches_execute(
 
 pub fn get_v1_projects_ref_branches(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefBranchesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_branches_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_branches_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_branches_execute(builder)
 }
 
@@ -5496,7 +6300,7 @@ pub fn post_v1_projects_ref_branches_builder(
     body: &CreateBranchBody,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/branches", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}/branches", ref_rs,);
 
     // Build request
     let builder = client
@@ -5544,9 +6348,17 @@ pub fn post_v1_projects_ref_branches_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5568,6 +6380,15 @@ pub fn post_v1_projects_ref_branches_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_branches`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefBranchesArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: CreateBranchBody,
+}
+
 /// POST /v1/projects/{ref}/branches
 /// Create a database branch
 ///
@@ -5580,15 +6401,14 @@ pub fn post_v1_projects_ref_branches_execute(
 
 pub fn post_v1_projects_ref_branches(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &CreateBranchBody,
+    args: &PostV1ProjectsRefBranchesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BranchResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_branches_builder(client, ref_rs, body)?;
+    let builder = post_v1_projects_ref_branches_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_branches_execute(builder)
 }
 
@@ -5603,7 +6423,7 @@ pub fn delete_v1_projects_ref_branches_builder(
     ref_rs: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/branches", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}/branches", ref_rs,);
 
     // Build request
     let builder = client
@@ -5647,9 +6467,17 @@ pub fn delete_v1_projects_ref_branches_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5668,6 +6496,13 @@ pub fn delete_v1_projects_ref_branches_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_v1_projects_ref_branches`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteV1ProjectsRefBranchesArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// DELETE /v1/projects/{ref}/branches
 /// Disables preview branching
 ///
@@ -5680,12 +6515,12 @@ pub fn delete_v1_projects_ref_branches_execute(
 
 pub fn delete_v1_projects_ref_branches(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &DeleteV1ProjectsRefBranchesArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_projects_ref_branches_builder(client, ref_rs)?;
+    let builder = delete_v1_projects_ref_branches_builder(client, &args.ref_rs)?;
     delete_v1_projects_ref_branches_execute(builder)
 }
 
@@ -5702,7 +6537,7 @@ pub fn get_v1_projects_ref_branches_name_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/branches/{}",
+        "https://api.supabase.com/v1/projects/{}/branches/{}",
         ref_rs, name,
     );
 
@@ -5750,9 +6585,17 @@ pub fn get_v1_projects_ref_branches_name_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5774,6 +6617,15 @@ pub fn get_v1_projects_ref_branches_name_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_branches_name`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefBranchesNameArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Path parameter: name
+    pub name: String,
+}
+
 /// GET /v1/projects/{ref}/branches/{name}
 /// Get a database branch
 ///
@@ -5786,15 +6638,14 @@ pub fn get_v1_projects_ref_branches_name_execute(
 
 pub fn get_v1_projects_ref_branches_name(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    name: &str,
+    args: &GetV1ProjectsRefBranchesNameArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<BranchResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_branches_name_builder(client, ref_rs, name)?;
+    let builder = get_v1_projects_ref_branches_name_builder(client, &args.ref_rs, &args.name)?;
     get_v1_projects_ref_branches_name_execute(builder)
 }
 
@@ -5809,7 +6660,10 @@ pub fn get_v1_projects_ref_claim_token_builder(
     ref_rs: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/claim-token", ref_rs,);
+    let url = format!(
+        "https://api.supabase.com/v1/projects/{}/claim-token",
+        ref_rs,
+    );
 
     // Build request
     let builder = client
@@ -5855,9 +6709,17 @@ pub fn get_v1_projects_ref_claim_token_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5879,6 +6741,13 @@ pub fn get_v1_projects_ref_claim_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_claim_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefClaimTokenArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/claim-token
 /// Gets project claim token
 ///
@@ -5891,14 +6760,14 @@ pub fn get_v1_projects_ref_claim_token_execute(
 
 pub fn get_v1_projects_ref_claim_token(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefClaimTokenArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ProjectClaimTokenResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_claim_token_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_claim_token_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_claim_token_execute(builder)
 }
 
@@ -5913,7 +6782,10 @@ pub fn post_v1_projects_ref_claim_token_builder(
     ref_rs: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/claim-token", ref_rs,);
+    let url = format!(
+        "https://api.supabase.com/v1/projects/{}/claim-token",
+        ref_rs,
+    );
 
     // Build request
     let builder = client
@@ -5961,9 +6833,17 @@ pub fn post_v1_projects_ref_claim_token_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -5985,6 +6865,13 @@ pub fn post_v1_projects_ref_claim_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_claim_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefClaimTokenArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// POST /v1/projects/{ref}/claim-token
 /// Creates project claim token
 ///
@@ -5997,7 +6884,7 @@ pub fn post_v1_projects_ref_claim_token_execute(
 
 pub fn post_v1_projects_ref_claim_token(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &PostV1ProjectsRefClaimTokenArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<CreateProjectClaimTokenResponse>, ApiError>,
@@ -6006,7 +6893,7 @@ pub fn post_v1_projects_ref_claim_token(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_claim_token_builder(client, ref_rs)?;
+    let builder = post_v1_projects_ref_claim_token_builder(client, &args.ref_rs)?;
     post_v1_projects_ref_claim_token_execute(builder)
 }
 
@@ -6021,7 +6908,10 @@ pub fn delete_v1_projects_ref_claim_token_builder(
     ref_rs: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/claim-token", ref_rs,);
+    let url = format!(
+        "https://api.supabase.com/v1/projects/{}/claim-token",
+        ref_rs,
+    );
 
     // Build request
     let builder = client
@@ -6065,9 +6955,17 @@ pub fn delete_v1_projects_ref_claim_token_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6086,6 +6984,13 @@ pub fn delete_v1_projects_ref_claim_token_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_v1_projects_ref_claim_token`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteV1ProjectsRefClaimTokenArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// DELETE /v1/projects/{ref}/claim-token
 /// Revokes project claim token
 ///
@@ -6098,12 +7003,12 @@ pub fn delete_v1_projects_ref_claim_token_execute(
 
 pub fn delete_v1_projects_ref_claim_token(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &DeleteV1ProjectsRefClaimTokenArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_projects_ref_claim_token_builder(client, ref_rs)?;
+    let builder = delete_v1_projects_ref_claim_token_builder(client, &args.ref_rs)?;
     delete_v1_projects_ref_claim_token_execute(builder)
 }
 
@@ -6120,7 +7025,7 @@ pub fn post_v1_projects_ref_cli_login_role_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/cli/login-role",
+        "https://api.supabase.com/v1/projects/{}/cli/login-role",
         ref_rs,
     );
 
@@ -6170,9 +7075,17 @@ pub fn post_v1_projects_ref_cli_login_role_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6194,6 +7107,15 @@ pub fn post_v1_projects_ref_cli_login_role_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_cli_login_role`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefCliLoginRoleArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: CreateRoleBody,
+}
+
 /// POST /v1/projects/{ref}/cli/login-role
 /// [Beta] Create a login role for CLI with temporary password
 ///
@@ -6206,15 +7128,14 @@ pub fn post_v1_projects_ref_cli_login_role_execute(
 
 pub fn post_v1_projects_ref_cli_login_role(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &CreateRoleBody,
+    args: &PostV1ProjectsRefCliLoginRoleArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CreateRoleResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_cli_login_role_builder(client, ref_rs, body)?;
+    let builder = post_v1_projects_ref_cli_login_role_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_cli_login_role_execute(builder)
 }
 
@@ -6230,7 +7151,7 @@ pub fn delete_v1_projects_ref_cli_login_role_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/cli/login-role",
+        "https://api.supabase.com/v1/projects/{}/cli/login-role",
         ref_rs,
     );
 
@@ -6278,9 +7199,17 @@ pub fn delete_v1_projects_ref_cli_login_role_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6302,6 +7231,13 @@ pub fn delete_v1_projects_ref_cli_login_role_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_v1_projects_ref_cli_login_role`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteV1ProjectsRefCliLoginRoleArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// DELETE /v1/projects/{ref}/cli/login-role
 /// [Beta] Delete existing login roles used by CLI
 ///
@@ -6314,14 +7250,14 @@ pub fn delete_v1_projects_ref_cli_login_role_execute(
 
 pub fn delete_v1_projects_ref_cli_login_role(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &DeleteV1ProjectsRefCliLoginRoleArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeleteRolesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_projects_ref_cli_login_role_builder(client, ref_rs)?;
+    let builder = delete_v1_projects_ref_cli_login_role_builder(client, &args.ref_rs)?;
     delete_v1_projects_ref_cli_login_role_execute(builder)
 }
 
@@ -6336,7 +7272,10 @@ pub fn get_v1_projects_ref_config_auth_builder(
     ref_rs: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/config/auth", ref_rs,);
+    let url = format!(
+        "https://api.supabase.com/v1/projects/{}/config/auth",
+        ref_rs,
+    );
 
     // Build request
     let builder = client
@@ -6382,9 +7321,17 @@ pub fn get_v1_projects_ref_config_auth_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6406,6 +7353,13 @@ pub fn get_v1_projects_ref_config_auth_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_config_auth`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefConfigAuthArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/config/auth
 /// Gets project's auth config
 ///
@@ -6418,14 +7372,14 @@ pub fn get_v1_projects_ref_config_auth_execute(
 
 pub fn get_v1_projects_ref_config_auth(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefConfigAuthArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AuthConfigResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_config_auth_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_config_auth_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_auth_execute(builder)
 }
 
@@ -6441,7 +7395,10 @@ pub fn patch_v1_projects_ref_config_auth_builder(
     body: &UpdateAuthConfigBody,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/config/auth", ref_rs,);
+    let url = format!(
+        "https://api.supabase.com/v1/projects/{}/config/auth",
+        ref_rs,
+    );
 
     // Build request
     let builder = client
@@ -6489,9 +7446,17 @@ pub fn patch_v1_projects_ref_config_auth_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6513,6 +7478,15 @@ pub fn patch_v1_projects_ref_config_auth_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_v1_projects_ref_config_auth`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchV1ProjectsRefConfigAuthArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: UpdateAuthConfigBody,
+}
+
 /// PATCH /v1/projects/{ref}/config/auth
 /// Updates a project's auth config
 ///
@@ -6525,15 +7499,14 @@ pub fn patch_v1_projects_ref_config_auth_execute(
 
 pub fn patch_v1_projects_ref_config_auth(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &UpdateAuthConfigBody,
+    args: &PatchV1ProjectsRefConfigAuthArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<AuthConfigResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = patch_v1_projects_ref_config_auth_builder(client, ref_rs, body)?;
+    let builder = patch_v1_projects_ref_config_auth_builder(client, &args.ref_rs, &args.body)?;
     patch_v1_projects_ref_config_auth_execute(builder)
 }
 
@@ -6549,7 +7522,7 @@ pub fn get_v1_projects_ref_config_auth_signing_keys_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/auth/signing-keys",
+        "https://api.supabase.com/v1/projects/{}/config/auth/signing-keys",
         ref_rs,
     );
 
@@ -6597,9 +7570,17 @@ pub fn get_v1_projects_ref_config_auth_signing_keys_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6621,6 +7602,13 @@ pub fn get_v1_projects_ref_config_auth_signing_keys_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_config_auth_signing_keys`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefConfigAuthSigningKeysArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/config/auth/signing-keys
 /// List all signing keys for the project
 ///
@@ -6633,14 +7621,14 @@ pub fn get_v1_projects_ref_config_auth_signing_keys_execute(
 
 pub fn get_v1_projects_ref_config_auth_signing_keys(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefConfigAuthSigningKeysArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SigningKeysResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_config_auth_signing_keys_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_config_auth_signing_keys_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_auth_signing_keys_execute(builder)
 }
 
@@ -6657,7 +7645,7 @@ pub fn post_v1_projects_ref_config_auth_signing_keys_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/auth/signing-keys",
+        "https://api.supabase.com/v1/projects/{}/config/auth/signing-keys",
         ref_rs,
     );
 
@@ -6707,9 +7695,17 @@ pub fn post_v1_projects_ref_config_auth_signing_keys_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6731,6 +7727,15 @@ pub fn post_v1_projects_ref_config_auth_signing_keys_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_config_auth_signing_keys`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefConfigAuthSigningKeysArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: CreateSigningKeyBody,
+}
+
 /// POST /v1/projects/{ref}/config/auth/signing-keys
 /// Create a new signing key for the project in standby status
 ///
@@ -6743,15 +7748,15 @@ pub fn post_v1_projects_ref_config_auth_signing_keys_execute(
 
 pub fn post_v1_projects_ref_config_auth_signing_keys(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &CreateSigningKeyBody,
+    args: &PostV1ProjectsRefConfigAuthSigningKeysArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SigningKeyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_config_auth_signing_keys_builder(client, ref_rs, body)?;
+    let builder =
+        post_v1_projects_ref_config_auth_signing_keys_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_config_auth_signing_keys_execute(builder)
 }
 
@@ -6767,7 +7772,7 @@ pub fn get_v1_projects_ref_config_auth_signing_keys_legacy_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/auth/signing-keys/legacy",
+        "https://api.supabase.com/v1/projects/{}/config/auth/signing-keys/legacy",
         ref_rs,
     );
 
@@ -6815,9 +7820,17 @@ pub fn get_v1_projects_ref_config_auth_signing_keys_legacy_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6839,6 +7852,13 @@ pub fn get_v1_projects_ref_config_auth_signing_keys_legacy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_config_auth_signing_keys_legacy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefConfigAuthSigningKeysLegacyArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/config/auth/signing-keys/legacy
 /// Get the signing key information for the JWT secret imported as signing key for this project. This endpoint will be removed in the future, check for HTTP 404 Not Found.
 ///
@@ -6851,14 +7871,15 @@ pub fn get_v1_projects_ref_config_auth_signing_keys_legacy_execute(
 
 pub fn get_v1_projects_ref_config_auth_signing_keys_legacy(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefConfigAuthSigningKeysLegacyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SigningKeyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_config_auth_signing_keys_legacy_builder(client, ref_rs)?;
+    let builder =
+        get_v1_projects_ref_config_auth_signing_keys_legacy_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_auth_signing_keys_legacy_execute(builder)
 }
 
@@ -6874,7 +7895,7 @@ pub fn post_v1_projects_ref_config_auth_signing_keys_legacy_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/auth/signing-keys/legacy",
+        "https://api.supabase.com/v1/projects/{}/config/auth/signing-keys/legacy",
         ref_rs,
     );
 
@@ -6922,9 +7943,17 @@ pub fn post_v1_projects_ref_config_auth_signing_keys_legacy_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -6946,6 +7975,13 @@ pub fn post_v1_projects_ref_config_auth_signing_keys_legacy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_config_auth_signing_keys_legacy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefConfigAuthSigningKeysLegacyArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// POST /v1/projects/{ref}/config/auth/signing-keys/legacy
 /// Set up the project's existing JWT secret as an in_use JWT signing key. This endpoint will be removed in the future always check for HTTP 404 Not Found.
 ///
@@ -6958,14 +7994,15 @@ pub fn post_v1_projects_ref_config_auth_signing_keys_legacy_execute(
 
 pub fn post_v1_projects_ref_config_auth_signing_keys_legacy(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &PostV1ProjectsRefConfigAuthSigningKeysLegacyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SigningKeyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_config_auth_signing_keys_legacy_builder(client, ref_rs)?;
+    let builder =
+        post_v1_projects_ref_config_auth_signing_keys_legacy_builder(client, &args.ref_rs)?;
     post_v1_projects_ref_config_auth_signing_keys_legacy_execute(builder)
 }
 
@@ -6982,7 +8019,7 @@ pub fn get_v1_projects_ref_config_auth_signing_keys_id_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/auth/signing-keys/{}",
+        "https://api.supabase.com/v1/projects/{}/config/auth/signing-keys/{}",
         id, ref_rs,
     );
 
@@ -7030,9 +8067,17 @@ pub fn get_v1_projects_ref_config_auth_signing_keys_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7054,6 +8099,15 @@ pub fn get_v1_projects_ref_config_auth_signing_keys_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_config_auth_signing_keys_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefConfigAuthSigningKeysIdArgs {
+    /// Path parameter: id
+    pub id: String,
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/config/auth/signing-keys/{id}
 /// Get information about a signing key
 ///
@@ -7066,15 +8120,15 @@ pub fn get_v1_projects_ref_config_auth_signing_keys_id_execute(
 
 pub fn get_v1_projects_ref_config_auth_signing_keys_id(
     client: &SimpleHttpClient,
-    id: &str,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefConfigAuthSigningKeysIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SigningKeyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_config_auth_signing_keys_id_builder(client, id, ref_rs)?;
+    let builder =
+        get_v1_projects_ref_config_auth_signing_keys_id_builder(client, &args.id, &args.ref_rs)?;
     get_v1_projects_ref_config_auth_signing_keys_id_execute(builder)
 }
 
@@ -7092,7 +8146,7 @@ pub fn patch_v1_projects_ref_config_auth_signing_keys_id_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/auth/signing-keys/{}",
+        "https://api.supabase.com/v1/projects/{}/config/auth/signing-keys/{}",
         id, ref_rs,
     );
 
@@ -7142,9 +8196,17 @@ pub fn patch_v1_projects_ref_config_auth_signing_keys_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7166,6 +8228,17 @@ pub fn patch_v1_projects_ref_config_auth_signing_keys_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_v1_projects_ref_config_auth_signing_keys_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchV1ProjectsRefConfigAuthSigningKeysIdArgs {
+    /// Path parameter: id
+    pub id: String,
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: UpdateSigningKeyBody,
+}
+
 /// PATCH /v1/projects/{ref}/config/auth/signing-keys/{id}
 /// Update a signing key, mainly its status
 ///
@@ -7178,17 +8251,19 @@ pub fn patch_v1_projects_ref_config_auth_signing_keys_id_execute(
 
 pub fn patch_v1_projects_ref_config_auth_signing_keys_id(
     client: &SimpleHttpClient,
-    id: &str,
-    ref_rs: &str,
-    body: &UpdateSigningKeyBody,
+    args: &PatchV1ProjectsRefConfigAuthSigningKeysIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SigningKeyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        patch_v1_projects_ref_config_auth_signing_keys_id_builder(client, id, ref_rs, body)?;
+    let builder = patch_v1_projects_ref_config_auth_signing_keys_id_builder(
+        client,
+        &args.id,
+        &args.ref_rs,
+        &args.body,
+    )?;
     patch_v1_projects_ref_config_auth_signing_keys_id_execute(builder)
 }
 
@@ -7205,7 +8280,7 @@ pub fn delete_v1_projects_ref_config_auth_signing_keys_id_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/auth/signing-keys/{}",
+        "https://api.supabase.com/v1/projects/{}/config/auth/signing-keys/{}",
         id, ref_rs,
     );
 
@@ -7253,9 +8328,17 @@ pub fn delete_v1_projects_ref_config_auth_signing_keys_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7277,6 +8360,15 @@ pub fn delete_v1_projects_ref_config_auth_signing_keys_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_v1_projects_ref_config_auth_signing_keys_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteV1ProjectsRefConfigAuthSigningKeysIdArgs {
+    /// Path parameter: id
+    pub id: String,
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// DELETE /v1/projects/{ref}/config/auth/signing-keys/{id}
 /// Remove a signing key from a project. Only possible if the key has been in revoked status for a while.
 ///
@@ -7289,15 +8381,15 @@ pub fn delete_v1_projects_ref_config_auth_signing_keys_id_execute(
 
 pub fn delete_v1_projects_ref_config_auth_signing_keys_id(
     client: &SimpleHttpClient,
-    id: &str,
-    ref_rs: &str,
+    args: &DeleteV1ProjectsRefConfigAuthSigningKeysIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SigningKeyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = delete_v1_projects_ref_config_auth_signing_keys_id_builder(client, id, ref_rs)?;
+    let builder =
+        delete_v1_projects_ref_config_auth_signing_keys_id_builder(client, &args.id, &args.ref_rs)?;
     delete_v1_projects_ref_config_auth_signing_keys_id_execute(builder)
 }
 
@@ -7313,7 +8405,7 @@ pub fn get_v1_projects_ref_config_auth_sso_providers_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/auth/sso/providers",
+        "https://api.supabase.com/v1/projects/{}/config/auth/sso/providers",
         ref_rs,
     );
 
@@ -7361,9 +8453,17 @@ pub fn get_v1_projects_ref_config_auth_sso_providers_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7385,6 +8485,13 @@ pub fn get_v1_projects_ref_config_auth_sso_providers_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_config_auth_sso_providers`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefConfigAuthSsoProvidersArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/config/auth/sso/providers
 /// Lists all SSO providers
 ///
@@ -7397,14 +8504,14 @@ pub fn get_v1_projects_ref_config_auth_sso_providers_execute(
 
 pub fn get_v1_projects_ref_config_auth_sso_providers(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefConfigAuthSsoProvidersArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ListProvidersResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_config_auth_sso_providers_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_config_auth_sso_providers_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_auth_sso_providers_execute(builder)
 }
 
@@ -7421,7 +8528,7 @@ pub fn post_v1_projects_ref_config_auth_sso_providers_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/auth/sso/providers",
+        "https://api.supabase.com/v1/projects/{}/config/auth/sso/providers",
         ref_rs,
     );
 
@@ -7471,9 +8578,17 @@ pub fn post_v1_projects_ref_config_auth_sso_providers_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7495,6 +8610,15 @@ pub fn post_v1_projects_ref_config_auth_sso_providers_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_config_auth_sso_providers`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefConfigAuthSsoProvidersArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: CreateProviderBody,
+}
+
 /// POST /v1/projects/{ref}/config/auth/sso/providers
 /// Creates a new SSO provider
 ///
@@ -7507,15 +8631,15 @@ pub fn post_v1_projects_ref_config_auth_sso_providers_execute(
 
 pub fn post_v1_projects_ref_config_auth_sso_providers(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &CreateProviderBody,
+    args: &PostV1ProjectsRefConfigAuthSsoProvidersArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<CreateProviderResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_config_auth_sso_providers_builder(client, ref_rs, body)?;
+    let builder =
+        post_v1_projects_ref_config_auth_sso_providers_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_config_auth_sso_providers_execute(builder)
 }
 
@@ -7532,7 +8656,7 @@ pub fn get_v1_projects_ref_config_auth_sso_providers_provider_id_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/auth/sso/providers/{}",
+        "https://api.supabase.com/v1/projects/{}/config/auth/sso/providers/{}",
         ref_rs, provider_id,
     );
 
@@ -7580,9 +8704,17 @@ pub fn get_v1_projects_ref_config_auth_sso_providers_provider_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7604,6 +8736,15 @@ pub fn get_v1_projects_ref_config_auth_sso_providers_provider_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_config_auth_sso_providers_provider_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefConfigAuthSsoProvidersProviderIdArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Path parameter: provider_id
+    pub provider_id: String,
+}
+
 /// GET /v1/projects/{ref}/config/auth/sso/providers/{provider_id}
 /// Gets a SSO provider by its UUID
 ///
@@ -7616,8 +8757,7 @@ pub fn get_v1_projects_ref_config_auth_sso_providers_provider_id_execute(
 
 pub fn get_v1_projects_ref_config_auth_sso_providers_provider_id(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    provider_id: &str,
+    args: &GetV1ProjectsRefConfigAuthSsoProvidersProviderIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<GetProviderResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7626,8 +8766,8 @@ pub fn get_v1_projects_ref_config_auth_sso_providers_provider_id(
 > {
     let builder = get_v1_projects_ref_config_auth_sso_providers_provider_id_builder(
         client,
-        ref_rs,
-        provider_id,
+        &args.ref_rs,
+        &args.provider_id,
     )?;
     get_v1_projects_ref_config_auth_sso_providers_provider_id_execute(builder)
 }
@@ -7646,7 +8786,7 @@ pub fn put_v1_projects_ref_config_auth_sso_providers_provider_id_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/auth/sso/providers/{}",
+        "https://api.supabase.com/v1/projects/{}/config/auth/sso/providers/{}",
         ref_rs, provider_id,
     );
 
@@ -7696,9 +8836,17 @@ pub fn put_v1_projects_ref_config_auth_sso_providers_provider_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7720,6 +8868,17 @@ pub fn put_v1_projects_ref_config_auth_sso_providers_provider_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`put_v1_projects_ref_config_auth_sso_providers_provider_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PutV1ProjectsRefConfigAuthSsoProvidersProviderIdArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Path parameter: provider_id
+    pub provider_id: String,
+    /// Request body.
+    pub body: UpdateProviderBody,
+}
+
 /// PUT /v1/projects/{ref}/config/auth/sso/providers/{provider_id}
 /// Updates a SSO provider by its UUID
 ///
@@ -7732,9 +8891,7 @@ pub fn put_v1_projects_ref_config_auth_sso_providers_provider_id_execute(
 
 pub fn put_v1_projects_ref_config_auth_sso_providers_provider_id(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    provider_id: &str,
-    body: &UpdateProviderBody,
+    args: &PutV1ProjectsRefConfigAuthSsoProvidersProviderIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<UpdateProviderResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7743,9 +8900,9 @@ pub fn put_v1_projects_ref_config_auth_sso_providers_provider_id(
 > {
     let builder = put_v1_projects_ref_config_auth_sso_providers_provider_id_builder(
         client,
-        ref_rs,
-        provider_id,
-        body,
+        &args.ref_rs,
+        &args.provider_id,
+        &args.body,
     )?;
     put_v1_projects_ref_config_auth_sso_providers_provider_id_execute(builder)
 }
@@ -7763,7 +8920,7 @@ pub fn delete_v1_projects_ref_config_auth_sso_providers_provider_id_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/auth/sso/providers/{}",
+        "https://api.supabase.com/v1/projects/{}/config/auth/sso/providers/{}",
         ref_rs, provider_id,
     );
 
@@ -7811,9 +8968,17 @@ pub fn delete_v1_projects_ref_config_auth_sso_providers_provider_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7835,6 +9000,15 @@ pub fn delete_v1_projects_ref_config_auth_sso_providers_provider_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_v1_projects_ref_config_auth_sso_providers_provider_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteV1ProjectsRefConfigAuthSsoProvidersProviderIdArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Path parameter: provider_id
+    pub provider_id: String,
+}
+
 /// DELETE /v1/projects/{ref}/config/auth/sso/providers/{provider_id}
 /// Removes a SSO provider by its UUID
 ///
@@ -7847,8 +9021,7 @@ pub fn delete_v1_projects_ref_config_auth_sso_providers_provider_id_execute(
 
 pub fn delete_v1_projects_ref_config_auth_sso_providers_provider_id(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    provider_id: &str,
+    args: &DeleteV1ProjectsRefConfigAuthSsoProvidersProviderIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeleteProviderResponse>, ApiError>, P = ApiPending>
         + Send
@@ -7857,8 +9030,8 @@ pub fn delete_v1_projects_ref_config_auth_sso_providers_provider_id(
 > {
     let builder = delete_v1_projects_ref_config_auth_sso_providers_provider_id_builder(
         client,
-        ref_rs,
-        provider_id,
+        &args.ref_rs,
+        &args.provider_id,
     )?;
     delete_v1_projects_ref_config_auth_sso_providers_provider_id_execute(builder)
 }
@@ -7875,7 +9048,7 @@ pub fn get_v1_projects_ref_config_auth_third_party_auth_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/auth/third-party-auth",
+        "https://api.supabase.com/v1/projects/{}/config/auth/third-party-auth",
         ref_rs,
     );
 
@@ -7921,9 +9094,17 @@ pub fn get_v1_projects_ref_config_auth_third_party_auth_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -7942,6 +9123,13 @@ pub fn get_v1_projects_ref_config_auth_third_party_auth_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_config_auth_third_party_auth`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefConfigAuthThirdPartyAuthArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/config/auth/third-party-auth
 /// Lists all third-party auth integrations
 ///
@@ -7954,12 +9142,12 @@ pub fn get_v1_projects_ref_config_auth_third_party_auth_execute(
 
 pub fn get_v1_projects_ref_config_auth_third_party_auth(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefConfigAuthThirdPartyAuthArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_config_auth_third_party_auth_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_config_auth_third_party_auth_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_auth_third_party_auth_execute(builder)
 }
 
@@ -7976,7 +9164,7 @@ pub fn post_v1_projects_ref_config_auth_third_party_auth_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/auth/third-party-auth",
+        "https://api.supabase.com/v1/projects/{}/config/auth/third-party-auth",
         ref_rs,
     );
 
@@ -8026,9 +9214,17 @@ pub fn post_v1_projects_ref_config_auth_third_party_auth_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -8050,6 +9246,15 @@ pub fn post_v1_projects_ref_config_auth_third_party_auth_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_config_auth_third_party_auth`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefConfigAuthThirdPartyAuthArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: CreateThirdPartyAuthBody,
+}
+
 /// POST /v1/projects/{ref}/config/auth/third-party-auth
 /// Creates a new third-party auth integration
 ///
@@ -8062,15 +9267,18 @@ pub fn post_v1_projects_ref_config_auth_third_party_auth_execute(
 
 pub fn post_v1_projects_ref_config_auth_third_party_auth(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &CreateThirdPartyAuthBody,
+    args: &PostV1ProjectsRefConfigAuthThirdPartyAuthArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ThirdPartyAuth>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_config_auth_third_party_auth_builder(client, ref_rs, body)?;
+    let builder = post_v1_projects_ref_config_auth_third_party_auth_builder(
+        client,
+        &args.ref_rs,
+        &args.body,
+    )?;
     post_v1_projects_ref_config_auth_third_party_auth_execute(builder)
 }
 
@@ -8087,7 +9295,7 @@ pub fn get_v1_projects_ref_config_auth_third_party_auth_tpa_id_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/auth/third-party-auth/{}",
+        "https://api.supabase.com/v1/projects/{}/config/auth/third-party-auth/{}",
         ref_rs, tpa_id,
     );
 
@@ -8135,9 +9343,17 @@ pub fn get_v1_projects_ref_config_auth_third_party_auth_tpa_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -8159,6 +9375,15 @@ pub fn get_v1_projects_ref_config_auth_third_party_auth_tpa_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_config_auth_third_party_auth_tpa_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefConfigAuthThirdPartyAuthTpaIdArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Path parameter: tpa_id
+    pub tpa_id: String,
+}
+
 /// GET /v1/projects/{ref}/config/auth/third-party-auth/{tpa_id}
 /// Get a third-party integration
 ///
@@ -8171,16 +9396,18 @@ pub fn get_v1_projects_ref_config_auth_third_party_auth_tpa_id_execute(
 
 pub fn get_v1_projects_ref_config_auth_third_party_auth_tpa_id(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    tpa_id: &str,
+    args: &GetV1ProjectsRefConfigAuthThirdPartyAuthTpaIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ThirdPartyAuth>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_projects_ref_config_auth_third_party_auth_tpa_id_builder(client, ref_rs, tpa_id)?;
+    let builder = get_v1_projects_ref_config_auth_third_party_auth_tpa_id_builder(
+        client,
+        &args.ref_rs,
+        &args.tpa_id,
+    )?;
     get_v1_projects_ref_config_auth_third_party_auth_tpa_id_execute(builder)
 }
 
@@ -8197,7 +9424,7 @@ pub fn delete_v1_projects_ref_config_auth_third_party_auth_tpa_id_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/auth/third-party-auth/{}",
+        "https://api.supabase.com/v1/projects/{}/config/auth/third-party-auth/{}",
         ref_rs, tpa_id,
     );
 
@@ -8245,9 +9472,17 @@ pub fn delete_v1_projects_ref_config_auth_third_party_auth_tpa_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -8269,6 +9504,15 @@ pub fn delete_v1_projects_ref_config_auth_third_party_auth_tpa_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_v1_projects_ref_config_auth_third_party_auth_tpa_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteV1ProjectsRefConfigAuthThirdPartyAuthTpaIdArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Path parameter: tpa_id
+    pub tpa_id: String,
+}
+
 /// DELETE /v1/projects/{ref}/config/auth/third-party-auth/{tpa_id}
 /// Removes a third-party auth integration
 ///
@@ -8281,16 +9525,18 @@ pub fn delete_v1_projects_ref_config_auth_third_party_auth_tpa_id_execute(
 
 pub fn delete_v1_projects_ref_config_auth_third_party_auth_tpa_id(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    tpa_id: &str,
+    args: &DeleteV1ProjectsRefConfigAuthThirdPartyAuthTpaIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ThirdPartyAuth>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        delete_v1_projects_ref_config_auth_third_party_auth_tpa_id_builder(client, ref_rs, tpa_id)?;
+    let builder = delete_v1_projects_ref_config_auth_third_party_auth_tpa_id_builder(
+        client,
+        &args.ref_rs,
+        &args.tpa_id,
+    )?;
     delete_v1_projects_ref_config_auth_third_party_auth_tpa_id_execute(builder)
 }
 
@@ -8306,7 +9552,7 @@ pub fn get_v1_projects_ref_config_database_pgbouncer_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/database/pgbouncer",
+        "https://api.supabase.com/v1/projects/{}/config/database/pgbouncer",
         ref_rs,
     );
 
@@ -8354,9 +9600,17 @@ pub fn get_v1_projects_ref_config_database_pgbouncer_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -8378,6 +9632,13 @@ pub fn get_v1_projects_ref_config_database_pgbouncer_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_config_database_pgbouncer`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefConfigDatabasePgbouncerArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/config/database/pgbouncer
 /// Get project's pgbouncer config
 ///
@@ -8390,14 +9651,14 @@ pub fn get_v1_projects_ref_config_database_pgbouncer_execute(
 
 pub fn get_v1_projects_ref_config_database_pgbouncer(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefConfigDatabasePgbouncerArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<V1PgbouncerConfigResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_config_database_pgbouncer_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_config_database_pgbouncer_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_database_pgbouncer_execute(builder)
 }
 
@@ -8413,7 +9674,7 @@ pub fn get_v1_projects_ref_config_database_pooler_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/database/pooler",
+        "https://api.supabase.com/v1/projects/{}/config/database/pooler",
         ref_rs,
     );
 
@@ -8459,9 +9720,17 @@ pub fn get_v1_projects_ref_config_database_pooler_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -8480,6 +9749,13 @@ pub fn get_v1_projects_ref_config_database_pooler_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_config_database_pooler`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefConfigDatabasePoolerArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/config/database/pooler
 /// Gets project's supavisor config
 ///
@@ -8492,12 +9768,12 @@ pub fn get_v1_projects_ref_config_database_pooler_execute(
 
 pub fn get_v1_projects_ref_config_database_pooler(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefConfigDatabasePoolerArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_config_database_pooler_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_config_database_pooler_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_database_pooler_execute(builder)
 }
 
@@ -8514,7 +9790,7 @@ pub fn patch_v1_projects_ref_config_database_pooler_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/database/pooler",
+        "https://api.supabase.com/v1/projects/{}/config/database/pooler",
         ref_rs,
     );
 
@@ -8566,9 +9842,17 @@ pub fn patch_v1_projects_ref_config_database_pooler_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -8590,6 +9874,15 @@ pub fn patch_v1_projects_ref_config_database_pooler_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_v1_projects_ref_config_database_pooler`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchV1ProjectsRefConfigDatabasePoolerArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: UpdateSupavisorConfigBody,
+}
+
 /// PATCH /v1/projects/{ref}/config/database/pooler
 /// Updates project's supavisor config
 ///
@@ -8602,8 +9895,7 @@ pub fn patch_v1_projects_ref_config_database_pooler_execute(
 
 pub fn patch_v1_projects_ref_config_database_pooler(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &UpdateSupavisorConfigBody,
+    args: &PatchV1ProjectsRefConfigDatabasePoolerArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<UpdateSupavisorConfigResponse>, ApiError>,
@@ -8612,7 +9904,8 @@ pub fn patch_v1_projects_ref_config_database_pooler(
         + 'static,
     ApiError,
 > {
-    let builder = patch_v1_projects_ref_config_database_pooler_builder(client, ref_rs, body)?;
+    let builder =
+        patch_v1_projects_ref_config_database_pooler_builder(client, &args.ref_rs, &args.body)?;
     patch_v1_projects_ref_config_database_pooler_execute(builder)
 }
 
@@ -8628,7 +9921,7 @@ pub fn get_v1_projects_ref_config_database_postgres_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/database/postgres",
+        "https://api.supabase.com/v1/projects/{}/config/database/postgres",
         ref_rs,
     );
 
@@ -8676,9 +9969,17 @@ pub fn get_v1_projects_ref_config_database_postgres_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -8700,6 +10001,13 @@ pub fn get_v1_projects_ref_config_database_postgres_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_config_database_postgres`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefConfigDatabasePostgresArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/config/database/postgres
 /// Gets project's Postgres config
 ///
@@ -8712,14 +10020,14 @@ pub fn get_v1_projects_ref_config_database_postgres_execute(
 
 pub fn get_v1_projects_ref_config_database_postgres(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefConfigDatabasePostgresArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PostgresConfigResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_config_database_postgres_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_config_database_postgres_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_database_postgres_execute(builder)
 }
 
@@ -8736,7 +10044,7 @@ pub fn put_v1_projects_ref_config_database_postgres_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/database/postgres",
+        "https://api.supabase.com/v1/projects/{}/config/database/postgres",
         ref_rs,
     );
 
@@ -8786,9 +10094,17 @@ pub fn put_v1_projects_ref_config_database_postgres_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -8810,6 +10126,15 @@ pub fn put_v1_projects_ref_config_database_postgres_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`put_v1_projects_ref_config_database_postgres`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PutV1ProjectsRefConfigDatabasePostgresArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: UpdatePostgresConfigBody,
+}
+
 /// PUT /v1/projects/{ref}/config/database/postgres
 /// Updates project's Postgres config
 ///
@@ -8822,15 +10147,15 @@ pub fn put_v1_projects_ref_config_database_postgres_execute(
 
 pub fn put_v1_projects_ref_config_database_postgres(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &UpdatePostgresConfigBody,
+    args: &PutV1ProjectsRefConfigDatabasePostgresArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PostgresConfigResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = put_v1_projects_ref_config_database_postgres_builder(client, ref_rs, body)?;
+    let builder =
+        put_v1_projects_ref_config_database_postgres_builder(client, &args.ref_rs, &args.body)?;
     put_v1_projects_ref_config_database_postgres_execute(builder)
 }
 
@@ -8845,7 +10170,10 @@ pub fn get_v1_projects_ref_config_disk_builder(
     ref_rs: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/config/disk", ref_rs,);
+    let url = format!(
+        "https://api.supabase.com/v1/projects/{}/config/disk",
+        ref_rs,
+    );
 
     // Build request
     let builder = client
@@ -8891,9 +10219,17 @@ pub fn get_v1_projects_ref_config_disk_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -8915,6 +10251,13 @@ pub fn get_v1_projects_ref_config_disk_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_config_disk`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefConfigDiskArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/config/disk
 /// Get database disk attributes
 ///
@@ -8927,14 +10270,14 @@ pub fn get_v1_projects_ref_config_disk_execute(
 
 pub fn get_v1_projects_ref_config_disk(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefConfigDiskArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DiskResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_config_disk_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_config_disk_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_disk_execute(builder)
 }
 
@@ -8950,7 +10293,10 @@ pub fn post_v1_projects_ref_config_disk_builder(
     body: &DiskRequestBody,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/config/disk", ref_rs,);
+    let url = format!(
+        "https://api.supabase.com/v1/projects/{}/config/disk",
+        ref_rs,
+    );
 
     // Build request
     let builder = client
@@ -8996,9 +10342,17 @@ pub fn post_v1_projects_ref_config_disk_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -9017,6 +10371,15 @@ pub fn post_v1_projects_ref_config_disk_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_config_disk`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefConfigDiskArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: DiskRequestBody,
+}
+
 /// POST /v1/projects/{ref}/config/disk
 /// Modify database disk
 ///
@@ -9029,13 +10392,12 @@ pub fn post_v1_projects_ref_config_disk_execute(
 
 pub fn post_v1_projects_ref_config_disk(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &DiskRequestBody,
+    args: &PostV1ProjectsRefConfigDiskArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_config_disk_builder(client, ref_rs, body)?;
+    let builder = post_v1_projects_ref_config_disk_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_config_disk_execute(builder)
 }
 
@@ -9051,7 +10413,7 @@ pub fn get_v1_projects_ref_config_disk_autoscale_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/disk/autoscale",
+        "https://api.supabase.com/v1/projects/{}/config/disk/autoscale",
         ref_rs,
     );
 
@@ -9099,9 +10461,17 @@ pub fn get_v1_projects_ref_config_disk_autoscale_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -9123,6 +10493,13 @@ pub fn get_v1_projects_ref_config_disk_autoscale_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_config_disk_autoscale`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefConfigDiskAutoscaleArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/config/disk/autoscale
 /// Gets project disk autoscale config
 ///
@@ -9135,14 +10512,14 @@ pub fn get_v1_projects_ref_config_disk_autoscale_execute(
 
 pub fn get_v1_projects_ref_config_disk_autoscale(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefConfigDiskAutoscaleArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DiskAutoscaleConfig>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_config_disk_autoscale_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_config_disk_autoscale_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_disk_autoscale_execute(builder)
 }
 
@@ -9158,7 +10535,7 @@ pub fn get_v1_projects_ref_config_disk_util_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/disk/util",
+        "https://api.supabase.com/v1/projects/{}/config/disk/util",
         ref_rs,
     );
 
@@ -9206,9 +10583,17 @@ pub fn get_v1_projects_ref_config_disk_util_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -9230,6 +10615,13 @@ pub fn get_v1_projects_ref_config_disk_util_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_config_disk_util`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefConfigDiskUtilArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/config/disk/util
 /// Get disk utilization
 ///
@@ -9242,14 +10634,14 @@ pub fn get_v1_projects_ref_config_disk_util_execute(
 
 pub fn get_v1_projects_ref_config_disk_util(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefConfigDiskUtilArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DiskUtilMetricsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_config_disk_util_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_config_disk_util_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_disk_util_execute(builder)
 }
 
@@ -9265,7 +10657,7 @@ pub fn get_v1_projects_ref_config_realtime_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/realtime",
+        "https://api.supabase.com/v1/projects/{}/config/realtime",
         ref_rs,
     );
 
@@ -9313,9 +10705,17 @@ pub fn get_v1_projects_ref_config_realtime_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -9337,6 +10737,13 @@ pub fn get_v1_projects_ref_config_realtime_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_config_realtime`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefConfigRealtimeArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/config/realtime
 /// Gets realtime configuration
 ///
@@ -9349,14 +10756,14 @@ pub fn get_v1_projects_ref_config_realtime_execute(
 
 pub fn get_v1_projects_ref_config_realtime(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefConfigRealtimeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<RealtimeConfigResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_config_realtime_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_config_realtime_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_realtime_execute(builder)
 }
 
@@ -9373,7 +10780,7 @@ pub fn patch_v1_projects_ref_config_realtime_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/realtime",
+        "https://api.supabase.com/v1/projects/{}/config/realtime",
         ref_rs,
     );
 
@@ -9421,9 +10828,17 @@ pub fn patch_v1_projects_ref_config_realtime_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -9442,6 +10857,15 @@ pub fn patch_v1_projects_ref_config_realtime_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_v1_projects_ref_config_realtime`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchV1ProjectsRefConfigRealtimeArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: UpdateRealtimeConfigBody,
+}
+
 /// PATCH /v1/projects/{ref}/config/realtime
 /// Updates realtime configuration
 ///
@@ -9454,13 +10878,12 @@ pub fn patch_v1_projects_ref_config_realtime_execute(
 
 pub fn patch_v1_projects_ref_config_realtime(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &UpdateRealtimeConfigBody,
+    args: &PatchV1ProjectsRefConfigRealtimeArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = patch_v1_projects_ref_config_realtime_builder(client, ref_rs, body)?;
+    let builder = patch_v1_projects_ref_config_realtime_builder(client, &args.ref_rs, &args.body)?;
     patch_v1_projects_ref_config_realtime_execute(builder)
 }
 
@@ -9476,7 +10899,7 @@ pub fn post_v1_projects_ref_config_realtime_shutdown_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/realtime/shutdown",
+        "https://api.supabase.com/v1/projects/{}/config/realtime/shutdown",
         ref_rs,
     );
 
@@ -9522,9 +10945,17 @@ pub fn post_v1_projects_ref_config_realtime_shutdown_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -9543,6 +10974,13 @@ pub fn post_v1_projects_ref_config_realtime_shutdown_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_config_realtime_shutdown`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefConfigRealtimeShutdownArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// POST /v1/projects/{ref}/config/realtime/shutdown
 /// Shutdowns realtime connections for a project
 ///
@@ -9555,12 +10993,12 @@ pub fn post_v1_projects_ref_config_realtime_shutdown_execute(
 
 pub fn post_v1_projects_ref_config_realtime_shutdown(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &PostV1ProjectsRefConfigRealtimeShutdownArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_config_realtime_shutdown_builder(client, ref_rs)?;
+    let builder = post_v1_projects_ref_config_realtime_shutdown_builder(client, &args.ref_rs)?;
     post_v1_projects_ref_config_realtime_shutdown_execute(builder)
 }
 
@@ -9576,7 +11014,7 @@ pub fn get_v1_projects_ref_config_storage_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/storage",
+        "https://api.supabase.com/v1/projects/{}/config/storage",
         ref_rs,
     );
 
@@ -9624,9 +11062,17 @@ pub fn get_v1_projects_ref_config_storage_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -9648,6 +11094,13 @@ pub fn get_v1_projects_ref_config_storage_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_config_storage`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefConfigStorageArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/config/storage
 /// Gets project's storage config
 ///
@@ -9660,14 +11113,14 @@ pub fn get_v1_projects_ref_config_storage_execute(
 
 pub fn get_v1_projects_ref_config_storage(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefConfigStorageArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StorageConfigResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_config_storage_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_config_storage_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_config_storage_execute(builder)
 }
 
@@ -9684,7 +11137,7 @@ pub fn patch_v1_projects_ref_config_storage_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/config/storage",
+        "https://api.supabase.com/v1/projects/{}/config/storage",
         ref_rs,
     );
 
@@ -9732,9 +11185,17 @@ pub fn patch_v1_projects_ref_config_storage_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -9753,6 +11214,15 @@ pub fn patch_v1_projects_ref_config_storage_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_v1_projects_ref_config_storage`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchV1ProjectsRefConfigStorageArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: UpdateStorageConfigBody,
+}
+
 /// PATCH /v1/projects/{ref}/config/storage
 /// Updates project's storage config
 ///
@@ -9765,13 +11235,12 @@ pub fn patch_v1_projects_ref_config_storage_execute(
 
 pub fn patch_v1_projects_ref_config_storage(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &UpdateStorageConfigBody,
+    args: &PatchV1ProjectsRefConfigStorageArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = patch_v1_projects_ref_config_storage_builder(client, ref_rs, body)?;
+    let builder = patch_v1_projects_ref_config_storage_builder(client, &args.ref_rs, &args.body)?;
     patch_v1_projects_ref_config_storage_execute(builder)
 }
 
@@ -9787,7 +11256,7 @@ pub fn get_v1_projects_ref_custom_hostname_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/custom-hostname",
+        "https://api.supabase.com/v1/projects/{}/custom-hostname",
         ref_rs,
     );
 
@@ -9837,9 +11306,17 @@ pub fn get_v1_projects_ref_custom_hostname_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -9861,6 +11338,13 @@ pub fn get_v1_projects_ref_custom_hostname_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_custom_hostname`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefCustomHostnameArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/custom-hostname
 /// [Beta] Gets project's custom hostname config
 ///
@@ -9873,7 +11357,7 @@ pub fn get_v1_projects_ref_custom_hostname_execute(
 
 pub fn get_v1_projects_ref_custom_hostname(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefCustomHostnameArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
@@ -9882,7 +11366,7 @@ pub fn get_v1_projects_ref_custom_hostname(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_custom_hostname_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_custom_hostname_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_custom_hostname_execute(builder)
 }
 
@@ -9898,7 +11382,7 @@ pub fn delete_v1_projects_ref_custom_hostname_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/custom-hostname",
+        "https://api.supabase.com/v1/projects/{}/custom-hostname",
         ref_rs,
     );
 
@@ -9944,9 +11428,17 @@ pub fn delete_v1_projects_ref_custom_hostname_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -9965,6 +11457,13 @@ pub fn delete_v1_projects_ref_custom_hostname_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_v1_projects_ref_custom_hostname`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteV1ProjectsRefCustomHostnameArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// DELETE /v1/projects/{ref}/custom-hostname
 /// [Beta] Deletes a project's custom hostname configuration
 ///
@@ -9977,12 +11476,12 @@ pub fn delete_v1_projects_ref_custom_hostname_execute(
 
 pub fn delete_v1_projects_ref_custom_hostname(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &DeleteV1ProjectsRefCustomHostnameArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_projects_ref_custom_hostname_builder(client, ref_rs)?;
+    let builder = delete_v1_projects_ref_custom_hostname_builder(client, &args.ref_rs)?;
     delete_v1_projects_ref_custom_hostname_execute(builder)
 }
 
@@ -9998,7 +11497,7 @@ pub fn post_v1_projects_ref_custom_hostname_activate_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/custom-hostname/activate",
+        "https://api.supabase.com/v1/projects/{}/custom-hostname/activate",
         ref_rs,
     );
 
@@ -10048,9 +11547,17 @@ pub fn post_v1_projects_ref_custom_hostname_activate_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -10072,6 +11579,13 @@ pub fn post_v1_projects_ref_custom_hostname_activate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_custom_hostname_activate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefCustomHostnameActivateArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// POST /v1/projects/{ref}/custom-hostname/activate
 /// [Beta] Activates a custom hostname for a project.
 ///
@@ -10084,7 +11598,7 @@ pub fn post_v1_projects_ref_custom_hostname_activate_execute(
 
 pub fn post_v1_projects_ref_custom_hostname_activate(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &PostV1ProjectsRefCustomHostnameActivateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
@@ -10093,7 +11607,7 @@ pub fn post_v1_projects_ref_custom_hostname_activate(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_custom_hostname_activate_builder(client, ref_rs)?;
+    let builder = post_v1_projects_ref_custom_hostname_activate_builder(client, &args.ref_rs)?;
     post_v1_projects_ref_custom_hostname_activate_execute(builder)
 }
 
@@ -10110,7 +11624,7 @@ pub fn post_v1_projects_ref_custom_hostname_initialize_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/custom-hostname/initialize",
+        "https://api.supabase.com/v1/projects/{}/custom-hostname/initialize",
         ref_rs,
     );
 
@@ -10162,9 +11676,17 @@ pub fn post_v1_projects_ref_custom_hostname_initialize_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -10186,6 +11708,15 @@ pub fn post_v1_projects_ref_custom_hostname_initialize_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_custom_hostname_initialize`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefCustomHostnameInitializeArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: UpdateCustomHostnameBody,
+}
+
 /// POST /v1/projects/{ref}/custom-hostname/initialize
 /// [Beta] Updates project's custom hostname configuration
 ///
@@ -10198,8 +11729,7 @@ pub fn post_v1_projects_ref_custom_hostname_initialize_execute(
 
 pub fn post_v1_projects_ref_custom_hostname_initialize(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &UpdateCustomHostnameBody,
+    args: &PostV1ProjectsRefCustomHostnameInitializeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
@@ -10208,7 +11738,8 @@ pub fn post_v1_projects_ref_custom_hostname_initialize(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_custom_hostname_initialize_builder(client, ref_rs, body)?;
+    let builder =
+        post_v1_projects_ref_custom_hostname_initialize_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_custom_hostname_initialize_execute(builder)
 }
 
@@ -10224,7 +11755,7 @@ pub fn post_v1_projects_ref_custom_hostname_reverify_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/custom-hostname/reverify",
+        "https://api.supabase.com/v1/projects/{}/custom-hostname/reverify",
         ref_rs,
     );
 
@@ -10274,9 +11805,17 @@ pub fn post_v1_projects_ref_custom_hostname_reverify_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -10298,6 +11837,13 @@ pub fn post_v1_projects_ref_custom_hostname_reverify_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_custom_hostname_reverify`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefCustomHostnameReverifyArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// POST /v1/projects/{ref}/custom-hostname/reverify
 /// [Beta] Attempts to verify the DNS configuration for project's custom hostname configuration
 ///
@@ -10310,7 +11856,7 @@ pub fn post_v1_projects_ref_custom_hostname_reverify_execute(
 
 pub fn post_v1_projects_ref_custom_hostname_reverify(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &PostV1ProjectsRefCustomHostnameReverifyArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<UpdateCustomHostnameResponse>, ApiError>,
@@ -10319,7 +11865,7 @@ pub fn post_v1_projects_ref_custom_hostname_reverify(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_custom_hostname_reverify_builder(client, ref_rs)?;
+    let builder = post_v1_projects_ref_custom_hostname_reverify_builder(client, &args.ref_rs)?;
     post_v1_projects_ref_custom_hostname_reverify_execute(builder)
 }
 
@@ -10335,7 +11881,7 @@ pub fn get_v1_projects_ref_database_backups_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/database/backups",
+        "https://api.supabase.com/v1/projects/{}/database/backups",
         ref_rs,
     );
 
@@ -10383,9 +11929,17 @@ pub fn get_v1_projects_ref_database_backups_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -10407,6 +11961,13 @@ pub fn get_v1_projects_ref_database_backups_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_database_backups`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefDatabaseBackupsArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/database/backups
 /// Lists all backups
 ///
@@ -10419,14 +11980,14 @@ pub fn get_v1_projects_ref_database_backups_execute(
 
 pub fn get_v1_projects_ref_database_backups(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefDatabaseBackupsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<V1BackupsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_database_backups_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_database_backups_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_database_backups_execute(builder)
 }
 
@@ -10443,7 +12004,7 @@ pub fn post_v1_projects_ref_database_backups_restore_pitr_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/database/backups/restore-pitr",
+        "https://api.supabase.com/v1/projects/{}/database/backups/restore-pitr",
         ref_rs,
     );
 
@@ -10491,9 +12052,17 @@ pub fn post_v1_projects_ref_database_backups_restore_pitr_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -10512,6 +12081,15 @@ pub fn post_v1_projects_ref_database_backups_restore_pitr_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_database_backups_restore_pitr`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefDatabaseBackupsRestorePitrArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: V1RestorePitrBody,
+}
+
 /// POST /v1/projects/{ref}/database/backups/restore-pitr
 /// Restores a PITR backup for a database
 ///
@@ -10524,13 +12102,16 @@ pub fn post_v1_projects_ref_database_backups_restore_pitr_execute(
 
 pub fn post_v1_projects_ref_database_backups_restore_pitr(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &V1RestorePitrBody,
+    args: &PostV1ProjectsRefDatabaseBackupsRestorePitrArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_database_backups_restore_pitr_builder(client, ref_rs, body)?;
+    let builder = post_v1_projects_ref_database_backups_restore_pitr_builder(
+        client,
+        &args.ref_rs,
+        &args.body,
+    )?;
     post_v1_projects_ref_database_backups_restore_pitr_execute(builder)
 }
 
@@ -10547,7 +12128,7 @@ pub fn get_v1_projects_ref_database_backups_restore_point_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/database/backups/restore-point",
+        "https://api.supabase.com/v1/projects/{}/database/backups/restore-point",
         ref_rs,
     );
 
@@ -10606,9 +12187,17 @@ pub fn get_v1_projects_ref_database_backups_restore_point_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -10630,6 +12219,15 @@ pub fn get_v1_projects_ref_database_backups_restore_point_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_database_backups_restore_point`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefDatabaseBackupsRestorePointArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Query parameter: name
+    pub name: Option<String>,
+}
+
 /// GET /v1/projects/{ref}/database/backups/restore-point
 /// Get restore points for project
 ///
@@ -10642,15 +12240,18 @@ pub fn get_v1_projects_ref_database_backups_restore_point_execute(
 
 pub fn get_v1_projects_ref_database_backups_restore_point(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    name: Option<&str>,
+    args: &GetV1ProjectsRefDatabaseBackupsRestorePointArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<V1RestorePointResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_database_backups_restore_point_builder(client, ref_rs, name)?;
+    let builder = get_v1_projects_ref_database_backups_restore_point_builder(
+        client,
+        &args.ref_rs,
+        args.name.as_deref(),
+    )?;
     get_v1_projects_ref_database_backups_restore_point_execute(builder)
 }
 
@@ -10667,7 +12268,7 @@ pub fn post_v1_projects_ref_database_backups_restore_point_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/database/backups/restore-point",
+        "https://api.supabase.com/v1/projects/{}/database/backups/restore-point",
         ref_rs,
     );
 
@@ -10717,9 +12318,17 @@ pub fn post_v1_projects_ref_database_backups_restore_point_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -10741,6 +12350,15 @@ pub fn post_v1_projects_ref_database_backups_restore_point_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_database_backups_restore_point`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefDatabaseBackupsRestorePointArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: V1RestorePointPostBody,
+}
+
 /// POST /v1/projects/{ref}/database/backups/restore-point
 /// Initiates a creation of a restore point for a database
 ///
@@ -10753,16 +12371,18 @@ pub fn post_v1_projects_ref_database_backups_restore_point_execute(
 
 pub fn post_v1_projects_ref_database_backups_restore_point(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &V1RestorePointPostBody,
+    args: &PostV1ProjectsRefDatabaseBackupsRestorePointArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<V1RestorePointResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_projects_ref_database_backups_restore_point_builder(client, ref_rs, body)?;
+    let builder = post_v1_projects_ref_database_backups_restore_point_builder(
+        client,
+        &args.ref_rs,
+        &args.body,
+    )?;
     post_v1_projects_ref_database_backups_restore_point_execute(builder)
 }
 
@@ -10779,7 +12399,7 @@ pub fn post_v1_projects_ref_database_backups_undo_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/database/backups/undo",
+        "https://api.supabase.com/v1/projects/{}/database/backups/undo",
         ref_rs,
     );
 
@@ -10827,9 +12447,17 @@ pub fn post_v1_projects_ref_database_backups_undo_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -10848,6 +12476,15 @@ pub fn post_v1_projects_ref_database_backups_undo_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_database_backups_undo`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefDatabaseBackupsUndoArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: V1UndoBody,
+}
+
 /// POST /v1/projects/{ref}/database/backups/undo
 /// Initiates an undo to a given restore point
 ///
@@ -10860,13 +12497,13 @@ pub fn post_v1_projects_ref_database_backups_undo_execute(
 
 pub fn post_v1_projects_ref_database_backups_undo(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &V1UndoBody,
+    args: &PostV1ProjectsRefDatabaseBackupsUndoArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_database_backups_undo_builder(client, ref_rs, body)?;
+    let builder =
+        post_v1_projects_ref_database_backups_undo_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_database_backups_undo_execute(builder)
 }
 
@@ -10882,7 +12519,7 @@ pub fn get_v1_projects_ref_database_context_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/database/context",
+        "https://api.supabase.com/v1/projects/{}/database/context",
         ref_rs,
     );
 
@@ -10932,9 +12569,17 @@ pub fn get_v1_projects_ref_database_context_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -10956,6 +12601,13 @@ pub fn get_v1_projects_ref_database_context_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_database_context`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefDatabaseContextArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/database/context
 /// Gets database metadata for the given project.
 ///
@@ -10968,7 +12620,7 @@ pub fn get_v1_projects_ref_database_context_execute(
 
 pub fn get_v1_projects_ref_database_context(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefDatabaseContextArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GetProjectDbMetadataResponse>, ApiError>,
@@ -10977,7 +12629,7 @@ pub fn get_v1_projects_ref_database_context(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_database_context_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_database_context_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_database_context_execute(builder)
 }
 
@@ -10993,7 +12645,7 @@ pub fn get_v1_projects_ref_database_jit_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/database/jit",
+        "https://api.supabase.com/v1/projects/{}/database/jit",
         ref_rs,
     );
 
@@ -11041,9 +12693,17 @@ pub fn get_v1_projects_ref_database_jit_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -11065,6 +12725,13 @@ pub fn get_v1_projects_ref_database_jit_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_database_jit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefDatabaseJitArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/database/jit
 /// Get user-id to role mappings for JIT access
 ///
@@ -11077,14 +12744,14 @@ pub fn get_v1_projects_ref_database_jit_execute(
 
 pub fn get_v1_projects_ref_database_jit(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefDatabaseJitArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<JitAccessResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_database_jit_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_database_jit_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_database_jit_execute(builder)
 }
 
@@ -11101,7 +12768,7 @@ pub fn post_v1_projects_ref_database_jit_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/database/jit",
+        "https://api.supabase.com/v1/projects/{}/database/jit",
         ref_rs,
     );
 
@@ -11153,9 +12820,17 @@ pub fn post_v1_projects_ref_database_jit_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -11177,6 +12852,15 @@ pub fn post_v1_projects_ref_database_jit_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_database_jit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefDatabaseJitArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: AuthorizeJitAccessBody,
+}
+
 /// POST /v1/projects/{ref}/database/jit
 /// Authorize user-id to role mappings for JIT access
 ///
@@ -11189,8 +12873,7 @@ pub fn post_v1_projects_ref_database_jit_execute(
 
 pub fn post_v1_projects_ref_database_jit(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &AuthorizeJitAccessBody,
+    args: &PostV1ProjectsRefDatabaseJitArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<JitAuthorizeAccessResponse>, ApiError>,
@@ -11199,7 +12882,7 @@ pub fn post_v1_projects_ref_database_jit(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_database_jit_builder(client, ref_rs, body)?;
+    let builder = post_v1_projects_ref_database_jit_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_database_jit_execute(builder)
 }
 
@@ -11216,7 +12899,7 @@ pub fn put_v1_projects_ref_database_jit_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/database/jit",
+        "https://api.supabase.com/v1/projects/{}/database/jit",
         ref_rs,
     );
 
@@ -11266,9 +12949,17 @@ pub fn put_v1_projects_ref_database_jit_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -11290,6 +12981,15 @@ pub fn put_v1_projects_ref_database_jit_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`put_v1_projects_ref_database_jit`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PutV1ProjectsRefDatabaseJitArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: UpdateJitAccessBody,
+}
+
 /// PUT /v1/projects/{ref}/database/jit
 /// Updates a user mapping for JIT access
 ///
@@ -11302,15 +13002,14 @@ pub fn put_v1_projects_ref_database_jit_execute(
 
 pub fn put_v1_projects_ref_database_jit(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &UpdateJitAccessBody,
+    args: &PutV1ProjectsRefDatabaseJitArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<JitAccessResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = put_v1_projects_ref_database_jit_builder(client, ref_rs, body)?;
+    let builder = put_v1_projects_ref_database_jit_builder(client, &args.ref_rs, &args.body)?;
     put_v1_projects_ref_database_jit_execute(builder)
 }
 
@@ -11326,7 +13025,7 @@ pub fn get_v1_projects_ref_database_jit_list_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/database/jit/list",
+        "https://api.supabase.com/v1/projects/{}/database/jit/list",
         ref_rs,
     );
 
@@ -11374,9 +13073,17 @@ pub fn get_v1_projects_ref_database_jit_list_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -11398,6 +13105,13 @@ pub fn get_v1_projects_ref_database_jit_list_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_database_jit_list`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefDatabaseJitListArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/database/jit/list
 /// List all user-id to role mappings for JIT access
 ///
@@ -11410,14 +13124,14 @@ pub fn get_v1_projects_ref_database_jit_list_execute(
 
 pub fn get_v1_projects_ref_database_jit_list(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefDatabaseJitListArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<JitListAccessResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_database_jit_list_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_database_jit_list_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_database_jit_list_execute(builder)
 }
 
@@ -11434,7 +13148,7 @@ pub fn delete_v1_projects_ref_database_jit_user_id_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/database/jit/{}",
+        "https://api.supabase.com/v1/projects/{}/database/jit/{}",
         ref_rs, user_id,
     );
 
@@ -11480,9 +13194,17 @@ pub fn delete_v1_projects_ref_database_jit_user_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -11501,6 +13223,15 @@ pub fn delete_v1_projects_ref_database_jit_user_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_v1_projects_ref_database_jit_user_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteV1ProjectsRefDatabaseJitUserIdArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Path parameter: user_id
+    pub user_id: String,
+}
+
 /// DELETE /v1/projects/{ref}/database/jit/{user_id}
 /// Delete JIT access by user-id
 ///
@@ -11513,13 +13244,13 @@ pub fn delete_v1_projects_ref_database_jit_user_id_execute(
 
 pub fn delete_v1_projects_ref_database_jit_user_id(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    user_id: &str,
+    args: &DeleteV1ProjectsRefDatabaseJitUserIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_projects_ref_database_jit_user_id_builder(client, ref_rs, user_id)?;
+    let builder =
+        delete_v1_projects_ref_database_jit_user_id_builder(client, &args.ref_rs, &args.user_id)?;
     delete_v1_projects_ref_database_jit_user_id_execute(builder)
 }
 
@@ -11535,7 +13266,7 @@ pub fn get_v1_projects_ref_database_migrations_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/database/migrations",
+        "https://api.supabase.com/v1/projects/{}/database/migrations",
         ref_rs,
     );
 
@@ -11583,9 +13314,17 @@ pub fn get_v1_projects_ref_database_migrations_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -11607,6 +13346,13 @@ pub fn get_v1_projects_ref_database_migrations_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_database_migrations`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefDatabaseMigrationsArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/database/migrations
 /// List applied migration versions
 ///
@@ -11619,14 +13365,14 @@ pub fn get_v1_projects_ref_database_migrations_execute(
 
 pub fn get_v1_projects_ref_database_migrations(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefDatabaseMigrationsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<V1ListMigrationsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_database_migrations_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_database_migrations_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_database_migrations_execute(builder)
 }
 
@@ -11643,7 +13389,7 @@ pub fn post_v1_projects_ref_database_migrations_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/database/migrations",
+        "https://api.supabase.com/v1/projects/{}/database/migrations",
         ref_rs,
     );
 
@@ -11691,9 +13437,17 @@ pub fn post_v1_projects_ref_database_migrations_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -11712,6 +13466,15 @@ pub fn post_v1_projects_ref_database_migrations_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_database_migrations`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefDatabaseMigrationsArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: V1CreateMigrationBody,
+}
+
 /// POST /v1/projects/{ref}/database/migrations
 /// Apply a database migration
 ///
@@ -11724,13 +13487,13 @@ pub fn post_v1_projects_ref_database_migrations_execute(
 
 pub fn post_v1_projects_ref_database_migrations(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &V1CreateMigrationBody,
+    args: &PostV1ProjectsRefDatabaseMigrationsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_database_migrations_builder(client, ref_rs, body)?;
+    let builder =
+        post_v1_projects_ref_database_migrations_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_database_migrations_execute(builder)
 }
 
@@ -11747,7 +13510,7 @@ pub fn put_v1_projects_ref_database_migrations_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/database/migrations",
+        "https://api.supabase.com/v1/projects/{}/database/migrations",
         ref_rs,
     );
 
@@ -11795,9 +13558,17 @@ pub fn put_v1_projects_ref_database_migrations_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -11816,6 +13587,15 @@ pub fn put_v1_projects_ref_database_migrations_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`put_v1_projects_ref_database_migrations`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PutV1ProjectsRefDatabaseMigrationsArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: V1UpsertMigrationBody,
+}
+
 /// PUT /v1/projects/{ref}/database/migrations
 /// Upsert a database migration without applying
 ///
@@ -11828,13 +13608,13 @@ pub fn put_v1_projects_ref_database_migrations_execute(
 
 pub fn put_v1_projects_ref_database_migrations(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &V1UpsertMigrationBody,
+    args: &PutV1ProjectsRefDatabaseMigrationsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = put_v1_projects_ref_database_migrations_builder(client, ref_rs, body)?;
+    let builder =
+        put_v1_projects_ref_database_migrations_builder(client, &args.ref_rs, &args.body)?;
     put_v1_projects_ref_database_migrations_execute(builder)
 }
 
@@ -11851,7 +13631,7 @@ pub fn delete_v1_projects_ref_database_migrations_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/database/migrations",
+        "https://api.supabase.com/v1/projects/{}/database/migrations",
         ref_rs,
     );
 
@@ -11908,9 +13688,17 @@ pub fn delete_v1_projects_ref_database_migrations_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -11929,6 +13717,15 @@ pub fn delete_v1_projects_ref_database_migrations_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_v1_projects_ref_database_migrations`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteV1ProjectsRefDatabaseMigrationsArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Query parameter: gte
+    pub gte: Option<String>,
+}
+
 /// DELETE /v1/projects/{ref}/database/migrations
 /// Rollback database migrations and remove them from history table
 ///
@@ -11941,13 +13738,16 @@ pub fn delete_v1_projects_ref_database_migrations_execute(
 
 pub fn delete_v1_projects_ref_database_migrations(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    gte: Option<&str>,
+    args: &DeleteV1ProjectsRefDatabaseMigrationsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_projects_ref_database_migrations_builder(client, ref_rs, gte)?;
+    let builder = delete_v1_projects_ref_database_migrations_builder(
+        client,
+        &args.ref_rs,
+        args.gte.as_deref(),
+    )?;
     delete_v1_projects_ref_database_migrations_execute(builder)
 }
 
@@ -11964,7 +13764,7 @@ pub fn get_v1_projects_ref_database_migrations_version_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/database/migrations/{}",
+        "https://api.supabase.com/v1/projects/{}/database/migrations/{}",
         ref_rs, version,
     );
 
@@ -12012,9 +13812,17 @@ pub fn get_v1_projects_ref_database_migrations_version_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -12036,6 +13844,15 @@ pub fn get_v1_projects_ref_database_migrations_version_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_database_migrations_version`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefDatabaseMigrationsVersionArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Path parameter: version
+    pub version: String,
+}
+
 /// GET /v1/projects/{ref}/database/migrations/{version}
 /// Fetch an existing entry from migration history
 ///
@@ -12048,15 +13865,18 @@ pub fn get_v1_projects_ref_database_migrations_version_execute(
 
 pub fn get_v1_projects_ref_database_migrations_version(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    version: &str,
+    args: &GetV1ProjectsRefDatabaseMigrationsVersionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<V1GetMigrationResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_database_migrations_version_builder(client, ref_rs, version)?;
+    let builder = get_v1_projects_ref_database_migrations_version_builder(
+        client,
+        &args.ref_rs,
+        &args.version,
+    )?;
     get_v1_projects_ref_database_migrations_version_execute(builder)
 }
 
@@ -12074,7 +13894,7 @@ pub fn patch_v1_projects_ref_database_migrations_version_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/database/migrations/{}",
+        "https://api.supabase.com/v1/projects/{}/database/migrations/{}",
         ref_rs, version,
     );
 
@@ -12122,9 +13942,17 @@ pub fn patch_v1_projects_ref_database_migrations_version_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -12143,6 +13971,17 @@ pub fn patch_v1_projects_ref_database_migrations_version_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_v1_projects_ref_database_migrations_version`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchV1ProjectsRefDatabaseMigrationsVersionArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Path parameter: version
+    pub version: String,
+    /// Request body.
+    pub body: V1PatchMigrationBody,
+}
+
 /// PATCH /v1/projects/{ref}/database/migrations/{version}
 /// Patch an existing entry in migration history
 ///
@@ -12155,15 +13994,17 @@ pub fn patch_v1_projects_ref_database_migrations_version_execute(
 
 pub fn patch_v1_projects_ref_database_migrations_version(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    version: &str,
-    body: &V1PatchMigrationBody,
+    args: &PatchV1ProjectsRefDatabaseMigrationsVersionArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        patch_v1_projects_ref_database_migrations_version_builder(client, ref_rs, version, body)?;
+    let builder = patch_v1_projects_ref_database_migrations_version_builder(
+        client,
+        &args.ref_rs,
+        &args.version,
+        &args.body,
+    )?;
     patch_v1_projects_ref_database_migrations_version_execute(builder)
 }
 
@@ -12180,7 +14021,7 @@ pub fn get_v1_projects_ref_database_openapi_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/database/openapi",
+        "https://api.supabase.com/v1/projects/{}/database/openapi",
         ref_rs,
     );
 
@@ -12237,9 +14078,17 @@ pub fn get_v1_projects_ref_database_openapi_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -12258,6 +14107,15 @@ pub fn get_v1_projects_ref_database_openapi_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_database_openapi`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefDatabaseOpenapiArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Query parameter: schema
+    pub schema: Option<String>,
+}
+
 /// GET /v1/projects/{ref}/database/openapi
 /// Get PostgREST OpenAPI spec
 ///
@@ -12270,13 +14128,13 @@ pub fn get_v1_projects_ref_database_openapi_execute(
 
 pub fn get_v1_projects_ref_database_openapi(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    schema: Option<&str>,
+    args: &GetV1ProjectsRefDatabaseOpenapiArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_database_openapi_builder(client, ref_rs, schema)?;
+    let builder =
+        get_v1_projects_ref_database_openapi_builder(client, &args.ref_rs, args.schema.as_deref())?;
     get_v1_projects_ref_database_openapi_execute(builder)
 }
 
@@ -12293,7 +14151,7 @@ pub fn patch_v1_projects_ref_database_password_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/database/password",
+        "https://api.supabase.com/v1/projects/{}/database/password",
         ref_rs,
     );
 
@@ -12343,9 +14201,17 @@ pub fn patch_v1_projects_ref_database_password_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -12367,6 +14233,15 @@ pub fn patch_v1_projects_ref_database_password_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_v1_projects_ref_database_password`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchV1ProjectsRefDatabasePasswordArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: V1UpdatePasswordBody,
+}
+
 /// PATCH /v1/projects/{ref}/database/password
 /// Updates the database password
 ///
@@ -12379,15 +14254,15 @@ pub fn patch_v1_projects_ref_database_password_execute(
 
 pub fn patch_v1_projects_ref_database_password(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &V1UpdatePasswordBody,
+    args: &PatchV1ProjectsRefDatabasePasswordArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<V1UpdatePasswordResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = patch_v1_projects_ref_database_password_builder(client, ref_rs, body)?;
+    let builder =
+        patch_v1_projects_ref_database_password_builder(client, &args.ref_rs, &args.body)?;
     patch_v1_projects_ref_database_password_execute(builder)
 }
 
@@ -12404,7 +14279,7 @@ pub fn post_v1_projects_ref_database_query_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/database/query",
+        "https://api.supabase.com/v1/projects/{}/database/query",
         ref_rs,
     );
 
@@ -12452,9 +14327,17 @@ pub fn post_v1_projects_ref_database_query_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -12473,6 +14356,15 @@ pub fn post_v1_projects_ref_database_query_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_database_query`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefDatabaseQueryArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: V1RunQueryBody,
+}
+
 /// POST /v1/projects/{ref}/database/query
 /// [Beta] Run sql query
 ///
@@ -12485,13 +14377,12 @@ pub fn post_v1_projects_ref_database_query_execute(
 
 pub fn post_v1_projects_ref_database_query(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &V1RunQueryBody,
+    args: &PostV1ProjectsRefDatabaseQueryArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_database_query_builder(client, ref_rs, body)?;
+    let builder = post_v1_projects_ref_database_query_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_database_query_execute(builder)
 }
 
@@ -12508,7 +14399,7 @@ pub fn post_v1_projects_ref_database_query_read_only_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/database/query/read-only",
+        "https://api.supabase.com/v1/projects/{}/database/query/read-only",
         ref_rs,
     );
 
@@ -12556,9 +14447,17 @@ pub fn post_v1_projects_ref_database_query_read_only_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -12577,6 +14476,15 @@ pub fn post_v1_projects_ref_database_query_read_only_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_database_query_read_only`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefDatabaseQueryReadOnlyArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: V1ReadOnlyQueryBody,
+}
+
 /// POST /v1/projects/{ref}/database/query/read-only
 /// [Beta] Run a sql query as supabase_read_only_user
 ///
@@ -12589,13 +14497,13 @@ pub fn post_v1_projects_ref_database_query_read_only_execute(
 
 pub fn post_v1_projects_ref_database_query_read_only(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &V1ReadOnlyQueryBody,
+    args: &PostV1ProjectsRefDatabaseQueryReadOnlyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_database_query_read_only_builder(client, ref_rs, body)?;
+    let builder =
+        post_v1_projects_ref_database_query_read_only_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_database_query_read_only_execute(builder)
 }
 
@@ -12611,7 +14519,7 @@ pub fn post_v1_projects_ref_database_webhooks_enable_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/database/webhooks/enable",
+        "https://api.supabase.com/v1/projects/{}/database/webhooks/enable",
         ref_rs,
     );
 
@@ -12657,9 +14565,17 @@ pub fn post_v1_projects_ref_database_webhooks_enable_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -12678,6 +14594,13 @@ pub fn post_v1_projects_ref_database_webhooks_enable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_database_webhooks_enable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefDatabaseWebhooksEnableArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// POST /v1/projects/{ref}/database/webhooks/enable
 /// [Beta] Enables Database Webhooks on the project
 ///
@@ -12690,12 +14613,12 @@ pub fn post_v1_projects_ref_database_webhooks_enable_execute(
 
 pub fn post_v1_projects_ref_database_webhooks_enable(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &PostV1ProjectsRefDatabaseWebhooksEnableArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_database_webhooks_enable_builder(client, ref_rs)?;
+    let builder = post_v1_projects_ref_database_webhooks_enable_builder(client, &args.ref_rs)?;
     post_v1_projects_ref_database_webhooks_enable_execute(builder)
 }
 
@@ -12710,7 +14633,7 @@ pub fn get_v1_projects_ref_functions_builder(
     ref_rs: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/functions", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}/functions", ref_rs,);
 
     // Build request
     let builder = client
@@ -12754,9 +14677,17 @@ pub fn get_v1_projects_ref_functions_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -12775,6 +14706,13 @@ pub fn get_v1_projects_ref_functions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_functions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefFunctionsArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/functions
 /// List all functions
 ///
@@ -12787,12 +14725,12 @@ pub fn get_v1_projects_ref_functions_execute(
 
 pub fn get_v1_projects_ref_functions(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefFunctionsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_functions_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_functions_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_functions_execute(builder)
 }
 
@@ -12815,7 +14753,7 @@ pub fn post_v1_projects_ref_functions_builder(
     body: &V1CreateFunctionBody,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/functions", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}/functions", ref_rs,);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -12892,9 +14830,17 @@ pub fn post_v1_projects_ref_functions_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -12916,6 +14862,29 @@ pub fn post_v1_projects_ref_functions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_functions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefFunctionsArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Query parameter: slug
+    pub slug: Option<String>,
+    /// Query parameter: name
+    pub name: Option<String>,
+    /// Query parameter: verify_jwt
+    pub verify_jwt: Option<bool>,
+    /// Query parameter: import_map
+    pub import_map: Option<bool>,
+    /// Query parameter: entrypoint_path
+    pub entrypoint_path: Option<String>,
+    /// Query parameter: import_map_path
+    pub import_map_path: Option<String>,
+    /// Query parameter: ezbr_sha256
+    pub ezbr_sha256: Option<String>,
+    /// Request body.
+    pub body: V1CreateFunctionBody,
+}
+
 /// POST /v1/projects/{ref}/functions
 /// Create a function
 ///
@@ -12928,15 +14897,7 @@ pub fn post_v1_projects_ref_functions_execute(
 
 pub fn post_v1_projects_ref_functions(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    slug: Option<&str>,
-    name: Option<&str>,
-    verify_jwt: Option<bool>,
-    import_map: Option<bool>,
-    entrypoint_path: Option<&str>,
-    import_map_path: Option<&str>,
-    ezbr_sha256: Option<&str>,
-    body: &V1CreateFunctionBody,
+    args: &PostV1ProjectsRefFunctionsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FunctionResponse>, ApiError>, P = ApiPending>
         + Send
@@ -12945,15 +14906,15 @@ pub fn post_v1_projects_ref_functions(
 > {
     let builder = post_v1_projects_ref_functions_builder(
         client,
-        ref_rs,
-        slug,
-        name,
-        verify_jwt,
-        import_map,
-        entrypoint_path,
-        import_map_path,
-        ezbr_sha256,
-        body,
+        &args.ref_rs,
+        args.slug.as_deref(),
+        args.name.as_deref(),
+        args.verify_jwt,
+        args.import_map,
+        args.entrypoint_path.as_deref(),
+        args.import_map_path.as_deref(),
+        args.ezbr_sha256.as_deref(),
+        &args.body,
     )?;
     post_v1_projects_ref_functions_execute(builder)
 }
@@ -12970,7 +14931,7 @@ pub fn put_v1_projects_ref_functions_builder(
     body: &BulkUpdateFunctionBody,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/functions", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}/functions", ref_rs,);
 
     // Build request
     let builder = client
@@ -13020,9 +14981,17 @@ pub fn put_v1_projects_ref_functions_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -13044,6 +15013,15 @@ pub fn put_v1_projects_ref_functions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`put_v1_projects_ref_functions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PutV1ProjectsRefFunctionsArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: BulkUpdateFunctionBody,
+}
+
 /// PUT /v1/projects/{ref}/functions
 /// Bulk update functions
 ///
@@ -13056,8 +15034,7 @@ pub fn put_v1_projects_ref_functions_execute(
 
 pub fn put_v1_projects_ref_functions(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &BulkUpdateFunctionBody,
+    args: &PutV1ProjectsRefFunctionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<BulkUpdateFunctionResponse>, ApiError>,
@@ -13066,7 +15043,7 @@ pub fn put_v1_projects_ref_functions(
         + 'static,
     ApiError,
 > {
-    let builder = put_v1_projects_ref_functions_builder(client, ref_rs, body)?;
+    let builder = put_v1_projects_ref_functions_builder(client, &args.ref_rs, &args.body)?;
     put_v1_projects_ref_functions_execute(builder)
 }
 
@@ -13084,7 +15061,7 @@ pub fn post_v1_projects_ref_functions_deploy_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/functions/deploy",
+        "https://api.supabase.com/v1/projects/{}/functions/deploy",
         ref_rs,
     );
 
@@ -13146,9 +15123,17 @@ pub fn post_v1_projects_ref_functions_deploy_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -13170,6 +15155,17 @@ pub fn post_v1_projects_ref_functions_deploy_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_functions_deploy`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefFunctionsDeployArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Query parameter: slug
+    pub slug: Option<String>,
+    /// Query parameter: bundleOnly
+    pub bundleOnly: Option<bool>,
+}
+
 /// POST /v1/projects/{ref}/functions/deploy
 /// Deploy a function
 ///
@@ -13182,16 +15178,19 @@ pub fn post_v1_projects_ref_functions_deploy_execute(
 
 pub fn post_v1_projects_ref_functions_deploy(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    slug: Option<&str>,
-    bundleOnly: Option<bool>,
+    args: &PostV1ProjectsRefFunctionsDeployArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<DeployFunctionResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_functions_deploy_builder(client, ref_rs, slug, bundleOnly)?;
+    let builder = post_v1_projects_ref_functions_deploy_builder(
+        client,
+        &args.ref_rs,
+        args.slug.as_deref(),
+        args.bundleOnly,
+    )?;
     post_v1_projects_ref_functions_deploy_execute(builder)
 }
 
@@ -13208,7 +15207,7 @@ pub fn get_v1_projects_ref_functions_function_slug_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/functions/{}",
+        "https://api.supabase.com/v1/projects/{}/functions/{}",
         ref_rs, function_slug,
     );
 
@@ -13256,9 +15255,17 @@ pub fn get_v1_projects_ref_functions_function_slug_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -13280,6 +15287,15 @@ pub fn get_v1_projects_ref_functions_function_slug_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_functions_function_slug`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefFunctionsFunctionSlugArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Path parameter: function_slug
+    pub function_slug: String,
+}
+
 /// GET /v1/projects/{ref}/functions/{function_slug}
 /// Retrieve a function
 ///
@@ -13292,16 +15308,18 @@ pub fn get_v1_projects_ref_functions_function_slug_execute(
 
 pub fn get_v1_projects_ref_functions_function_slug(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    function_slug: &str,
+    args: &GetV1ProjectsRefFunctionsFunctionSlugArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FunctionSlugResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_projects_ref_functions_function_slug_builder(client, ref_rs, function_slug)?;
+    let builder = get_v1_projects_ref_functions_function_slug_builder(
+        client,
+        &args.ref_rs,
+        &args.function_slug,
+    )?;
     get_v1_projects_ref_functions_function_slug_execute(builder)
 }
 
@@ -13326,7 +15344,7 @@ pub fn patch_v1_projects_ref_functions_function_slug_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/functions/{}",
+        "https://api.supabase.com/v1/projects/{}/functions/{}",
         ref_rs, function_slug,
     );
 
@@ -13405,9 +15423,17 @@ pub fn patch_v1_projects_ref_functions_function_slug_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -13429,6 +15455,31 @@ pub fn patch_v1_projects_ref_functions_function_slug_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_v1_projects_ref_functions_function_slug`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchV1ProjectsRefFunctionsFunctionSlugArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Path parameter: function_slug
+    pub function_slug: String,
+    /// Query parameter: slug
+    pub slug: Option<String>,
+    /// Query parameter: name
+    pub name: Option<String>,
+    /// Query parameter: verify_jwt
+    pub verify_jwt: Option<bool>,
+    /// Query parameter: import_map
+    pub import_map: Option<bool>,
+    /// Query parameter: entrypoint_path
+    pub entrypoint_path: Option<String>,
+    /// Query parameter: import_map_path
+    pub import_map_path: Option<String>,
+    /// Query parameter: ezbr_sha256
+    pub ezbr_sha256: Option<String>,
+    /// Request body.
+    pub body: V1UpdateFunctionBody,
+}
+
 /// PATCH /v1/projects/{ref}/functions/{function_slug}
 /// Update a function
 ///
@@ -13441,16 +15492,7 @@ pub fn patch_v1_projects_ref_functions_function_slug_execute(
 
 pub fn patch_v1_projects_ref_functions_function_slug(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    function_slug: &str,
-    slug: Option<&str>,
-    name: Option<&str>,
-    verify_jwt: Option<bool>,
-    import_map: Option<bool>,
-    entrypoint_path: Option<&str>,
-    import_map_path: Option<&str>,
-    ezbr_sha256: Option<&str>,
-    body: &V1UpdateFunctionBody,
+    args: &PatchV1ProjectsRefFunctionsFunctionSlugArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<FunctionResponse>, ApiError>, P = ApiPending>
         + Send
@@ -13459,16 +15501,16 @@ pub fn patch_v1_projects_ref_functions_function_slug(
 > {
     let builder = patch_v1_projects_ref_functions_function_slug_builder(
         client,
-        ref_rs,
-        function_slug,
-        slug,
-        name,
-        verify_jwt,
-        import_map,
-        entrypoint_path,
-        import_map_path,
-        ezbr_sha256,
-        body,
+        &args.ref_rs,
+        &args.function_slug,
+        args.slug.as_deref(),
+        args.name.as_deref(),
+        args.verify_jwt,
+        args.import_map,
+        args.entrypoint_path.as_deref(),
+        args.import_map_path.as_deref(),
+        args.ezbr_sha256.as_deref(),
+        &args.body,
     )?;
     patch_v1_projects_ref_functions_function_slug_execute(builder)
 }
@@ -13486,7 +15528,7 @@ pub fn delete_v1_projects_ref_functions_function_slug_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/functions/{}",
+        "https://api.supabase.com/v1/projects/{}/functions/{}",
         ref_rs, function_slug,
     );
 
@@ -13532,9 +15574,17 @@ pub fn delete_v1_projects_ref_functions_function_slug_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -13553,6 +15603,15 @@ pub fn delete_v1_projects_ref_functions_function_slug_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_v1_projects_ref_functions_function_slug`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteV1ProjectsRefFunctionsFunctionSlugArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Path parameter: function_slug
+    pub function_slug: String,
+}
+
 /// DELETE /v1/projects/{ref}/functions/{function_slug}
 /// Delete a function
 ///
@@ -13565,14 +15624,16 @@ pub fn delete_v1_projects_ref_functions_function_slug_execute(
 
 pub fn delete_v1_projects_ref_functions_function_slug(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    function_slug: &str,
+    args: &DeleteV1ProjectsRefFunctionsFunctionSlugArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder =
-        delete_v1_projects_ref_functions_function_slug_builder(client, ref_rs, function_slug)?;
+    let builder = delete_v1_projects_ref_functions_function_slug_builder(
+        client,
+        &args.ref_rs,
+        &args.function_slug,
+    )?;
     delete_v1_projects_ref_functions_function_slug_execute(builder)
 }
 
@@ -13589,7 +15650,7 @@ pub fn get_v1_projects_ref_functions_function_slug_body_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/functions/{}/body",
+        "https://api.supabase.com/v1/projects/{}/functions/{}/body",
         ref_rs, function_slug,
     );
 
@@ -13637,9 +15698,17 @@ pub fn get_v1_projects_ref_functions_function_slug_body_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -13661,6 +15730,15 @@ pub fn get_v1_projects_ref_functions_function_slug_body_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_functions_function_slug_body`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefFunctionsFunctionSlugBodyArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Path parameter: function_slug
+    pub function_slug: String,
+}
+
 /// GET /v1/projects/{ref}/functions/{function_slug}/body
 /// Retrieve a function body
 ///
@@ -13673,16 +15751,18 @@ pub fn get_v1_projects_ref_functions_function_slug_body_execute(
 
 pub fn get_v1_projects_ref_functions_function_slug_body(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    function_slug: &str,
+    args: &GetV1ProjectsRefFunctionsFunctionSlugBodyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<StreamableFile>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder =
-        get_v1_projects_ref_functions_function_slug_body_builder(client, ref_rs, function_slug)?;
+    let builder = get_v1_projects_ref_functions_function_slug_body_builder(
+        client,
+        &args.ref_rs,
+        &args.function_slug,
+    )?;
     get_v1_projects_ref_functions_function_slug_body_execute(builder)
 }
 
@@ -13699,7 +15779,7 @@ pub fn get_v1_projects_ref_health_builder(
     timeout_ms: Option<i32>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/health", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}/health", ref_rs,);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -13757,9 +15837,17 @@ pub fn get_v1_projects_ref_health_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -13778,6 +15866,17 @@ pub fn get_v1_projects_ref_health_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_health`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefHealthArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Query parameter: services
+    pub services: Option<Vec<String>>,
+    /// Query parameter: timeout_ms
+    pub timeout_ms: Option<i32>,
+}
+
 /// GET /v1/projects/{ref}/health
 /// Gets project's service health status
 ///
@@ -13790,14 +15889,13 @@ pub fn get_v1_projects_ref_health_execute(
 
 pub fn get_v1_projects_ref_health(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    services: Option<Vec<String>>,
-    timeout_ms: Option<i32>,
+    args: &GetV1ProjectsRefHealthArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_health_builder(client, ref_rs, services, timeout_ms)?;
+    let builder =
+        get_v1_projects_ref_health_builder(client, &args.ref_rs, args.services, args.timeout_ms)?;
     get_v1_projects_ref_health_execute(builder)
 }
 
@@ -13812,7 +15910,7 @@ pub fn get_v1_projects_ref_jit_access_builder(
     ref_rs: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/jit-access", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}/jit-access", ref_rs,);
 
     // Build request
     let builder = client
@@ -13858,9 +15956,17 @@ pub fn get_v1_projects_ref_jit_access_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -13882,6 +15988,13 @@ pub fn get_v1_projects_ref_jit_access_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_jit_access`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefJitAccessArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/jit-access
 /// [Beta] Get project's just-in-time access configuration.
 ///
@@ -13894,14 +16007,14 @@ pub fn get_v1_projects_ref_jit_access_execute(
 
 pub fn get_v1_projects_ref_jit_access(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefJitAccessArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<JitAccessResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_jit_access_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_jit_access_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_jit_access_execute(builder)
 }
 
@@ -13917,7 +16030,7 @@ pub fn put_v1_projects_ref_jit_access_builder(
     body: &JitAccessRequestRequest,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/jit-access", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}/jit-access", ref_rs,);
 
     // Build request
     let builder = client
@@ -13965,9 +16078,17 @@ pub fn put_v1_projects_ref_jit_access_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -13989,6 +16110,15 @@ pub fn put_v1_projects_ref_jit_access_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`put_v1_projects_ref_jit_access`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PutV1ProjectsRefJitAccessArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: JitAccessRequestRequest,
+}
+
 /// PUT /v1/projects/{ref}/jit-access
 /// [Beta] Update project's just-in-time access configuration.
 ///
@@ -14001,15 +16131,14 @@ pub fn put_v1_projects_ref_jit_access_execute(
 
 pub fn put_v1_projects_ref_jit_access(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &JitAccessRequestRequest,
+    args: &PutV1ProjectsRefJitAccessArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<JitAccessResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = put_v1_projects_ref_jit_access_builder(client, ref_rs, body)?;
+    let builder = put_v1_projects_ref_jit_access_builder(client, &args.ref_rs, &args.body)?;
     put_v1_projects_ref_jit_access_execute(builder)
 }
 
@@ -14026,7 +16155,7 @@ pub fn delete_v1_projects_ref_network_bans_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/network-bans",
+        "https://api.supabase.com/v1/projects/{}/network-bans",
         ref_rs,
     );
 
@@ -14074,9 +16203,17 @@ pub fn delete_v1_projects_ref_network_bans_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -14095,6 +16232,15 @@ pub fn delete_v1_projects_ref_network_bans_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_v1_projects_ref_network_bans`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteV1ProjectsRefNetworkBansArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: RemoveNetworkBanRequest,
+}
+
 /// DELETE /v1/projects/{ref}/network-bans
 /// [Beta] Remove network bans.
 ///
@@ -14107,13 +16253,12 @@ pub fn delete_v1_projects_ref_network_bans_execute(
 
 pub fn delete_v1_projects_ref_network_bans(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &RemoveNetworkBanRequest,
+    args: &DeleteV1ProjectsRefNetworkBansArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_projects_ref_network_bans_builder(client, ref_rs, body)?;
+    let builder = delete_v1_projects_ref_network_bans_builder(client, &args.ref_rs, &args.body)?;
     delete_v1_projects_ref_network_bans_execute(builder)
 }
 
@@ -14129,7 +16274,7 @@ pub fn post_v1_projects_ref_network_bans_retrieve_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/network-bans/retrieve",
+        "https://api.supabase.com/v1/projects/{}/network-bans/retrieve",
         ref_rs,
     );
 
@@ -14177,9 +16322,17 @@ pub fn post_v1_projects_ref_network_bans_retrieve_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -14201,6 +16354,13 @@ pub fn post_v1_projects_ref_network_bans_retrieve_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_network_bans_retrieve`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefNetworkBansRetrieveArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// POST /v1/projects/{ref}/network-bans/retrieve
 /// [Beta] Gets project's network bans
 ///
@@ -14213,14 +16373,14 @@ pub fn post_v1_projects_ref_network_bans_retrieve_execute(
 
 pub fn post_v1_projects_ref_network_bans_retrieve(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &PostV1ProjectsRefNetworkBansRetrieveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<NetworkBanResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_network_bans_retrieve_builder(client, ref_rs)?;
+    let builder = post_v1_projects_ref_network_bans_retrieve_builder(client, &args.ref_rs)?;
     post_v1_projects_ref_network_bans_retrieve_execute(builder)
 }
 
@@ -14236,7 +16396,7 @@ pub fn post_v1_projects_ref_network_bans_retrieve_enriched_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/network-bans/retrieve/enriched",
+        "https://api.supabase.com/v1/projects/{}/network-bans/retrieve/enriched",
         ref_rs,
     );
 
@@ -14286,9 +16446,17 @@ pub fn post_v1_projects_ref_network_bans_retrieve_enriched_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -14310,6 +16478,13 @@ pub fn post_v1_projects_ref_network_bans_retrieve_enriched_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_network_bans_retrieve_enriched`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefNetworkBansRetrieveEnrichedArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// POST /v1/projects/{ref}/network-bans/retrieve/enriched
 /// [Beta] Gets project's network bans with additional information about which databases they affect
 ///
@@ -14322,7 +16497,7 @@ pub fn post_v1_projects_ref_network_bans_retrieve_enriched_execute(
 
 pub fn post_v1_projects_ref_network_bans_retrieve_enriched(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &PostV1ProjectsRefNetworkBansRetrieveEnrichedArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<NetworkBanResponseEnriched>, ApiError>,
@@ -14331,7 +16506,8 @@ pub fn post_v1_projects_ref_network_bans_retrieve_enriched(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_network_bans_retrieve_enriched_builder(client, ref_rs)?;
+    let builder =
+        post_v1_projects_ref_network_bans_retrieve_enriched_builder(client, &args.ref_rs)?;
     post_v1_projects_ref_network_bans_retrieve_enriched_execute(builder)
 }
 
@@ -14347,7 +16523,7 @@ pub fn get_v1_projects_ref_network_restrictions_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/network-restrictions",
+        "https://api.supabase.com/v1/projects/{}/network-restrictions",
         ref_rs,
     );
 
@@ -14397,9 +16573,17 @@ pub fn get_v1_projects_ref_network_restrictions_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -14421,6 +16605,13 @@ pub fn get_v1_projects_ref_network_restrictions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_network_restrictions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefNetworkRestrictionsArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/network-restrictions
 /// [Beta] Gets project's network restrictions
 ///
@@ -14433,7 +16624,7 @@ pub fn get_v1_projects_ref_network_restrictions_execute(
 
 pub fn get_v1_projects_ref_network_restrictions(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefNetworkRestrictionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<NetworkRestrictionsResponse>, ApiError>,
@@ -14442,7 +16633,7 @@ pub fn get_v1_projects_ref_network_restrictions(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_network_restrictions_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_network_restrictions_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_network_restrictions_execute(builder)
 }
 
@@ -14459,7 +16650,7 @@ pub fn patch_v1_projects_ref_network_restrictions_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/network-restrictions",
+        "https://api.supabase.com/v1/projects/{}/network-restrictions",
         ref_rs,
     );
 
@@ -14511,9 +16702,17 @@ pub fn patch_v1_projects_ref_network_restrictions_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -14535,6 +16734,15 @@ pub fn patch_v1_projects_ref_network_restrictions_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_v1_projects_ref_network_restrictions`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchV1ProjectsRefNetworkRestrictionsArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: NetworkRestrictionsPatchRequest,
+}
+
 /// PATCH /v1/projects/{ref}/network-restrictions
 /// [Alpha] Updates project's network restrictions by adding or removing CIDRs
 ///
@@ -14547,8 +16755,7 @@ pub fn patch_v1_projects_ref_network_restrictions_execute(
 
 pub fn patch_v1_projects_ref_network_restrictions(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &NetworkRestrictionsPatchRequest,
+    args: &PatchV1ProjectsRefNetworkRestrictionsArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<NetworkRestrictionsV2Response>, ApiError>,
@@ -14557,7 +16764,8 @@ pub fn patch_v1_projects_ref_network_restrictions(
         + 'static,
     ApiError,
 > {
-    let builder = patch_v1_projects_ref_network_restrictions_builder(client, ref_rs, body)?;
+    let builder =
+        patch_v1_projects_ref_network_restrictions_builder(client, &args.ref_rs, &args.body)?;
     patch_v1_projects_ref_network_restrictions_execute(builder)
 }
 
@@ -14574,7 +16782,7 @@ pub fn post_v1_projects_ref_network_restrictions_apply_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/network-restrictions/apply",
+        "https://api.supabase.com/v1/projects/{}/network-restrictions/apply",
         ref_rs,
     );
 
@@ -14626,9 +16834,17 @@ pub fn post_v1_projects_ref_network_restrictions_apply_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -14650,6 +16866,15 @@ pub fn post_v1_projects_ref_network_restrictions_apply_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_network_restrictions_apply`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefNetworkRestrictionsApplyArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: NetworkRestrictionsRequest,
+}
+
 /// POST /v1/projects/{ref}/network-restrictions/apply
 /// [Beta] Updates project's network restrictions
 ///
@@ -14662,8 +16887,7 @@ pub fn post_v1_projects_ref_network_restrictions_apply_execute(
 
 pub fn post_v1_projects_ref_network_restrictions_apply(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &NetworkRestrictionsRequest,
+    args: &PostV1ProjectsRefNetworkRestrictionsApplyArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<NetworkRestrictionsResponse>, ApiError>,
@@ -14672,7 +16896,8 @@ pub fn post_v1_projects_ref_network_restrictions_apply(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_network_restrictions_apply_builder(client, ref_rs, body)?;
+    let builder =
+        post_v1_projects_ref_network_restrictions_apply_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_network_restrictions_apply_execute(builder)
 }
 
@@ -14687,7 +16912,7 @@ pub fn post_v1_projects_ref_pause_builder(
     ref_rs: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/pause", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}/pause", ref_rs,);
 
     // Build request
     let builder = client
@@ -14731,9 +16956,17 @@ pub fn post_v1_projects_ref_pause_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -14752,6 +16985,13 @@ pub fn post_v1_projects_ref_pause_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_pause`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefPauseArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// POST /v1/projects/{ref}/pause
 /// Pauses the given project
 ///
@@ -14764,12 +17004,12 @@ pub fn post_v1_projects_ref_pause_execute(
 
 pub fn post_v1_projects_ref_pause(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &PostV1ProjectsRefPauseArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_pause_builder(client, ref_rs)?;
+    let builder = post_v1_projects_ref_pause_builder(client, &args.ref_rs)?;
     post_v1_projects_ref_pause_execute(builder)
 }
 
@@ -14784,7 +17024,7 @@ pub fn get_v1_projects_ref_pgsodium_builder(
     ref_rs: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/pgsodium", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}/pgsodium", ref_rs,);
 
     // Build request
     let builder = client
@@ -14830,9 +17070,17 @@ pub fn get_v1_projects_ref_pgsodium_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -14854,6 +17102,13 @@ pub fn get_v1_projects_ref_pgsodium_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_pgsodium`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefPgsodiumArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/pgsodium
 /// [Beta] Gets project's pgsodium config
 ///
@@ -14866,14 +17121,14 @@ pub fn get_v1_projects_ref_pgsodium_execute(
 
 pub fn get_v1_projects_ref_pgsodium(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefPgsodiumArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PgsodiumConfigResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_pgsodium_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_pgsodium_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_pgsodium_execute(builder)
 }
 
@@ -14889,7 +17144,7 @@ pub fn put_v1_projects_ref_pgsodium_builder(
     body: &UpdatePgsodiumConfigBody,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/pgsodium", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}/pgsodium", ref_rs,);
 
     // Build request
     let builder = client
@@ -14937,9 +17192,17 @@ pub fn put_v1_projects_ref_pgsodium_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -14961,6 +17224,15 @@ pub fn put_v1_projects_ref_pgsodium_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`put_v1_projects_ref_pgsodium`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PutV1ProjectsRefPgsodiumArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: UpdatePgsodiumConfigBody,
+}
+
 /// PUT /v1/projects/{ref}/pgsodium
 /// [Beta] Updates project's pgsodium config. Updating the root_key can cause all data encrypted with the older key to become inaccessible.
 ///
@@ -14973,15 +17245,14 @@ pub fn put_v1_projects_ref_pgsodium_execute(
 
 pub fn put_v1_projects_ref_pgsodium(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &UpdatePgsodiumConfigBody,
+    args: &PutV1ProjectsRefPgsodiumArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<PgsodiumConfigResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = put_v1_projects_ref_pgsodium_builder(client, ref_rs, body)?;
+    let builder = put_v1_projects_ref_pgsodium_builder(client, &args.ref_rs, &args.body)?;
     put_v1_projects_ref_pgsodium_execute(builder)
 }
 
@@ -14996,7 +17267,7 @@ pub fn get_v1_projects_ref_postgrest_builder(
     ref_rs: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/postgrest", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}/postgrest", ref_rs,);
 
     // Build request
     let builder = client
@@ -15044,9 +17315,17 @@ pub fn get_v1_projects_ref_postgrest_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -15068,6 +17347,13 @@ pub fn get_v1_projects_ref_postgrest_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_postgrest`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefPostgrestArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/postgrest
 /// Gets project's postgrest config
 ///
@@ -15080,7 +17366,7 @@ pub fn get_v1_projects_ref_postgrest_execute(
 
 pub fn get_v1_projects_ref_postgrest(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefPostgrestArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<PostgrestConfigWithJWTSecretResponse>, ApiError>,
@@ -15089,7 +17375,7 @@ pub fn get_v1_projects_ref_postgrest(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_postgrest_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_postgrest_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_postgrest_execute(builder)
 }
 
@@ -15105,7 +17391,7 @@ pub fn patch_v1_projects_ref_postgrest_builder(
     body: &V1UpdatePostgrestConfigBody,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/postgrest", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}/postgrest", ref_rs,);
 
     // Build request
     let builder = client
@@ -15153,9 +17439,17 @@ pub fn patch_v1_projects_ref_postgrest_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -15177,6 +17471,15 @@ pub fn patch_v1_projects_ref_postgrest_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`patch_v1_projects_ref_postgrest`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PatchV1ProjectsRefPostgrestArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: V1UpdatePostgrestConfigBody,
+}
+
 /// PATCH /v1/projects/{ref}/postgrest
 /// Updates project's postgrest config
 ///
@@ -15189,15 +17492,14 @@ pub fn patch_v1_projects_ref_postgrest_execute(
 
 pub fn patch_v1_projects_ref_postgrest(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &V1UpdatePostgrestConfigBody,
+    args: &PatchV1ProjectsRefPostgrestArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<V1PostgrestConfigResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = patch_v1_projects_ref_postgrest_builder(client, ref_rs, body)?;
+    let builder = patch_v1_projects_ref_postgrest_builder(client, &args.ref_rs, &args.body)?;
     patch_v1_projects_ref_postgrest_execute(builder)
 }
 
@@ -15214,7 +17516,7 @@ pub fn post_v1_projects_ref_read_replicas_remove_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/read-replicas/remove",
+        "https://api.supabase.com/v1/projects/{}/read-replicas/remove",
         ref_rs,
     );
 
@@ -15262,9 +17564,17 @@ pub fn post_v1_projects_ref_read_replicas_remove_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -15283,6 +17593,15 @@ pub fn post_v1_projects_ref_read_replicas_remove_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_read_replicas_remove`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefReadReplicasRemoveArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: RemoveReadReplicaBody,
+}
+
 /// POST /v1/projects/{ref}/read-replicas/remove
 /// [Beta] Remove a read replica
 ///
@@ -15295,13 +17614,13 @@ pub fn post_v1_projects_ref_read_replicas_remove_execute(
 
 pub fn post_v1_projects_ref_read_replicas_remove(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &RemoveReadReplicaBody,
+    args: &PostV1ProjectsRefReadReplicasRemoveArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_read_replicas_remove_builder(client, ref_rs, body)?;
+    let builder =
+        post_v1_projects_ref_read_replicas_remove_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_read_replicas_remove_execute(builder)
 }
 
@@ -15318,7 +17637,7 @@ pub fn post_v1_projects_ref_read_replicas_setup_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/read-replicas/setup",
+        "https://api.supabase.com/v1/projects/{}/read-replicas/setup",
         ref_rs,
     );
 
@@ -15366,9 +17685,17 @@ pub fn post_v1_projects_ref_read_replicas_setup_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -15387,6 +17714,15 @@ pub fn post_v1_projects_ref_read_replicas_setup_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_read_replicas_setup`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefReadReplicasSetupArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: SetUpReadReplicaBody,
+}
+
 /// POST /v1/projects/{ref}/read-replicas/setup
 /// [Beta] Set up a read replica
 ///
@@ -15399,13 +17735,13 @@ pub fn post_v1_projects_ref_read_replicas_setup_execute(
 
 pub fn post_v1_projects_ref_read_replicas_setup(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &SetUpReadReplicaBody,
+    args: &PostV1ProjectsRefReadReplicasSetupArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_read_replicas_setup_builder(client, ref_rs, body)?;
+    let builder =
+        post_v1_projects_ref_read_replicas_setup_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_read_replicas_setup_execute(builder)
 }
 
@@ -15420,7 +17756,7 @@ pub fn get_v1_projects_ref_readonly_builder(
     ref_rs: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/readonly", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}/readonly", ref_rs,);
 
     // Build request
     let builder = client
@@ -15466,9 +17802,17 @@ pub fn get_v1_projects_ref_readonly_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -15490,6 +17834,13 @@ pub fn get_v1_projects_ref_readonly_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_readonly`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefReadonlyArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/readonly
 /// Returns project's readonly mode status
 ///
@@ -15502,14 +17853,14 @@ pub fn get_v1_projects_ref_readonly_execute(
 
 pub fn get_v1_projects_ref_readonly(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefReadonlyArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<ReadOnlyStatusResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_readonly_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_readonly_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_readonly_execute(builder)
 }
 
@@ -15525,7 +17876,7 @@ pub fn post_v1_projects_ref_readonly_temporary_disable_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/readonly/temporary-disable",
+        "https://api.supabase.com/v1/projects/{}/readonly/temporary-disable",
         ref_rs,
     );
 
@@ -15571,9 +17922,17 @@ pub fn post_v1_projects_ref_readonly_temporary_disable_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -15592,6 +17951,13 @@ pub fn post_v1_projects_ref_readonly_temporary_disable_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_readonly_temporary_disable`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefReadonlyTemporaryDisableArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// POST /v1/projects/{ref}/readonly/temporary-disable
 /// Disables project's readonly mode for the next 15 minutes
 ///
@@ -15604,12 +17970,12 @@ pub fn post_v1_projects_ref_readonly_temporary_disable_execute(
 
 pub fn post_v1_projects_ref_readonly_temporary_disable(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &PostV1ProjectsRefReadonlyTemporaryDisableArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_readonly_temporary_disable_builder(client, ref_rs)?;
+    let builder = post_v1_projects_ref_readonly_temporary_disable_builder(client, &args.ref_rs)?;
     post_v1_projects_ref_readonly_temporary_disable_execute(builder)
 }
 
@@ -15624,7 +17990,7 @@ pub fn get_v1_projects_ref_restore_builder(
     ref_rs: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/restore", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}/restore", ref_rs,);
 
     // Build request
     let builder = client
@@ -15672,9 +18038,17 @@ pub fn get_v1_projects_ref_restore_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -15697,6 +18071,13 @@ pub fn get_v1_projects_ref_restore_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefRestoreArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/restore
 /// Lists available restore versions for the given project
 ///
@@ -15709,7 +18090,7 @@ pub fn get_v1_projects_ref_restore_execute(
 
 pub fn get_v1_projects_ref_restore(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefRestoreArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<GetProjectAvailableRestoreVersionsResponse>, ApiError>,
@@ -15718,7 +18099,7 @@ pub fn get_v1_projects_ref_restore(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_restore_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_restore_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_restore_execute(builder)
 }
 
@@ -15733,7 +18114,7 @@ pub fn post_v1_projects_ref_restore_builder(
     ref_rs: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/restore", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}/restore", ref_rs,);
 
     // Build request
     let builder = client
@@ -15777,9 +18158,17 @@ pub fn post_v1_projects_ref_restore_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -15798,6 +18187,13 @@ pub fn post_v1_projects_ref_restore_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_restore`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefRestoreArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// POST /v1/projects/{ref}/restore
 /// Restores the given project
 ///
@@ -15810,12 +18206,12 @@ pub fn post_v1_projects_ref_restore_execute(
 
 pub fn post_v1_projects_ref_restore(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &PostV1ProjectsRefRestoreArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_restore_builder(client, ref_rs)?;
+    let builder = post_v1_projects_ref_restore_builder(client, &args.ref_rs)?;
     post_v1_projects_ref_restore_execute(builder)
 }
 
@@ -15831,7 +18227,7 @@ pub fn post_v1_projects_ref_restore_cancel_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/restore/cancel",
+        "https://api.supabase.com/v1/projects/{}/restore/cancel",
         ref_rs,
     );
 
@@ -15877,9 +18273,17 @@ pub fn post_v1_projects_ref_restore_cancel_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -15898,6 +18302,13 @@ pub fn post_v1_projects_ref_restore_cancel_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_restore_cancel`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefRestoreCancelArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// POST /v1/projects/{ref}/restore/cancel
 /// Cancels the given project restoration
 ///
@@ -15910,12 +18321,12 @@ pub fn post_v1_projects_ref_restore_cancel_execute(
 
 pub fn post_v1_projects_ref_restore_cancel(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &PostV1ProjectsRefRestoreCancelArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_restore_cancel_builder(client, ref_rs)?;
+    let builder = post_v1_projects_ref_restore_cancel_builder(client, &args.ref_rs)?;
     post_v1_projects_ref_restore_cancel_execute(builder)
 }
 
@@ -15930,7 +18341,7 @@ pub fn get_v1_projects_ref_secrets_builder(
     ref_rs: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/secrets", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}/secrets", ref_rs,);
 
     // Build request
     let builder = client
@@ -15974,9 +18385,17 @@ pub fn get_v1_projects_ref_secrets_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -15995,6 +18414,13 @@ pub fn get_v1_projects_ref_secrets_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_secrets`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefSecretsArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/secrets
 /// List all secrets
 ///
@@ -16007,12 +18433,12 @@ pub fn get_v1_projects_ref_secrets_execute(
 
 pub fn get_v1_projects_ref_secrets(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefSecretsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_secrets_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_secrets_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_secrets_execute(builder)
 }
 
@@ -16028,7 +18454,7 @@ pub fn post_v1_projects_ref_secrets_builder(
     body: &CreateSecretBody,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/secrets", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}/secrets", ref_rs,);
 
     // Build request
     let builder = client
@@ -16074,9 +18500,17 @@ pub fn post_v1_projects_ref_secrets_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -16095,6 +18529,15 @@ pub fn post_v1_projects_ref_secrets_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_secrets`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefSecretsArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: CreateSecretBody,
+}
+
 /// POST /v1/projects/{ref}/secrets
 /// Bulk create secrets
 ///
@@ -16107,13 +18550,12 @@ pub fn post_v1_projects_ref_secrets_execute(
 
 pub fn post_v1_projects_ref_secrets(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &CreateSecretBody,
+    args: &PostV1ProjectsRefSecretsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_secrets_builder(client, ref_rs, body)?;
+    let builder = post_v1_projects_ref_secrets_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_secrets_execute(builder)
 }
 
@@ -16129,7 +18571,7 @@ pub fn delete_v1_projects_ref_secrets_builder(
     body: &DeleteSecretsBody,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/secrets", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}/secrets", ref_rs,);
 
     // Build request
     let builder = client
@@ -16175,9 +18617,17 @@ pub fn delete_v1_projects_ref_secrets_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -16196,6 +18646,15 @@ pub fn delete_v1_projects_ref_secrets_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_v1_projects_ref_secrets`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteV1ProjectsRefSecretsArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: DeleteSecretsBody,
+}
+
 /// DELETE /v1/projects/{ref}/secrets
 /// Bulk delete secrets
 ///
@@ -16208,13 +18667,12 @@ pub fn delete_v1_projects_ref_secrets_execute(
 
 pub fn delete_v1_projects_ref_secrets(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &DeleteSecretsBody,
+    args: &DeleteV1ProjectsRefSecretsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_projects_ref_secrets_builder(client, ref_rs, body)?;
+    let builder = delete_v1_projects_ref_secrets_builder(client, &args.ref_rs, &args.body)?;
     delete_v1_projects_ref_secrets_execute(builder)
 }
 
@@ -16230,7 +18688,7 @@ pub fn get_v1_projects_ref_ssl_enforcement_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/ssl-enforcement",
+        "https://api.supabase.com/v1/projects/{}/ssl-enforcement",
         ref_rs,
     );
 
@@ -16278,9 +18736,17 @@ pub fn get_v1_projects_ref_ssl_enforcement_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -16302,6 +18768,13 @@ pub fn get_v1_projects_ref_ssl_enforcement_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_ssl_enforcement`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefSslEnforcementArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/ssl-enforcement
 /// [Beta] Get project's SSL enforcement configuration.
 ///
@@ -16314,14 +18787,14 @@ pub fn get_v1_projects_ref_ssl_enforcement_execute(
 
 pub fn get_v1_projects_ref_ssl_enforcement(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefSslEnforcementArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SslEnforcementResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_ssl_enforcement_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_ssl_enforcement_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_ssl_enforcement_execute(builder)
 }
 
@@ -16338,7 +18811,7 @@ pub fn put_v1_projects_ref_ssl_enforcement_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/ssl-enforcement",
+        "https://api.supabase.com/v1/projects/{}/ssl-enforcement",
         ref_rs,
     );
 
@@ -16388,9 +18861,17 @@ pub fn put_v1_projects_ref_ssl_enforcement_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -16412,6 +18893,15 @@ pub fn put_v1_projects_ref_ssl_enforcement_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`put_v1_projects_ref_ssl_enforcement`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PutV1ProjectsRefSslEnforcementArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: SslEnforcementRequest,
+}
+
 /// PUT /v1/projects/{ref}/ssl-enforcement
 /// [Beta] Update project's SSL enforcement configuration.
 ///
@@ -16424,15 +18914,14 @@ pub fn put_v1_projects_ref_ssl_enforcement_execute(
 
 pub fn put_v1_projects_ref_ssl_enforcement(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &SslEnforcementRequest,
+    args: &PutV1ProjectsRefSslEnforcementArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SslEnforcementResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = put_v1_projects_ref_ssl_enforcement_builder(client, ref_rs, body)?;
+    let builder = put_v1_projects_ref_ssl_enforcement_builder(client, &args.ref_rs, &args.body)?;
     put_v1_projects_ref_ssl_enforcement_execute(builder)
 }
 
@@ -16448,7 +18937,7 @@ pub fn get_v1_projects_ref_storage_buckets_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/storage/buckets",
+        "https://api.supabase.com/v1/projects/{}/storage/buckets",
         ref_rs,
     );
 
@@ -16494,9 +18983,17 @@ pub fn get_v1_projects_ref_storage_buckets_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -16515,6 +19012,13 @@ pub fn get_v1_projects_ref_storage_buckets_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_storage_buckets`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefStorageBucketsArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/storage/buckets
 /// Lists all buckets
 ///
@@ -16527,12 +19031,12 @@ pub fn get_v1_projects_ref_storage_buckets_execute(
 
 pub fn get_v1_projects_ref_storage_buckets(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefStorageBucketsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_storage_buckets_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_storage_buckets_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_storage_buckets_execute(builder)
 }
 
@@ -16549,7 +19053,7 @@ pub fn get_v1_projects_ref_types_typescript_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/types/typescript",
+        "https://api.supabase.com/v1/projects/{}/types/typescript",
         ref_rs,
     );
 
@@ -16608,9 +19112,17 @@ pub fn get_v1_projects_ref_types_typescript_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -16632,6 +19144,15 @@ pub fn get_v1_projects_ref_types_typescript_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_types_typescript`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefTypesTypescriptArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Query parameter: included_schemas
+    pub included_schemas: Option<String>,
+}
+
 /// GET /v1/projects/{ref}/types/typescript
 /// Generate TypeScript types
 ///
@@ -16644,15 +19165,18 @@ pub fn get_v1_projects_ref_types_typescript_execute(
 
 pub fn get_v1_projects_ref_types_typescript(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    included_schemas: Option<&str>,
+    args: &GetV1ProjectsRefTypesTypescriptArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<TypescriptResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_types_typescript_builder(client, ref_rs, included_schemas)?;
+    let builder = get_v1_projects_ref_types_typescript_builder(
+        client,
+        &args.ref_rs,
+        args.included_schemas.as_deref(),
+    )?;
     get_v1_projects_ref_types_typescript_execute(builder)
 }
 
@@ -16668,7 +19192,7 @@ pub fn post_v1_projects_ref_upgrade_builder(
     body: &UpgradeDatabaseBody,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/projects/{}/upgrade", ref_rs,);
+    let url = format!("https://api.supabase.com/v1/projects/{}/upgrade", ref_rs,);
 
     // Build request
     let builder = client
@@ -16718,9 +19242,17 @@ pub fn post_v1_projects_ref_upgrade_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -16742,6 +19274,15 @@ pub fn post_v1_projects_ref_upgrade_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_upgrade`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefUpgradeArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: UpgradeDatabaseBody,
+}
+
 /// POST /v1/projects/{ref}/upgrade
 /// [Beta] Upgrades the project's Postgres version
 ///
@@ -16754,8 +19295,7 @@ pub fn post_v1_projects_ref_upgrade_execute(
 
 pub fn post_v1_projects_ref_upgrade(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &UpgradeDatabaseBody,
+    args: &PostV1ProjectsRefUpgradeArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ProjectUpgradeInitiateResponse>, ApiError>,
@@ -16764,7 +19304,7 @@ pub fn post_v1_projects_ref_upgrade(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_upgrade_builder(client, ref_rs, body)?;
+    let builder = post_v1_projects_ref_upgrade_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_upgrade_execute(builder)
 }
 
@@ -16780,7 +19320,7 @@ pub fn get_v1_projects_ref_upgrade_eligibility_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/upgrade/eligibility",
+        "https://api.supabase.com/v1/projects/{}/upgrade/eligibility",
         ref_rs,
     );
 
@@ -16830,9 +19370,17 @@ pub fn get_v1_projects_ref_upgrade_eligibility_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -16854,6 +19402,13 @@ pub fn get_v1_projects_ref_upgrade_eligibility_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_upgrade_eligibility`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefUpgradeEligibilityArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/upgrade/eligibility
 /// [Beta] Returns the project's eligibility for upgrades
 ///
@@ -16866,7 +19421,7 @@ pub fn get_v1_projects_ref_upgrade_eligibility_execute(
 
 pub fn get_v1_projects_ref_upgrade_eligibility(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefUpgradeEligibilityArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ProjectUpgradeEligibilityResponse>, ApiError>,
@@ -16875,7 +19430,7 @@ pub fn get_v1_projects_ref_upgrade_eligibility(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_upgrade_eligibility_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_upgrade_eligibility_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_upgrade_eligibility_execute(builder)
 }
 
@@ -16892,7 +19447,7 @@ pub fn get_v1_projects_ref_upgrade_status_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/upgrade/status",
+        "https://api.supabase.com/v1/projects/{}/upgrade/status",
         ref_rs,
     );
 
@@ -16953,9 +19508,17 @@ pub fn get_v1_projects_ref_upgrade_status_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -16977,6 +19540,15 @@ pub fn get_v1_projects_ref_upgrade_status_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_upgrade_status`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefUpgradeStatusArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Query parameter: tracking_id
+    pub tracking_id: Option<String>,
+}
+
 /// GET /v1/projects/{ref}/upgrade/status
 /// [Beta] Gets the latest status of the project's upgrade
 ///
@@ -16989,8 +19561,7 @@ pub fn get_v1_projects_ref_upgrade_status_execute(
 
 pub fn get_v1_projects_ref_upgrade_status(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    tracking_id: Option<&str>,
+    args: &GetV1ProjectsRefUpgradeStatusArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<DatabaseUpgradeStatusResponse>, ApiError>,
@@ -16999,7 +19570,11 @@ pub fn get_v1_projects_ref_upgrade_status(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_upgrade_status_builder(client, ref_rs, tracking_id)?;
+    let builder = get_v1_projects_ref_upgrade_status_builder(
+        client,
+        &args.ref_rs,
+        args.tracking_id.as_deref(),
+    )?;
     get_v1_projects_ref_upgrade_status_execute(builder)
 }
 
@@ -17015,7 +19590,7 @@ pub fn get_v1_projects_ref_vanity_subdomain_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/vanity-subdomain",
+        "https://api.supabase.com/v1/projects/{}/vanity-subdomain",
         ref_rs,
     );
 
@@ -17065,9 +19640,17 @@ pub fn get_v1_projects_ref_vanity_subdomain_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -17089,6 +19672,13 @@ pub fn get_v1_projects_ref_vanity_subdomain_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_projects_ref_vanity_subdomain`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1ProjectsRefVanitySubdomainArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// GET /v1/projects/{ref}/vanity-subdomain
 /// [Beta] Gets current vanity subdomain config
 ///
@@ -17101,7 +19691,7 @@ pub fn get_v1_projects_ref_vanity_subdomain_execute(
 
 pub fn get_v1_projects_ref_vanity_subdomain(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &GetV1ProjectsRefVanitySubdomainArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<VanitySubdomainConfigResponse>, ApiError>,
@@ -17110,7 +19700,7 @@ pub fn get_v1_projects_ref_vanity_subdomain(
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_projects_ref_vanity_subdomain_builder(client, ref_rs)?;
+    let builder = get_v1_projects_ref_vanity_subdomain_builder(client, &args.ref_rs)?;
     get_v1_projects_ref_vanity_subdomain_execute(builder)
 }
 
@@ -17126,7 +19716,7 @@ pub fn delete_v1_projects_ref_vanity_subdomain_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/vanity-subdomain",
+        "https://api.supabase.com/v1/projects/{}/vanity-subdomain",
         ref_rs,
     );
 
@@ -17172,9 +19762,17 @@ pub fn delete_v1_projects_ref_vanity_subdomain_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -17193,6 +19791,13 @@ pub fn delete_v1_projects_ref_vanity_subdomain_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`delete_v1_projects_ref_vanity_subdomain`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct DeleteV1ProjectsRefVanitySubdomainArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+}
+
 /// DELETE /v1/projects/{ref}/vanity-subdomain
 /// [Beta] Deletes a project's vanity subdomain configuration
 ///
@@ -17205,12 +19810,12 @@ pub fn delete_v1_projects_ref_vanity_subdomain_execute(
 
 pub fn delete_v1_projects_ref_vanity_subdomain(
     client: &SimpleHttpClient,
-    ref_rs: &str,
+    args: &DeleteV1ProjectsRefVanitySubdomainArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = delete_v1_projects_ref_vanity_subdomain_builder(client, ref_rs)?;
+    let builder = delete_v1_projects_ref_vanity_subdomain_builder(client, &args.ref_rs)?;
     delete_v1_projects_ref_vanity_subdomain_execute(builder)
 }
 
@@ -17227,7 +19832,7 @@ pub fn post_v1_projects_ref_vanity_subdomain_activate_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/vanity-subdomain/activate",
+        "https://api.supabase.com/v1/projects/{}/vanity-subdomain/activate",
         ref_rs,
     );
 
@@ -17279,9 +19884,17 @@ pub fn post_v1_projects_ref_vanity_subdomain_activate_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -17303,6 +19916,15 @@ pub fn post_v1_projects_ref_vanity_subdomain_activate_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_vanity_subdomain_activate`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefVanitySubdomainActivateArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: VanitySubdomainBody,
+}
+
 /// POST /v1/projects/{ref}/vanity-subdomain/activate
 /// [Beta] Activates a vanity subdomain for a project.
 ///
@@ -17315,8 +19937,7 @@ pub fn post_v1_projects_ref_vanity_subdomain_activate_execute(
 
 pub fn post_v1_projects_ref_vanity_subdomain_activate(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &VanitySubdomainBody,
+    args: &PostV1ProjectsRefVanitySubdomainActivateArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<ActivateVanitySubdomainResponse>, ApiError>,
@@ -17325,7 +19946,8 @@ pub fn post_v1_projects_ref_vanity_subdomain_activate(
         + 'static,
     ApiError,
 > {
-    let builder = post_v1_projects_ref_vanity_subdomain_activate_builder(client, ref_rs, body)?;
+    let builder =
+        post_v1_projects_ref_vanity_subdomain_activate_builder(client, &args.ref_rs, &args.body)?;
     post_v1_projects_ref_vanity_subdomain_activate_execute(builder)
 }
 
@@ -17342,7 +19964,7 @@ pub fn post_v1_projects_ref_vanity_subdomain_check_availability_builder(
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
     let url = format!(
-        "https://api.example.com/v1/projects/{}/vanity-subdomain/check-availability",
+        "https://api.supabase.com/v1/projects/{}/vanity-subdomain/check-availability",
         ref_rs,
     );
 
@@ -17394,9 +20016,17 @@ pub fn post_v1_projects_ref_vanity_subdomain_check_availability_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -17418,6 +20048,15 @@ pub fn post_v1_projects_ref_vanity_subdomain_check_availability_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`post_v1_projects_ref_vanity_subdomain_check_availability`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct PostV1ProjectsRefVanitySubdomainCheckAvailabilityArgs {
+    /// Path parameter: ref
+    pub ref_rs: String,
+    /// Request body.
+    pub body: VanitySubdomainBody,
+}
+
 /// POST /v1/projects/{ref}/vanity-subdomain/check-availability
 /// [Beta] Checks vanity subdomain availability
 ///
@@ -17430,8 +20069,7 @@ pub fn post_v1_projects_ref_vanity_subdomain_check_availability_execute(
 
 pub fn post_v1_projects_ref_vanity_subdomain_check_availability(
     client: &SimpleHttpClient,
-    ref_rs: &str,
-    body: &VanitySubdomainBody,
+    args: &PostV1ProjectsRefVanitySubdomainCheckAvailabilityArgs,
 ) -> Result<
     impl StreamIterator<
             D = Result<ApiResponse<SubdomainAvailabilityResponse>, ApiError>,
@@ -17440,8 +20078,11 @@ pub fn post_v1_projects_ref_vanity_subdomain_check_availability(
         + 'static,
     ApiError,
 > {
-    let builder =
-        post_v1_projects_ref_vanity_subdomain_check_availability_builder(client, ref_rs, body)?;
+    let builder = post_v1_projects_ref_vanity_subdomain_check_availability_builder(
+        client,
+        &args.ref_rs,
+        &args.body,
+    )?;
     post_v1_projects_ref_vanity_subdomain_check_availability_execute(builder)
 }
 
@@ -17460,7 +20101,7 @@ pub fn get_v1_snippets_builder(
     sort_order: Option<&str>,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/snippets",);
+    let url = format!("https://api.supabase.com/v1/snippets",);
 
     // Build request
     let mut query_parts = Vec::new();
@@ -17527,9 +20168,17 @@ pub fn get_v1_snippets_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -17551,6 +20200,21 @@ pub fn get_v1_snippets_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_snippets`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1SnippetsArgs {
+    /// Query parameter: project_ref
+    pub project_ref: Option<String>,
+    /// Query parameter: cursor
+    pub cursor: Option<String>,
+    /// Query parameter: limit
+    pub limit: Option<String>,
+    /// Query parameter: sort_by
+    pub sort_by: Option<String>,
+    /// Query parameter: sort_order
+    pub sort_order: Option<String>,
+}
+
 /// GET /v1/snippets
 /// Lists SQL snippets for the logged in user
 ///
@@ -17563,16 +20227,19 @@ pub fn get_v1_snippets_execute(
 
 pub fn get_v1_snippets(
     client: &SimpleHttpClient,
-    project_ref: Option<&str>,
-    cursor: Option<&str>,
-    limit: Option<&str>,
-    sort_by: Option<&str>,
-    sort_order: Option<&str>,
+    args: &GetV1SnippetsArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SnippetList>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    let builder = get_v1_snippets_builder(client, project_ref, cursor, limit, sort_by, sort_order)?;
+    let builder = get_v1_snippets_builder(
+        client,
+        args.project_ref.as_deref(),
+        args.cursor.as_deref(),
+        args.limit.as_deref(),
+        args.sort_by.as_deref(),
+        args.sort_order.as_deref(),
+    )?;
     get_v1_snippets_execute(builder)
 }
 
@@ -17587,7 +20254,7 @@ pub fn get_v1_snippets_id_builder(
     id: &str,
 ) -> Result<ClientRequestBuilder<SystemDnsResolver>, ApiError> {
     // Build URL
-    let url = format!("https://api.example.com/v1/snippets/{}", id,);
+    let url = format!("https://api.supabase.com/v1/snippets/{}", id,);
 
     // Build request
     let builder = client
@@ -17633,9 +20300,17 @@ pub fn get_v1_snippets_id_execute(
                 let status_code: usize = intro.0.into();
 
                 if status_code < 200 || status_code >= 300 {
+                    // Capture body for error parsing
+                    let body = body_reader::collect_string(stream);
+                    // Try to parse as structured API error
+                    if let Ok(error_body) = serde_json::from_str::<ApiErrorBody>(&body) {
+                        return Err(ApiError::ApiError(error_body.error));
+                    }
+                    // Fall back to raw HTTP status error
                     return Err(ApiError::HttpStatus {
                         code: status_code as u16,
                         headers: headers.clone(),
+                        body: Some(body),
                     });
                 }
 
@@ -17657,6 +20332,13 @@ pub fn get_v1_snippets_id_execute(
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
+/// Arguments for [`get_v1_snippets_id`].
+#[derive(Debug, Clone, Serialize, JsonHash)]
+pub struct GetV1SnippetsIdArgs {
+    /// Path parameter: id
+    pub id: String,
+}
+
 /// GET /v1/snippets/{id}
 /// Gets a specific SQL snippet
 ///
@@ -17669,13 +20351,13 @@ pub fn get_v1_snippets_id_execute(
 
 pub fn get_v1_snippets_id(
     client: &SimpleHttpClient,
-    id: &str,
+    args: &GetV1SnippetsIdArgs,
 ) -> Result<
     impl StreamIterator<D = Result<ApiResponse<SnippetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    let builder = get_v1_snippets_id_builder(client, id)?;
+    let builder = get_v1_snippets_id_builder(client, &args.id)?;
     get_v1_snippets_id_execute(builder)
 }

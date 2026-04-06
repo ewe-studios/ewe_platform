@@ -10,3 +10,1774 @@
 use super::*;
 use foundation_macros::JsonHash;
 use serde::{Deserialize, Serialize};
+
+/// Backup resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Backup {
+    pub actor: serde_json::Value,
+    pub backup_policy: serde_json::Value,
+    /// When the backup completed
+    pub completed_at: String,
+    /// When the backup was created
+    pub created_at: String,
+    pub database_branch: serde_json::Value,
+    /// When the backup was deleted
+    pub deleted_at: String,
+    /// The estimated storage cost of the backup
+    pub estimated_storage_cost: f64,
+    /// When the backup expires
+    pub expires_at: String,
+    /// The ID of the backup
+    pub id: String,
+    /// The name of the backup
+    pub name: String,
+    /// Whether or not the backup is protected from deletion
+    pub protected: bool,
+    /// Size of the PVC used for the backup
+    pub pvc_size: i64,
+    /// Whether or not the backup policy is required
+    pub required: bool,
+    pub restored_branches: ::std::vec::Vec<serde_json::Value>,
+    pub schema_snapshot: serde_json::Value,
+    /// The size of the backup in bytes
+    pub size: i64,
+    /// When the backup started
+    pub started_at: String,
+    /// The current state of the backup // TODO: enum values: ["pending", "running", "success", "failed", "canceled", "ignored"]
+    pub state: String,
+    /// When the backup was last updated
+    pub updated_at: String,
+}
+
+/// BackupPolicy resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BackupPolicy {
+    /// When the backup policy was created
+    pub created_at: String,
+    /// The display name of the backup policy
+    pub display_name: String,
+    /// The unit for the frequency of the backup policy
+    pub frequency_unit: String,
+    /// A number value for the frequency of the backup policy
+    pub frequency_value: i64,
+    /// The ID of the backup policy
+    pub id: String,
+    /// When the backup was last run
+    pub last_ran_at: String,
+    /// The name of the backup policy
+    pub name: String,
+    /// When the backup will next run
+    pub next_run_at: String,
+    /// Whether the policy is a required system backup
+    pub required: bool,
+    /// The unit for the retention period of the backup policy
+    pub retention_unit: String,
+    /// A number value for the retention period of the backup policy
+    pub retention_value: i64,
+    /// Day of the week that the backup is scheduled. 0 is Sunday, 6 is Saturday
+    pub schedule_day: i64,
+    /// The time of day that the backup is scheduled, in HH:MM format
+    pub schedule_time: String,
+    /// Week of the month that the backup is scheduled. 0 is the first week, 3 is the fourth week
+    pub schedule_week: i64,
+    /// Whether the policy is for production or development branches // TODO: enum values: ["production", "development"]
+    pub target: String,
+    /// When the backup policy was last updated
+    pub updated_at: String,
+}
+
+/// BranchMaintenanceSchedule resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BranchMaintenanceSchedule {
+    /// When the maintenance schedule was created
+    pub created_at: String,
+    /// Day of the week (0 = Sunday, 6 = Saturday, 7 = every day)
+    pub day: i64,
+    /// The deadline for a required maintenance schedule
+    pub deadline_at: String,
+    /// The duration of the maintenance window in hours
+    pub duration: i64,
+    /// Whether the maintenance schedule is enabled
+    pub enabled: bool,
+    /// When a one-time maintenance schedule expires
+    pub expires_at: String,
+    /// The frequency unit of the maintenance schedule // TODO: enum values: ["day", "week", "month", "once"]
+    pub frequency_unit: String,
+    /// The frequency value of the maintenance schedule
+    pub frequency_value: i64,
+    /// Hour of the day in UTC (0-23)
+    pub hour: i64,
+    /// The ID of the maintenance schedule
+    pub id: String,
+    /// When the last maintenance window started
+    pub last_window_datetime: String,
+    /// The display name of the maintenance schedule
+    pub name: String,
+    /// When the next maintenance window is scheduled
+    pub next_window_datetime: String,
+    /// The pending Vitess version, if any
+    pub pending_vitess_version: String,
+    /// Whether there is a pending Vitess version update
+    pub pending_vitess_version_update: bool,
+    /// Whether the maintenance schedule is required
+    pub required: bool,
+    /// When the maintenance schedule was last updated
+    pub updated_at: String,
+    /// Week of the month for monthly schedules (0-3)
+    pub week: i64,
+}
+
+/// ClusterSizeSkuSerializer resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ClusterSizeSkuSerializer {
+    /// The architecture of the cluster SKU (null, x86_64 or arm64)
+    pub architecture: String,
+    /// The number of CPUs
+    pub cpu: String,
+    /// The default vtgate size for the cluster SKU
+    pub default_vtgate: String,
+    /// The default vtgate rate for the cluster SKU
+    pub default_vtgate_rate: f64,
+    /// Whether or not the cluster SKU is a development SKU
+    pub development: bool,
+    /// The display name
+    pub display_name: String,
+    /// Whether or not the cluster SKU is enabled for the organization
+    pub enabled: bool,
+    /// Whether or not the cluster SKU is Metal
+    pub metal: bool,
+    /// The name of the cluster SKU
+    pub name: String,
+    /// Whether or not the cluster SKU is a production SKU
+    pub production: bool,
+    /// The provider of the cluster SKU (nil, AWS or GCP)
+    pub provider: String,
+    /// The amount of memory in bytes
+    pub ram: i64,
+    /// The rate for the cluster SKU
+    #[serde(default)]
+    pub rate: ::core::option::Option<f64>,
+    /// The replica rate for the cluster SKU
+    #[serde(default)]
+    pub replica_rate: ::core::option::Option<f64>,
+    /// The sort order of the cluster SKU
+    pub sort_order: i64,
+    /// The amount of storage in bytes
+    pub storage: i64,
+}
+
+/// Database resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Database {
+    /// Whether seeding branches with data is enabled for all branches
+    pub allow_data_branching: bool,
+    /// If the database has reached its backup restored branch limit
+    pub at_backup_restore_branches_limit: bool,
+    /// If the database has reached its development branch limit
+    pub at_development_branch_usage_limit: bool,
+    /// Whether to automatically manage Rails migrations during deploy requests
+    pub automatic_migrations: bool,
+    /// The total number of database branches
+    pub branches_count: i64,
+    /// The URL to retrieve this database''s branches via the API
+    pub branches_url: String,
+    /// True if a config change is queued for maintenance window
+    pub config_change_queued: bool,
+    /// True if a config change is in progress
+    pub config_changing: bool,
+    /// When the database was created
+    pub created_at: String,
+    pub data_import: serde_json::Value,
+    /// The default branch for the database
+    pub default_branch: String,
+    /// Number of read only regions in the default branch
+    pub default_branch_read_only_regions_count: i64,
+    /// Number of shards in the default branch
+    pub default_branch_shard_count: i64,
+    /// Number of tables in the default branch schema
+    pub default_branch_table_count: i64,
+    /// The total number of database development branches
+    pub development_branches_count: i64,
+    /// Whether foreign key constraints are enabled
+    pub foreign_keys_enabled: bool,
+    /// The URL to see this database''s branches in the web UI
+    pub html_url: String,
+    /// The ID of the database
+    pub id: String,
+    /// True if query insights is enabled for the database
+    pub insights_enabled: bool,
+    /// Whether raw SQL queries are collected
+    pub insights_raw_queries: bool,
+    /// The total number of ongoing issues within a database
+    pub issues_count: i64,
+    /// The kind of database // TODO: enum values: ["mysql", "postgresql"]
+    pub kind: String,
+    /// Framework used for applying migrations
+    pub migration_framework: String,
+    /// Table name to use for copying schema migration data
+    pub migration_table_name: String,
+    /// If the database requires multiple admins for deletion
+    pub multiple_admins_required_for_deletion: bool,
+    /// Name of the database
+    pub name: String,
+    /// The total number of schema recommendations
+    pub open_schema_recommendations_count: i64,
+    /// The database plan
+    pub plan: String,
+    /// Whether web console is enabled for production branches
+    pub production_branch_web_console: bool,
+    /// The total number of database production branches
+    pub production_branches_count: i64,
+    /// If the database is ready to be used
+    pub ready: bool,
+    pub region: serde_json::Value,
+    /// Whether an approval is required to deploy schema changes to this database
+    pub require_approval_for_deploy: bool,
+    /// True if a branch has a queued resize request
+    pub resize_queued: bool,
+    /// True if a branch is currently resizing
+    pub resizing: bool,
+    /// Whether to restrict branch creation to one region
+    pub restrict_branch_region: bool,
+    /// When the default branch schema was last changed.
+    pub schema_last_updated_at: String,
+    /// If the database is sharded
+    pub sharded: bool,
+    /// State of the database // TODO: enum values: ["pending", "importing", "sleep_in_progress", "sleeping", "awakening", "import_ready", "ready"]
+    pub state: String,
+    /// When the database was last updated
+    pub updated_at: String,
+    /// The URL to the database API endpoint
+    pub url: String,
+}
+
+/// DatabaseBranch resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabaseBranch {
+    pub actor: serde_json::Value,
+    /// IOPS for the cluster
+    pub cluster_iops: i64,
+    /// The SKU representing the branch''s cluster size
+    pub cluster_name: String,
+    /// When the branch was created
+    pub created_at: String,
+    /// When the branch was deleted
+    pub deleted_at: String,
+    /// True if the branch allows passwords to connect directly to a vtgate, bypassing load balancers
+    pub direct_vtgate: bool,
+    /// True if the branch has read-only replica servers
+    pub has_read_only_replicas: bool,
+    /// True if the branch has replica servers
+    pub has_replicas: bool,
+    /// Planetscale app URL for the branch
+    pub html_url: String,
+    /// The ID of the branch
+    pub id: String,
+    /// The kind of branch // TODO: enum values: ["mysql", "postgresql"]
+    pub kind: String,
+    /// Whether or not this is a metal database
+    pub metal: bool,
+    /// The MySQL address for the branch
+    pub mysql_address: String,
+    /// The address of the MySQL provider for the branch
+    pub mysql_edge_address: String,
+    /// The name of the branch
+    pub name: String,
+    /// The name of the parent branch from which the branch was created
+    pub parent_branch: String,
+    /// True if private connections are enabled
+    pub private_edge_connectivity: bool,
+    /// Whether or not the branch is a production branch
+    pub production: bool,
+    /// Whether or not the branch is ready to serve queries
+    pub ready: bool,
+    pub region: serde_json::Value,
+    /// When a user last marked a backup restore checklist as completed
+    pub restore_checklist_completed_at: String,
+    pub restored_from_branch: serde_json::Value,
+    /// Whether or not the branch has safe migrations enabled
+    pub safe_migrations: bool,
+    /// When the schema for the branch was last updated
+    pub schema_last_updated_at: String,
+    /// Whether or not the schema is ready for queries
+    pub schema_ready: bool,
+    /// The number of shards in the branch
+    pub shard_count: i64,
+    /// Whether or not the branch is sharded
+    pub sharded: bool,
+    /// Whether or not the branch has a stale schema
+    pub stale_schema: bool,
+    /// The current state of the branch // TODO: enum values: ["pending", "sleep_in_progress", "sleeping", "awakening", "ready"]
+    pub state: String,
+    /// When the branch was last updated
+    pub updated_at: String,
+    /// Planetscale API URL for the branch
+    pub url: String,
+    /// The number of vtgate instances in the branch
+    pub vtgate_count: i64,
+    /// VTGate configuration options
+    pub vtgate_options: serde_json::Value,
+    /// The size of the vtgate cluster for the branch
+    pub vtgate_size: String,
+}
+
+/// DatabaseBranchKeyspace resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabaseBranchKeyspace {
+    /// The SKU representing the keyspace cluster size for display
+    pub cluster_display_name: String,
+    /// The SKU representing the keyspace cluster size
+    pub cluster_name: String,
+    /// Is the keyspace undergoing a config change
+    pub config_change_in_progress: bool,
+    /// When the keyspace was created
+    pub created_at: String,
+    /// Is this the default keyspace for the branch
+    pub default: bool,
+    /// Number of extra replicas in the keyspace
+    pub extra_replicas: i64,
+    /// The ID of the keyspace
+    pub id: String,
+    /// Is this keyspace used in an import
+    pub imported: bool,
+    /// Is the keyspace running on metal instances
+    pub metal: bool,
+    /// MySQL daemon configuration options
+    pub mysqld_options: serde_json::Value,
+    /// Name of the keyspace
+    pub name: String,
+    /// Controls when node TTL drains are allowed // TODO: enum values: ["node_ttl_follow_maintenance", "node_ttl_always", "node_ttl_off"]
+    pub node_ttl_strategy: String,
+    /// Is the keyspace provisioned and serving traffic
+    pub ready: bool,
+    /// Total number of replicas in the keyspace
+    pub replicas: i64,
+    pub replication_durability_constraints: serde_json::Value,
+    /// Is the keyspace awaiting a resize
+    pub resize_pending: bool,
+    /// Is the keyspace currently resizing
+    pub resizing: bool,
+    /// If the keyspace is sharded
+    pub sharded: bool,
+    /// The number of keyspace shards
+    pub shards: i64,
+    /// When the keyspace was last updated
+    pub updated_at: String,
+    /// Percentage of buffer pool memory allocated to vector indexes
+    pub vector_pool_allocation: f64,
+    pub vreplication_flags: serde_json::Value,
+    /// VTTablet configuration options
+    pub vttablet_options: serde_json::Value,
+}
+
+/// DatabaseBranchPassword resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabaseBranchPassword {
+    /// The regional host URL
+    pub access_host_regional_url: String,
+    /// The read-only replica host URLs
+    pub access_host_regional_urls: ::std::vec::Vec<String>,
+    /// The host URL for the password
+    pub access_host_url: String,
+    pub actor: serde_json::Value,
+    /// List of IP addresses or CIDR ranges that can use this password
+    pub cidrs: ::std::vec::Vec<String>,
+    /// When the password was created
+    pub created_at: String,
+    pub database_branch: serde_json::Value,
+    /// When the password was deleted
+    pub deleted_at: String,
+    /// True if the credentials connect directly to a vtgate, bypassing load balancers
+    pub direct_vtgate: bool,
+    /// The list of hosts in each availability zone providing direct access to a vtgate
+    pub direct_vtgate_addresses: ::std::vec::Vec<String>,
+    /// True if the credentials are expired
+    pub expired: bool,
+    /// When the password will expire
+    pub expires_at: String,
+    /// The ID for the password
+    pub id: String,
+    /// When the password was last used to execute a query
+    pub last_used_at: String,
+    /// The display name for the password
+    pub name: String,
+    /// The plain text password, available only after create
+    pub plain_text: String,
+    pub region: serde_json::Value,
+    /// Whether or not the password can be renewed
+    pub renewable: bool,
+    /// Whether or not the password is for a read replica
+    pub replica: bool,
+    /// The role for the password // TODO: enum values: ["reader", "writer", "admin", "readwriter"]
+    pub role: String,
+    /// Time to live (in seconds) for the password. The password will be invalid when TTL has passed
+    pub ttl_seconds: i64,
+    /// The username for the password
+    pub username: String,
+}
+
+/// DatabaseDeployRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabaseDeployRequest {
+    pub actor: serde_json::Value,
+    /// Whether or not the deploy request is approved
+    pub approved: bool,
+    /// The name of the branch the deploy request was created from
+    pub branch: String,
+    /// Whether or not the deploy request branch was deleted
+    pub branch_deleted: bool,
+    /// When the deploy request branch was deleted
+    pub branch_deleted_at: String,
+    pub branch_deleted_by: serde_json::Value,
+    /// The ID of the branch the deploy request was created from
+    pub branch_id: String,
+    /// When the deploy request was closed
+    pub closed_at: String,
+    pub closed_by: serde_json::Value,
+    /// When the deploy request was created
+    pub created_at: String,
+    /// When the deploy request was deployed
+    pub deployed_at: String,
+    pub deployment: serde_json::Value,
+    /// The deployment state of the deploy request // TODO: enum values: ["pending", "ready", "no_changes", "queued", "submitting", "in_progress", "pending_cutover", "in_progress_vschema", "in_progress_cancel", "in_progress_cutover", "complete", "complete_cancel", "complete_error", "complete_pending_revert", "in_progress_revert", "in_progress_revert_vschema", "complete_revert", "complete_revert_error", "cancelled", "error"]
+    pub deployment_state: String,
+    /// The HTML body of the deploy request
+    pub html_body: String,
+    /// The PlanetScale app address for the deploy request
+    pub html_url: String,
+    /// The ID of the deploy request
+    pub id: String,
+    /// The name of the branch the deploy request will be merged into
+    pub into_branch: String,
+    /// The number of shards the branch the deploy request will be merged into has
+    pub into_branch_shard_count: i64,
+    /// Whether or not the branch the deploy request will be merged into is sharded
+    pub into_branch_sharded: bool,
+    /// Notes on the deploy request
+    pub notes: String,
+    /// The number of comments on the deploy request
+    pub num_comments: i64,
+    /// The number of the deploy request
+    pub number: i64,
+    /// Whether the deploy request is open or closed // TODO: enum values: ["open", "closed"]
+    pub state: String,
+    /// When the deploy request was last updated
+    pub updated_at: String,
+}
+
+/// DatabaseWebhook resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabaseWebhook {
+    /// When the webhook was created
+    pub created_at: String,
+    /// Whether the webhook is enabled
+    pub enabled: bool,
+    /// The events this webhook subscribes to
+    pub events: ::std::vec::Vec<String>,
+    /// The ID of the webhook
+    pub id: String,
+    /// When the last event was sent
+    pub last_sent_at: String,
+    /// The last result sent by the webhook
+    pub last_sent_result: String,
+    /// Whether the last sent was successful
+    pub last_sent_success: bool,
+    /// The secret used to sign the webhook payloads
+    pub secret: String,
+    /// When the webhook was updated
+    pub updated_at: String,
+    /// The URL the webhook will send events to
+    pub url: String,
+}
+
+/// DeployRequestReview resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DeployRequestReview {
+    pub actor: serde_json::Value,
+    /// The text body of the review
+    pub body: String,
+    /// When the review was created
+    pub created_at: String,
+    /// The HTML body of the review
+    pub html_body: String,
+    /// The ID of the review
+    pub id: String,
+    /// Whether the review is a comment or approval // TODO: enum values: ["commented", "approved"]
+    pub state: String,
+    /// When the review was last updated
+    pub updated_at: String,
+}
+
+/// Deployment resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Deployment {
+    pub actor: serde_json::Value,
+    /// Whether or not to automatically cutover once deployment is finished
+    pub auto_cutover: bool,
+    /// Whether or not to automatically delete the head branch once deployment is finished
+    pub auto_delete_branch: bool,
+    pub cancelled_actor: serde_json::Value,
+    /// When the deployment was created
+    pub created_at: String,
+    pub cutover_actor: serde_json::Value,
+    /// When the cutover for the deployment was initiated
+    pub cutover_at: String,
+    /// Whether or not the deployment cutover will expire soon
+    pub cutover_expiring: bool,
+    /// Deploy check errors for the deployment
+    pub deploy_check_errors: String,
+    pub deploy_operation_summaries: ::std::vec::Vec<serde_json::Value>,
+    pub deploy_operations: ::std::vec::Vec<serde_json::Value>,
+    /// The number of the deploy request associated with this deployment
+    pub deploy_request_number: i64,
+    /// Whether the deployment is deployable
+    pub deployable: bool,
+    /// The request to revert the schema operations in this deployment
+    pub deployment_revert_request: serde_json::Value,
+    /// When the deployment was finished
+    pub finished_at: String,
+    /// The ID of the deployment
+    pub id: String,
+    /// Whether or not the deployment is an instant DDL deployment
+    pub instant_ddl: bool,
+    /// Whether or not the deployment is eligible for instant DDL
+    pub instant_ddl_eligible: bool,
+    /// The name of the base branch the deployment will be merged into
+    pub into_branch: String,
+    /// Schema lint errors preventing the deployment from completing
+    pub lint_errors: ::std::vec::Vec<serde_json::Value>,
+    /// The name of he table that is locked by the deployment
+    pub locked_table_name: String,
+    /// Lookup Vitess index operations
+    pub lookup_vindex_operations: ::std::vec::Vec<serde_json::Value>,
+    /// The deployments ahead of this one in the queue
+    pub preceding_deployments: ::std::vec::Vec<serde_json::Value>,
+    /// When the deployment was queued
+    pub queued_at: String,
+    /// When the deployment was ready for cutover
+    pub ready_to_cutover_at: String,
+    /// When the schema was last updated for the deployment
+    pub schema_last_updated_at: String,
+    /// The schema dependencies that must be satisfied
+    pub sequential_diff_dependencies: ::std::vec::Vec<serde_json::Value>,
+    /// When the deployment was started
+    pub started_at: String,
+    /// The state the deployment is in // TODO: enum values: ["pending", "ready", "no_changes", "queued", "submitting", "in_progress", "pending_cutover", "in_progress_vschema", "in_progress_cancel", "in_progress_cutover", "complete", "complete_cancel", "complete_error", "complete_pending_revert", "in_progress_revert", "in_progress_revert_vschema", "complete_revert", "complete_revert_error", "cancelled", "error"]
+    pub state: String,
+    /// When the deployment was submitted
+    pub submitted_at: String,
+    /// Whether or not the deployment has a table locked
+    pub table_locked: bool,
+    /// Deployment throttling configurations
+    pub throttler_configurations: ::std::vec::Vec<serde_json::Value>,
+    /// When the deployment was last updated
+    pub updated_at: String,
+}
+
+/// Invoice resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Invoice {
+    /// End of the billing period
+    pub billing_period_end: String,
+    /// Start of the billing period
+    pub billing_period_start: String,
+    /// The ID of the invoice
+    pub id: String,
+    /// Whether the invoice is past due and unpaid
+    pub overdue: bool,
+    /// Whether the invoice has been paid
+    pub paid: bool,
+    /// The total amount of the invoice
+    pub total: f64,
+}
+
+/// OauthApplication resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OauthApplication {
+    /// All available scopes grouped by resource type with scope, description, selected, and admin flags
+    pub all_scopes_by_resource: serde_json::Value,
+    /// The image source for the OAuth application''s avatar
+    pub avatar: String,
+    /// The OAuth application''s unique client id
+    pub client_id: String,
+    /// When the OAuth application was created
+    pub created_at: String,
+    /// Whether the OAuth application was created via Dynamic Client Registration
+    pub dcr: bool,
+    /// The domain of the OAuth application. Used for verification of a valid redirect uri
+    pub domain: String,
+    /// The ID of the app
+    pub id: String,
+    /// The name of the app
+    pub name: String,
+    /// The redirect URI of the OAuth application
+    pub redirect_uri: String,
+    /// The scopes that the OAuth application requires on a user account
+    pub scopes: ::std::vec::Vec<String>,
+    /// Scopes grouped by resource type (database, organization, branch, user) with scope, description, and admin flag
+    pub scopes_by_resource: serde_json::Value,
+    /// Whether the OAuth application is limited to authorizing a single organization
+    pub single_org_authorization: bool,
+    /// The number of tokens issued by the OAuth application
+    pub tokens: i64,
+    /// When the OAuth application was last updated
+    pub updated_at: String,
+}
+
+/// Organization resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Organization {
+    /// The billing email of the organization
+    pub billing_email: String,
+    /// When the organization was created
+    pub created_at: String,
+    /// The number of databases in the organization
+    pub database_count: i64,
+    /// Features that can be enabled on the organization
+    pub features: serde_json::Value,
+    /// Whether or not the organization has a payment method on file
+    pub has_card: bool,
+    /// Whether or not the organization has past due billing invoices
+    pub has_past_due_invoices: bool,
+    /// The ID for the organization
+    pub id: String,
+    /// Whether or not the IdP provider is be responsible for managing roles in PlanetScale
+    pub idp_managed_roles: bool,
+    /// The expected monthly budget for the organization
+    pub invoice_budget_amount: String,
+    /// The keyspace shard limit for the organization
+    pub keyspace_shard_limit: i64,
+    /// Whether or not the organization has managed tenancy enabled
+    pub managed_tenancy: bool,
+    /// The name of the organization
+    pub name: String,
+    /// Whether or not the organization requires payment information
+    pub payment_info_required: bool,
+    /// The billing plan of the organization
+    pub plan: String,
+    /// Whether or not the organization has single tenancy enabled
+    pub single_tenancy: bool,
+    /// Whether or not SSO is enabled on the organization
+    pub sso: bool,
+    /// Whether or not the organization uses an SSO directory
+    pub sso_directory: bool,
+    /// The URL of the organization''s SSO portal
+    pub sso_portal_url: String,
+    /// When the organization was last updated
+    pub updated_at: String,
+    /// Whether or not the organization''s billing information is valid
+    pub valid_billing_info: bool,
+}
+
+/// OrganizationMembership resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OrganizationMembership {
+    /// When the membership was created
+    pub created_at: String,
+    /// The ID of the membership
+    pub id: String,
+    /// The role of the user in the organization // TODO: enum values: ["member", "admin"]
+    pub role: String,
+    /// When the membership was last updated
+    pub updated_at: String,
+    pub user: serde_json::Value,
+}
+
+/// OrganizationTeam resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OrganizationTeam {
+    /// When the team was created
+    pub created_at: String,
+    pub creator: serde_json::Value,
+    pub databases: ::std::vec::Vec<serde_json::Value>,
+    /// The description of the team
+    pub description: String,
+    /// The display name of the team
+    pub display_name: String,
+    /// The ID of the team
+    pub id: String,
+    /// Whether the team is managed through SSO/directory services
+    pub managed: bool,
+    pub members: ::std::vec::Vec<serde_json::Value>,
+    /// The name of the team
+    pub name: String,
+    /// The slug of the team
+    pub slug: String,
+    /// When the team was last updated
+    pub updated_at: String,
+}
+
+/// OrganizationTeamMembership resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct OrganizationTeamMembership {
+    pub actor: serde_json::Value,
+    /// When the membership was created
+    pub created_at: String,
+    /// The ID of the team membership
+    pub id: String,
+    pub passwords: ::std::vec::Vec<serde_json::Value>,
+    /// When the membership was last updated
+    pub updated_at: String,
+    pub user: serde_json::Value,
+}
+
+/// PaginatedAuditLogEvent resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedAuditLogEvent {
+    /// The ID of the last object in the current results
+    pub cursor_end: String,
+    /// The ID of the first object in the current results
+    pub cursor_start: String,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// Whether there is a next page of results
+    pub has_next: bool,
+    /// Whether there is a previous page of results
+    pub has_prev: bool,
+}
+
+/// PaginatedBackup resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedBackup {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedBackupPolicy resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedBackupPolicy {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedBranchMaintenanceSchedule resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedBranchMaintenanceSchedule {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedBranchMaintenanceWindow resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedBranchMaintenanceWindow {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedDatabase resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedDatabase {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedDatabaseBranch resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedDatabaseBranch {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedDatabaseBranchKeyspace resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedDatabaseBranchKeyspace {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedDatabaseBranchPassword resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedDatabaseBranchPassword {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedDatabaseBranchReadOnlyRegion resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedDatabaseBranchReadOnlyRegion {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedDatabaseDeployRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedDatabaseDeployRequest {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedDatabaseWebhook resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedDatabaseWebhook {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedDeployOperation resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedDeployOperation {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedDeployRequestReview resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedDeployRequestReview {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedDeployment resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedDeployment {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedInvoice resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedInvoice {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedLineItem resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedLineItem {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedOauthApplication resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedOauthApplication {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedOrganization resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedOrganization {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedOrganizationMembership resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedOrganizationMembership {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedOrganizationTeam resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedOrganizationTeam {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedOrganizationTeamMembership resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedOrganizationTeamMembership {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedPlanetscaleRegion resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedPlanetscaleRegion {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedPostgresBouncer resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedPostgresBouncer {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedPostgresBouncerResizeRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedPostgresBouncerResizeRequest {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedPostgresClusterCidr resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedPostgresClusterCidr {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedPostgresClusterResizeRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedPostgresClusterResizeRequest {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedPostgresRole resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedPostgresRole {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedPublicPlanetscaleRegionSerializer resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedPublicPlanetscaleRegionSerializer {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedQueryPatternsDownload resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedQueryPatternsDownload {
+    /// The ID of the last object in the current results
+    pub cursor_end: String,
+    /// The ID of the first object in the current results
+    pub cursor_start: String,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// Whether there is a next page of results
+    pub has_next: bool,
+    /// Whether there is a previous page of results
+    pub has_prev: bool,
+}
+
+/// PaginatedSchemaLintError resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedSchemaLintError {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedSchemaRecommendation resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedSchemaRecommendation {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedServiceToken resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedServiceToken {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedTrafficBudget resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedTrafficBudget {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PaginatedWorkflow resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PaginatedWorkflow {
+    /// The current page number
+    pub current_page: i64,
+    pub data: ::std::vec::Vec<serde_json::Value>,
+    /// The next page number
+    pub next_page: i64,
+    /// The next page of results
+    pub next_page_url: String,
+    /// The previous page number
+    pub prev_page: i64,
+    /// The previous page of results
+    pub prev_page_url: String,
+}
+
+/// PostgresBouncer resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostgresBouncer {
+    pub actor: serde_json::Value,
+    pub branch: serde_json::Value,
+    /// When the bouncer was created
+    pub created_at: String,
+    /// When the bouncer was deleted
+    pub deleted_at: String,
+    /// The ID of the bouncer
+    pub id: String,
+    /// The name of the bouncer
+    pub name: String,
+    pub parameters: ::std::vec::Vec<serde_json::Value>,
+    /// The count of replicas in each cell
+    pub replicas_per_cell: i64,
+    pub sku: serde_json::Value,
+    /// The instance type the bouncer targets // TODO: enum values: ["primary", "replica", "replica_az_affinity"]
+    pub target: String,
+    /// When the bouncer was updated
+    pub updated_at: String,
+}
+
+/// PostgresBouncerResizeRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostgresBouncerResizeRequest {
+    pub actor: serde_json::Value,
+    pub bouncer: serde_json::Value,
+    /// The time the bouncer resize completed
+    pub completed_at: String,
+    /// The time the bouncer resize was created
+    pub created_at: String,
+    /// The ID of the bouncer resize
+    pub id: String,
+    /// The bouncer parameters
+    pub parameters: serde_json::Value,
+    /// The previous bouncer parameters
+    pub previous_parameters: serde_json::Value,
+    /// The number of replicas per cell for the bouncer before the resize
+    pub previous_replicas_per_cell: i64,
+    pub previous_sku: serde_json::Value,
+    /// The number of replicas per cell for the bouncer after the resize
+    pub replicas_per_cell: i64,
+    pub sku: serde_json::Value,
+    /// The time the bouncer resize started
+    pub started_at: String,
+    /// The state of the bouncer resize // TODO: enum values: ["pending", "resizing", "canceled", "completed"]
+    pub state: String,
+    /// The time the bouncer resize was last updated
+    pub updated_at: String,
+}
+
+/// PostgresClusterCidr resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostgresClusterCidr {
+    pub actor: serde_json::Value,
+    /// List of CIDR ranges
+    pub cidrs: ::std::vec::Vec<String>,
+    /// When the entry was created
+    pub created_at: String,
+    /// When the entry was deleted
+    pub deleted_at: String,
+    /// The ID of the IP allowlist entry
+    pub id: String,
+    /// The role to restrict access to (optional)
+    pub role: String,
+    /// The schema name to restrict access to (optional)
+    pub schema: String,
+    /// When the entry was updated
+    pub updated_at: String,
+}
+
+/// PostgresClusterExtension resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostgresClusterExtension {
+    /// Whether the extension is available on the current cluster image
+    pub available: bool,
+    /// The description of the extension
+    pub description: String,
+    /// The ID of the extension
+    pub id: String,
+    /// The internal state of the extension
+    pub internal: bool,
+    /// The name of the extension
+    pub name: String,
+    pub parameters: ::std::vec::Vec<serde_json::Value>,
+    /// Whether the extension can be added to shared_preload_libraries
+    pub shared_preload_allowed: bool,
+    /// The reason the extension is unavailable (e.g., ''container_upgrade_required'')
+    pub unavailable_reason: String,
+    /// The URL of the extension
+    pub url: String,
+}
+
+/// PostgresClusterParameter resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostgresClusterParameter {
+    pub actor: serde_json::Value,
+    /// The category of the parameter
+    pub category: String,
+    /// When the parameter was created
+    pub created_at: String,
+    /// The default value of the parameter
+    pub default_value: String,
+    /// The description of the parameter
+    pub description: String,
+    /// The display name of the parameter
+    pub display_name: String,
+    /// Configures an extension
+    pub extension: bool,
+    /// The ID of the parameter
+    pub id: String,
+    /// Whether the parameter can be changed
+    pub immutable: bool,
+    /// The maximum value of the parameter
+    pub max: f64,
+    /// The minimum value of the parameter
+    pub min: f64,
+    /// The name of the parameter
+    pub name: String,
+    /// The namespace of the parameter // TODO: enum values: ["patroni", "pgconf", "pgbouncer"]
+    pub namespace: String,
+    /// Valid options for the parameter value
+    pub options: ::std::vec::Vec<String>,
+    /// The type of the parameter // TODO: enum values: ["array", "boolean", "bytes", "float", "integer", "seconds", "select", "string", "time"]
+    pub parameter_type: String,
+    /// Whether the parameter is required
+    pub required: bool,
+    /// True if processes require a server restart on change
+    pub restart: bool,
+    /// The step change of the parameter
+    pub step: f64,
+    /// When the parameter was last updated
+    pub updated_at: String,
+    /// The URL of the parameter
+    pub url: String,
+    /// The configured value of the parameter
+    pub value: String,
+}
+
+/// PostgresClusterResizeRequest resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostgresClusterResizeRequest {
+    pub actor: serde_json::Value,
+    /// The SKU representing the branch cluster for display
+    pub cluster_display_name: String,
+    /// Whether or not this is a metal database
+    pub cluster_metal: bool,
+    /// The SKU representing the branch cluster
+    pub cluster_name: String,
+    /// The time the branch change request completed
+    pub completed_at: String,
+    /// The time the branch change request was created
+    pub created_at: String,
+    /// The ID of the branch change request
+    pub id: String,
+    /// The maximum storage size in bytes
+    pub maximum_storage_bytes: i64,
+    /// The minimum storage size in bytes
+    pub minimum_storage_bytes: i64,
+    /// The branch parameters
+    pub parameters: serde_json::Value,
+    /// The previous SKU representing the branch cluster for display
+    pub previous_cluster_display_name: String,
+    /// Whether or not the previous SKU was a metal database
+    pub previous_cluster_metal: bool,
+    /// The previous SKU representing the branch cluster
+    pub previous_cluster_name: String,
+    /// The previous maximum storage size in bytes
+    pub previous_maximum_storage_bytes: i64,
+    /// The previous minimum storage size in bytes
+    pub previous_minimum_storage_bytes: i64,
+    /// The previous branch parameters
+    pub previous_parameters: serde_json::Value,
+    /// The previous total number of replicas
+    pub previous_replicas: i64,
+    /// Whether storage autoscaling was previously enabled
+    pub previous_storage_autoscaling: bool,
+    /// The previous storage IOPS
+    pub previous_storage_iops: i64,
+    /// Whether storage shrinking was previously enabled
+    pub previous_storage_shrinking: bool,
+    /// The previous storage throughput in MiB/s
+    pub previous_storage_throughput_mibs: i64,
+    /// The previous storage type
+    pub previous_storage_type: String,
+    /// The total number of replicas
+    pub replicas: i64,
+    /// The ports requiring a restart when changes are applied
+    pub restart: ::std::vec::Vec<i64>,
+    /// The time the branch change request started
+    pub started_at: String,
+    /// The state of the branch change request // TODO: enum values: ["queued", "pending", "resizing", "canceled", "completed"]
+    pub state: String,
+    /// Whether storage autoscaling is enabled
+    pub storage_autoscaling: bool,
+    /// The storage IOPS
+    pub storage_iops: i64,
+    /// Whether storage shrinking is enabled when autoscaling is enabled
+    pub storage_shrinking: bool,
+    /// The storage throughput in MiB/s
+    pub storage_throughput_mibs: i64,
+    /// The storage type (gp3 or io2) // TODO: enum values: ["gp3", "io2", "pd_ssd"]
+    pub storage_type: String,
+    /// The time the branch change request was last updated
+    pub updated_at: String,
+}
+
+/// PostgresRole resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PostgresRole {
+    /// The database connection string
+    pub access_host_url: String,
+    pub actor: serde_json::Value,
+    pub branch: serde_json::Value,
+    /// When the role was created
+    pub created_at: String,
+    /// The database name
+    pub database_name: String,
+    /// Whether the role is the default postgres user
+    pub default: bool,
+    /// When the role was deleted
+    pub deleted_at: String,
+    /// When the role was disabled
+    pub disabled_at: String,
+    /// Error message available when dropping the role fails
+    pub drop_failed: String,
+    /// When the role was dropped
+    pub dropped_at: String,
+    /// True if the credentials are expired
+    pub expired: bool,
+    /// When the role expires
+    pub expires_at: String,
+    /// The ID of the role
+    pub id: String,
+    /// Database roles these credentials inherit
+    pub inherited_roles: ::std::vec::Vec<String>,
+    /// The name of the role
+    pub name: String,
+    /// The plain text password, available only after create
+    pub password: String,
+    /// The database connection string for private connections
+    pub private_access_host_url: String,
+    /// The service name to set up private connectivity
+    pub private_connection_service_name: String,
+    pub query_safety_settings: serde_json::Value,
+    /// Number of seconds before the credentials expire
+    pub ttl: i64,
+    /// When the role was updated
+    pub updated_at: String,
+    /// The database user name
+    pub username: String,
+}
+
+/// QueryPatternsDownload resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct QueryPatternsDownload {
+    pub actor: serde_json::Value,
+    /// When the download was created
+    pub created_at: String,
+    /// The URL to download the query patterns file
+    pub download_url: String,
+    /// When the download was finished
+    pub finished_at: String,
+    /// The ID of the query patterns download
+    pub id: String,
+    /// The state of the download // TODO: enum values: ["pending", "completed", "failed"]
+    pub state: String,
+    /// The URL to access the query patterns download
+    pub url: String,
+}
+
+/// SchemaRecommendation resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct SchemaRecommendation {
+    /// When the recommendation was applied
+    pub applied_at: String,
+    pub closed_by_deploy_request: serde_json::Value,
+    /// When the recommendation was created
+    pub created_at: String,
+    /// The DDL statement to apply the recommendation
+    pub ddl_statement: String,
+    /// When the recommendation was dismissed
+    pub dismissed_at: String,
+    pub dismissed_by: serde_json::Value,
+    /// The URL to the schema recommendation in the app
+    pub html_url: String,
+    /// The ID of the schema recommendation
+    pub id: String,
+    /// The keyspace the recommendation applies to
+    pub keyspace: String,
+    /// The number of the schema recommendation
+    pub number: i64,
+    /// The type of recommendation // TODO: enum values: ["unused_table", "unused_index", "duplicate_index", "sequence_overflow", "sequence_overflow_foreign_key", "new_index", "encoding_upgrade", "bloated_table", "bloated_index"]
+    pub recommendation_type: String,
+    /// The state of the recommendation // TODO: enum values: ["open", "applied", "dismissed", "stale"]
+    pub state: String,
+    /// The name of the table the recommendation applies to
+    pub table_name: String,
+    /// The title of the schema recommendation
+    pub title: String,
+    /// When the recommendation was last updated
+    pub updated_at: String,
+}
+
+/// ServiceToken resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ServiceToken {
+    /// The name of the actor on whose behalf the service token was created
+    pub actor_display_name: String,
+    /// The ID of the actor on whose behalf the service token was created
+    pub actor_id: String,
+    /// The type of the actor on whose behalf the service token was created
+    pub actor_type: String,
+    /// The image source for the avatar of the service token
+    pub avatar_url: String,
+    /// When the service token was created
+    pub created_at: String,
+    /// The display name of the service token
+    pub display_name: String,
+    /// When the service token will expire
+    pub expires_at: String,
+    /// The ID of the service token
+    pub id: String,
+    /// When the service token was last used
+    pub last_used_at: String,
+    /// The name of the service token
+    pub name: String,
+    pub oauth_accesses_by_resource: serde_json::Value,
+    /// The plaintext refresh token. Available only after create.
+    pub plain_text_refresh_token: String,
+    pub service_token_accesses: ::std::vec::Vec<serde_json::Value>,
+    /// The plaintext token. Available only after create.
+    pub token: String,
+    /// When the service token was last updated
+    pub updated_at: String,
+}
+
+/// ThrottlerConfigurations resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ThrottlerConfigurations {
+    pub configurable: serde_json::Value,
+    pub configurations: ::std::vec::Vec<serde_json::Value>,
+    /// Keyspaces that are eligible for throttler configuration in the configurable resource (database or deploy request)
+    pub keyspaces: ::std::vec::Vec<String>,
+}
+
+/// TrafficBudget resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TrafficBudget {
+    pub actor: serde_json::Value,
+    /// The maximum capacity a single query can consume, measured as a percentage of seconds of full server usage (0-6000). Unlimited when not set.
+    #[serde(default)]
+    pub burst: ::core::option::Option<f64>,
+    /// The maximum capacity that can be banked, measured as a percentage of seconds of full server usage (0-6000). Unlimited when not set.
+    #[serde(default)]
+    pub capacity: ::core::option::Option<f64>,
+    /// The percentage of available worker processes this policy can use (0-100). Unlimited when not set.
+    #[serde(default)]
+    pub concurrency: ::core::option::Option<f64>,
+    /// When the budget was created
+    pub created_at: String,
+    /// The ID of the traffic budget
+    pub id: String,
+    /// The mode of the budget // TODO: enum values: ["enforce", "warn", "off"]
+    pub mode: String,
+    /// The name of the budget
+    pub name: String,
+    /// The rate at which capacity refills, as a percentage of server resources (0-100). Unlimited when not set.
+    #[serde(default)]
+    pub rate: ::core::option::Option<f64>,
+    pub rules: ::std::vec::Vec<serde_json::Value>,
+    /// When the budget was updated
+    pub updated_at: String,
+    /// A percentage of capacity, burst, or concurrency thresholds to emit warnings for enforced budgets (0-100).
+    #[serde(default)]
+    pub warning_threshold: ::core::option::Option<f64>,
+}
+
+/// TrafficRule resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct TrafficRule {
+    pub actor: serde_json::Value,
+    /// When the rule was created
+    pub created_at: String,
+    /// The query fingerprint targeted by this rule
+    #[serde(default)]
+    pub fingerprint: ::core::option::Option<String>,
+    /// The ID of the traffic rule
+    pub id: String,
+    /// The keyspace of the fingerprint
+    #[serde(default)]
+    pub keyspace: ::core::option::Option<String>,
+    /// The kind of rule // TODO: enum values: ["match"]
+    pub kind: String,
+    /// Syntax highlighted SQL for rules with SQL keys
+    pub syntax_highlighted_sql: String,
+    pub tags: ::std::vec::Vec<serde_json::Value>,
+    /// When the rule was updated
+    pub updated_at: String,
+}
+
+/// User resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct User {
+    /// The URL source of the user''s avatar
+    pub avatar_url: String,
+    /// When the user was created
+    pub created_at: String,
+    pub default_organization: serde_json::Value,
+    /// Whether or not the user is managed by a SSO directory
+    pub directory_managed: bool,
+    /// The display name of the user
+    pub display_name: String,
+    /// The email of the user
+    pub email: String,
+    /// Whether or not the user is verified by email
+    pub email_verified: bool,
+    /// The ID of the user
+    pub id: String,
+    /// Whether or not the user is managed by an authentication provider
+    pub managed: bool,
+    /// The name of the user
+    pub name: String,
+    /// Whether or not the user is managed by SSO
+    pub sso: bool,
+    /// Whether or not the user has configured two factor authentication
+    pub two_factor_auth_configured: bool,
+    /// When the user was last updated
+    pub updated_at: String,
+}
+
+/// Workflow resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Workflow {
+    pub actor: serde_json::Value,
+    pub branch: serde_json::Value,
+    /// When the workflow was cancelled
+    pub cancelled_at: String,
+    pub cancelled_by: serde_json::Value,
+    /// When the workflow was completed
+    pub completed_at: String,
+    pub completed_by: serde_json::Value,
+    /// When the workflow was created
+    pub created_at: String,
+    /// When the cutover was completed
+    pub cutover_at: String,
+    pub cutover_by: serde_json::Value,
+    /// When the data copy was completed
+    pub data_copy_completed_at: String,
+    /// Whether or not secondary keys are deferred
+    pub defer_secondary_keys: bool,
+    pub global_keyspace: serde_json::Value,
+    /// The ID of the workflow
+    pub id: String,
+    /// Whether or not the workflow may be restarted
+    pub may_restart: bool,
+    /// Whether or not the workflow may be retried
+    pub may_retry: bool,
+    /// The name of the workflow
+    pub name: String,
+    /// The sequence number of the workflow
+    pub number: i64,
+    /// The behavior when DDL changes during the workflow // TODO: enum values: ["IGNORE", "STOP", "EXEC", "EXEC_IGNORE"]
+    pub on_ddl: String,
+    /// Whether or not the primaries have been switched
+    pub primaries_switched: bool,
+    /// Whether or not the replicas have been switched
+    pub replicas_switched: bool,
+    /// When the workflow was retried
+    pub retried_at: String,
+    pub retried_by: serde_json::Value,
+    /// When the workflow was reversed
+    pub reversed_at: String,
+    pub reversed_by: serde_json::Value,
+    pub reversed_cutover_by: serde_json::Value,
+    /// Whether or not sequence tables have been created
+    pub sequence_tables_applied: bool,
+    pub source_keyspace: serde_json::Value,
+    /// When the workflow was started
+    pub started_at: String,
+    /// The state of the workflow // TODO: enum values: ["pending", "copying", "running", "stopped", "verifying_data", "verified_data", "switching_replicas", "switched_replicas", "switching_primaries", "switched_primaries", "reversing_traffic", "reversing_traffic_for_cancel", "cutting_over", "cutover", "reversed_cutover", "completed", "cancelling", "cancelled", "error"]
+    pub state: String,
+    /// When the primaries were switched
+    pub switch_primaries_at: String,
+    pub switch_primaries_by: serde_json::Value,
+    /// When the replicas were switched
+    pub switch_replicas_at: String,
+    pub switch_replicas_by: serde_json::Value,
+    pub target_keyspace: serde_json::Value,
+    /// When the workflow was last updated
+    pub updated_at: String,
+    /// Whether or not the verified data is stale
+    pub verified_data_stale: bool,
+    /// When the data was verified
+    pub verify_data_at: String,
+    pub verify_data_by: serde_json::Value,
+    /// The errors that occurred during the workflow
+    pub workflow_errors: String,
+    /// The subtype of the workflow
+    pub workflow_subtype: String,
+    /// The type of the workflow // TODO: enum values: ["move_tables"]
+    pub workflow_type: String,
+}

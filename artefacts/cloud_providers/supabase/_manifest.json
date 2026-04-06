@@ -1,5 +1,8 @@
 {
-  "fetched_at": "2026-04-04T16:15:07.450121420+00:00",
+  "fetched_at": "2026-04-06T12:04:24.082419969+00:00",
   "provider": "supabase",
-  "source": "https://api.supabase.com/api/v1-json"
+  "source": "https://api.supabase.com/api/v1-json",
+  "spec_files": [
+    "supabase/openapi.json"
+  ]
 }
