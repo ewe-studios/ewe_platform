@@ -15,7 +15,7 @@ use std::time::Duration;
 use tracing::Level;
 use tracing_subscriber::FmtSubscriber;
 
-pub use crate::gen_resources::provider_specs_core::DistilledSpec;
+pub use crate::gen_resources::provider_specs_core::APIMetadata;
 pub use crate::gen_resources::provider_specs_errors::SpecFetchError;
 pub use crate::gen_resources::provider_specs_fetcher::ProviderSpecFetcher;
 
