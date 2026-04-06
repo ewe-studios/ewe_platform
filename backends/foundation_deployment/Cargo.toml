@@ -21,6 +21,7 @@ tracing = { workspace = true }
 chrono = { workspace = true }
 
 # -- http client - use foundation_core's SimpleHttpClient
+# http crate re-exported via foundation_core
 
 # -- config parsing
 toml = "0.8"
@@ -32,6 +33,13 @@ base85rs = "0.1"
 
 # -- file system utilities (for spec fetcher)
 walkdir = "2.5"
+
+# -- directories (for cache/token resolution)
+dirs = "5.0"
+
+# -- URL encoding
+urlencoding = "2.1"
+http = "1.4.0"
 
 
 [features]
@@ -52,6 +60,7 @@ stripe = []
 aws = []
 standard = []
 prisma_postgres = []
+huggingface = []
 
 # =============================================================================
 # GCP API-Level Feature Flags

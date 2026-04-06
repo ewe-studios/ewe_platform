@@ -61,11 +61,11 @@ pub struct ComputeservicesPromotePostResponse {
     pub data: ComputeservicesPromote,
 }
 
-/// ComputeservicesRegion resource type.
+/// ComputeservicesVersionsGetResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ComputeservicesRegion {
-    pub id: String,
-    pub name: String,
+pub struct ComputeservicesVersionsGetResponse {
+    pub data: ::std::vec::Vec<ComputeservicesVersions>,
+    pub pagination: serde_json::Value,
 }
 
 /// ComputeservicesVersionsPortMapping resource type.
@@ -98,25 +98,6 @@ pub struct ComputeservicesVersionsStartPostResponse {
     pub data: ComputeservicesVersionsStart,
 }
 
-/// ConnectionsDatabase resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectionsDatabase {
-    pub id: String,
-    pub name: String,
-    pub url: String,
-}
-
-/// ConnectionsEndpoints resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectionsEndpoints {
-    #[serde(default)]
-    pub accelerate: ::core::option::Option<ConnectionsEndpointsAccelerate>,
-    #[serde(default)]
-    pub direct: ::core::option::Option<ConnectionsEndpointsDirect>,
-    #[serde(default)]
-    pub pooled: ::core::option::Option<ConnectionsEndpointsPooled>,
-}
-
 /// ConnectionsGetResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectionsGetResponse {
@@ -137,25 +118,6 @@ pub struct ConnectionsPostResponse {
     pub data: Connections,
 }
 
-/// ConnectionsRotateDatabase resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectionsRotateDatabase {
-    pub id: String,
-    pub name: String,
-    pub url: String,
-}
-
-/// ConnectionsRotateEndpoints resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ConnectionsRotateEndpoints {
-    #[serde(default)]
-    pub accelerate: ::core::option::Option<ConnectionsRotateEndpointsAccelerate>,
-    #[serde(default)]
-    pub direct: ::core::option::Option<ConnectionsRotateEndpointsDirect>,
-    #[serde(default)]
-    pub pooled: ::core::option::Option<ConnectionsRotateEndpointsPooled>,
-}
-
 /// ConnectionsRotatePostResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ConnectionsRotatePostResponse {
@@ -170,42 +132,11 @@ pub struct DatabasesBackupsGetResponse {
     pub pagination: serde_json::Value,
 }
 
-/// DatabasesConnectionsDatabase resource type.
+/// DatabasesConnectionsGetResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesConnectionsDatabase {
-    pub id: String,
-    pub name: String,
-    pub url: String,
-}
-
-/// DatabasesConnectionsEndpoints resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesConnectionsEndpoints {
-    #[serde(default)]
-    pub accelerate: ::core::option::Option<DatabasesConnectionsEndpointsAccelerate>,
-    #[serde(default)]
-    pub direct: ::core::option::Option<DatabasesConnectionsEndpointsDirect>,
-    #[serde(default)]
-    pub pooled: ::core::option::Option<DatabasesConnectionsEndpointsPooled>,
-}
-
-/// DatabasesConnectionsItemDatabase resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesConnectionsItemDatabase {
-    pub id: String,
-    pub name: String,
-    pub url: String,
-}
-
-/// DatabasesConnectionsItemEndpoints resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesConnectionsItemEndpoints {
-    #[serde(default)]
-    pub accelerate: ::core::option::Option<DatabasesConnectionsItemEndpointsAccelerate>,
-    #[serde(default)]
-    pub direct: ::core::option::Option<DatabasesConnectionsItemEndpointsDirect>,
-    #[serde(default)]
-    pub pooled: ::core::option::Option<DatabasesConnectionsItemEndpointsPooled>,
+pub struct DatabasesConnectionsGetResponse {
+    pub data: ::std::vec::Vec<DatabasesConnections>,
+    pub pagination: serde_json::Value,
 }
 
 /// DatabasesConnectionsPostRequest resource type.
@@ -266,33 +197,6 @@ pub struct DatabasesPostResponse {
     pub data: Databases,
 }
 
-/// DatabasesProject resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesProject {
-    pub id: String,
-    pub name: String,
-    pub url: String,
-}
-
-/// DatabasesRestoreConnectionsItemDatabase resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesRestoreConnectionsItemDatabase {
-    pub id: String,
-    pub name: String,
-    pub url: String,
-}
-
-/// DatabasesRestoreConnectionsItemEndpoints resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesRestoreConnectionsItemEndpoints {
-    #[serde(default)]
-    pub accelerate: ::core::option::Option<DatabasesRestoreConnectionsItemEndpointsAccelerate>,
-    #[serde(default)]
-    pub direct: ::core::option::Option<DatabasesRestoreConnectionsItemEndpointsDirect>,
-    #[serde(default)]
-    pub pooled: ::core::option::Option<DatabasesRestoreConnectionsItemEndpointsPooled>,
-}
-
 /// DatabasesRestorePostRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabasesRestorePostRequest {
@@ -303,25 +207,6 @@ pub struct DatabasesRestorePostRequest {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabasesRestorePostResponse {
     pub data: DatabasesRestore,
-}
-
-/// DatabasesRestoreProject resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesRestoreProject {
-    pub id: String,
-    pub name: String,
-    pub url: String,
-}
-
-/// DatabasesRestoreSource resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesRestoreSource {
-    #[serde(rename = "backupId")]
-    pub backup_id: String,
-    #[serde(rename = "databaseId")]
-    pub database_id: String,
-    #[serde(rename = "type")]
-    pub type_: String,
 }
 
 /// DatabasesUsageGetResponse resource type.
@@ -345,6 +230,13 @@ pub struct PrismaApiError {
     pub error: PrismaApiErrorError,
 }
 
+/// ProjectsComputeservicesGetResponse resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsComputeservicesGetResponse {
+    pub data: ::std::vec::Vec<ProjectsComputeservices>,
+    pub pagination: serde_json::Value,
+}
+
 /// ProjectsComputeservicesPostRequest resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectsComputeservicesPostRequest {
@@ -361,41 +253,11 @@ pub struct ProjectsComputeservicesPostResponse {
     pub data: ProjectsComputeservices,
 }
 
-/// ProjectsComputeservicesRegion resource type.
+/// ProjectsDatabasesGetResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsComputeservicesRegion {
-    pub id: String,
-    pub name: String,
-}
-
-/// ProjectsDatabasesApiKeysItemEndpoints resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsDatabasesApiKeysItemEndpoints {
-    #[serde(default)]
-    pub accelerate: ::core::option::Option<ProjectsDatabasesApiKeysItemEndpointsAccelerate>,
-    #[serde(default)]
-    pub direct: ::core::option::Option<ProjectsDatabasesApiKeysItemEndpointsDirect>,
-    #[serde(default)]
-    pub pooled: ::core::option::Option<ProjectsDatabasesApiKeysItemEndpointsPooled>,
-}
-
-/// ProjectsDatabasesConnectionsItemDatabase resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsDatabasesConnectionsItemDatabase {
-    pub id: String,
-    pub name: String,
-    pub url: String,
-}
-
-/// ProjectsDatabasesConnectionsItemEndpoints resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsDatabasesConnectionsItemEndpoints {
-    #[serde(default)]
-    pub accelerate: ::core::option::Option<ProjectsDatabasesConnectionsItemEndpointsAccelerate>,
-    #[serde(default)]
-    pub direct: ::core::option::Option<ProjectsDatabasesConnectionsItemEndpointsDirect>,
-    #[serde(default)]
-    pub pooled: ::core::option::Option<ProjectsDatabasesConnectionsItemEndpointsPooled>,
+pub struct ProjectsDatabasesGetResponse {
+    pub data: ::std::vec::Vec<ProjectsDatabases>,
+    pub pagination: serde_json::Value,
 }
 
 /// ProjectsDatabasesPostRequest resource type.
@@ -418,21 +280,6 @@ pub struct ProjectsDatabasesPostRequest {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ProjectsDatabasesPostResponse {
     pub data: ProjectsDatabases,
-}
-
-/// ProjectsDatabasesProject resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsDatabasesProject {
-    pub id: String,
-    pub name: String,
-    pub url: String,
-}
-
-/// ProjectsDatabasesRegion resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsDatabasesRegion {
-    pub id: String,
-    pub name: String,
 }
 
 /// ProjectsGetResponse resource type.
@@ -481,14 +328,6 @@ pub struct ProjectsTransferPostRequest {
     pub recipient_access_token: String,
 }
 
-/// ProjectsWorkspace resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsWorkspace {
-    pub id: String,
-    pub name: String,
-    pub url: String,
-}
-
 /// RegionsAccelerateGetResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RegionsAccelerateGetResponse {
@@ -511,13 +350,6 @@ pub struct RegionsPostgresGetResponse {
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct VersionsGetResponse {
     pub data: Versions,
-}
-
-/// VersionsPortMapping resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VersionsPortMapping {
-    #[serde(default)]
-    pub http: ::core::option::Option<f64>,
 }
 
 /// VersionsPostRequest resource type.
@@ -551,16 +383,29 @@ pub struct WorkspacesGetResponse {
     pub data: Workspaces,
 }
 
-/// WorkspacesIntegrations resource type.
+/// WorkspacesIntegrationsGetResponse resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkspacesIntegrations {
-    pub client: WorkspacesIntegrationsClient,
+pub struct WorkspacesIntegrationsGetResponse {
+    pub data: ::std::vec::Vec<WorkspacesIntegrations>,
+    pub pagination: serde_json::Value,
+}
+
+/// Computeservices resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Computeservices {
     #[serde(rename = "createdAt")]
     pub created_at: String,
-    #[serde(rename = "createdByUser")]
-    pub created_by_user: WorkspacesIntegrationsCreatedByUser,
     pub id: String,
-    pub scopes: ::std::vec::Vec<String>,
+    #[serde(rename = "latestVersionId")]
+    pub latest_version_id: String,
+    pub name: String,
+    #[serde(rename = "projectId")]
+    pub project_id: String,
+    pub region: ComputeservicesRegion,
+    #[serde(rename = "serviceEndpointDomain")]
+    pub service_endpoint_domain: String,
+    #[serde(rename = "type")]
+    pub type_: String,
     pub url: String,
 }
 
@@ -578,11 +423,634 @@ pub struct ComputeservicesVersionsPostRequestPortMapping {
     pub http: ::core::option::Option<serde_json::Value>,
 }
 
+/// ComputeservicesVersions resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComputeservicesVersions {
+    #[serde(rename = "foundryVersionId")]
+    pub foundry_version_id: String,
+    pub id: String,
+    #[serde(rename = "type")]
+    pub type_: String,
+    #[serde(rename = "uploadUrl")]
+    pub upload_url: String,
+    pub url: String,
+}
+
 /// ComputeservicesVersionsStart resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct ComputeservicesVersionsStart {
     #[serde(rename = "previewDomain")]
     pub preview_domain: String,
+}
+
+/// Connections resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Connections {
+    #[serde(rename = "createdAt")]
+    pub created_at: String,
+    pub database: ConnectionsDatabase,
+    /// Deprecated: use endpoints.direct instead.
+    #[serde(default, rename = "directConnection")]
+    pub direct_connection: ::core::option::Option<serde_json::Value>,
+    pub endpoints: ConnectionsEndpoints,
+    pub id: String,
+    /// TODO: enum values: ["postgres", "accelerate"]
+    pub kind: String,
+    pub name: String,
+    #[serde(rename = "type")]
+    pub type_: String,
+    pub url: String,
+}
+
+/// ConnectionsRotate resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectionsRotate {
+    /// Deprecated: use endpoints.direct.connectionString or endpoints.pooled.connectionString instead.
+    #[serde(rename = "connectionString")]
+    pub connection_string: String,
+    #[serde(rename = "createdAt")]
+    pub created_at: String,
+    pub database: ConnectionsRotateDatabase,
+    /// Deprecated: use endpoints.direct instead.
+    #[serde(default, rename = "directConnection")]
+    pub direct_connection: ::core::option::Option<serde_json::Value>,
+    pub endpoints: ConnectionsRotateEndpoints,
+    /// Deprecated: use endpoints.direct instead.
+    pub host: String,
+    pub id: String,
+    /// TODO: enum values: ["postgres", "accelerate"]
+    pub kind: String,
+    pub name: String,
+    /// Deprecated: use endpoints.direct.connectionString or endpoints.pooled.connectionString instead.
+    pub pass: String,
+    #[serde(rename = "type")]
+    pub type_: String,
+    pub url: String,
+    /// Deprecated: use endpoints.direct.connectionString or endpoints.pooled.connectionString instead.
+    pub user: String,
+}
+
+/// DatabasesBackups resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesBackups {
+    /// Type of backup // TODO: enum values: ["full", "incremental"]
+    #[serde(rename = "backupType")]
+    pub backup_type: String,
+    /// Timestamp when the backup was created
+    #[serde(rename = "createdAt")]
+    pub created_at: String,
+    /// The unique identifier for this backup
+    pub id: String,
+    /// Total file size (in bytes) of gzipped backup files
+    #[serde(default)]
+    pub size: ::core::option::Option<f64>,
+    /// Status of backup instance // TODO: enum values: ["running", "completed", "failed", "unknown"]
+    pub status: String,
+    #[serde(default, rename = "type")]
+    pub type_: ::core::option::Option<String>,
+}
+
+/// DatabasesConnections resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesConnections {
+    /// Deprecated: use endpoints.direct.connectionString or endpoints.pooled.connectionString instead.
+    #[serde(rename = "connectionString")]
+    pub connection_string: String,
+    #[serde(rename = "createdAt")]
+    pub created_at: String,
+    pub database: DatabasesConnectionsDatabase,
+    /// Deprecated: use endpoints.direct instead.
+    #[serde(default, rename = "directConnection")]
+    pub direct_connection: ::core::option::Option<serde_json::Value>,
+    pub endpoints: DatabasesConnectionsEndpoints,
+    /// Deprecated: use endpoints.direct instead.
+    pub host: String,
+    pub id: String,
+    /// TODO: enum values: ["postgres", "accelerate"]
+    pub kind: String,
+    pub name: String,
+    /// Deprecated: use endpoints.direct.connectionString or endpoints.pooled.connectionString instead.
+    pub pass: String,
+    #[serde(rename = "type")]
+    pub type_: String,
+    pub url: String,
+    /// Deprecated: use endpoints.direct.connectionString or endpoints.pooled.connectionString instead.
+    pub user: String,
+}
+
+/// Databases resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Databases {
+    pub connections: ::std::vec::Vec<DatabasesConnectionsItem>,
+    #[serde(rename = "createdAt")]
+    pub created_at: String,
+    #[serde(rename = "defaultConnectionId")]
+    pub default_connection_id: String,
+    pub id: String,
+    #[serde(rename = "isDefault")]
+    pub is_default: bool,
+    pub name: String,
+    pub project: DatabasesProject,
+    pub region: serde_json::Value,
+    pub source: serde_json::Value,
+    /// TODO: enum values: ["failure", "provisioning", "ready", "recovering"]
+    pub status: String,
+    #[serde(rename = "type")]
+    pub type_: String,
+    pub url: String,
+}
+
+/// DatabasesRestorePostRequestSource resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesRestorePostRequestSource {
+    /// ID of the backup to restore from
+    #[serde(rename = "backupId")]
+    pub backup_id: String,
+    /// ID of the database the backup belongs to
+    #[serde(rename = "databaseId")]
+    pub database_id: String,
+    #[serde(rename = "type")]
+    pub type_: String,
+}
+
+/// DatabasesRestore resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesRestore {
+    pub connections: ::std::vec::Vec<DatabasesRestoreConnectionsItem>,
+    #[serde(rename = "createdAt")]
+    pub created_at: String,
+    #[serde(rename = "defaultConnectionId")]
+    pub default_connection_id: String,
+    pub id: String,
+    #[serde(rename = "isDefault")]
+    pub is_default: bool,
+    pub name: String,
+    pub project: DatabasesRestoreProject,
+    pub region: serde_json::Value,
+    pub source: DatabasesRestoreSource,
+    /// TODO: enum values: ["failure", "provisioning", "ready", "recovering"]
+    pub status: String,
+    #[serde(rename = "type")]
+    pub type_: String,
+    pub url: String,
+}
+
+/// DatabasesUsageGetResponseMetrics resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesUsageGetResponseMetrics {
+    pub operations: DatabasesUsageGetResponseMetricsOperations,
+    pub storage: DatabasesUsageGetResponseMetricsStorage,
+}
+
+/// DatabasesUsageGetResponsePeriod resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesUsageGetResponsePeriod {
+    pub end: String,
+    pub start: String,
+}
+
+/// Integrations resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Integrations {
+    pub client: IntegrationsClient,
+    #[serde(rename = "createdAt")]
+    pub created_at: String,
+    #[serde(rename = "createdByUser")]
+    pub created_by_user: IntegrationsCreatedByUser,
+    pub id: String,
+    pub scopes: ::std::vec::Vec<String>,
+    pub url: String,
+}
+
+/// PrismaApiErrorError resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct PrismaApiErrorError {
+    pub code: String,
+    #[serde(default)]
+    pub hint: ::core::option::Option<String>,
+    pub message: String,
+}
+
+/// ProjectsComputeservices resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsComputeservices {
+    #[serde(rename = "createdAt")]
+    pub created_at: String,
+    pub id: String,
+    #[serde(rename = "latestVersionId")]
+    pub latest_version_id: String,
+    pub name: String,
+    #[serde(rename = "projectId")]
+    pub project_id: String,
+    pub region: ProjectsComputeservicesRegion,
+    #[serde(rename = "serviceEndpointDomain")]
+    pub service_endpoint_domain: String,
+    #[serde(rename = "type")]
+    pub type_: String,
+    pub url: String,
+}
+
+/// Deprecated: use source instead.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsDatabasesPostRequestFromDatabase {
+    /// The unique identifier for this backup
+    #[serde(default, rename = "backupId")]
+    pub backup_id: ::core::option::Option<String>,
+    pub id: String,
+}
+
+/// ProjectsDatabases resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsDatabases {
+    #[serde(rename = "apiKeys")]
+    pub api_keys: ::std::vec::Vec<ProjectsDatabasesApiKeysItem>,
+    /// Deprecated: use connections[].endpoints.direct.connectionString or connections[].endpoints.pooled.connectionString.
+    #[serde(rename = "connectionString")]
+    pub connection_string: String,
+    pub connections: ::std::vec::Vec<ProjectsDatabasesConnectionsItem>,
+    #[serde(rename = "createdAt")]
+    pub created_at: String,
+    #[serde(rename = "defaultConnectionId")]
+    pub default_connection_id: String,
+    /// Deprecated: use connections[].endpoints.direct instead.
+    #[serde(rename = "directConnection")]
+    pub direct_connection: serde_json::Value,
+    pub id: String,
+    #[serde(rename = "isDefault")]
+    pub is_default: bool,
+    pub name: String,
+    pub project: ProjectsDatabasesProject,
+    pub region: ProjectsDatabasesRegion,
+    pub source: serde_json::Value,
+    /// TODO: enum values: ["provisioning", "ready"]
+    pub status: String,
+    #[serde(rename = "type")]
+    pub type_: String,
+    pub url: String,
+}
+
+/// Projects resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Projects {
+    #[serde(rename = "createdAt")]
+    pub created_at: String,
+    #[serde(rename = "defaultRegion")]
+    pub default_region: String,
+    pub id: String,
+    pub name: String,
+    #[serde(rename = "type")]
+    pub type_: String,
+    pub url: String,
+    pub workspace: ProjectsWorkspace,
+}
+
+/// RegionsAccelerate resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegionsAccelerate {
+    pub id: String,
+    pub name: String,
+    #[serde(rename = "type")]
+    pub type_: String,
+}
+
+/// Regions resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Regions {
+    pub id: String,
+    pub name: String,
+    /// TODO: enum values: ["postgres", "accelerate"]
+    pub product: String,
+    /// TODO: enum values: ["available", "unavailable"]
+    #[serde(default)]
+    pub status: ::core::option::Option<String>,
+    #[serde(rename = "type")]
+    pub type_: String,
+}
+
+/// RegionsPostgres resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct RegionsPostgres {
+    pub id: String,
+    pub name: String,
+    /// TODO: enum values: ["available", "unavailable"]
+    pub status: String,
+    #[serde(rename = "type")]
+    pub type_: String,
+}
+
+/// VersionsPostRequestPortMapping resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VersionsPostRequestPortMapping {
+    #[serde(default)]
+    pub http: ::core::option::Option<serde_json::Value>,
+}
+
+/// Versions resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Versions {
+    #[serde(rename = "createdAt")]
+    pub created_at: String,
+    #[serde(default, rename = "envVars")]
+    pub env_vars: ::core::option::Option<serde_json::Value>,
+    #[serde(rename = "foundryVersionId")]
+    pub foundry_version_id: String,
+    pub id: String,
+    #[serde(default, rename = "portMapping")]
+    pub port_mapping: ::core::option::Option<VersionsPortMapping>,
+    #[serde(rename = "previewDomain")]
+    pub preview_domain: String,
+    pub status: String,
+    #[serde(rename = "type")]
+    pub type_: String,
+    pub url: String,
+}
+
+/// VersionsStart resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VersionsStart {
+    #[serde(rename = "previewDomain")]
+    pub preview_domain: String,
+}
+
+/// Workspaces resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct Workspaces {
+    #[serde(rename = "createdAt")]
+    pub created_at: String,
+    pub id: String,
+    pub name: String,
+    #[serde(rename = "type")]
+    pub type_: String,
+    pub url: String,
+}
+
+/// WorkspacesIntegrations resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkspacesIntegrations {
+    pub client: WorkspacesIntegrationsClient,
+    #[serde(rename = "createdAt")]
+    pub created_at: String,
+    #[serde(rename = "createdByUser")]
+    pub created_by_user: WorkspacesIntegrationsCreatedByUser,
+    pub id: String,
+    pub scopes: ::std::vec::Vec<String>,
+    pub url: String,
+}
+
+/// ComputeservicesRegion resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ComputeservicesRegion {
+    pub id: String,
+    pub name: String,
+}
+
+/// ConnectionsDatabase resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectionsDatabase {
+    pub id: String,
+    pub name: String,
+    pub url: String,
+}
+
+/// ConnectionsEndpoints resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectionsEndpoints {
+    #[serde(default)]
+    pub accelerate: ::core::option::Option<ConnectionsEndpointsAccelerate>,
+    #[serde(default)]
+    pub direct: ::core::option::Option<ConnectionsEndpointsDirect>,
+    #[serde(default)]
+    pub pooled: ::core::option::Option<ConnectionsEndpointsPooled>,
+}
+
+/// ConnectionsRotateDatabase resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectionsRotateDatabase {
+    pub id: String,
+    pub name: String,
+    pub url: String,
+}
+
+/// ConnectionsRotateEndpoints resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ConnectionsRotateEndpoints {
+    #[serde(default)]
+    pub accelerate: ::core::option::Option<ConnectionsRotateEndpointsAccelerate>,
+    #[serde(default)]
+    pub direct: ::core::option::Option<ConnectionsRotateEndpointsDirect>,
+    #[serde(default)]
+    pub pooled: ::core::option::Option<ConnectionsRotateEndpointsPooled>,
+}
+
+/// DatabasesConnectionsDatabase resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesConnectionsDatabase {
+    pub id: String,
+    pub name: String,
+    pub url: String,
+}
+
+/// DatabasesConnectionsEndpoints resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesConnectionsEndpoints {
+    #[serde(default)]
+    pub accelerate: ::core::option::Option<DatabasesConnectionsEndpointsAccelerate>,
+    #[serde(default)]
+    pub direct: ::core::option::Option<DatabasesConnectionsEndpointsDirect>,
+    #[serde(default)]
+    pub pooled: ::core::option::Option<DatabasesConnectionsEndpointsPooled>,
+}
+
+/// DatabasesConnectionsItem resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesConnectionsItem {
+    #[serde(rename = "createdAt")]
+    pub created_at: String,
+    pub database: DatabasesConnectionsItemDatabase,
+    /// Deprecated: use endpoints.direct instead.
+    #[serde(default, rename = "directConnection")]
+    pub direct_connection: ::core::option::Option<serde_json::Value>,
+    pub endpoints: DatabasesConnectionsItemEndpoints,
+    pub id: String,
+    /// TODO: enum values: ["postgres", "accelerate"]
+    pub kind: String,
+    pub name: String,
+    #[serde(rename = "type")]
+    pub type_: String,
+    pub url: String,
+}
+
+/// DatabasesProject resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesProject {
+    pub id: String,
+    pub name: String,
+    pub url: String,
+}
+
+/// DatabasesRestoreConnectionsItem resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesRestoreConnectionsItem {
+    #[serde(rename = "createdAt")]
+    pub created_at: String,
+    pub database: DatabasesRestoreConnectionsItemDatabase,
+    /// Deprecated: use endpoints.direct instead.
+    #[serde(default, rename = "directConnection")]
+    pub direct_connection: ::core::option::Option<serde_json::Value>,
+    pub endpoints: DatabasesRestoreConnectionsItemEndpoints,
+    pub id: String,
+    /// TODO: enum values: ["postgres", "accelerate"]
+    pub kind: String,
+    pub name: String,
+    #[serde(rename = "type")]
+    pub type_: String,
+    pub url: String,
+}
+
+/// DatabasesRestoreProject resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesRestoreProject {
+    pub id: String,
+    pub name: String,
+    pub url: String,
+}
+
+/// DatabasesRestoreSource resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesRestoreSource {
+    #[serde(rename = "backupId")]
+    pub backup_id: String,
+    #[serde(rename = "databaseId")]
+    pub database_id: String,
+    #[serde(rename = "type")]
+    pub type_: String,
+}
+
+/// DatabasesUsageGetResponseMetricsOperations resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesUsageGetResponseMetricsOperations {
+    pub unit: String,
+    pub used: f64,
+}
+
+/// DatabasesUsageGetResponseMetricsStorage resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesUsageGetResponseMetricsStorage {
+    pub unit: String,
+    pub used: f64,
+}
+
+/// IntegrationsClient resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IntegrationsClient {
+    #[serde(rename = "createdAt")]
+    pub created_at: String,
+    pub id: String,
+    pub name: String,
+}
+
+/// IntegrationsCreatedByUser resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct IntegrationsCreatedByUser {
+    #[serde(rename = "displayName")]
+    pub display_name: String,
+    pub email: String,
+    pub id: String,
+}
+
+/// ProjectsComputeservicesRegion resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsComputeservicesRegion {
+    pub id: String,
+    pub name: String,
+}
+
+/// ProjectsDatabasesApiKeysItem resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsDatabasesApiKeysItem {
+    /// Deprecated: use endpoints.direct.connectionString or endpoints.pooled.connectionString instead.
+    #[serde(rename = "connectionString")]
+    pub connection_string: String,
+    #[serde(rename = "createdAt")]
+    pub created_at: String,
+    /// Deprecated: use endpoints.direct instead.
+    #[serde(default, rename = "directConnection")]
+    pub direct_connection: ::core::option::Option<serde_json::Value>,
+    pub endpoints: ProjectsDatabasesApiKeysItemEndpoints,
+    pub id: String,
+    /// TODO: enum values: ["postgres", "accelerate"]
+    pub kind: String,
+    pub name: String,
+    #[serde(rename = "type")]
+    pub type_: String,
+    pub url: String,
+}
+
+/// ProjectsDatabasesConnectionsItem resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsDatabasesConnectionsItem {
+    #[serde(rename = "createdAt")]
+    pub created_at: String,
+    pub database: ProjectsDatabasesConnectionsItemDatabase,
+    /// Deprecated: use endpoints.direct instead.
+    #[serde(default, rename = "directConnection")]
+    pub direct_connection: ::core::option::Option<serde_json::Value>,
+    pub endpoints: ProjectsDatabasesConnectionsItemEndpoints,
+    pub id: String,
+    /// TODO: enum values: ["postgres", "accelerate"]
+    pub kind: String,
+    pub name: String,
+    #[serde(rename = "type")]
+    pub type_: String,
+    pub url: String,
+}
+
+/// ProjectsDatabasesProject resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsDatabasesProject {
+    pub id: String,
+    pub name: String,
+    pub url: String,
+}
+
+/// ProjectsDatabasesRegion resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsDatabasesRegion {
+    pub id: String,
+    pub name: String,
+}
+
+/// ProjectsWorkspace resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsWorkspace {
+    pub id: String,
+    pub name: String,
+    pub url: String,
+}
+
+/// VersionsPortMapping resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct VersionsPortMapping {
+    #[serde(default)]
+    pub http: ::core::option::Option<f64>,
+}
+
+/// WorkspacesIntegrationsClient resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkspacesIntegrationsClient {
+    #[serde(rename = "createdAt")]
+    pub created_at: String,
+    pub id: String,
+    pub name: String,
+}
+
+/// WorkspacesIntegrationsCreatedByUser resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct WorkspacesIntegrationsCreatedByUser {
+    #[serde(rename = "displayName")]
+    pub display_name: String,
+    pub email: String,
+    pub id: String,
 }
 
 /// ConnectionsEndpointsAccelerate resource type.
@@ -633,26 +1101,6 @@ pub struct ConnectionsRotateEndpointsPooled {
     pub port: f64,
 }
 
-/// DatabasesBackups resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesBackups {
-    /// Type of backup // TODO: enum values: ["full", "incremental"]
-    #[serde(rename = "backupType")]
-    pub backup_type: String,
-    /// Timestamp when the backup was created
-    #[serde(rename = "createdAt")]
-    pub created_at: String,
-    /// The unique identifier for this backup
-    pub id: String,
-    /// Total file size (in bytes) of gzipped backup files
-    #[serde(default)]
-    pub size: ::core::option::Option<f64>,
-    /// Status of backup instance // TODO: enum values: ["running", "completed", "failed", "unknown"]
-    pub status: String,
-    #[serde(default, rename = "type")]
-    pub type_: ::core::option::Option<String>,
-}
-
 /// DatabasesConnectionsEndpointsAccelerate resource type.
 #[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct DatabasesConnectionsEndpointsAccelerate {
@@ -678,6 +1126,74 @@ pub struct DatabasesConnectionsEndpointsPooled {
     pub connection_string: String,
     pub host: String,
     pub port: f64,
+}
+
+/// DatabasesConnectionsItemDatabase resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesConnectionsItemDatabase {
+    pub id: String,
+    pub name: String,
+    pub url: String,
+}
+
+/// DatabasesConnectionsItemEndpoints resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesConnectionsItemEndpoints {
+    #[serde(default)]
+    pub accelerate: ::core::option::Option<DatabasesConnectionsItemEndpointsAccelerate>,
+    #[serde(default)]
+    pub direct: ::core::option::Option<DatabasesConnectionsItemEndpointsDirect>,
+    #[serde(default)]
+    pub pooled: ::core::option::Option<DatabasesConnectionsItemEndpointsPooled>,
+}
+
+/// DatabasesRestoreConnectionsItemDatabase resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesRestoreConnectionsItemDatabase {
+    pub id: String,
+    pub name: String,
+    pub url: String,
+}
+
+/// DatabasesRestoreConnectionsItemEndpoints resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct DatabasesRestoreConnectionsItemEndpoints {
+    #[serde(default)]
+    pub accelerate: ::core::option::Option<DatabasesRestoreConnectionsItemEndpointsAccelerate>,
+    #[serde(default)]
+    pub direct: ::core::option::Option<DatabasesRestoreConnectionsItemEndpointsDirect>,
+    #[serde(default)]
+    pub pooled: ::core::option::Option<DatabasesRestoreConnectionsItemEndpointsPooled>,
+}
+
+/// ProjectsDatabasesApiKeysItemEndpoints resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsDatabasesApiKeysItemEndpoints {
+    #[serde(default)]
+    pub accelerate: ::core::option::Option<ProjectsDatabasesApiKeysItemEndpointsAccelerate>,
+    #[serde(default)]
+    pub direct: ::core::option::Option<ProjectsDatabasesApiKeysItemEndpointsDirect>,
+    #[serde(default)]
+    pub pooled: ::core::option::Option<ProjectsDatabasesApiKeysItemEndpointsPooled>,
+}
+
+/// ProjectsDatabasesConnectionsItemDatabase resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsDatabasesConnectionsItemDatabase {
+    pub id: String,
+    pub name: String,
+    pub url: String,
+}
+
+/// ProjectsDatabasesConnectionsItemEndpoints resource type.
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct ProjectsDatabasesConnectionsItemEndpoints {
+    #[serde(default)]
+    pub accelerate: ::core::option::Option<ProjectsDatabasesConnectionsItemEndpointsAccelerate>,
+    #[serde(default)]
+    pub direct: ::core::option::Option<ProjectsDatabasesConnectionsItemEndpointsDirect>,
+    #[serde(default)]
+    pub pooled: ::core::option::Option<ProjectsDatabasesConnectionsItemEndpointsPooled>,
 }
 
 /// DatabasesConnectionsItemEndpointsAccelerate resource type.
@@ -720,55 +1236,6 @@ pub struct DatabasesRestoreConnectionsItemEndpointsDirect {
 pub struct DatabasesRestoreConnectionsItemEndpointsPooled {
     pub host: String,
     pub port: f64,
-}
-
-/// DatabasesRestorePostRequestSource resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesRestorePostRequestSource {
-    /// ID of the backup to restore from
-    #[serde(rename = "backupId")]
-    pub backup_id: String,
-    /// ID of the database the backup belongs to
-    #[serde(rename = "databaseId")]
-    pub database_id: String,
-    #[serde(rename = "type")]
-    pub type_: String,
-}
-
-/// DatabasesUsageGetResponseMetrics resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesUsageGetResponseMetrics {
-    pub operations: DatabasesUsageGetResponseMetricsOperations,
-    pub storage: DatabasesUsageGetResponseMetricsStorage,
-}
-
-/// DatabasesUsageGetResponsePeriod resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesUsageGetResponsePeriod {
-    pub end: String,
-    pub start: String,
-}
-
-/// Integrations resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Integrations {
-    pub client: IntegrationsClient,
-    #[serde(rename = "createdAt")]
-    pub created_at: String,
-    #[serde(rename = "createdByUser")]
-    pub created_by_user: IntegrationsCreatedByUser,
-    pub id: String,
-    pub scopes: ::std::vec::Vec<String>,
-    pub url: String,
-}
-
-/// PrismaApiErrorError resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct PrismaApiErrorError {
-    pub code: String,
-    #[serde(default)]
-    pub hint: ::core::option::Option<String>,
-    pub message: String,
 }
 
 /// ProjectsDatabasesApiKeysItemEndpointsAccelerate resource type.
@@ -817,105 +1284,4 @@ pub struct ProjectsDatabasesConnectionsItemEndpointsPooled {
     pub connection_string: ::core::option::Option<String>,
     pub host: String,
     pub port: f64,
-}
-
-/// Deprecated: use source instead.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct ProjectsDatabasesPostRequestFromDatabase {
-    /// The unique identifier for this backup
-    #[serde(default, rename = "backupId")]
-    pub backup_id: ::core::option::Option<String>,
-    pub id: String,
-}
-
-/// RegionsAccelerate resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegionsAccelerate {
-    pub id: String,
-    pub name: String,
-    #[serde(rename = "type")]
-    pub type_: String,
-}
-
-/// Regions resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Regions {
-    pub id: String,
-    pub name: String,
-    /// TODO: enum values: ["postgres", "accelerate"]
-    pub product: String,
-    /// TODO: enum values: ["available", "unavailable"]
-    #[serde(default)]
-    pub status: ::core::option::Option<String>,
-    #[serde(rename = "type")]
-    pub type_: String,
-}
-
-/// RegionsPostgres resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct RegionsPostgres {
-    pub id: String,
-    pub name: String,
-    /// TODO: enum values: ["available", "unavailable"]
-    pub status: String,
-    #[serde(rename = "type")]
-    pub type_: String,
-}
-
-/// VersionsPostRequestPortMapping resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VersionsPostRequestPortMapping {
-    #[serde(default)]
-    pub http: ::core::option::Option<serde_json::Value>,
-}
-
-/// VersionsStart resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct VersionsStart {
-    #[serde(rename = "previewDomain")]
-    pub preview_domain: String,
-}
-
-/// Workspaces resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct Workspaces {
-    #[serde(rename = "createdAt")]
-    pub created_at: String,
-    pub id: String,
-    pub name: String,
-    #[serde(rename = "type")]
-    pub type_: String,
-    pub url: String,
-}
-
-/// WorkspacesIntegrationsClient resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct WorkspacesIntegrationsClient {
-    #[serde(rename = "createdAt")]
-    pub created_at: String,
-    pub id: String,
-    pub name: String,
-}
-
-/// DatabasesUsageGetResponseMetricsOperations resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesUsageGetResponseMetricsOperations {
-    pub unit: String,
-    pub used: f64,
-}
-
-/// DatabasesUsageGetResponseMetricsStorage resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct DatabasesUsageGetResponseMetricsStorage {
-    pub unit: String,
-    pub used: f64,
-}
-
-/// IntegrationsClient resource type.
-#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
-pub struct IntegrationsClient {
-    #[serde(rename = "createdAt")]
-    pub created_at: String,
-    pub id: String,
-    pub name: String,
 }

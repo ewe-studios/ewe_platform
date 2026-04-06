@@ -20,6 +20,21 @@ tasks:
 
 # Hugging Face Hub API Provider
 
+## Required Skills
+
+**Before implementing, read the following skills:**
+
+```bash
+/read-skill rust-clean-code
+/read-skill valtron
+/read-skill simple_http
+```
+
+These skills cover:
+- **rust-clean-code**: Code style, patterns, and quality standards for this project
+- **valtron**: Thread pool execution, `StreamIterator`, and `from_future` patterns
+- **simple_http**: HTTP client usage, request/response handling, multipart forms
+
 ## Iron Law: Zero Warnings
 
 > **All code must compile with zero warnings and pass all lints. No suppression. No exceptions.**
@@ -52,6 +67,23 @@ This provider enables:
 ### Reference Implementation
 
 The existing `huggingface_hub_rust` crate (`/home/darkvoid/Boxxed/@dev/sources/huggingface_hub_rust`) provides the reference API design. This implementation replicates its functionality using our stack.
+
+## Dependencies
+
+Add `foundation_macros` and `derive_more` to `backends/foundation_deployment/Cargo.toml` (no feature flag needed for foundation_macros):
+
+```toml
+[dependencies]
+foundation_macros = { path = "../foundation_macros" }  # For JsonHash derive
+derive_more = { workspace = true }  # For From derive on error types
+```
+
+Add feature flag for the huggingface provider:
+
+```toml
+[features]
+huggingface = []  # Enable huggingface provider module
+```
 
 ## Architecture
 
@@ -182,7 +214,7 @@ Query parameters: `search`, `author`, `filter`, `sort`, `pipeline_tag`, `full`, 
 
 ```rust
 /// Type of repository on the Hub
-#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, JsonHash)]
 #[serde(rename_all = "lowercase")]
 pub enum RepoType {
     Model,
@@ -192,7 +224,7 @@ pub enum RepoType {
 }
 
 /// Model information returned by GET /api/models/{id}
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 #[serde(rename_all = "camelCase")]
 pub struct ModelInfo {
     pub id: String,
@@ -215,12 +247,12 @@ pub struct ModelInfo {
 }
 
 /// Dataset information
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 #[serde(rename_all = "camelCase")]
 pub struct DatasetInfo { /* similar structure */ }
 
 /// Space information
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 #[serde(rename_all = "camelCase")]
 pub struct SpaceInfo {
     pub id: String,
@@ -230,12 +262,20 @@ pub struct SpaceInfo {
     pub runtime: Option<serde_json::Value>,
     // ... more fields
 }
+
+/// Union type for repository info responses
+#[derive(Debug, Clone, JsonHash)]
+pub enum RepoInfo {
+    Model(ModelInfo),
+    Dataset(DatasetInfo),
+    Space(SpaceInfo),
+}
 ```
 
 ### User Types
 
 ```rust
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, JsonHash)]
 pub struct User {
     pub username: String,
     pub fullname: Option<String>,
@@ -245,12 +285,20 @@ pub struct User {
     pub email: Option<String>,
     pub orgs: Option<Vec<OrgMembership>>,
 }
+
+#[derive(Debug, Clone, Deserialize, JsonHash)]
+pub struct Organization {
+    pub name: String,
+    pub fullname: Option<String>,
+    pub avatar_url: Option<String>,
+    pub org_type: Option<String>,
+}
 ```
 
 ### File/Tree Types
 
 ```rust
-#[derive(Debug, Clone, Deserialize)]
+#[derive(Debug, Clone, Deserialize, JsonHash)]
 #[serde(tag = "type", rename_all = "lowercase")]
 pub enum RepoTreeEntry {
     File {
@@ -266,11 +314,78 @@ pub enum RepoTreeEntry {
     },
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
 pub struct RepoSibling {
     pub rfilename: String,
     pub size: Option<u64>,
     pub lfs: Option<BlobLfsInfo>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+pub struct BlobLfsInfo {
+    pub size: Option<u64>,
+    pub sha256: Option<String>,
+    pub pointer_size: Option<u64>,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, JsonHash)]
+#[serde(rename_all = "camelCase")]
+pub struct LastCommitInfo {
+    pub id: Option<String>,
+    pub title: Option<String>,
+    pub date: Option<String>,
+}
+```
+
+### Commit Types
+
+```rust
+#[derive(Debug, Clone, Deserialize, JsonHash)]
+pub struct CommitAuthor {
+    pub user: Option<String>,
+    pub name: Option<String>,
+    pub email: Option<String>,
+}
+
+#[derive(Debug, Clone, Deserialize, JsonHash)]
+pub struct GitCommitInfo {
+    pub id: String,
+    pub authors: Vec<CommitAuthor>,
+    pub date: Option<String>,
+    pub title: String,
+    pub message: String,
+}
+
+#[derive(Debug, Clone, Deserialize, JsonHash)]
+#[serde(rename_all = "camelCase")]
+pub struct CommitInfo {
+    pub commit_url: Option<String>,
+    pub commit_message: Option<String>,
+    pub commit_description: Option<String>,
+    pub commit_oid: Option<String>,
+    pub pr_url: Option<String>,
+    pub pr_num: Option<u64>,
+}
+
+#[derive(Debug, Clone, JsonHash)]
+pub enum CommitOperation {
+    Add { path_in_repo: String, source: AddSource },
+    Delete { path_in_repo: String },
+}
+
+#[derive(Clone, JsonHash)]
+pub enum AddSource {
+    File(PathBuf),
+    Bytes(Vec<u8>),
+}
+```
+
+### Response Types
+
+```rust
+#[derive(Debug, Clone, Deserialize, JsonHash)]
+pub struct RepoUrl {
+    pub url: String,
 }
 ```
 
@@ -279,49 +394,103 @@ pub struct RepoSibling {
 ```rust
 // backends/foundation_deployment/src/providers/huggingface/error.rs
 
-use thiserror::Error;
+use derive_more::From;
+use std::fmt;
 
-#[derive(Error, Debug)]
+/// Hugging Face Hub API error types.
+/// 
+/// Error conventions (from state-stores/LEARNINGS.md):
+/// - Use `derive_more::From` for automatic From<> impls
+/// - Manual `Display` implementation (no `thiserror`)
+/// - All variants are `pub`
+#[derive(Debug, From)]
 pub enum HuggingFaceError {
-    #[error("HTTP error: {status} {url}")]
+    /// HTTP error with status, URL, and response body
     Http {
         status: u16,
         url: String,
         body: String,
     },
 
-    #[error("Authentication required")]
+    /// Authentication required (401)
     AuthRequired,
 
-    #[error("Repository not found: {repo_id}")]
+    /// Repository not found (404 on repo endpoint)
     RepoNotFound { repo_id: String },
 
-    #[error("Revision not found: {revision} in {repo_id}")]
+    /// Revision not found (404 on revision endpoint)
     RevisionNotFound { repo_id: String, revision: String },
 
-    #[error("File not found: {path} in {repo_id}")]
+    /// File not found (404 on file endpoint)
     FileNotFound { path: String, repo_id: String },
 
-    #[error("Invalid repository type: expected {expected}, got {actual}")]
+    /// Invalid repository type
     InvalidRepoType {
         expected: RepoType,
         actual: RepoType,
     },
 
-    #[error("Invalid parameter: {0}")]
+    /// Invalid parameter
     InvalidParameter(String),
 
-    #[error(transparent)]
-    Io(#[from] std::io::Error),
+    /// Generic backend error (wraps other errors)
+    #[from(ignore)]
+    Backend(String),
 
-    #[error(transparent)]
-    Json(#[from] serde_json::Error),
+    /// Valtron execution error
+    #[from(ignore)]
+    Valtron(String),
 
-    #[error(transparent)]
-    HttpParse(#[from] http::Error),
+    /// I/O error
+    Io(std::io::Error),
 
-    #[error("{0}")]
-    Other(String),
+    /// JSON parse error
+    Json(serde_json::Error),
+
+    /// HTTP parse error
+    HttpParse(http::Error),
+}
+
+impl fmt::Display for HuggingFaceError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            HuggingFaceError::Http { status, url, body } => {
+                write!(f, "HTTP error: {} {} - {}", status, url, body)
+            }
+            HuggingFaceError::AuthRequired => write!(f, "Authentication required"),
+            HuggingFaceError::RepoNotFound { repo_id } => {
+                write!(f, "Repository not found: {}", repo_id)
+            }
+            HuggingFaceError::RevisionNotFound { repo_id, revision } => {
+                write!(f, "Revision not found: {} in {}", revision, repo_id)
+            }
+            HuggingFaceError::FileNotFound { path, repo_id } => {
+                write!(f, "File not found: {} in {}", path, repo_id)
+            }
+            HuggingFaceError::InvalidRepoType { expected, actual } => {
+                write!(f, "Invalid repository type: expected {}, got {}", expected, actual)
+            }
+            HuggingFaceError::InvalidParameter(msg) => {
+                write!(f, "Invalid parameter: {}", msg)
+            }
+            HuggingFaceError::Backend(msg) => write!(f, "Backend error: {}", msg),
+            HuggingFaceError::Valtron(msg) => write!(f, "Valtron error: {}", msg),
+            HuggingFaceError::Io(e) => write!(f, "I/O error: {}", e),
+            HuggingFaceError::Json(e) => write!(f, "JSON error: {}", e),
+            HuggingFaceError::HttpParse(e) => write!(f, "HTTP parse error: {}", e),
+        }
+    }
+}
+
+impl std::error::Error for HuggingFaceError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            HuggingFaceError::Io(e) => Some(e),
+            HuggingFaceError::Json(e) => Some(e),
+            HuggingFaceError::HttpParse(e) => Some(e),
+            _ => None,
+        }
+    }
 }
 
 pub type Result<T> = std::result::Result<T, HuggingFaceError>;
@@ -405,29 +574,29 @@ impl HFClient {
     /// Get builder for fine-grained configuration
     pub fn builder() -> HFClientBuilder;
     
-    /// Get authenticated user info
-    pub async fn whoami(&self) -> Result<User>;
+    /// Get authenticated user info (blocking, uses valtron internally)
+    pub fn whoami(&self) -> Result<User>;
     
-    /// Check if token is valid
-    pub async fn auth_check(&self) -> Result<()>;
+    /// Check if token is valid (blocking)
+    pub fn auth_check(&self) -> Result<()>;
     
-    /// List models with pagination
-    pub fn list_models(&self, params: &ListModelsParams) -> Result<impl Iterator<Item = Result<ModelInfo>>>;
+    /// List models with pagination (returns valtron StreamIterator)
+    pub fn list_models(&self, params: &ListModelsParams) -> Result<impl StreamIterator<D = Result<ModelInfo>, P = ()> + Send>;
     
-    /// List datasets with pagination
-    pub fn list_datasets(&self, params: &ListDatasetsParams) -> Result<impl Iterator<Item = Result<DatasetInfo>>>;
+    /// List datasets with pagination (returns valtron StreamIterator)
+    pub fn list_datasets(&self, params: &ListDatasetsParams) -> Result<impl StreamIterator<D = Result<DatasetInfo>, P = ()> + Send>;
     
-    /// List spaces with pagination
-    pub fn list_spaces(&self, params: &ListSpacesParams) -> Result<impl Iterator<Item = Result<SpaceInfo>>>;
+    /// List spaces with pagination (returns valtron StreamIterator)
+    pub fn list_spaces(&self, params: &ListSpacesParams) -> Result<impl StreamIterator<D = Result<SpaceInfo>, P = ()> + Send>;
     
-    /// Create a repository
-    pub async fn create_repo(&self, params: &CreateRepoParams) -> Result<RepoUrl>;
+    /// Create a repository (blocking, uses valtron internally)
+    pub fn create_repo(&self, params: &CreateRepoParams) -> Result<RepoUrl>;
     
-    /// Delete a repository
-    pub async fn delete_repo(&self, params: &DeleteRepoParams) -> Result<()>;
+    /// Delete a repository (blocking, uses valtron internally)
+    pub fn delete_repo(&self, params: &DeleteRepoParams) -> Result<()>;
     
-    /// Move/rename a repository
-    pub async fn move_repo(&self, params: &MoveRepoParams) -> Result<RepoUrl>;
+    /// Move/rename a repository (blocking, uses valtron internally)
+    pub fn move_repo(&self, params: &MoveRepoParams) -> Result<RepoUrl>;
     
     /// Get repository handle for model operations
     pub fn model(&self, owner: impl Into<String>, name: impl Into<String>) -> HFRepository;
@@ -438,10 +607,10 @@ impl HFClient {
     /// Get repository handle for space operations
     pub fn space(&self, owner: impl Into<String>, name: impl Into<String>) -> HFRepository;
     
-    // Internal helpers
-    pub(crate) fn auth_headers(&self) -> HeaderMap;
-    pub(crate) fn api_url(&self, repo_type: Option<RepoType>, repo_id: &str) -> String;
-    pub(crate) fn download_url(&self, repo_type: Option<RepoType>, repo_id: &str, revision: &str, filename: &str) -> String;
+    // Internal helpers (still public per always-public policy)
+    pub fn auth_headers(&self) -> HeaderMap;
+    pub fn api_url(&self, repo_type: Option<RepoType>, repo_id: &str) -> String;
+    pub fn download_url(&self, repo_type: Option<RepoType>, repo_id: &str, revision: &str, filename: &str) -> String;
 }
 ```
 
@@ -461,41 +630,41 @@ pub struct HFRepository {
 }
 
 impl HFRepository {
-    /// Get repository info
-    pub async fn info(&self, params: &RepoInfoParams) -> Result<RepoInfo>;
+    /// Get repository info (blocking, uses valtron internally)
+    pub fn info(&self, params: &RepoInfoParams) -> Result<RepoInfo>;
     
-    /// Check if repository exists
-    pub async fn exists(&self) -> Result<bool>;
+    /// Check if repository exists (blocking)
+    pub fn exists(&self) -> Result<bool>;
     
-    /// Check if revision exists
-    pub async fn revision_exists(&self, params: &RepoRevisionExistsParams) -> Result<bool>;
+    /// Check if revision exists (blocking)
+    pub fn revision_exists(&self, params: &RepoRevisionExistsParams) -> Result<bool>;
     
-    /// Check if file exists
-    pub async fn file_exists(&self, params: &RepoFileExistsParams) -> Result<bool>;
+    /// Check if file exists (blocking)
+    pub fn file_exists(&self, params: &RepoFileExistsParams) -> Result<bool>;
     
-    /// List files in repository
-    pub async fn list_files(&self, params: &RepoListFilesParams) -> Result<Vec<String>>;
+    /// List files in repository (blocking)
+    pub fn list_files(&self, params: &RepoListFilesParams) -> Result<Vec<String>>;
     
-    /// List tree entries
-    pub fn list_tree(&self, params: &RepoListTreeParams) -> Result<impl Iterator<Item = Result<RepoTreeEntry>>>;
+    /// List tree entries (returns valtron StreamIterator)
+    pub fn list_tree(&self, params: &RepoListTreeParams) -> Result<impl StreamIterator<D = Result<RepoTreeEntry>, P = ()> + Send>;
     
-    /// Get info for specific paths
-    pub async fn get_paths_info(&self, params: &RepoGetPathsInfoParams) -> Result<Vec<RepoTreeEntry>>;
+    /// Get info for specific paths (blocking)
+    pub fn get_paths_info(&self, params: &RepoGetPathsInfoParams) -> Result<Vec<RepoTreeEntry>>;
     
-    /// Download a file
-    pub async fn download_file(&self, params: &RepoDownloadFileParams) -> Result<PathBuf>;
+    /// Download a file (blocking, uses valtron internally)
+    pub fn download_file(&self, params: &RepoDownloadFileParams) -> Result<PathBuf>;
     
-    /// Upload a file
-    pub async fn upload_file(&self, params: &RepoUploadFileParams) -> Result<CommitInfo>;
+    /// Upload a file (blocking, uses valtron internally)
+    pub fn upload_file(&self, params: &RepoUploadFileParams) -> Result<CommitInfo>;
     
-    /// Delete a file
-    pub async fn delete_file(&self, params: &RepoDeleteFileParams) -> Result<CommitInfo>;
+    /// Delete a file (blocking, uses valtron internally)
+    pub fn delete_file(&self, params: &RepoDeleteFileParams) -> Result<CommitInfo>;
     
-    /// Create a commit with multiple operations
-    pub async fn create_commit(&self, params: &RepoCreateCommitParams) -> Result<CommitInfo>;
+    /// Create a commit with multiple operations (blocking, uses valtron internally)
+    pub fn create_commit(&self, params: &RepoCreateCommitParams) -> Result<CommitInfo>;
     
-    /// Update repository settings
-    pub async fn update_settings(&self, params: &RepoUpdateSettingsParams) -> Result<()>;
+    /// Update repository settings (blocking)
+    pub fn update_settings(&self, params: &RepoUpdateSettingsParams) -> Result<()>;
     
     // Helpers
     pub fn repo_path(&self) -> String;  // "{owner}/{name}"
@@ -599,25 +768,257 @@ pub enum CommitOperation {
 }
 ```
 
+## Key Learnings Applied (from project LEARNINGS.md)
+
+This specification incorporates lessons from previous implementations:
+
+### From state-stores/LEARNINGS.md
+
+| Lesson | Applied To |
+|--------|------------|
+| `SimpleHttpClient` is the only HTTP client | All HTTP calls use `foundation_core::simple_http` |
+| Error types use `derive_more::From` + manual `Display` | `HuggingFaceError` implementation |
+| Always public methods (`pub`, never `pub(crate)`) | All public API methods |
+| Valtron `schedule_future` for single-value ops | `whoami()`, `create_repo()`, etc. |
+| Stream expansion for multi-value ops | `list_models()`, `list_datasets()` |
+
+### From foundation-db/LEARNINGS.md
+
+| Lesson | Applied To |
+|--------|------------|
+| Methods return streams, callers block when needed | All methods return `StreamIterator` or `HuggingFaceStream` |
+| `Send + 'static` requirement for async blocks | Clone `Arc`, own `String` data before async block |
+| `!Send` types consumed inside async block | Collect iterators before returning |
+| Turbo-fish `Ok::<_, E>` for explicit error types | All async blocks |
+| Three-level error handling | Valtron failure, empty stream, backend error |
+
+### From rust-clean-code skill
+
+| Lesson | Applied To |
+|--------|------------|
+| No `unwrap()` - use `?` or proper error handling | All error handling |
+| Full rustdoc on public items | All `pub` items documented |
+| `JsonHash` derive on serializable types | All data types |
+| Builder pattern for complex configurations | `HFClientBuilder`, parameter types |
+
 ## Implementation Notes
 
-### No Async Runtime
+### Valtron Patterns (from `read-skill valtron` + project LEARNINGS.md)
 
-Since we cannot use `tokio`, all "async" operations will be implemented using:
-1. **Blocking HTTP calls** via `SimpleHttpClient` (which is synchronous)
-2. **Valtron thread pool** for any blocking I/O (file operations, etc.)
-3. **Iterators instead of Streams** for pagination (no async streams)
+**The fundamental rule:** Methods return streams for multi-value operations. For single-value operations where the result is needed immediately (auth, user info for subsequent requests), blocking internally is acceptable.
 
-### Pagination Without Streams
+#### SimpleHttpClient Integration Pattern
 
-The reference implementation uses `futures::Stream` for pagination. We'll use synchronous iterators:
+All HTTP operations follow the pattern from `backends/foundation_deployment/src/providers/prisma-postgres/clients/mod.rs`:
+
+1. Start with `ClientRequestBuilder` from `client.get(url)?` or `client.post(url)?`
+2. Call `.build_send_request()` to get `SendRequestTask`
+3. Transform with `.map_ready()` handling `RequestIntro` enum
+4. Use `body_reader::collect_string(stream)` to read response body
+5. Apply `.map_pending()` for progress state (usually `map_pending(|_| ())`)
+6. Call `execute(task, None)` to get `StreamIterator`
+
+#### Single-Value Operations (Blocking Acceptable)
+
+For operations that return exactly one result and where blocking is acceptable (auth, user info):
 
 ```rust
-pub fn list_models(&self, params: &ListModelsParams) -> Result<impl Iterator<Item = Result<ModelInfo>>> {
-    // Use valtron's StreamIterator adapted for sync iteration
-    // Or implement a simple paging iterator
+use foundation_core::valtron::{execute, Stream};
+use foundation_core::simple_http::{RequestIntro, body_reader};
+
+/// Get authenticated user info.
+/// Blocks internally — acceptable for single-value ops where result is needed immediately.
+pub fn whoami(&self) -> Result<User> {
+    let client = self.inner.client.clone();
+    let url = format!("{}/api/whoami-v2", self.inner.endpoint);
+    let headers = self.auth_headers();
+    
+    // Start with ClientRequestBuilder
+    let builder = client.get(&url)?
+        .headers(headers);
+    
+    // Build SendRequestTask and transform
+    let task = builder
+        .build_send_request()
+        .map_err(|e| HuggingFaceError::HttpParse(e.into()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success { stream, status } => {
+                let headers = status.headers().clone();
+                if !status.is_success() {
+                    return Err(HuggingFaceError::Http {
+                        status: status.as_u16(),
+                        url: url.clone(),
+                        body: format!("HTTP {}", status.as_u16()),
+                    });
+                }
+                // Read body using body_reader helper
+                let body = body_reader::collect_string(stream);
+                // Parse JSON inside map_ready
+                let user: User = serde_json::from_str(&body)
+                    .map_err(HuggingFaceError::Json)?;
+                Ok(user)
+            }
+            RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(
+                format!("Request failed: {}", e)
+            )),
+        })
+        .map_pending(|_| ());  // Discard progress info
+    
+    // Execute and collect single result
+    let stream = execute(task, None)
+        .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
+    
+    // Use standard Iterator::find_map to extract first Next value
+    stream.find_map(|s| match s {
+        Stream::Next(result) => Some(result),
+        _ => None,
+    }).ok_or_else(|| HuggingFaceError::Backend("No result from whoami".into()))
 }
+
+// Caller uses directly:
+let user = hf_client.whoami()?;  // Returns Result<User>
 ```
+
+**When to block internally:**
+- `whoami()` — need user info for subsequent operations
+- `auth_check()` — must know before proceeding
+- `create_repo()` — need the repo URL immediately
+- Single-item lookups where the caller needs the value
+
+#### Multi-Value Operations (Return Streams)
+
+For listing operations with pagination, return streams:
+
+```rust
+use foundation_core::valtron::{execute, Stream};
+use foundation_core::simple_http::{RequestIntro, body_reader};
+
+pub type HuggingFaceStream<T> = Box<dyn Iterator<Item = Stream<Result<T, HuggingFaceError>, ()>> + Send>;
+
+/// List models with pagination.
+/// Returns stream — caller composes and collects at boundary.
+pub fn list_models(&self, params: &ListModelsParams) -> Result<HuggingFaceStream<ModelInfo>> {
+    let client = self.inner.client.clone();
+    let url = build_list_url(&self.inner.endpoint, "models", params);
+    
+    let builder = client.get(&url)?;
+    
+    let task = builder
+        .build_send_request()
+        .map_err(|e| HuggingFaceError::HttpParse(e.into()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success { stream, status } => {
+                let headers = status.headers().clone();
+                if !status.is_success() {
+                    return Err(HuggingFaceError::Http {
+                        status: status.as_u16(),
+                        url: url.clone(),
+                        body: format!("HTTP {}", status.as_u16()),
+                    });
+                }
+                let body = body_reader::collect_string(stream);
+                
+                // Parse response — collect all items inside async block (Send requirement)
+                let models: Vec<ModelInfo> = serde_json::from_str(&body)
+                    .map_err(HuggingFaceError::Json)?;
+                Ok(models)
+            }
+            RequestIntro::Failed(e) => Err(HuggingFaceError::Backend(
+                format!("Request failed: {}", e)
+            )),
+        })
+        .map_pending(|_| ());
+    
+    let stream = execute(task, None)
+        .map_err(|e| HuggingFaceError::Valtron(e.to_string()))?;
+    
+    // Expand Vec into individual stream items using flat_map_next
+    Ok(Box::new(stream.flat_map_next(|result| {
+        match result {
+            Ok(models) => models.into_iter().map(|m| Stream::Next(Ok(m))).collect::<Vec<_>>().into_iter(),
+            Err(e) => vec![Stream::Next(Err(e))].into_iter(),
+        }
+    })))
+}
+
+// Caller consumes stream at boundary:
+let models: Vec<ModelInfo> = hf_client
+    .list_models(&params)?
+    .filter_map(|s| match s {
+        Stream::Next(Ok(m)) => Some(m),
+        _ => None,
+    })
+    .collect();
+```
+
+### Error Handling with map_circuit
+
+Use `map_circuit` to short-circuit on error while preserving the error value:
+
+```rust
+use foundation_core::valtron::map_circuit;
+
+let stream = raw_stream.map_circuit(|item| match item {
+    Stream::Next(Err(e)) => ShortCircuit::ReturnAndStop(Stream::Next(Err(e))),
+    Stream::Next(Ok(v)) => ShortCircuit::Continue(Stream::Next(Ok(v))),
+    _ => ShortCircuit::Continue(item),
+});
+```
+
+### Key Valtron Patterns from Learnings
+
+| Pattern | Used For | Example |
+|---------|----------|---------|
+| `ClientRequestBuilder` → `build_send_request()` → `execute` | All HTTP operations | `whoami()`, `list_models()` |
+| `RequestIntro::Success { stream, status }` handling | HTTP response processing | Check status, read body with `body_reader::collect_string()` |
+| `execute` + `find_map` | Single-value HTTP ops (blocking OK) | `whoami()`, `auth_check()` |
+| `execute` + `flat_map_next` | Multi-value ops (return stream) | `list_models()`, `list_datasets()` |
+| `Send + 'static` | All captured variables in closures | Clone `Arc`, own `String` data |
+| Turbo-fish `Ok::<_, E>` | Explicit error types | `Ok::<_, HuggingFaceError>(value)` |
+| `map_pending(|_| ())` | Discard progress info | When `Pending = ()` is sufficient |
+
+### Three-Level Error Handling
+
+Every `execute` call handles errors at three levels:
+
+1. **Valtron execution failure** — `execute()` itself fails (runtime/pool issue)
+2. **Empty stream** — The future ran but produced no `Stream::Next` item
+3. **Backend error** — The future's `Result` was `Err` (HTTP error, JSON parse error)
+
+All three are mapped to `HuggingFaceError` variants, preserving the original error message.
+
+### When to Use run_future_iter
+
+For genuinely streaming large result sets where collecting to `Vec` would cause OOM:
+
+```rust
+use foundation_core::valtron::{run_future_iter, ThreadedValue};
+
+// Only needed for !Send row iterators from databases
+// HTTP responses are typically Send, so from_future is sufficient
+let iter = run_future_iter(
+    move || async move { /* ... */ },
+    None,
+    None,
+)?;
+let stream = iter.map(|tv| match tv {
+    ThreadedValue::Value(result) => Stream::Next(result),
+});
+```
+
+For HTTP API responses, the `ClientRequestBuilder` → `build_send_request()` → `execute()` pattern is sufficient since responses are bounded and `Send`.
+
+### Rust Clean Code Standards (from `read-skill rust-clean-code` + LEARNINGS.md)
+
+- **Error types**: Use `derive_more::From` + manual `Display` (no `thiserror`)
+- **Documentation**: Full rustdoc on all public items
+- **No `unwrap()`**: Use `?` or proper error handling
+- **Type state**: Use builder pattern for complex configurations
+- **Feature flags**: Guard optional functionality with `#[cfg(feature = "...")]`
+- **JsonHash**: Derive `JsonHash` on all serializable types for state hashing (from `foundation_macros`)
+- **Always public**: All items use `pub`, never `pub(crate)` or `pub(super)`
+- **Stream-returning methods**: Methods return streams, callers block when needed
+- **SimpleHttpClient pattern**: Use `ClientRequestBuilder` → `build_send_request()` → `RequestIntro` handling → `body_reader::collect_string()`
 
 ### File Uploads
 
@@ -634,18 +1035,24 @@ fn build_multipart_body(operations: &[CommitOperation]) -> Result<(Vec<u8>, Stri
 ### Caching
 
 The reference implementation has a file cache. For Phase 1, we'll skip caching:
-- **Phase 1**: No caching, direct API calls only
-- **Phase 2**: Add optional file caching (etag-based, symlink snapshots)
+- **Phase 1**: No caching, direct API calls only (all calls via valtron thread pool)
+- **Phase 2**: Add optional file caching (etag-based, symlink snapshots) using valtron for async file I/O
 
 ## Tasks
+
+**Before starting implementation, ensure you have read:**
+- `rust-clean-code` — Code standards and patterns
+- `valtron` — Thread pool execution, StreamIterator
+- `simple_http` — HTTP client usage, multipart forms
 
 ### 1. Core Module Structure (pending)
 
 - [ ] Create `backends/foundation_deployment/src/providers/huggingface/mod.rs`
 - [ ] Create `constants.rs` with endpoint URLs, env var names, defaults
-- [ ] Create `error.rs` with `HuggingFaceError` types
-- [ ] Create `types.rs` with all data types (RepoType, ModelInfo, etc.)
+- [ ] Create `error.rs` with `HuggingFaceError` types using `derive_more::From` + manual `Display`
+- [ ] Create `types.rs` with all data types (RepoType, ModelInfo, etc.) - all with `JsonHash` derive
 - [ ] Add `huggingface` feature flag to `Cargo.toml`
+- [ ] Ensure `foundation_macros` and `derive_more` are in dependencies
 
 ### 2. HTTP Client (pending)
 
