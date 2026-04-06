@@ -6,15 +6,15 @@ use crate::providers::huggingface::constants::{
     HF_HOME_ENV, HF_TOKEN_ENV, HF_TOKEN_FILENAME, HF_TOKEN_PATH_ENV, HF_USER_AGENT,
 };
 use crate::providers::huggingface::error::{HuggingFaceError, Result};
+use crate::providers::huggingface::repository::HFRepository;
 use crate::providers::huggingface::types::{
     CreateRepoParams, DatasetInfo, DeleteRepoParams, ListDatasetsParams, ListModelsParams,
     ListSpacesParams, ModelInfo, MoveRepoParams, RepoType, SpaceInfo, User, RepoUrl,
 };
 use foundation_core::valtron::{collect_one, execute, Stream, StreamIteratorExt, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{
-    body_reader, DnsResolver, RequestIntro, SimpleHttpClient,
+    body_reader, ClientRequestBuilder, DnsResolver, RequestIntro, SimpleHttpClient,
 };
-use foundation_core::wire::simple_http::client::ClientRequestBuilder;
 use foundation_core::wire::simple_http::{SimpleHeader, SimpleHeaders, Status};
 use std::path::PathBuf;
 use std::sync::Arc;
@@ -838,5 +838,3 @@ impl ListParams for ListSpacesParams {
         self.limit
     }
 }
-
-use crate::providers::huggingface::repository::HFRepository;
