@@ -26,10 +26,39 @@ use foundation_core::valtron::{Stream, StreamIterator};
 use crate::backends::llamacpp_helpers::build_sampler_chain;
 use crate::errors::{GenerationError, GenerationResult, ModelErrors, ModelProviderErrors, ModelProviderResult};
 use crate::types::{
-    KVCacheType, Messages, Model, ModelId, ModelInteraction, ModelOutput,
+    KVCacheType, Messages, MimeType, Model, ModelId, ModelInteraction, ModelOutput,
     ModelParams, ModelProvider, ModelSpec, ModelProviders, ModelState, SplitMode, StopReason,
     TextContent, UsageCosting, UsageReport, UserModelContent,
 };
+
+/// Helper to convert MimeType to string representation
+fn mime_type_to_string(mime: &MimeType) -> String {
+    match mime {
+        MimeType::TextPlain => "text/plain",
+        MimeType::TextHtml => "text/html",
+        MimeType::TextMarkdown => "text/markdown",
+        MimeType::TextXml => "text/xml",
+        MimeType::TextCss => "text/css",
+        MimeType::ApplicationJson => "application/json",
+        MimeType::ApplicationXml => "application/xml",
+        MimeType::ApplicationOctetStream => "application/octet-stream",
+        MimeType::ApplicationPdf => "application/pdf",
+        MimeType::ImagePng => "image/png",
+        MimeType::ImageJpeg => "image/jpeg",
+        MimeType::ImageGif => "image/gif",
+        MimeType::ImageWebp => "image/webp",
+        MimeType::ImageSvgXml => "image/svg+xml",
+        MimeType::ImageBmp => "image/bmp",
+        MimeType::AudioMp3 => "audio/mp3",
+        MimeType::AudioWav => "audio/wav",
+        MimeType::AudioOgg => "audio/ogg",
+        MimeType::AudioMpeg => "audio/mpeg",
+        MimeType::VideoMp4 => "video/mp4",
+        MimeType::VideoWebm => "video/webm",
+        MimeType::VideoOgg => "video/ogg",
+        MimeType::Custom(s) => s.as_str(),
+    }.to_string()
+}
 
 // ==================================
 // LlamaBackendConfig
@@ -350,22 +379,75 @@ impl Model for LlamaModels {
             // Convert our Messages to LlamaChatMessage
             let mut chat_messages = Vec::new();
             for msg in &interaction.messages {
-                if let Messages::User { content, .. } = msg {
-                    if let UserModelContent::Text(text_content) = content {
+                match msg {
+                    Messages::User { content, .. } => {
+                        let content_str = match content {
+                            UserModelContent::Text(text_content) => {
+                                text_content.content.clone()
+                            }
+                            UserModelContent::Image(image_content) => {
+                                // For images, create a descriptive text placeholder
+                                // In a more advanced implementation, we could pass base64 to llama.cpp
+                                format!("[Image: {}]", mime_type_to_string(&image_content.mime_type))
+                            }
+                        };
                         chat_messages.push(LlamaChatMessage::new(
                             "user".to_string(),
-                            text_content.content.clone(),
+                            content_str,
                         ).map_err(|e| {
                             GenerationError::Generic(format!("Chat message error: {e}"))
                         })?);
                     }
-                } else if let Messages::Assistant { content: ModelOutput::Text(text_content), .. } = msg {
-                    chat_messages.push(LlamaChatMessage::new(
-                        "assistant".to_string(),
-                        text_content.content.clone(),
-                    ).map_err(|e| {
-                        GenerationError::Generic(format!("Chat message error: {e}"))
-                    })?);
+                    Messages::Assistant { content, .. } => {
+                        let content_str = match content {
+                            ModelOutput::Text(text_content) => {
+                                text_content.content.clone()
+                            }
+                            ModelOutput::ThinkingContent { thinking, .. } => {
+                                // Include thinking content as part of assistant message
+                                thinking.clone()
+                            }
+                            ModelOutput::ToolCall { name, arguments, .. } => {
+                                // Format tool call as text
+                                let args_str = arguments
+                                    .as_ref()
+                                    .map(|args| format!("{args:?}"))
+                                    .unwrap_or_default();
+                                format!("[Tool call: {}({})]", name, args_str)
+                            }
+                            ModelOutput::Embedding { .. } => {
+                                // Embeddings shouldn't be in chat history, skip
+                                continue;
+                            }
+                            ModelOutput::Image(image_content) => {
+                                format!("[Image: {}]", mime_type_to_string(&image_content.mime_type))
+                            }
+                        };
+                        chat_messages.push(LlamaChatMessage::new(
+                            "assistant".to_string(),
+                            content_str,
+                        ).map_err(|e| {
+                            GenerationError::Generic(format!("Chat message error: {e}"))
+                        })?);
+                    }
+                    Messages::ToolResult { content, name, id, .. } => {
+                        let content_str = match content {
+                            UserModelContent::Text(text_content) => {
+                                format!("[Tool result: {}]\n{}", name, text_content.content)
+                            }
+                            UserModelContent::Image(_) => {
+                                format!("[Tool result: {}]\n[Image output]", name)
+                            }
+                        };
+                        // Tool results are typically passed as system messages
+                        // or as part of the conversation depending on the template
+                        chat_messages.push(LlamaChatMessage::new(
+                            "tool".to_string(),
+                            format!("Tool call id: {}\n{}", id, content_str),
+                        ).map_err(|e| {
+                            GenerationError::Generic(format!("Chat message error: {e}"))
+                        })?);
+                    }
                 }
             }
 
