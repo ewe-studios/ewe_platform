@@ -1,5 +1,92 @@
 # Learnings: HuggingFace API Provider
 
+## Architecture: Standalone Functions Pattern
+
+**Date:** 2026-04-06
+
+### Design Decision
+
+The HuggingFace client follows a **standalone function pattern** where API operations are implemented as module-level functions that take a `&HFClient` instance as the first parameter, rather than methods on the client struct.
+
+### Benefits
+
+1. **Flexibility**: Users can initialize a client once and pass it to whichever operations they need
+2. **Testability**: Functions are easier to test in isolation
+3. **Consistency**: Follows the pattern used by other providers (e.g., fly_io)
+4. **Composability**: Functions can be combined and reused more easily
+
+### Usage
+
+```rust
+// Initialize client
+let client = HFClient::builder()
+    .token("hf_...")
+    .build()?;
+
+// Use standalone functions
+let user = whoami(&client)?;
+let models = list_models(&client, &ListModelsParams { .. })?;
+let repo = HFRepository::new(client.clone(), "owner", "repo", RepoType::Model);
+```
+
+### Client Responsibilities
+
+The `HFClient` struct retains:
+- Configuration (endpoint, token, redirect handling)
+- Connection management (SimpleHttpClient wrapper)
+- Helper methods (`auth_headers()`, `apply_auth_headers()`, `api_url()`, `download_url()`)
+- Repository handle constructors (`model()`, `dataset()`, `space()`)
+
+### Operation Functions
+
+All CRUD and listing operations are standalone functions:
+- `whoami(client: &HFClient) -> Result<User>`
+- `auth_check(client: &HFClient) -> Result<()>`
+- `list_models(client: &HFClient, params: &ListModelsParams) -> Result<...>`
+- `list_datasets(client: &HFClient, params: &ListDatasetsParams) -> Result<...>`
+- `list_spaces(client: &HFClient, params: &ListSpacesParams) -> Result<...>`
+- `create_repo(client: &HFClient, params: &CreateRepoParams) -> Result<RepoUrl>`
+- `delete_repo(client: &HFClient, params: &DeleteRepoParams) -> Result<()>`
+- `move_repo(client: &HFClient, params: &MoveRepoParams) -> Result<RepoUrl>`
+
+## Parameter Structs
+
+All parameter structs derive `JsonHash` and `Serialize` for:
+- Deterministic caching based on parameter content
+- Serialization for request building
+
+### RepoDownloadFileParams
+
+The `destination` field was renamed to `directory` and made **mandatory**:
+- `directory` specifies where files should be stored
+- The filename is automatically appended to form the complete path
+- This ensures consistent behavior and avoids accidental overwrites
+
+```rust
+let params = RepoDownloadFileParams {
+    filename: "config.json".to_string(),
+    revision: Some("main".to_string()),
+    directory: PathBuf::from("./downloads"),
+};
+// File will be saved to: ./downloads/config.json
+```
+
+## RepositoryArgs
+
+For flexible repository construction, use `RepositoryArgs`:
+
+```rust
+let args = RepositoryArgs {
+    owner: "meta-llama".to_string(),
+    name: "Llama-2-7b".to_string(),
+    repo_type: RepoType::Model,
+    default_revision: Some("main".to_string()),
+};
+let repo = HFRepository::with_args(client, args);
+```
+
+---
+
 ## Redirect Auth Header Preservation for CDN Downloads
 
 **Date:** 2026-04-06
