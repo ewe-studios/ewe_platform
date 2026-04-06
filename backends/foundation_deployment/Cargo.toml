@@ -13,6 +13,7 @@ keywords = ["ewe-platform", "deployment", "cloud", "infrastructure"]
 # -- workspace dependencies
 foundation_core = { workspace = true, features = ["ssl", "multi"] }
 foundation_db = { path = "../foundation_db" }
+foundation_macros = { path = "../foundation_macros" }
 serde = { workspace = true }
 serde_json = { workspace = true }
 derive_more = { workspace = true }
@@ -27,6 +28,7 @@ serde_yaml = "0.9"
 
 # -- hashing for config change detection
 sha2 = "0.10"
+base85rs = "0.1"
 
 # -- file system utilities (for spec fetcher)
 walkdir = "2.5"

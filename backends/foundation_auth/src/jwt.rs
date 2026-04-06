@@ -166,10 +166,9 @@ impl JwtManager {
 
     /// Get a valid token, refreshing if necessary.
     /// Returns the access token string if available and valid.
-    pub async fn get_valid_token<F, Fut>(&mut self, refresh_fn: F) -> Result<String, JwtError>
+    pub fn get_valid_token<F>(&mut self, refresh_fn: F) -> Result<String, JwtError>
     where
-        F: FnOnce(String) -> Fut,
-        Fut: std::future::Future<Output = Result<JwtToken, JwtError>>,
+        F: FnOnce(String) -> Result<JwtToken, JwtError>,
     {
         // Check if we have a token
         let Some(token) = &self.token else {
@@ -184,7 +183,7 @@ impl JwtManager {
             };
 
             // Call the refresh function
-            let new_token = refresh_fn(refresh_token).await?;
+            let new_token = refresh_fn(refresh_token)?;
             self.token = Some(new_token);
         }
 
@@ -196,10 +195,9 @@ impl JwtManager {
     }
 
     /// Refresh the token if needed (within buffer or expired).
-    pub async fn refresh_if_needed<F, Fut>(&mut self, refresh_fn: F) -> Result<bool, JwtError>
+    pub fn refresh_if_needed<F>(&mut self, refresh_fn: F) -> Result<bool, JwtError>
     where
-        F: FnOnce(String) -> Fut,
-        Fut: std::future::Future<Output = Result<JwtToken, JwtError>>,
+        F: FnOnce(String) -> Result<JwtToken, JwtError>,
     {
         let Some(token) = &self.token else {
             return Ok(false);
@@ -213,7 +211,7 @@ impl JwtManager {
             return Err(JwtError::NoRefreshToken);
         };
 
-        let new_token = refresh_fn(refresh_token).await?;
+        let new_token = refresh_fn(refresh_token)?;
         self.token = Some(new_token);
         Ok(true)
     }
@@ -379,8 +377,8 @@ mod tests {
         assert!(!token.expires_within(60));
     }
 
-    #[tokio::test]
-    async fn test_jwt_manager_refresh() {
+    #[test]
+    fn test_jwt_manager_refresh() {
         let mut manager = JwtManager::new().with_refresh_buffer(300);
 
         // Initially no token
@@ -400,8 +398,8 @@ mod tests {
         // Should need refresh (within buffer)
         assert!(manager.token.as_ref().unwrap().expires_within(300));
 
-        // Mock refresh function
-        let refresh_fn = |_refresh_token: String| async {
+        // Mock refresh function (synchronous)
+        let refresh_fn = |_refresh_token: String| {
             let future = Utc::now().timestamp() + 3600;
             Ok(JwtToken::from_parts(
                 "new_token".to_string(),
@@ -414,7 +412,7 @@ mod tests {
         };
 
         // Refresh should succeed
-        let refreshed = manager.refresh_if_needed(refresh_fn).await.unwrap();
+        let refreshed = manager.refresh_if_needed(refresh_fn).unwrap();
         assert!(refreshed);
         assert_eq!(manager.get_token().unwrap().access_token(), "new_token");
     }

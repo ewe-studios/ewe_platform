@@ -72,8 +72,9 @@ impl DeviceId {
     }
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd, Default)]
 pub enum CacheRetention {
+    #[default]
     None,
     Short,
     Long,
@@ -110,10 +111,11 @@ pub struct ThinkingBudget {
     pub high: f64,
 }
 
-#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
+#[derive(Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd, Default)]
 pub enum ThinkingLevels {
     Minimal,
     Low,
+    #[default]
     Medium,
     High,
     Custom(String),
@@ -372,6 +374,23 @@ pub struct ModelParams {
     pub thinking_budget: Option<ThinkingBudget>,
 }
 
+impl Default for ModelParams {
+    fn default() -> Self {
+        Self {
+            max_tokens: 2048,
+            temperature: 0.7,
+            top_p: 0.9,
+            top_k: 40.0,
+            repeat_penalty: 1.1,
+            seed: None,
+            stop_tokens: Vec::new(),
+            thinking_level: ThinkingLevels::default(),
+            cache_retention: CacheRetention::default(),
+            thinking_budget: None,
+        }
+    }
+}
+
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq, PartialOrd)]
 pub struct ModelConfig {
     // standard model properties
@@ -613,6 +632,12 @@ pub enum ModelOutput {
         arguments: Option<HashMap<String, ArgType>>,
         signature: Option<String>,
     },
+    /// Embedding output for RAG pipelines and semantic search.
+    /// Contains the embedding dimensions and the float values.
+    Embedding {
+        dimensions: usize,
+        values: Vec<f32>,
+    },
 }
 
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -710,6 +735,7 @@ pub struct ModelInteraction {
     pub system_prompt: Option<String>,
     pub messages: Vec<Messages>,
     pub tools: Vec<Tool>,
+    pub chat_template: Option<String>,
 }
 
 #[derive(From, Serialize, Deserialize, Debug, Clone, PartialEq)]
@@ -840,4 +866,174 @@ pub trait ModelProvider {
     /// Returns a [`ModelRegistryResult`] or the [`ModelSpec`] for the model.
     ///
     fn get_all(&self, model_id: ModelId) -> ModelProviderResult<ModelSpec>;
+}
+
+// ==================================
+// llama.cpp Specific Types
+// ==================================
+
+/// ChatMessage provides an ergonomic way to construct chat messages
+/// for use with chat templates and model interactions.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct ChatMessage {
+    /// The role of the message sender (e.g., "user", "assistant", "system").
+    pub role: String,
+    /// The content of the message.
+    pub content: String,
+}
+
+impl ChatMessage {
+    /// Create a new ChatMessage with the given role and content.
+    #[must_use]
+    pub fn new(role: impl Into<String>, content: impl Into<String>) -> Self {
+        Self {
+            role: role.into(),
+            content: content.into(),
+        }
+    }
+
+    /// Create a user message.
+    #[must_use]
+    pub fn user(content: impl Into<String>) -> Self {
+        Self::new("user", content)
+    }
+
+    /// Create an assistant message.
+    #[must_use]
+    pub fn assistant(content: impl Into<String>) -> Self {
+        Self::new("assistant", content)
+    }
+
+    /// Create a system message.
+    #[must_use]
+    pub fn system(content: impl Into<String>) -> Self {
+        Self::new("system", content)
+    }
+}
+
+/// KVCacheType defines the precision/format of the KV cache.
+/// Lower precision types reduce memory usage but may affect quality.
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq)]
+pub enum KVCacheType {
+    /// Full 32-bit floating point (highest precision, most memory).
+    F32,
+    /// 16-bit floating point (good balance).
+    #[default]
+    F16,
+    /// 8-bit quantized (less memory, slight quality loss).
+    Q8_0,
+    /// 5-bit quantized (even less memory).
+    Q5_0,
+}
+
+impl KVCacheType {
+    /// Returns the number of bytes per element for this cache type.
+    #[must_use]
+    pub const fn bytes_per_element(&self) -> usize {
+        match self {
+            KVCacheType::F32 => 4,
+            KVCacheType::F16 => 2,
+            KVCacheType::Q8_0 => 1,
+            KVCacheType::Q5_0 => 1,
+        }
+    }
+}
+
+/// SplitMode defines how to split model layers across multiple GPUs.
+#[derive(Debug, Clone, Copy, Default, Serialize, Deserialize, PartialEq)]
+pub enum SplitMode {
+    /// No splitting - all layers on a single GPU.
+    None,
+    /// Split by layer - alternate layers on different GPUs.
+    #[default]
+    Layer,
+    /// Split by row - split individual layers across GPUs.
+    Row,
+}
+
+/// LlamaConfig contains llama.cpp-specific configuration options
+/// for hardware acceleration and memory management.
+#[derive(Debug, Clone, Serialize, Deserialize, PartialEq)]
+pub struct LlamaConfig {
+    /// Number of layers to offload to GPU.
+    /// If 0, all layers run on CPU.
+    pub n_gpu_layers: u32,
+
+    /// Which GPU to use as the main GPU (for multi-GPU systems).
+    pub main_gpu: u32,
+
+    /// How to split layers across GPUs.
+    pub split_mode: SplitMode,
+
+    /// Type of KV cache to use (affects memory/quality tradeoff).
+    pub kv_cache_type: KVCacheType,
+
+    /// Use memory mapping (mmap) for model loading.
+    pub use_mmap: bool,
+
+    /// Lock model in physical memory (prevents swapping).
+    pub use_mlock: bool,
+}
+
+impl Default for LlamaConfig {
+    fn default() -> Self {
+        Self {
+            n_gpu_layers: 0,      // CPU-only by default
+            main_gpu: 0,          // First GPU
+            split_mode: SplitMode::Layer,
+            kv_cache_type: KVCacheType::F16,
+            use_mmap: true,       // Enable mmap by default
+            use_mlock: false,     // Don't mlock by default
+        }
+    }
+}
+
+impl LlamaConfig {
+    /// Create a new LlamaConfig with default values.
+    #[must_use]
+    pub fn new() -> Self {
+        Self::default()
+    }
+
+    /// Set the number of GPU layers to offload.
+    #[must_use]
+    pub fn with_n_gpu_layers(mut self, n: u32) -> Self {
+        self.n_gpu_layers = n;
+        self
+    }
+
+    /// Set the main GPU index.
+    #[must_use]
+    pub fn with_main_gpu(mut self, gpu_index: u32) -> Self {
+        self.main_gpu = gpu_index;
+        self
+    }
+
+    /// Set the split mode for multi-GPU.
+    #[must_use]
+    pub fn with_split_mode(mut self, mode: SplitMode) -> Self {
+        self.split_mode = mode;
+        self
+    }
+
+    /// Set the KV cache type.
+    #[must_use]
+    pub fn with_kv_cache_type(mut self, cache_type: KVCacheType) -> Self {
+        self.kv_cache_type = cache_type;
+        self
+    }
+
+    /// Enable or disable memory mapping.
+    #[must_use]
+    pub fn with_mmap(mut self, enabled: bool) -> Self {
+        self.use_mmap = enabled;
+        self
+    }
+
+    /// Enable or disable memory locking.
+    #[must_use]
+    pub fn with_mlock(mut self, enabled: bool) -> Self {
+        self.use_mlock = enabled;
+        self
+    }
 }

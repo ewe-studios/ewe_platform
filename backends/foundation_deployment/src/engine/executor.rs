@@ -22,14 +22,6 @@ pub struct DeploymentExecutor;
 impl DeploymentExecutor {
     /// Deploy a project. Auto-detects provider, loads config, runs state machine.
     ///
-    /// **Caller requirement**: A valtron `PoolGuard` must be alive in the calling
-    /// scope. Binary entry points initialize it; library code must not.
-    /// ```rust,no_run
-    /// // In main() or test setup:
-    /// let _guard = foundation_core::valtron::executors::unified::initialize_pool(42, None);
-    /// let result = DeploymentExecutor::deploy(project_dir, None, false, state_store);
-    /// ```
-    ///
     /// # Arguments
     ///
     /// * `project_dir` - Directory containing the project to deploy

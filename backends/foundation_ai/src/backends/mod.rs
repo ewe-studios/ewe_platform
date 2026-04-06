@@ -2,3 +2,4 @@
 
 pub mod huggingface;
 pub mod llamacpp;
+pub mod llamacpp_helpers;

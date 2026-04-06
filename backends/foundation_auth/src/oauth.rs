@@ -246,52 +246,64 @@ impl OAuthManager {
     ///
     /// This completes the authorization code flow by sending the code
     /// to the token endpoint along with the PKCE code verifier.
-    pub async fn exchange_code(
+    pub fn exchange_code(
         &self,
         code: &str,
         code_verifier: Option<&str>,
     ) -> Result<OAuthToken, OAuthError> {
         self.config.validate()?;
 
-        // Build token request
-        let mut params = vec![
-            ("grant_type", "authorization_code"),
-            ("code", code),
-            ("redirect_uri", &self.config.redirect_uri),
-            ("client_id", &self.config.client_id),
+        // Build token request body as URL-encoded form data
+        let mut body_parts = vec![
+            format!("grant_type={}", urlencoding::encode("authorization_code")),
+            format!("code={}", urlencoding::encode(code)),
+            format!("redirect_uri={}", urlencoding::encode(&self.config.redirect_uri)),
+            format!("client_id={}", urlencoding::encode(&self.config.client_id)),
         ];
 
         // Add client secret if available
         if let Some(ref secret) = self.config.client_secret {
-            params.push(("client_secret", secret));
+            body_parts.push(format!("client_secret={}", urlencoding::encode(secret)));
         }
 
         // Add PKCE verifier if using PKCE
         if let Some(verifier) = code_verifier {
-            params.push(("code_verifier", verifier));
+            body_parts.push(format!("code_verifier={}", urlencoding::encode(verifier)));
         }
 
-        // Send token request
-        let client = reqwest::Client::new();
+        let body = body_parts.join("&");
+
+        // Send token request using simple_http
+        let client = foundation_core::wire::simple_http::client::SimpleHttpClient::from_system();
         let response = client
             .post(&self.config.token_url)
-            .form(&params)
+            .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
+            .header(foundation_core::wire::simple_http::SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
+            .body_text(body)
+            .build_client()
+            .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
             .send()
-            .await
             .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?;
 
-        if !response.status().is_success() {
-            let status = response.status();
-            let body = response.text().await.unwrap_or_default();
+        if !response.is_success() {
+            let body = match response.get_body_ref() {
+                foundation_core::wire::simple_http::SendSafeBody::Text(t) => t.clone(),
+                foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
+                _ => String::new(),
+            };
             return Err(OAuthError::TokenEndpointError {
-                status: status.as_u16(),
+                status: response.get_status().into_usize() as u16,
                 message: body,
             });
         }
 
-        let token_response: TokenResponse = response
-            .json()
-            .await
+        // Parse JSON response
+        let body_text = match response.get_body_ref() {
+            foundation_core::wire::simple_http::SendSafeBody::Text(t) => t.as_str(),
+            foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => std::str::from_utf8(b).map_err(|e| OAuthError::TokenParseError(e.to_string()))?,
+            _ => "",
+        };
+        let token_response: TokenResponse = serde_json::from_str(body_text)
             .map_err(|e| OAuthError::TokenParseError(e.to_string()))?;
 
         Ok(OAuthToken {
@@ -305,7 +317,7 @@ impl OAuthManager {
     }
 
     /// Client credentials flow for service-to-service authentication.
-    pub async fn client_credentials(&self, scopes: Option<Vec<String>>) -> Result<OAuthToken, OAuthError> {
+    pub fn client_credentials(&self, scopes: Option<Vec<String>>) -> Result<OAuthToken, OAuthError> {
         self.config.validate()?;
 
         let Some(ref client_secret) = self.config.client_secret else {
@@ -322,37 +334,50 @@ impl OAuthManager {
             scope_str = String::new();
         }
 
-        let mut params = vec![
-            ("grant_type", "client_credentials"),
-            ("client_id", &self.config.client_id),
-            ("client_secret", client_secret),
+        // Build request body as URL-encoded form data
+        let mut body_parts = vec![
+            format!("grant_type={}", urlencoding::encode("client_credentials")),
+            format!("client_id={}", urlencoding::encode(&self.config.client_id)),
+            format!("client_secret={}", urlencoding::encode(client_secret)),
         ];
 
         // Add requested scopes if present
         if !scope_str.is_empty() {
-            params.push(("scope", &scope_str));
+            body_parts.push(format!("scope={}", urlencoding::encode(&scope_str)));
         }
 
-        let client = reqwest::Client::new();
+        let body = body_parts.join("&");
+
+        let client = foundation_core::wire::simple_http::client::SimpleHttpClient::from_system();
         let response = client
             .post(&self.config.token_url)
-            .form(&params)
+            .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
+            .header(foundation_core::wire::simple_http::SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
+            .body_text(body)
+            .build_client()
+            .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
             .send()
-            .await
             .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?;
 
-        if !response.status().is_success() {
-            let status = response.status();
-            let body = response.text().await.unwrap_or_default();
+        if !response.is_success() {
+            let body = match response.get_body_ref() {
+                foundation_core::wire::simple_http::SendSafeBody::Text(t) => t.clone(),
+                foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
+                _ => String::new(),
+            };
             return Err(OAuthError::TokenEndpointError {
-                status: status.as_u16(),
+                status: response.get_status().into_usize() as u16,
                 message: body,
             });
         }
 
-        let token_response: TokenResponse = response
-            .json()
-            .await
+        // Parse JSON response
+        let body_text = match response.get_body_ref() {
+            foundation_core::wire::simple_http::SendSafeBody::Text(t) => t.as_str(),
+            foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => std::str::from_utf8(b).map_err(|e| OAuthError::TokenParseError(e.to_string()))?,
+            _ => "",
+        };
+        let token_response: TokenResponse = serde_json::from_str(body_text)
             .map_err(|e| OAuthError::TokenParseError(e.to_string()))?;
 
         Ok(OAuthToken {
@@ -366,40 +391,53 @@ impl OAuthManager {
     }
 
     /// Refresh an access token using a refresh token.
-    pub async fn refresh_token(&self, refresh_token: &str) -> Result<OAuthToken, OAuthError> {
+    pub fn refresh_token(&self, refresh_token: &str) -> Result<OAuthToken, OAuthError> {
         self.config.validate()?;
 
-        let mut params = vec![
-            ("grant_type", "refresh_token"),
-            ("refresh_token", refresh_token),
-            ("client_id", &self.config.client_id),
+        // Build request body as URL-encoded form data
+        let mut body_parts = vec![
+            format!("grant_type={}", urlencoding::encode("refresh_token")),
+            format!("refresh_token={}", urlencoding::encode(refresh_token)),
+            format!("client_id={}", urlencoding::encode(&self.config.client_id)),
         ];
 
         // Add client secret if available
         if let Some(ref secret) = self.config.client_secret {
-            params.push(("client_secret", secret));
+            body_parts.push(format!("client_secret={}", urlencoding::encode(secret)));
         }
 
-        let client = reqwest::Client::new();
+        let body = body_parts.join("&");
+
+        let client = foundation_core::wire::simple_http::client::SimpleHttpClient::from_system();
         let response = client
             .post(&self.config.token_url)
-            .form(&params)
+            .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
+            .header(foundation_core::wire::simple_http::SimpleHeader::CONTENT_TYPE, "application/x-www-form-urlencoded")
+            .body_text(body)
+            .build_client()
+            .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?
             .send()
-            .await
             .map_err(|e| OAuthError::TokenRequestFailed(e.to_string()))?;
 
-        if !response.status().is_success() {
-            let status = response.status();
-            let body = response.text().await.unwrap_or_default();
+        if !response.is_success() {
+            let body = match response.get_body_ref() {
+                foundation_core::wire::simple_http::SendSafeBody::Text(t) => t.clone(),
+                foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => String::from_utf8_lossy(b).to_string(),
+                _ => String::new(),
+            };
             return Err(OAuthError::TokenEndpointError {
-                status: status.as_u16(),
+                status: response.get_status().into_usize() as u16,
                 message: body,
             });
         }
 
-        let token_response: TokenResponse = response
-            .json()
-            .await
+        // Parse JSON response
+        let body_text = match response.get_body_ref() {
+            foundation_core::wire::simple_http::SendSafeBody::Text(t) => t.as_str(),
+            foundation_core::wire::simple_http::SendSafeBody::Bytes(b) => std::str::from_utf8(b).map_err(|e| OAuthError::TokenParseError(e.to_string()))?,
+            _ => "",
+        };
+        let token_response: TokenResponse = serde_json::from_str(body_text)
             .map_err(|e| OAuthError::TokenParseError(e.to_string()))?;
 
         Ok(OAuthToken {
