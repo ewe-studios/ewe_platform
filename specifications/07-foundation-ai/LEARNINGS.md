@@ -315,3 +315,60 @@ exec_future(async move {
 ---
 
 _Last Updated: 2026-03-28 (Added: from_future/exec_future patterns from foundation_db implementation)_
+
+## llama.cpp Examples Analysis (2026-04-07)
+
+### Key Patterns from Examples
+
+**1. simple.cpp - Minimal Generation Loop**
+- Two-phase tokenization: probe size → allocate → tokenize
+- `llama_batch_get_one()` for single-sequence generation (no copy, references token array)
+- Encoder-decoder handling: check `llama_model_has_encoder()`, use decoder start token
+- Generation loop: `llama_decode()` → `llama_sampler_sample()` → check EOG → detokenize
+
+**2. simple-chat.cpp - Chat Template Integration**
+- `llama_model_chat_template()` retrieves Jinja2 template from GGUF metadata
+- Incremental formatting: track `prev_len`, only tokenize new part each turn
+- BOS handling: `is_first = llama_memory_seq_pos_max() == -1`
+- Sampler chain: min_p → temperature → dist (order matters!)
+
+**3. embedding.cpp - Batch Processing**
+- `params.embedding = true` switches context to embedding mode
+- Non-causal models: `n_ubatch = n_batch` required
+- Per-sequence batching: each input gets unique `seq_id`
+- Pooling types: NONE (per-token), MEAN, CLS, LAST, RANK (reranking)
+- `llama_memory_clear()` between batches mandatory for embeddings
+
+**4. parallel.cpp - Multi-Client Server**
+- System prompt sharing: evaluate once, `llama_memory_seq_cp()` to all clients
+- Continuous batching: insert new requests while others generate
+- Batch view slicing: process large batches in chunks without copying
+- Dynamic batch size recovery: halve `n_batch` on KV cache overflow
+
+**5. speculative.cpp - Accelerated Inference**
+- Dual model: draft (small) + target (large)
+- Tree-based drafting with stochastic acceptance
+- `r <= p_target / p_draft` preserves target distribution
+- Branch splitting when confidence drops
+
+**6. retrieval.cpp - RAG Pipeline**
+- Chunk files → tokenize → batch embed → cosine similarity search
+- Flat similarity: `common_embd_similarity_cos()`
+- Query encoding with same normalization as chunks
+
+**7. save-load-state.cpp - Session Persistence**
+- `llama_state_save_file()` / `llama_state_load_file()` for full context
+- `llama_state_seq_get_data()` / `llama_state_seq_set_data()` for per-sequence
+- Deterministic replay verified across save/load
+
+### Tool Calling Implementation Patterns
+
+**Three-Layer Architecture:**
+1. Application: Tool definitions (JSON schema), tool choice
+2. Template: Jinja2 application, model-specific formatting
+3. Grammar: JSON Schema → GBNF, grammar-constrained sampling
+4. Generation: Token sampling with constraints, PEG parsing
+
+**Model-Specific Formats:**
+- Llama 3.x: `<|python_tag|>` prefix + JSON
+- Hermes: `
