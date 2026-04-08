@@ -39,15 +39,15 @@ fn make_state(id: &str, status: StateStatus) -> ResourceState {
 #[test]
 fn file_store_init_creates_directory() {
     let tmp = TempDir::new().unwrap();
-    let store = FileStateStore::new(tmp.path(), "cloudflare", "staging");
+    let store = FileStateStore::new(tmp.path(), "test-project", "staging");
     store.init().unwrap();
-    assert!(tmp.path().join(".deployment/cloudflare/staging").exists());
+    assert!(tmp.path().join(".deployment/test-project/staging").exists());
 }
 
 #[test]
 fn file_store_set_and_get() {
     let tmp = TempDir::new().unwrap();
-    let store = FileStateStore::new(tmp.path(), "test", "dev");
+    let store = FileStateStore::new(tmp.path(), "test-project", "dev");
     store.init().unwrap();
 
     let state = make_state("my-worker", StateStatus::Created);
@@ -65,7 +65,7 @@ fn file_store_set_and_get() {
 #[test]
 fn file_store_get_nonexistent_returns_none() {
     let tmp = TempDir::new().unwrap();
-    let store = FileStateStore::new(tmp.path(), "test", "dev");
+    let store = FileStateStore::new(tmp.path(), "test-project", "dev");
     store.init().unwrap();
 
     let result = collect_first(store.get("does-not-exist").unwrap())
@@ -77,7 +77,7 @@ fn file_store_get_nonexistent_returns_none() {
 #[test]
 fn file_store_list_and_count() {
     let tmp = TempDir::new().unwrap();
-    let store = FileStateStore::new(tmp.path(), "test", "dev");
+    let store = FileStateStore::new(tmp.path(), "test-project", "dev");
     store.init().unwrap();
 
     let s1 = make_state("alpha", StateStatus::Created);
@@ -95,7 +95,7 @@ fn file_store_list_and_count() {
 #[test]
 fn file_store_all() {
     let tmp = TempDir::new().unwrap();
-    let store = FileStateStore::new(tmp.path(), "test", "dev");
+    let store = FileStateStore::new(tmp.path(), "test-project", "dev");
     store.init().unwrap();
 
     let s1 = make_state("alpha", StateStatus::Created);
@@ -112,7 +112,7 @@ fn file_store_all() {
 #[test]
 fn file_store_get_batch() {
     let tmp = TempDir::new().unwrap();
-    let store = FileStateStore::new(tmp.path(), "test", "dev");
+    let store = FileStateStore::new(tmp.path(), "test-project", "dev");
     store.init().unwrap();
 
     let s1 = make_state("a", StateStatus::Created);
@@ -132,7 +132,7 @@ fn file_store_get_batch() {
 #[test]
 fn file_store_delete() {
     let tmp = TempDir::new().unwrap();
-    let store = FileStateStore::new(tmp.path(), "test", "dev");
+    let store = FileStateStore::new(tmp.path(), "test-project", "dev");
     store.init().unwrap();
 
     let state = make_state("doomed", StateStatus::Created);
@@ -152,7 +152,7 @@ fn file_store_delete() {
 #[test]
 fn file_store_delete_nonexistent_is_ok() {
     let tmp = TempDir::new().unwrap();
-    let store = FileStateStore::new(tmp.path(), "test", "dev");
+    let store = FileStateStore::new(tmp.path(), "test-project", "dev");
     store.init().unwrap();
 
     drive_to_completion(store.delete("ghost").unwrap()).unwrap();
@@ -161,7 +161,7 @@ fn file_store_delete_nonexistent_is_ok() {
 #[test]
 fn file_store_upsert_overwrites() {
     let tmp = TempDir::new().unwrap();
-    let store = FileStateStore::new(tmp.path(), "test", "dev");
+    let store = FileStateStore::new(tmp.path(), "test-project", "dev");
     store.init().unwrap();
 
     let v1 = make_state("worker", StateStatus::Creating);
@@ -180,7 +180,7 @@ fn file_store_upsert_overwrites() {
 #[test]
 fn file_store_slash_in_resource_id() {
     let tmp = TempDir::new().unwrap();
-    let store = FileStateStore::new(tmp.path(), "test", "dev");
+    let store = FileStateStore::new(tmp.path(), "test-project", "dev");
     store.init().unwrap();
 
     let state = make_state("ns/my-worker", StateStatus::Created);
@@ -267,7 +267,7 @@ fn resource_state_needs_deploy() {
 #[test]
 fn collect_first_empty_stream() {
     let tmp = TempDir::new().unwrap();
-    let store = FileStateStore::new(tmp.path(), "test", "dev");
+    let store = FileStateStore::new(tmp.path(), "test-project", "dev");
     store.init().unwrap();
 
     // Empty store — list returns empty stream
@@ -278,7 +278,7 @@ fn collect_first_empty_stream() {
 #[test]
 fn collect_all_empty_stream() {
     let tmp = TempDir::new().unwrap();
-    let store = FileStateStore::new(tmp.path(), "test", "dev");
+    let store = FileStateStore::new(tmp.path(), "test-project", "dev");
     store.init().unwrap();
 
     let result = collect_all(store.list().unwrap()).unwrap();

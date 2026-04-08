@@ -4,7 +4,7 @@
 //! Good default for single-machine development.
 //!
 //! WHAT: Each resource is a separate JSON file under
-//! `.deployment/{provider}/{stage}/{resource_id}.json`.
+//! `.deployment/{project}/{stage}/{resource_id}.json`.
 //!
 //! HOW: Purely synchronous `std::fs` operations. Returns `StateStoreStream`
 //! built from `Vec::into_iter().map(...)` for trait consistency. No Valtron.
@@ -20,7 +20,7 @@ use crate::errors::StorageError;
 /// JSON file-based state store.
 ///
 /// Stores each resource as a separate JSON file:
-///   `.deployment/{provider}/{stage}/{resource_id}.json`
+///   `.deployment/{project}/{stage}/{resource_id}.json`
 ///
 /// Purely synchronous — no Valtron needed.
 pub struct FileStateStore {
@@ -30,11 +30,11 @@ pub struct FileStateStore {
 impl FileStateStore {
     /// Create a new file state store.
     ///
-    /// Files are stored under `{project_dir}/.deployment/{provider}/{stage}/`.
+    /// Files are stored under `{project_dir}/.deployment/{project}/{stage}/`.
     #[must_use]
-    pub fn new(project_dir: &Path, provider: &str, stage: &str) -> Self {
+    pub fn new(project_dir: &Path, project: &str, stage: &str) -> Self {
         Self {
-            root_dir: project_dir.join(".deployment").join(provider).join(stage),
+            root_dir: project_dir.join(".deployment").join(project).join(stage),
         }
     }
 

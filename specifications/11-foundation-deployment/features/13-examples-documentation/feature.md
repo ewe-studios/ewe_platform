@@ -295,7 +295,10 @@ use foundation_deployment::{
 #[test]
 fn test_cloudflare_dry_run() {
     let project_dir = PathBuf::from("../cloudflare/rust-worker");
-    let store = Box::new(FileStateStore::new(&project_dir, "cloudflare", "test"));
+    // State stores now namespace by project AND stage
+    let store = Box::new(FileStateStore::new(&project_dir, "my-project", "cloudflare", "test"));
+    // Or use the factory with explicit project parameter
+    let store = create_state_store("my-project", &project_dir, "cloudflare", "test").unwrap();
     let result = DeploymentExecutor::deploy(&project_dir, None, true, store);
     assert!(result.is_ok());
 }
@@ -321,7 +324,8 @@ fn test_provider_detection() {
 
 #[test]
 fn test_state_round_trip() {
-    let store = FileStateStore::new(Path::new("/tmp/test-state"), "test", "dev");
+    // State stores now namespace by project AND stage
+    let store = FileStateStore::new(Path::new("/tmp/test-state"), "my-project", "test", "dev");
     store.init().unwrap();
 
     let state = ResourceState {

@@ -4,7 +4,8 @@
 //! concurrent reads via WAL mode. No external dependencies.
 //!
 //! WHAT: `SqliteStateStore` wraps a local libsql database with the
-//! deployment state schema. All trait methods use `schedule_future` for
+//! deployment state schema. Table names use `{project}_{stage}_resources`
+//! pattern for namespacing. All trait methods use `schedule_future` for
 //! single-value ops.
 //!
 //! HOW: Connection in `Arc<libsql::Connection>`, cloned into each async
@@ -22,62 +23,83 @@ use crate::backends::async_utils::{exec_future, schedule_future};
 use crate::errors::StorageError;
 use crate::rows_stream::LibsqlRowsIterator;
 
-/// SQL schema for the resources table.
-pub const CREATE_TABLE_SQL: &str = r"
-    PRAGMA journal_mode=WAL;
-    CREATE TABLE IF NOT EXISTS deployment_resources (
-        id TEXT PRIMARY KEY,
-        kind TEXT NOT NULL,
-        provider TEXT NOT NULL,
-        status TEXT NOT NULL,
-        environment TEXT,
-        config_hash TEXT NOT NULL,
-        output TEXT NOT NULL,
-        config_snapshot TEXT NOT NULL,
-        created_at TEXT NOT NULL,
-        updated_at TEXT NOT NULL
-    );
-";
+/// SQL schema for the resources table (table name is parameterized).
+fn create_table_sql(table_name: &str) -> String {
+    format!(
+        r"
+        PRAGMA journal_mode=WAL;
+        CREATE TABLE IF NOT EXISTS {} (
+            id TEXT PRIMARY KEY,
+            kind TEXT NOT NULL,
+            provider TEXT NOT NULL,
+            status TEXT NOT NULL,
+            environment TEXT,
+            config_hash TEXT NOT NULL,
+            output TEXT NOT NULL,
+            config_snapshot TEXT NOT NULL,
+            created_at TEXT NOT NULL,
+            updated_at TEXT NOT NULL
+        )
+        ",
+        table_name
+    )
+}
 
-pub const UPSERT_SQL: &str = r"
-    INSERT INTO deployment_resources (id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at)
-    VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
-    ON CONFLICT(id) DO UPDATE SET
-        kind = excluded.kind,
-        provider = excluded.provider,
-        status = excluded.status,
-        environment = excluded.environment,
-        config_hash = excluded.config_hash,
-        output = excluded.output,
-        config_snapshot = excluded.config_snapshot,
-        updated_at = excluded.updated_at
-";
+/// Generate UPSERT SQL for a given table name.
+fn upsert_sql(table_name: &str) -> String {
+    format!(
+        r"
+        INSERT INTO {} (id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+        ON CONFLICT(id) DO UPDATE SET
+            kind = excluded.kind,
+            provider = excluded.provider,
+            status = excluded.status,
+            environment = excluded.environment,
+            config_hash = excluded.config_hash,
+            output = excluded.output,
+            config_snapshot = excluded.config_snapshot,
+            updated_at = excluded.updated_at
+        ",
+        table_name
+    )
+}
 
 /// Plain local SQLite state store using libsql.
 ///
-/// Local-only, no remote sync. Default path: `.deployment/state.db`.
+/// Local-only, no remote sync. Default path: `{project_dir}/.deployment/state.db`.
 /// Uses WAL mode for concurrent read access.
+///
+/// Table names are prefixed with `{project}_{stage}_` for namespacing.
 pub struct SqliteStateStore {
     conn: Arc<libsql::Connection>,
+    table_name: String,  // "{project}_{stage}_resources"
 }
 
 impl SqliteStateStore {
     /// Create a new store at the given path.
     ///
+    /// Table name will be `{project}_{stage}_resources` for namespacing.
+    ///
     /// # Errors
     ///
     /// Returns an error if the database cannot be opened.
-    pub fn new(db_path: &Path) -> Result<Self, StorageError> {
+    pub fn new(db_path: &Path, project: &str, stage: &str) -> Result<Self, StorageError> {
         if let Some(parent) = db_path.parent() {
             std::fs::create_dir_all(parent)?;
         }
         let path_str = db_path.to_string_lossy().to_string();
+        let table_name = format!("{}_{}_resources",
+            project.replace('-', "_").replace(' ', "_"),
+            stage.replace('-', "_").replace(' ', "_")
+        );
         let db = exec_future(async move { libsql::Builder::new_local(&path_str).build().await })?;
         let conn = db
             .connect()
             .map_err(|e| StorageError::Connection(format!("SQLite connection failed: {e}")))?;
         Ok(Self {
             conn: Arc::new(conn),
+            table_name,
         })
     }
 
@@ -89,11 +111,11 @@ impl SqliteStateStore {
     /// # Errors
     ///
     /// Returns an error if the database cannot be opened.
-    pub fn from_env(project_dir: &Path) -> Result<Self, StorageError> {
+    pub fn from_env(project_dir: &Path, project: &str, stage: &str) -> Result<Self, StorageError> {
         let db_path = std::env::var("DEPLOYMENT_STATE_DB")
             .map(PathBuf::from)
             .unwrap_or_else(|_| project_dir.join(".deployment/state.db"));
-        Self::new(&db_path)
+        Self::new(&db_path, project, stage)
     }
 }
 
@@ -204,17 +226,20 @@ pub fn to_state_stream<T: Send + 'static>(
 impl StateStore for SqliteStateStore {
     fn init(&self) -> Result<(), StorageError> {
         let conn = Arc::clone(&self.conn);
-        exec_future(async move { conn.execute_batch(CREATE_TABLE_SQL).await })?;
+        let sql = create_table_sql(&self.table_name);
+        exec_future(async move { conn.execute_batch(&sql).await })?;
         Ok(())
     }
 
     fn list(&self) -> Result<StateStoreStream<String>, StorageError> {
         let conn = Arc::clone(&self.conn);
+        let table = self.table_name.clone();
 
         let iter = run_future_iter(
             move || async move {
+                let sql = format!("SELECT id FROM {} ORDER BY id", table);
                 let mut stmt = conn
-                    .prepare("SELECT id FROM deployment_resources ORDER BY id")
+                    .prepare(&sql)
                     .await
                     .map_err(|e| StorageError::Backend(e.to_string()))?;
                 let rows = stmt
@@ -236,9 +261,11 @@ impl StateStore for SqliteStateStore {
 
     fn count(&self) -> Result<StateStoreStream<usize>, StorageError> {
         let conn = Arc::clone(&self.conn);
+        let table = self.table_name.clone();
         let stream = schedule_future(async move {
+            let sql = format!("SELECT COUNT(*) FROM {}", table);
             let mut stmt = conn
-                .prepare("SELECT COUNT(*) FROM deployment_resources")
+                .prepare(&sql)
                 .await?;
             let mut rows = stmt.query([libsql::Value::Null; 0]).await?;
             match rows.next().await? {
@@ -258,9 +285,14 @@ impl StateStore for SqliteStateStore {
     ) -> Result<StateStoreStream<Option<ResourceState>>, StorageError> {
         let id = resource_id.to_string();
         let conn = Arc::clone(&self.conn);
+        let table = self.table_name.clone();
         let stream = schedule_future(async move {
+            let sql = format!(
+                "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {} WHERE id = ?",
+                table
+            );
             let mut stmt = conn
-                .prepare("SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM deployment_resources WHERE id = ?")
+                .prepare(&sql)
                 .await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
             let mut rows = stmt
@@ -288,6 +320,7 @@ impl StateStore for SqliteStateStore {
         }
         let owned_ids: Vec<String> = ids.iter().map(|s| (*s).to_string()).collect();
         let conn = Arc::clone(&self.conn);
+        let table = self.table_name.clone();
 
         let iter = run_future_iter(
             move || async move {
@@ -297,8 +330,8 @@ impl StateStore for SqliteStateStore {
                     .collect::<Vec<_>>()
                     .join(",");
                 let sql = format!(
-                    "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM deployment_resources WHERE id IN ({})",
-                    placeholders
+                    "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {} WHERE id IN ({})",
+                    table, placeholders
                 );
                 let params: Vec<libsql::Value> = owned_ids
                     .iter()
@@ -325,11 +358,16 @@ impl StateStore for SqliteStateStore {
 
     fn all(&self) -> Result<StateStoreStream<ResourceState>, StorageError> {
         let conn = Arc::clone(&self.conn);
+        let table = self.table_name.clone();
 
         let iter = run_future_iter(
             move || async move {
+                let sql = format!(
+                    "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {} ORDER BY id",
+                    table
+                );
                 let mut stmt = conn
-                    .prepare("SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM deployment_resources ORDER BY id")
+                    .prepare(&sql)
                     .await
                     .map_err(|e| StorageError::Backend(e.to_string()))?;
                 let rows = stmt
@@ -353,8 +391,9 @@ impl StateStore for SqliteStateStore {
     ) -> Result<StateStoreStream<()>, StorageError> {
         let params = state_to_params(state)?;
         let conn = Arc::clone(&self.conn);
+        let sql = upsert_sql(&self.table_name);
         let stream = schedule_future(async move {
-            conn.execute(UPSERT_SQL, params)
+            conn.execute(&sql, params)
                 .await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
             Ok::<_, StorageError>(())
@@ -365,8 +404,10 @@ impl StateStore for SqliteStateStore {
     fn delete(&self, resource_id: &str) -> Result<StateStoreStream<()>, StorageError> {
         let id = resource_id.to_string();
         let conn = Arc::clone(&self.conn);
+        let table = self.table_name.clone();
         let stream = schedule_future(async move {
-            conn.execute("DELETE FROM deployment_resources WHERE id = ?", [id])
+            let sql = format!("DELETE FROM {} WHERE id = ?", table);
+            conn.execute(&sql, [id])
                 .await
                 .map_err(|e| StorageError::Backend(e.to_string()))?;
             Ok::<_, StorageError>(())
