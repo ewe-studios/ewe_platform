@@ -59,10 +59,30 @@ Depends on:
 - `02-state-stores` - `StateStore` for persistence
 - `03-deployment-engine` - `DeploymentPlanner` for orchestration
 - `05-gcp-cloud-run-provider` - Reference for config parsing (`CloudRunServiceConfig`)
+- **Existing `providers/gcp/resources/`** - Reuse generated resource types from GCP OpenAPI spec
+- **Existing `providers/gcp/clients/`** (if available) - Reuse generated API client functions
 
 Required by:
 - `07-templates` - GCP-specific template configs
 - `09-examples-documentation` - GCP examples
+
+## Architecture
+
+The API provider implementation should:
+
+1. **Reuse existing generated resources** in `backends/foundation_deployment/src/providers/gcp/resources/`:
+   - All generated resource types from the GCP OpenAPI spec
+   - Types already have `Serialize`, `Deserialize`, `Debug`, `Clone` derives
+   - Includes Cloud Run v2 API types: `Service`, `Job`, `Revision`, `Execution`
+
+2. **Implement the API provider** in `backends/foundation_deployment/src/providers/gcp/api/`:
+   - `mod.rs` - Module declaration and `GcpApiProvider` struct
+   - `auth.rs` - `GcpAuth` with service account JWT handling
+   - `error.rs` - `GcpApiError` wrapping the generated `ApiError`
+   - `provider.rs` - `DeploymentProvider` trait implementation
+   - `jwt.rs` - JWT creation and signing for OAuth2
+
+**Note:** GCP has extensive generated resources under `providers/gcp/resources/`. The implementation should use these types directly rather than duplicating them.
 
 ## Requirements
 
@@ -762,67 +782,69 @@ impl DeploymentProvider for GcpCloudRunApiProvider {
 
 ## Tasks
 
-1. **Create module structure**
-   - [ ] Create `src/providers/gcp_api/mod.rs`, `client.rs`, `auth.rs`, `error.rs`, `resources.rs`
-   - [ ] Register in `src/providers/mod.rs`
+1. **Review existing generated code**
+   - [ ] Review `providers/gcp/resources/*.rs` - generated resource types from GCP APIs
+   - [ ] Identify Cloud Run v2 types: `Service`, `Job`, `Revision`, `Execution`, `Operation`
+   - [ ] Check if `providers/gcp/clients/` exists with generated client functions
+   - [ ] Identify gaps: what endpoints need to be added for full provider support
+
+2. **Create module structure**
+   - [ ] Create `src/providers/gcp/api/mod.rs`, `auth.rs`, `error.rs`, `provider.rs`, `jwt.rs`
+   - [ ] Register in `src/providers/gcp/mod.rs` (alongside existing `fetch`, `provider`, `resources`)
    - [ ] Add to feature flags (separate from CLI provider)
 
-2. **Implement authentication**
-   - [ ] Implement `GcpAuth` struct
-   - [ ] Implement `from_env()` loading from `GOOGLE_APPLICATION_CREDENTIALS`
-   - [ ] Implement JWT claim set creation
+3. **Implement JWT authentication**
+   - [ ] Implement JWT claim set creation for GCP OAuth2
    - [ ] Implement RSA-SHA256 JWT signing
    - [ ] Implement JWT-to-token exchange
+   - [ ] Implement token caching and refresh
+
+4. **Implement authentication**
+   - [ ] Implement `GcpAuth` struct with service account credentials
+   - [ ] Implement `from_env()` loading from `GOOGLE_APPLICATION_CREDENTIALS`
    - [ ] Implement `configure_client()` for Bearer token setup
 
-3. **Implement API client**
-   - [ ] Implement `GcpCloudRunApiClient` with SimpleHttpClient
-   - [ ] Implement Services API (create, get, update, delete)
-   - [ ] Implement Jobs API (create, get, run, delete)
-   - [ ] Implement operation polling with backoff
-   - [ ] Handle long-running operation timeouts
-
-4. **Implement error types**
-   - [ ] Define `GcpApiError` enum
+5. **Implement error types**
+   - [ ] Define `GcpApiError` enum (wrap generated `ApiError` if available)
    - [ ] Implement `Display` and `Error` traits
    - [ ] Implement `From` conversions
    - [ ] Handle GCP-specific errors (quota, IAM, etc.)
 
-5. **Implement GcpCloudRunApiProvider trait**
+6. **Implement GcpCloudRunApiProvider trait**
    - [ ] Implement `detect()` - find service.yaml
    - [ ] Implement `validate()` - validate config + credentials
    - [ ] Implement `build()` - build container image via Docker API
-   - [ ] Implement `deploy()` - create/update service via API
+   - [ ] Implement `deploy()` - create/update service via API (use generated types)
    - [ ] Implement `destroy()` - delete service
    - [ ] Implement `status()` - get service info
    - [ ] Implement `rollback()` - traffic shift to previous revision
    - [ ] Implement `verify()` - HTTP health check
 
-6. **Implement container image build**
+7. **Implement container image build**
    - [ ] Detect Dockerfile in project
    - [ ] Build via Docker API (not CLI)
    - [ ] Push to Artifact Registry or GCR
    - [ ] Handle image tag generation
 
-7. **Implement Jobs support**
+8. **Implement Jobs support**
    - [ ] Detect `kind: Job` in config
    - [ ] Implement job create/update via Jobs API
    - [ ] Implement job execution trigger
    - [ ] Handle execution status polling
 
-8. **Write unit tests**
+9. **Write unit tests**
    - [ ] Test JWT creation and signing
-   - [ ] Test API response parsing
+   - [ ] Test API response parsing with generated types
    - [ ] Test error type conversions
    - [ ] Test config-to-service conversion
    - [ ] Test operation polling logic
 
-9. **Write integration tests**
-   - [ ] Test service deploy (requires credentials, mark `#[ignore]`)
-   - [ ] Test job deploy (requires credentials, mark `#[ignore]`)
-   - [ ] Test full deploy-verify-destroy cycle
+10. **Write integration tests**
+    - [ ] Test service deploy (requires credentials, mark `#[ignore]`)
+    - [ ] Test job deploy (requires credentials, mark `#[ignore]`)
+    - [ ] Test full deploy-verify-destroy cycle
 
-10. **Documentation**
+11. **Documentation**
     - [ ] Document all public API methods
     - [ ] Add usage examples for API provider
     - [ ] Document required environment variables
