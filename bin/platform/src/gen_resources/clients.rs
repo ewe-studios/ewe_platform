@@ -216,7 +216,7 @@ struct Operation {
     responses: BTreeMap<String, Response>,
 }
 
-#[derive(Debug, Deserialize)]
+#[derive(Debug, Deserialize, Default)]
 struct Parameter {
     #[serde(default)]
     name: Option<String>,
@@ -224,6 +224,7 @@ struct Parameter {
     location: Option<String>,
     #[serde(default)]
     required: bool,
+    #[serde(default)]
     schema: Option<ParameterSchema>,
     #[serde(default)]
     description: Option<String>,
@@ -239,6 +240,7 @@ struct ParameterSchema {
 
 #[derive(Debug, Deserialize, Default)]
 struct RequestBody {
+    #[serde(default)]
     content: BTreeMap<String, MediaType>,
 }
 

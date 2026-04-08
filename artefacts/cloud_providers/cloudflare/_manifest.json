@@ -1,7 +1,8 @@
 {
-  "fetched_at": "2026-04-04T16:15:17.442575684+00:00",
+  "fetched_at": "2026-04-08T14:58:34.377764204+00:00",
+  "provider": "cloudflare",
   "source": "https://github.com/cloudflare/api-schemas",
   "spec_files": [
-    "openapi.json"
+    "cloudflare/openapi.json"
   ]
 }
