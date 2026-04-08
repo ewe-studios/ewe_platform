@@ -231,6 +231,70 @@ pub type StorageResult<T> = Result<T, StorageError>;
 
 ## Requirements
 
+### Project and Stage Namespacing (CRITICAL)
+
+**All state stores MUST namespace state by both project AND stage (environment).** This is a fundamental requirement for multi-project deployments and stage isolation.
+
+#### Why Namespacing Matters
+
+Without project and stage namespacing, the following scenarios cause state corruption:
+
+1. **Shared provider account**: Two different projects deploy to the same Cloudflare account, GCP project, or AWS account. Without project namespacing, they share state tables/buckets and overwrite each other's resources.
+
+2. **Stage collisions**: Different stages (dev, staging, prod) within the same project would mix state if not properly isolated. A deployment to `prod` could overwrite `dev` state.
+
+3. **CI/CD collisions**: Build agents deploying multiple projects to shared infrastructure may corrupt state without proper isolation.
+
+4. **Team workflows**: Multiple teams sharing the same backend infrastructure (e.g., same Turso database, same R2 bucket) need guaranteed isolation between their projects.
+
+The fix: Always include `{project}` AND `{stage}` in the namespace. This ensures:
+- **Project isolation**: Multiple projects can share the same backend account without state mixing
+- **Stage isolation**: dev/staging/prod environments remain separate within the same project
+- **Safe multi-project deployments**: Teams can deploy multiple independent projects to shared infrastructure
+
+#### Namespacing Strategy by Backend Type
+
+| Backend Type | Backends | Namespacing Mechanism | Example |
+|--------------|----------|----------------------|---------|
+| **SQL-based** | SqliteStateStore, LibSQLStateStore, TursoStateStore, D1StateStore | Table prefix: `{project}_{stage}_resources` | `myapp_prod_resources`, `myapp_dev_resources` |
+| **Object/File** | FileStateStore, R2StateStore | Path prefix: `{project}/{stage}/{resource_id}.json` | `myapp/prod/worker-1.json`, `myapp/dev/worker-1.json` |
+
+#### Constructor Requirements
+
+All state store constructors MUST accept `project` and `stage` parameters:
+
+```rust
+// SQL-based stores (table namespacing)
+pub fn new(db_path: &Path, project: &str, stage: &str) -> Result<Self, StorageError>;
+
+// Object/file stores (path namespacing)
+pub fn new(project_dir: &Path, project: &str, stage: &str) -> Self;
+```
+
+The `create_state_store()` factory passes these parameters through:
+
+```rust
+pub fn create_state_store(
+    project: &str,
+    project_dir: &Path,
+    provider: &str,
+    stage: &str,
+) -> Result<Box<dyn StateStore>, StorageError>
+```
+
+#### Implementation Details
+
+**SQL-based stores (Sqlite, LibSQL, Turso, D1):**
+- Table name: `{project}_{stage}_resources`
+- Hyphens and spaces in project/stage are converted to underscores
+- Example: `my-app` + `prod` → `my_app_prod_resources`
+- Same schema for all tables (id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at)
+
+**Object/file stores (File, R2):**
+- Object key: `{project}/{stage}/{resource_id}.json`
+- Resource IDs with slashes are escaped (e.g., `/` → `:`)
+- Example: `my-app` + `prod` + `worker-1` → `my-app/prod/worker-1.json`
+
 ### Core Storage Abstraction
 
 1. **StorageProvider Trait** - Unified interface for all storage backends
@@ -271,7 +335,7 @@ pub type StorageResult<T> = Result<T, StorageError>;
 
 21. **JsonFileStorage Struct** - JSON-on-disk key-value persistence
 22. **Atomic Writes** - Write to temp file + rename for crash safety
-23. **Directory-Based Namespacing** - One JSON file per logical namespace (or single file for small datasets)
+23. **Project/Stage Namespacing** - Paths use `{project}/{stage}/{resource_id}.json` pattern
 24. **Lazy Loading** - Read from disk on access, not on construction
 25. **Zeroizing on Drop** - Clear in-memory cache of sensitive data
 
@@ -285,7 +349,7 @@ pub type StorageResult<T> = Result<T, StorageError>;
 
 ## Architecture
 
-### Storage Abstraction
+### Storage Abstraction with Project/Stage Namespacing
 
 ```mermaid
 graph TD
@@ -301,23 +365,26 @@ graph TD
         F[BlobStore Trait]
         G[QueryStore Trait]
         H[RateLimiter Trait]
+        N[NamespaceResolver<br/>project + stage → table/path]
     end
 
     subgraph Backends
-        I[TursoStorage]
-        J[D1Storage]
-        K[R2Storage]
-        L[MemoryStorage]
-        M[JsonFileStorage]
+        I[TursoStorage<br/>{project}_{stage}_resources]
+        J[D1Storage<br/>{project}_{stage}_resources]
+        K[R2Storage<br/>{project}/{stage}/{id}.json]
+        L[MemoryStorage<br/>in-memory, namespaced]
+        M[JsonFileStorage<br/>{project}/{stage}/{id}.json]
     end
 
     A --> C
     B --> C
     C --> D
-    D --> I
-    D --> J
-    D --> K
-    D --> L
+    D --> N
+    N --> I
+    N --> J
+    N --> K
+    N --> L
+    N --> M
     I --> E
     I --> G
     I --> H
@@ -328,6 +395,8 @@ graph TD
     L --> E
     M --> E
 ```
+
+**NamespaceResolver:** Computes the correct table name or object path based on `project` and `stage` parameters. This ensures complete isolation between projects and stages sharing the same backend infrastructure.
 
 ### Session Management Architecture
 
@@ -644,6 +713,10 @@ DELETE FROM audit_logs WHERE created_at < ((strftime('%s', 'now') * 1000) - (90 
 
 ### Files to Create
 
+**Note on Namespacing:** All state store backends implement project/stage namespacing:
+- SQL backends (Turso, LibSQL, Sqlite, D1): Table names use `{project}_{stage}_resources` pattern
+- Object/file backends (R2, File): Paths use `{project}/{stage}/{resource_id}.json` pattern
+
 ```
 backends/foundation_db/
 ├── Cargo.toml
@@ -653,10 +726,15 @@ backends/foundation_db/
 │   ├── backends/
 │   │   ├── mod.rs                 - Backend module exports
 │   │   ├── turso_backend.rs       - Turso crate backend (async wrapped with Valtron)
+│   │   │                          - Table: {project}_{stage}_resources
 │   │   ├── libsql_backend.rs      - libsql crate backend (async wrapped with Valtron)
+│   │   │                          - Table: {project}_{stage}_resources
 │   │   ├── json_file.rs           - JSON-on-disk file backend (always available)
+│   │   │                          - Path: {project}/{stage}/{resource_id}.json
 │   │   ├── d1.rs                  - Cloudflare D1 implementation
+│   │   │                          - Table: {project}_{stage}_resources
 │   │   ├── r2.rs                  - Cloudflare R2 implementation
+│   │   │                          - Key: {project}/{stage}/{resource_id}.json
 │   │   └── memory.rs              - In-memory implementation (always available)
 │   ├── schema/
 │   │   ├── mod.rs                 - Schema definitions

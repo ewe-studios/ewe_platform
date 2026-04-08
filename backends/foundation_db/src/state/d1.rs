@@ -4,7 +4,7 @@
 //! `SQLite` accessible via HTTP — no connection management, no drivers.
 //!
 //! WHAT: `D1StateStore` executes SQL over HTTP via the Cloudflare D1 API.
-//! Same schema as `SqliteStateStore`.
+//! Table names use `{project}_{stage}_resources` pattern for namespacing.
 //!
 //! HOW: Uses `SimpleHttpClient` (synchronous) for all HTTP calls. SQL queries
 //! are POST'd as JSON. D1 returns JSON rows — no `!Send` issues, no Valtron.
@@ -20,32 +20,50 @@ use crate::errors::StorageError;
 
 const CF_API_BASE: &str = "https://api.cloudflare.com/client/v4";
 
-/// SQL schema — same as `SqliteStateStore`.
-const CREATE_TABLE_SQL: &str =
-    "CREATE TABLE IF NOT EXISTS deployment_resources (id TEXT PRIMARY KEY, kind TEXT NOT NULL, provider TEXT NOT NULL, status TEXT NOT NULL, environment TEXT, config_hash TEXT NOT NULL, output TEXT NOT NULL, config_snapshot TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)";
+/// SQL schema — table name is prefixed with `{project}_{stage}_`.
+fn create_table_sql(table_name: &str) -> String {
+    format!(
+        "CREATE TABLE IF NOT EXISTS {} (id TEXT PRIMARY KEY, kind TEXT NOT NULL, provider TEXT NOT NULL, status TEXT NOT NULL, environment TEXT, config_hash TEXT NOT NULL, output TEXT NOT NULL, config_snapshot TEXT NOT NULL, created_at TEXT NOT NULL, updated_at TEXT NOT NULL)",
+        table_name
+    )
+}
 
-const UPSERT_SQL: &str =
-    "INSERT INTO deployment_resources (id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET kind = excluded.kind, provider = excluded.provider, status = excluded.status, environment = excluded.environment, config_hash = excluded.config_hash, output = excluded.output, config_snapshot = excluded.config_snapshot, updated_at = excluded.updated_at";
+fn upsert_sql(table_name: &str) -> String {
+    format!(
+        "INSERT INTO {} (id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?) ON CONFLICT(id) DO UPDATE SET kind = excluded.kind, provider = excluded.provider, status = excluded.status, environment = excluded.environment, config_hash = excluded.config_hash, output = excluded.output, config_snapshot = excluded.config_snapshot, updated_at = excluded.updated_at",
+        table_name
+    )
+}
 
 /// Cloudflare D1 edge `SQLite` state store.
 ///
 /// Executes SQL over HTTP via the Cloudflare D1 API.
 /// Uses `SimpleHttpClient` for all requests — synchronous, no Valtron.
+///
+/// Table names are prefixed with `{project}_{stage}_resources` for namespacing.
 pub struct D1StateStore {
     api_token: ZeroizingString,
     account_id: String,
     database_id: String,
+    table_name: String,  // "{project}_{stage}_resources"
     client: SimpleHttpClient,
 }
 
 impl D1StateStore {
     /// Create a new D1 state store.
+    ///
+    /// Table name will be `{project}_{stage}_resources` for namespacing.
     #[must_use]
-    pub fn new(api_token: &str, account_id: &str, database_id: &str) -> Self {
+    pub fn new(api_token: &str, account_id: &str, database_id: &str, project: &str, stage: &str) -> Self {
+        let table_name = format!("{}_{}_resources",
+            project.replace('-', "_").replace(' ', "_"),
+            stage.replace('-', "_").replace(' ', "_")
+        );
         Self {
             api_token: ZeroizingString::from_string(api_token.to_string()),
             account_id: account_id.to_string(),
             database_id: database_id.to_string(),
+            table_name,
             client: SimpleHttpClient::from_system(),
         }
     }
@@ -59,7 +77,7 @@ impl D1StateStore {
     /// # Errors
     ///
     /// Returns an error if required env vars are missing.
-    pub fn from_env() -> Result<Self, StorageError> {
+    pub fn from_env(project: &str, stage: &str) -> Result<Self, StorageError> {
         let db_id = std::env::var("DEPLOYMENT_D1_DATABASE_ID").map_err(|_| {
             StorageError::Connection("DEPLOYMENT_D1_DATABASE_ID must be set".to_string())
         })?;
@@ -69,7 +87,7 @@ impl D1StateStore {
         let account = std::env::var("CLOUDFLARE_ACCOUNT_ID").map_err(|_| {
             StorageError::Connection("CLOUDFLARE_ACCOUNT_ID must be set".to_string())
         })?;
-        Ok(Self::new(&token, &account, &db_id))
+        Ok(Self::new(&token, &account, &db_id, project, stage))
     }
 
     fn query_url(&self) -> String {
@@ -224,12 +242,14 @@ impl D1StateStore {
 
 impl StateStore for D1StateStore {
     fn init(&self) -> Result<(), StorageError> {
-        self.execute_sql(CREATE_TABLE_SQL, &[])?;
+        let sql = create_table_sql(&self.table_name);
+        self.execute_sql(&sql, &[])?;
         Ok(())
     }
 
     fn list(&self) -> Result<StateStoreStream<String>, StorageError> {
-        let response = self.execute_sql("SELECT id FROM deployment_resources ORDER BY id", &[])?;
+        let sql = format!("SELECT id FROM {} ORDER BY id", self.table_name);
+        let response = self.execute_sql(&sql, &[])?;
         let rows = Self::extract_rows(&response);
         let ids: Result<Vec<String>, StorageError> = rows
             .iter()
@@ -246,7 +266,8 @@ impl StateStore for D1StateStore {
     }
 
     fn count(&self) -> Result<StateStoreStream<usize>, StorageError> {
-        let response = self.execute_sql("SELECT COUNT(*) as cnt FROM deployment_resources", &[])?;
+        let sql = format!("SELECT COUNT(*) as cnt FROM {}", self.table_name);
+        let response = self.execute_sql(&sql, &[])?;
         let rows = Self::extract_rows(&response);
         let count = rows
             .first()
@@ -261,8 +282,12 @@ impl StateStore for D1StateStore {
         &self,
         resource_id: &str,
     ) -> Result<StateStoreStream<Option<ResourceState>>, StorageError> {
+        let sql = format!(
+            "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {} WHERE id = ?",
+            self.table_name
+        );
         let response = self.execute_sql(
-            "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM deployment_resources WHERE id = ?",
+            &sql,
             &[serde_json::Value::String(resource_id.to_string())],
         )?;
         let rows = Self::extract_rows(&response);
@@ -287,7 +312,8 @@ impl StateStore for D1StateStore {
             .collect::<Vec<_>>()
             .join(",");
         let sql = format!(
-            "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM deployment_resources WHERE id IN ({placeholders})"
+            "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {} WHERE id IN ({placeholders})",
+            self.table_name
         );
         let params: Vec<serde_json::Value> = ids
             .iter()
@@ -304,10 +330,11 @@ impl StateStore for D1StateStore {
     }
 
     fn all(&self) -> Result<StateStoreStream<ResourceState>, StorageError> {
-        let response = self.execute_sql(
-            "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM deployment_resources ORDER BY id",
-            &[],
-        )?;
+        let sql = format!(
+            "SELECT id, kind, provider, status, environment, config_hash, output, config_snapshot, created_at, updated_at FROM {} ORDER BY id",
+            self.table_name
+        );
+        let response = self.execute_sql(&sql, &[])?;
         let rows = Self::extract_rows(&response);
         let results: Result<Vec<_>, _> = rows
             .iter()
@@ -322,13 +349,15 @@ impl StateStore for D1StateStore {
         state: &ResourceState,
     ) -> Result<StateStoreStream<()>, StorageError> {
         let params = Self::state_to_params(state)?;
-        self.execute_sql(UPSERT_SQL, &params)?;
+        let sql = upsert_sql(&self.table_name);
+        self.execute_sql(&sql, &params)?;
         Ok(Self::wrap_value(()))
     }
 
     fn delete(&self, resource_id: &str) -> Result<StateStoreStream<()>, StorageError> {
+        let sql = format!("DELETE FROM {} WHERE id = ?", self.table_name);
         self.execute_sql(
-            "DELETE FROM deployment_resources WHERE id = ?",
+            &sql,
             &[serde_json::Value::String(resource_id.to_string())],
         )?;
         Ok(Self::wrap_value(()))

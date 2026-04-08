@@ -4,7 +4,7 @@
 //! in the same ecosystem, accessible from any machine with API credentials.
 //!
 //! WHAT: Each resource is a JSON object in an R2 bucket, keyed by
-//! `{prefix}{resource_id}.json`. CRUD via the Cloudflare R2 API.
+//! `{project}/{stage}/{resource_id}.json`. CRUD via the Cloudflare R2 API.
 //!
 //! HOW: Uses `SimpleHttpClient` (synchronous) for all HTTP calls. No Valtron
 //! needed. Returns `StateStoreStream` via `Vec::into_iter().map(...)`.
@@ -23,23 +23,27 @@ const CF_API_BASE: &str = "https://api.cloudflare.com/client/v4";
 ///
 /// Stores each resource as a JSON object in an R2 bucket.
 /// Uses the Cloudflare API (not S3-compatible endpoint) for CRUD.
+///
+/// Object keys are prefixed with `{project}/{stage}/` for namespacing.
 pub struct R2StateStore {
     api_token: String,
     account_id: String,
     bucket_name: String,
-    prefix: String,
+    prefix: String,  // "{project}/{stage}/"
     client: SimpleHttpClient,
 }
 
 impl R2StateStore {
     /// Create a new R2 state store.
+    ///
+    /// Object keys will be prefixed with `{project}/{stage}/` for namespacing.
     #[must_use]
-    pub fn new(api_token: &str, account_id: &str, bucket_name: &str, prefix: Option<&str>) -> Self {
+    pub fn new(api_token: &str, account_id: &str, bucket_name: &str, project: &str, stage: &str) -> Self {
         Self {
             api_token: api_token.to_string(),
             account_id: account_id.to_string(),
             bucket_name: bucket_name.to_string(),
-            prefix: prefix.unwrap_or("deployment-state/").to_string(),
+            prefix: format!("{project}/{stage}/"),
             client: SimpleHttpClient::from_system(),
         }
     }
@@ -49,12 +53,11 @@ impl R2StateStore {
     /// - `DEPLOYMENT_R2_BUCKET` (required)
     /// - `CLOUDFLARE_API_TOKEN` (required)
     /// - `CLOUDFLARE_ACCOUNT_ID` (required)
-    /// - `DEPLOYMENT_R2_PREFIX` (optional, default: `deployment-state/`)
     ///
     /// # Errors
     ///
     /// Returns an error if required env vars are missing.
-    pub fn from_env() -> Result<Self, StorageError> {
+    pub fn from_env(project: &str, stage: &str) -> Result<Self, StorageError> {
         let bucket = std::env::var("DEPLOYMENT_R2_BUCKET").map_err(|_| {
             StorageError::Connection("DEPLOYMENT_R2_BUCKET must be set".to_string())
         })?;
@@ -64,8 +67,7 @@ impl R2StateStore {
         let account = std::env::var("CLOUDFLARE_ACCOUNT_ID").map_err(|_| {
             StorageError::Connection("CLOUDFLARE_ACCOUNT_ID must be set".to_string())
         })?;
-        let prefix = std::env::var("DEPLOYMENT_R2_PREFIX").ok();
-        Ok(Self::new(&token, &account, &bucket, prefix.as_deref()))
+        Ok(Self::new(&token, &account, &bucket, project, stage))
     }
 
     fn object_key(&self, resource_id: &str) -> String {

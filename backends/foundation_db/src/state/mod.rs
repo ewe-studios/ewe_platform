@@ -52,43 +52,47 @@ use std::path::Path;
 ///   6. `SQLite` (local-only) — if `DEPLOYMENT_STATE_DB` is set
 ///   7. JSON files — default fallback
 ///
+/// All stores are namespaced by project and stage to prevent state collisions
+/// between different projects or stages sharing the same backend infrastructure.
+///
 /// # Errors
 ///
 /// Returns an error if the selected backend fails to initialize.
 pub fn create_state_store(
+    project: &str,
     project_dir: &Path,
-    provider: &str,
+    _provider: &str,
     stage: &str,
 ) -> Result<Box<dyn StateStore>, crate::errors::StorageError> {
     if std::env::var("DEPLOYMENT_D1_DATABASE_ID").is_ok() {
-        return Ok(Box::new(D1StateStore::from_env()?));
+        return Ok(Box::new(D1StateStore::from_env(project, stage)?));
     }
 
     if std::env::var("DEPLOYMENT_R2_BUCKET").is_ok() {
-        return Ok(Box::new(R2StateStore::from_env()?));
+        return Ok(Box::new(R2StateStore::from_env(project, stage)?));
     }
 
     #[cfg(feature = "libsql")]
     if std::env::var("TURSO_DATABASE_URL").is_ok() {
-        return Ok(Box::new(TursoStateStore::from_env()?));
+        return Ok(Box::new(TursoStateStore::from_env(project, stage)?));
     }
 
     #[cfg(feature = "libsql")]
     if std::env::var("LIBSQL_TURSO_URL").is_ok() {
-        return Ok(Box::new(LibSQLStateStore::from_env(project_dir)?));
+        return Ok(Box::new(LibSQLStateStore::from_env(project_dir, project, stage)?));
     }
 
     #[cfg(feature = "libsql")]
     if std::env::var("LIBSQL_LOCAL_PATH").is_ok() {
-        return Ok(Box::new(LibSQLStateStore::from_env(project_dir)?));
+        return Ok(Box::new(LibSQLStateStore::from_env(project_dir, project, stage)?));
     }
 
     #[cfg(feature = "libsql")]
     if std::env::var("DEPLOYMENT_STATE_DB").is_ok()
         || project_dir.join(".deployment/state.db").exists()
     {
-        return Ok(Box::new(SqliteStateStore::from_env(project_dir)?));
+        return Ok(Box::new(SqliteStateStore::from_env(project_dir, project, stage)?));
     }
 
-    Ok(Box::new(FileStateStore::new(project_dir, provider, stage)))
+    Ok(Box::new(FileStateStore::new(project_dir, project, stage)))
 }

@@ -8,6 +8,7 @@ status: complete
 priority: high
 created: 2026-03-26
 completed: 2026-04-06
+updated: 2026-04-06  # Added project/stage namespacing requirements
 
 depends_on: ["01-foundation-deployment-core"]
 
@@ -51,6 +52,57 @@ The R2 and D1 backends are particularly useful when deploying Cloudflare Workers
 - `LibSQLStateStore` - Local embedded libSQL, can optionally sync to remote Turso
 - `SqliteStateStore` - Local-only SQLite via libsql, no remote sync capability
 - `TursoStateStore` - Remote-first Turso with optional embedded replica for caching
+
+## Project and Stage Namespacing (CRITICAL)
+
+**All state stores MUST namespace state by both project AND stage (environment).** This ensures:
+
+1. **Project isolation**: Multiple projects deploying to the same provider account (e.g., same GCP project, same Cloudflare account) do not mix their state
+2. **Stage isolation**: Different stages (dev, staging, prod) within the same project have separate state
+3. **Safe multi-project deployments**: Teams can deploy multiple independent projects to shared infrastructure without state collisions
+
+### Namespacing Strategy by Backend
+
+| Backend | Namespacing Mechanism |
+|---------|----------------------|
+| **FileStateStore** | Path: `.deployment/{project}/{provider}/{stage}/{resource_id}.json` |
+| **SqliteStateStore** | Table prefix: `deployment_{project}_{stage}_resources` |
+| **LibSQLStateStore** | Table prefix: `deployment_{project}_{stage}_resources` |
+| **TursoStateStore** | Table prefix: `deployment_{project}_{stage}_resources` |
+| **R2StateStore** | Object key prefix: `{project}/{stage}/{resource_id}.json` |
+| **D1StateStore** | Table prefix: `deployment_{project}_{stage}_resources` |
+
+### Constructor Requirements
+
+All state store constructors MUST accept `project` and `stage` parameters:
+
+```rust
+// All stores follow this pattern
+pub fn new(project: &str, provider: &str, stage: &str, /* backend-specific args */) -> Self;
+```
+
+The `create_state_store()` factory passes these parameters through:
+
+```rust
+pub fn create_state_store(
+    project: &str,
+    project_dir: &Path,
+    provider: &str,
+    stage: &str,
+) -> Result<Box<dyn StateStore>, StorageError>
+```
+
+### Why Project Namespacing Matters
+
+Without project namespacing, the following scenarios cause state corruption:
+
+1. **Shared GCP project**: Two different apps deploy to Cloud Run under the same GCP project ID. Without project namespacing, they share state tables/buckets and overwrite each other's resources.
+
+2. **Shared Cloudflare account**: Two projects deploy Workers to the same Cloudflare account. R2 bucket or D1 table state gets mixed between unrelated projects.
+
+3. **CI/CD collisions**: Build agents deploying multiple projects to shared infrastructure may corrupt state without proper isolation.
+
+The fix: Always include `{project}` in the namespace alongside `{stage}`.
 
 ## Dependencies
 
@@ -252,20 +304,30 @@ use foundation_core::valtron::ThreadedValue;
 
 /// JSON file-based state store.
 /// Stores each resource as a separate JSON file:
-///   .deployment/{provider}/{stage}/{resource_id}.json
+///   `.deployment/{project}/{provider}/{stage}/{resource_id}.json`
 ///
 /// Simple, git-friendly, no dependencies. Purely synchronous — no Valtron.
 /// Returns StateStoreStream for trait consistency, built from Vec iterators.
 pub struct FileStateStore {
     root_dir: PathBuf,
+    project: String,
     provider: String,
     stage: String,
 }
 
 impl FileStateStore {
-    pub fn new(project_dir: &Path, provider: &str, stage: &str) -> Self {
+    /// Create a new file state store.
+    ///
+    /// Files are stored under `{project_dir}/.deployment/{project}/{provider}/{stage}/`.
+    #[must_use]
+    pub fn new(project_dir: &Path, project: &str, provider: &str, stage: &str) -> Self {
         Self {
-            root_dir: project_dir.join(".deployment").join(provider).join(stage),
+            root_dir: project_dir.join(".deployment").join(project).join(provider).join(stage),
+            project: project.to_string(),
+            provider: provider.to_string(),
+            stage: stage.to_string(),
+        }
+    }
             provider: provider.to_string(),
             stage: stage.to_string(),
         }
@@ -344,6 +406,9 @@ Async backend — uses `run_future_iter` for all trait methods, `exec_future` on
 for `init()`. Connection wrapped in `Arc<libsql::Connection>`, cloned into each
 async block. `!Send` row iterators stay on the worker thread via `RowsIterator`.
 
+**Project/stage namespacing:** Uses table prefix `deployment_{project}_{stage}_resources`
+to isolate state per project and stage within the same database file.
+
 ```rust
 // state/sqlite.rs
 
@@ -354,8 +419,8 @@ use foundation_core::valtron::{run_future_iter, ThreadedValue};
 /// Plain local SQLite state store using libsql (Turso's SQLite fork).
 /// This is a local-only store with no remote sync capability.
 ///
-/// Schema:
-///   CREATE TABLE resources (
+/// Schema (table name is prefixed with `{project}_{stage}`):
+///   CREATE TABLE deployment_{project}_{stage}_resources (
 ///     id TEXT PRIMARY KEY,
 ///     kind TEXT NOT NULL,
 ///     provider TEXT NOT NULL,
@@ -368,27 +433,42 @@ use foundation_core::valtron::{run_future_iter, ThreadedValue};
 ///     updated_at TEXT NOT NULL
 ///   );
 ///
-/// Default path: `.deployment/state.db`
+/// Default path: `{project_dir}/.deployment/state.db`
 ///
 /// All trait methods use `run_future_iter` — the !Send `libsql::Rows` iterator
 /// stays on the worker thread, only `Send` results cross the channel boundary.
 pub struct SqliteStateStore {
     conn: Arc<libsql::Connection>,
     db_path: PathBuf,
+    table_prefix: String,  // "deployment_{project}_{stage}_"
 }
 
 impl SqliteStateStore {
-    pub fn new(db_path: PathBuf) -> Result<Self, DeploymentError> {
+    /// Create a new store at the given path.
+    ///
+    /// # Errors
+    ///
+    /// Returns an error if the database cannot be opened.
+    pub fn new(db_path: PathBuf, project: &str, stage: &str) -> Result<Self, DeploymentError> {
         // Connection init uses exec_future (one-shot bootstrap)
         let conn = /* exec_future to create connection */;
-        Ok(Self { conn: Arc::new(conn), db_path })
+        let table_prefix = format!("deployment_{}_{}_", 
+            project.replace('-', "_").replace(' ', "_"),
+            stage.replace('-', "_").replace(' ', "_")
+        );
+        Ok(Self { conn: Arc::new(conn), db_path, table_prefix })
     }
 
-    pub fn from_env(project_dir: &Path) -> Result<Self, DeploymentError> {
+    pub fn from_env(project_dir: &Path, project: &str, stage: &str) -> Result<Self, DeploymentError> {
         let db_path = std::env::var("DEPLOYMENT_STATE_DB")
             .map(PathBuf::from)
             .unwrap_or_else(|_| project_dir.join(".deployment/state.db"));
-        Self::new(db_path)
+        Self::new(db_path, project, stage)
+    }
+
+    /// Get the table name for resources.
+    fn resources_table(&self) -> String {
+        format!("{}resources", self.table_prefix)
     }
 }
 
@@ -396,12 +476,11 @@ impl StateStore for SqliteStateStore {
     fn init(&self) -> Result<(), DeploymentError> {
         // One-shot bootstrap — exec_future is acceptable here
         std::fs::create_dir_all(self.db_path.parent().unwrap())?;
+        let table = self.resources_table();
         exec_future(async move {
             conn.execute_batch("PRAGMA journal_mode=WAL;").await?;
-            conn.execute(
-                "CREATE TABLE IF NOT EXISTS resources (...)",
-                [],
-            ).await?;
+            let sql = format!("CREATE TABLE IF NOT EXISTS {} (...)", table);
+            conn.execute(&sql, []).await?;
             Ok::<_, libsql::Error>(())
         })?;
         Ok(())
@@ -410,10 +489,12 @@ impl StateStore for SqliteStateStore {
     fn get(&self, resource_id: &str) -> Result<StateStoreStream<Option<ResourceState>>, DeploymentError> {
         let id = resource_id.to_string();    // Own before async boundary
         let conn = Arc::clone(&self.conn);   // Clone the Arc
+        let table = self.resources_table();
 
         let iter = run_future_iter(
             move || async move {
-                let mut stmt = conn.prepare("SELECT * FROM resources WHERE id = ?").await?;
+                let sql = format!("SELECT * FROM {} WHERE id = ?", table);
+                let mut stmt = conn.prepare(&sql).await?;
                 let rows = stmt.query([id]).await?;
                 // RowsIterator: !Send, stays on worker thread
                 // Yields Result<Option<ResourceState>, Error> per row
@@ -495,6 +576,9 @@ impl Iterator for ResourceRowsIterator {
 Same `run_future_iter` pattern as `SqliteStateStore`. Connection in `Arc<libsql::Connection>`.
 Shares `ResourceRowsIterator` and `IdRowsIterator` with other SQL backends.
 
+**Project/stage namespacing:** Uses table prefix `deployment_{project}_{stage}_resources`
+to isolate state per project and stage within the same database file.
+
 ```rust
 // state/libsql.rs
 
@@ -510,46 +594,62 @@ use foundation_core::valtron::run_future_iter;
 ///
 /// All trait methods use `run_future_iter`. Connection in `Arc<libsql::Connection>`.
 /// Shares RowsIterator types with SqliteStateStore and TursoStateStore.
+///
+/// Table names are prefixed with `deployment_{project}_{stage}_` for namespacing.
 pub struct LibSQLStateStore {
     conn: Arc<libsql::Connection>,
     local_path: PathBuf,
     turso_url: Option<String>,
     turso_auth_token: Option<String>,
+    table_prefix: String,  // "deployment_{project}_{stage}_"
 }
 
 impl LibSQLStateStore {
-    /// Local-only mode: no remote sync. Connection created via exec_future (bootstrap).
-    pub fn local(local_path: &Path) -> Result<Self, DeploymentError>;
+    /// Local-only mode: no remote sync.
+    pub fn local(local_path: &Path, project: &str, stage: &str) -> Result<Self, DeploymentError>;
 
     /// Embedded replica mode: local file with automatic sync to Turso.
-    pub fn with_sync(local_path: &Path, turso_url: &str, auth_token: &str) -> Result<Self, DeploymentError>;
+    pub fn with_sync(
+        local_path: &Path,
+        project: &str,
+        stage: &str,
+        turso_url: &str,
+        auth_token: &str,
+    ) -> Result<Self, DeploymentError>;
 
     /// Create from environment variables:
     ///   LIBSQL_LOCAL_PATH (optional, default: .deployment/libsql.db)
     ///   LIBSQL_TURSO_URL (optional - if set, enables sync)
     ///   LIBSQL_TURSO_TOKEN (required if LIBSQL_TURSO_URL is set)
-    pub fn from_env(project_dir: &Path) -> Result<Self, DeploymentError>;
+    pub fn from_env(project_dir: &Path, project: &str, stage: &str) -> Result<Self, DeploymentError>;
+
+    /// Get the table name for resources.
+    fn resources_table(&self) -> String {
+        format!("{}resources", self.table_prefix)
+    }
 }
 
 impl StateStore for LibSQLStateStore {
     fn init(&self) -> Result<(), DeploymentError> {
         // exec_future — one-shot bootstrap (same as SqliteStateStore)
-        // PRAGMA journal_mode=WAL + CREATE TABLE IF NOT EXISTS
+        // PRAGMA journal_mode=WAL + CREATE TABLE IF NOT EXISTS deployment_{project}_{stage}_resources
+        let table = self.resources_table();
+        // Use self.table_prefix in table name
     }
 
     fn get(&self, resource_id: &str) -> Result<StateStoreStream<Option<ResourceState>>, DeploymentError> {
-        // Same run_future_iter pattern as SqliteStateStore::get
+        // Same run_future_iter pattern as SqliteStateStore::get, using self.resources_table()
     }
 
     fn list(&self) -> Result<StateStoreStream<String>, DeploymentError> {
-        // Same run_future_iter pattern as SqliteStateStore::list
+        // Same run_future_iter pattern as SqliteStateStore::list, using self.resources_table()
     }
 
     fn set(&self, resource_id: &str, state: &ResourceState) -> Result<StateStoreStream<()>, DeploymentError> {
-        // Same run_future_iter pattern as SqliteStateStore::set
+        // Same run_future_iter pattern as SqliteStateStore::set, using self.resources_table()
     }
 
-    // delete, count, get_batch, all — identical pattern to SqliteStateStore
+    // delete, count, get_batch, all — identical pattern to SqliteStateStore, using self.resources_table()
 
     fn sync_remote(&self) -> Result<(), DeploymentError> {
         if self.turso_url.is_some() {
@@ -566,6 +666,9 @@ impl StateStore for LibSQLStateStore {
 Same `run_future_iter` pattern as other SQL backends. Only the connection setup
 differs (remote Turso vs local libsql). Shares `ResourceRowsIterator`.
 
+**Project/stage namespacing:** Uses table prefix `deployment_{project}_{stage}_resources`
+to isolate state per project and stage within the same Turso database.
+
 ```rust
 // state/turso.rs
 
@@ -577,32 +680,47 @@ use std::sync::Arc;
 /// All trait methods use `run_future_iter`. Connection in `Arc<libsql::Connection>`.
 /// Same schema and queries as SqliteStateStore/LibSQLStateStore — only connection
 /// setup differs. Turso handles replication automatically.
+///
+/// Table names are prefixed with `deployment_{project}_{stage}_` for namespacing.
 pub struct TursoStateStore {
     conn: Arc<libsql::Connection>,
     local_path: Option<PathBuf>,
     turso_url: String,
     turso_auth_token: String,
+    table_prefix: String,  // "deployment_{project}_{stage}_"
 }
 
 impl TursoStateStore {
-    /// Remote-only mode. Connection created via exec_future (bootstrap).
-    pub fn remote(turso_url: &str, auth_token: &str) -> Result<Self, DeploymentError>;
+    /// Remote-only mode.
+    pub fn remote(turso_url: &str, auth_token: &str, project: &str, stage: &str) -> Result<Self, DeploymentError>;
 
     /// Embedded replica mode: local SQLite file syncs with Turso.
-    pub fn embedded_replica(local_path: &Path, turso_url: &str, auth_token: &str) -> Result<Self, DeploymentError>;
+    pub fn embedded_replica(
+        local_path: &Path,
+        turso_url: &str,
+        auth_token: &str,
+        project: &str,
+        stage: &str,
+    ) -> Result<Self, DeploymentError>;
 
     /// Create from environment variables:
     ///   TURSO_DATABASE_URL (required)
     ///   TURSO_AUTH_TOKEN (required)
     ///   TURSO_LOCAL_REPLICA (optional path for embedded replica)
-    pub fn from_env() -> Result<Self, DeploymentError>;
+    pub fn from_env(project: &str, stage: &str) -> Result<Self, DeploymentError>;
+
+    /// Get the table name for resources.
+    fn resources_table(&self) -> String {
+        format!("{}resources", self.table_prefix)
+    }
 }
 
 impl StateStore for TursoStateStore {
     // Same run_future_iter pattern as SqliteStateStore for all methods.
-    // init() uses exec_future (bootstrap).
+    // init() uses exec_future (bootstrap), using self.resources_table().
     // Shares ResourceRowsIterator, IdRowsIterator with other SQL backends.
 }
+```
 ```
 
 ### R2StateStore
@@ -610,6 +728,9 @@ impl StateStore for TursoStateStore {
 HTTP-based async backend. Uses `run_future_iter` wrapping `SimpleHttpClient` calls.
 Each trait method schedules an async HTTP request via `run_future_iter` and returns
 a `StateStoreStream`.
+
+**Project/stage namespacing:** Object keys use prefix format `{project}/{stage}/{resource_id}.json`
+to isolate state per project and stage within the same R2 bucket.
 
 ```rust
 // state/r2.rs
@@ -624,16 +745,40 @@ const CF_API_BASE: &str = "https://api.cloudflare.com/client/v4";
 /// All trait methods use `run_future_iter` wrapping SimpleHttpClient HTTP calls.
 /// R2 API is async — the HTTP request runs on the worker thread, only the
 /// parsed result crosses the channel.
+///
+/// Object keys are prefixed with `{project}/{stage}/` for namespacing.
 pub struct R2StateStore {
     api_token: String,
     account_id: String,
     bucket_name: String,
-    prefix: String,
+    prefix: String,  // "{project}/{stage}/"
 }
 
 impl R2StateStore {
-    pub fn new(api_token: &str, account_id: &str, bucket_name: &str, prefix: Option<&str>) -> Self;
-    pub fn from_env() -> Result<Self, DeploymentError>;
+    /// Create a new R2 state store.
+    ///
+    /// Object keys will be prefixed with `{project}/{stage}/` for namespacing.
+    #[must_use]
+    pub fn new(
+        api_token: &str,
+        account_id: &str,
+        bucket_name: &str,
+        project: &str,
+        stage: &str,
+    ) -> Self {
+        let prefix = format!("{}/{}/", 
+            project.replace(' ', "-").replace('.', "-"),
+            stage.replace(' ', "-").replace('.', "-")
+        );
+        Self {
+            api_token: api_token.to_string(),
+            account_id: account_id.to_string(),
+            bucket_name: bucket_name.to_string(),
+            prefix,
+        }
+    }
+
+    pub fn from_env(project: &str, stage: &str) -> Result<Self, DeploymentError>;
 
     fn object_key(&self, resource_id: &str) -> String {
         let safe_id = resource_id.replace('/', ":");
@@ -712,6 +857,9 @@ impl StateStore for R2StateStore {
 HTTP-based async backend. Uses `run_future_iter` wrapping `SimpleHttpClient` calls
 to the D1 SQL-over-HTTP API. Same schema as other SQL backends.
 
+**Project/stage namespacing:** Uses table prefix `deployment_{project}_{stage}_resources`
+to isolate state per project and stage within the same D1 database.
+
 ```rust
 // state/d1.rs
 
@@ -725,15 +873,34 @@ const CF_API_BASE: &str = "https://api.cloudflare.com/client/v4";
 /// All trait methods use `run_future_iter` wrapping SimpleHttpClient HTTP calls.
 /// D1 API returns JSON rows — no !Send row iterators, but we still use
 /// `run_future_iter` for consistency and composability.
+///
+/// Table names are prefixed with `deployment_{project}_{stage}_` for namespacing.
 pub struct D1StateStore {
     api_token: String,
     account_id: String,
     database_id: String,
+    table_prefix: String,  // "deployment_{project}_{stage}_"
 }
 
 impl D1StateStore {
-    pub fn new(api_token: &str, account_id: &str, database_id: &str) -> Self;
-    pub fn from_env() -> Result<Self, DeploymentError>;
+    /// Create a new D1 state store.
+    ///
+    /// Table names will be prefixed with `deployment_{project}_{stage}_` for namespacing.
+    #[must_use]
+    pub fn new(api_token: &str, account_id: &str, database_id: &str, project: &str, stage: &str) -> Self {
+        let table_prefix = format!("deployment_{}_{}_", 
+            project.replace('-', "_").replace(' ', "_"),
+            stage.replace('-', "_").replace(' ', "_")
+        );
+        Self {
+            api_token: api_token.to_string(),
+            account_id: account_id.to_string(),
+            database_id: database_id.to_string(),
+            table_prefix,
+        }
+    }
+
+    pub fn from_env(project: &str, stage: &str) -> Result<Self, DeploymentError>;
 
     fn query_url(&self) -> String {
         format!(
@@ -741,23 +908,32 @@ impl D1StateStore {
             self.account_id, self.database_id
         )
     }
+
+    /// Get the table name for resources.
+    fn resources_table(&self) -> String {
+        format!("{}resources", self.table_prefix)
+    }
 }
 
 impl StateStore for D1StateStore {
     fn init(&self) -> Result<(), DeploymentError> {
         // exec_future — one-shot bootstrap: CREATE TABLE via D1 API
-        // POST { "sql": "CREATE TABLE IF NOT EXISTS resources (...)" }
+        // POST { "sql": "CREATE TABLE IF NOT EXISTS deployment_{project}_{stage}_resources (...)" }
+        let table = self.resources_table();
+        let sql = format!("CREATE TABLE IF NOT EXISTS {} (...)", table);
+        // POST sql via SimpleHttpClient
         todo!()
     }
 
     fn get(&self, resource_id: &str) -> Result<StateStoreStream<Option<ResourceState>>, DeploymentError> {
         let id = resource_id.to_string();
+        let table = self.resources_table();
         let url = self.query_url();
         let token = self.api_token.clone();
 
         let iter = run_future_iter(
             move || async move {
-                // POST { "sql": "SELECT * FROM resources WHERE id = ?", "params": [id] }
+                // POST { "sql": "SELECT * FROM {table} WHERE id = ?", "params": [id] }
                 // Parse D1 response: { "success": true, "result": [{ "results": [...] }] }
                 // D1 returns JSON rows — no !Send issues, parse directly
                 // Yield single Result<Option<ResourceState>, Error>
@@ -822,40 +998,54 @@ impl StateStore for D1StateStore {
 ///   5. LibSQL local — if LIBSQL_LOCAL_PATH is set or .deployment/libsql.db exists
 ///   6. SQLite (local-only) — if DEPLOYMENT_STATE_DB is set or .deployment/state.db exists
 ///   7. JSON files — default fallback
+///
+/// All stores are namespaced by project and stage to prevent state collisions
+/// between different projects or stages sharing the same backend infrastructure.
+///
+/// # Errors
+///
+/// Returns an error if the selected backend fails to initialize.
 pub fn create_state_store(
+    project: &str,
     project_dir: &Path,
     provider: &str,
     stage: &str,
-) -> Box<dyn StateStore> {
+) -> Result<Box<dyn StateStore>, StorageError> {
     if std::env::var("DEPLOYMENT_D1_DATABASE_ID").is_ok() {
-        Box::new(D1StateStore::from_env().expect(
-            "CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID must be set with DEPLOYMENT_D1_DATABASE_ID"
-        ))
-    } else if std::env::var("DEPLOYMENT_R2_BUCKET").is_ok() {
-        Box::new(R2StateStore::from_env().expect(
-            "CLOUDFLARE_API_TOKEN and CLOUDFLARE_ACCOUNT_ID must be set with DEPLOYMENT_R2_BUCKET"
-        ))
-    } else if std::env::var("TURSO_DATABASE_URL").is_ok() {
-        Box::new(TursoStateStore::from_env().expect(
-            "TURSO_AUTH_TOKEN must be set with TURSO_DATABASE_URL"
-        ))
-    } else if std::env::var("LIBSQL_TURSO_URL").is_ok() {
-        Box::new(LibSQLStateStore::from_env(project_dir).expect(
-            "LIBSQL_TURSO_TOKEN must be set with LIBSQL_TURSO_URL"
-        ))
-    } else if std::env::var("LIBSQL_LOCAL_PATH").is_ok()
+        return Ok(Box::new(D1StateStore::from_env(project, stage)?));
+    }
+
+    if std::env::var("DEPLOYMENT_R2_BUCKET").is_ok() {
+        return Ok(Box::new(R2StateStore::from_env(project, stage)?));
+    }
+
+    #[cfg(feature = "libsql")]
+    if std::env::var("TURSO_DATABASE_URL").is_ok() {
+        return Ok(Box::new(TursoStateStore::from_env(project, stage)?));
+    }
+
+    #[cfg(feature = "libsql")]
+    if std::env::var("LIBSQL_TURSO_URL").is_ok() {
+        return Ok(Box::new(LibSQLStateStore::from_env(project_dir, project, stage)?));
+    }
+
+    #[cfg(feature = "libsql")]
+    if std::env::var("LIBSQL_LOCAL_PATH").is_ok()
         || project_dir.join(".deployment/libsql.db").exists()
     {
-        Box::new(LibSQLStateStore::from_env(project_dir).unwrap_or_else(|_| {
-            LibSQLStateStore::local(&project_dir.join(".deployment/libsql.db"))
-        }))
-    } else if std::env::var("DEPLOYMENT_STATE_DB").is_ok()
+        return Ok(Box::new(LibSQLStateStore::from_env(project_dir, project, stage).unwrap_or_else(|_| {
+            LibSQLStateStore::local(&project_dir.join(".deployment/libsql.db"), project, stage)
+        })));
+    }
+
+    #[cfg(feature = "libsql")]
+    if std::env::var("DEPLOYMENT_STATE_DB").is_ok()
         || project_dir.join(".deployment/state.db").exists()
     {
-        Box::new(SqliteStateStore::from_env(project_dir))
-    } else {
-        Box::new(JsonFileStateStore::new(project_dir, provider, stage))
+        return Ok(Box::new(SqliteStateStore::from_env(project_dir, project, stage)?));
     }
+
+    Ok(Box::new(FileStateStore::new(project_dir, project, provider, stage)))
 }
 ```
 
