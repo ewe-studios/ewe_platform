@@ -643,8 +643,35 @@ impl ResourceGenerator {
             return None;
         }
 
-        // Get properties (may be empty for marker types)
-        let properties = schema.properties.unwrap_or_default();
+        // Skip schemas that are just type aliases (only have $ref with no own properties or composition)
+        // These don't add value as separate types and just clutter the codebase
+        let has_own_properties = schema.properties.as_ref().map_or(false, |p| !p.is_empty());
+        let is_ref_only = schema.ref_path.is_some() && !has_own_properties;
+
+        // Check if it's allOf with only references (no properties in any member)
+        let is_allof_refs_only = schema.all_of.as_ref().map_or(false, |allof| {
+            allof.iter().all(|member| {
+                member.ref_path.is_some() && member.properties.as_ref().map_or(true, |p| p.is_empty())
+            })
+        });
+
+        if is_ref_only || is_allof_refs_only {
+            // This is just a type alias/composition wrapper - skip it
+            tracing::debug!("Skipping composition-only schema: {}", schema_name);
+            return None;
+        }
+
+        // Merge properties from allOf members if present
+        let mut properties = schema.properties.unwrap_or_default();
+        if let Some(allof) = &schema.all_of {
+            for member in allof {
+                if let Some(member_props) = &member.properties {
+                    for (key, value) in member_props {
+                        properties.entry(key.clone()).or_insert_with(|| value.clone());
+                    }
+                }
+            }
+        }
 
         let rust_name = self.to_pascal_case(schema_name);
         // Rename types that conflict with Rust built-ins and keywords
@@ -704,6 +731,13 @@ impl ResourceGenerator {
                 required,
                 description,
             });
+        }
+
+        // Skip schemas that have no fields (empty structs with no value)
+        // These are typically composition-only wrappers that don't add semantic value
+        if fields.is_empty() {
+            tracing::debug!("Skipping schema with no fields: {}", schema_name);
+            return None;
         }
 
         Some(ResourceDef {
@@ -834,8 +868,16 @@ impl ResourceGenerator {
 
         let result = parts.join("_");
 
-        // Handle Rust keywords
-        Self::escape_keyword(&result)
+        // Handle Rust keywords and numeric starting characters
+        let escaped = Self::escape_keyword(&result);
+
+        // Prepend "field_" if starts with digit (more semantic than just "_")
+        // e.g., "1" -> "field_1", "24" -> "field_24"
+        if escaped.chars().next().map_or(false, |c| c.is_ascii_digit()) {
+            format!("field_{}", escaped)
+        } else {
+            escaped
+        }
     }
 
     /// Convert OpenAPI identifier to PascalCase Rust type name.

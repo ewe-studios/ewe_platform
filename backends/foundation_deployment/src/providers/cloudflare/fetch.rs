@@ -11,7 +11,7 @@
 
 use crate::error::DeploymentError;
 use foundation_core::valtron::{execute, from_future, StreamIterator, StreamIteratorExt};
-use serde_json::Value;
+use serde_json::{Map, Value};
 use std::path::{Path, PathBuf};
 use std::process::Command;
 
@@ -34,6 +34,93 @@ const RELEVANT_PREFIXES: &[&str] = &[
 
 /// Progress states for Cloudflare fetch (always () - no intermediate progress).
 pub type CloudflareFetchPending = ();
+
+/// Normalize a Cloudflare schema name to a Rust-safe identifier.
+///
+/// Replaces `-`, `.`, `@` with `_` and ensures the name starts with a letter.
+fn normalize_schema_name(name: &str) -> String {
+    let normalized = name
+        .replace('-', "_")
+        .replace('.', "_")
+        .replace('@', "_");
+
+    // Ensure name starts with a letter (prepend underscore if it starts with digit)
+    if normalized.chars().next().map_or(false, |c| c.is_ascii_digit()) {
+        format!("_{}", normalized)
+    } else {
+        normalized
+    }
+}
+
+/// Normalize all schema names in components/schemas and update $ref references.
+fn normalize_cloudflare_spec(spec: &mut Value) {
+    let Some(obj) = spec.as_object_mut() else { return };
+
+    // First, collect schema renames
+    let mut renames: Vec<(String, String)> = Vec::new();
+
+    if let Some(components) = obj.get_mut("components").and_then(|c| c.as_object_mut()) {
+        if let Some(schemas) = components.get_mut("schemas").and_then(|s| s.as_object_mut()) {
+            let keys: Vec<String> = schemas.keys().cloned().collect();
+
+            for key in keys {
+                let normalized = normalize_schema_name(&key);
+                if normalized != key {
+                    renames.push((key.clone(), normalized));
+                }
+            }
+
+            // Rename schemas
+            for (old, new) in &renames {
+                if let Some(schema) = schemas.remove(old) {
+                    schemas.insert(new.clone(), schema);
+                }
+            }
+        }
+    }
+
+    // Build a rename map for $ref updates
+    let rename_map: Map<String, Value> = renames
+        .iter()
+        .map(|(old, new)| {
+            let old_ref = format!("#/components/schemas/{}", old);
+            let new_ref = format!("#/components/schemas/{}", new);
+            (old_ref.clone(), Value::String(new_ref))
+        })
+        .collect();
+
+    // Update all $ref references in paths and schemas
+    if !rename_map.is_empty() {
+        let mut spec_value = Value::Object(std::mem::take(obj));
+        update_refs_in_value(&mut spec_value, &rename_map);
+        *obj = spec_value.as_object_mut().unwrap().clone();
+    }
+}
+
+/// Recursively update $ref fields in a JSON value.
+fn update_refs_in_value(value: &mut Value, rename_map: &Map<String, Value>) {
+    match value {
+        Value::Object(obj) => {
+            for (key, val) in obj.iter_mut() {
+                if key == "$ref" {
+                    if let Value::String(ref_path) = val {
+                        if let Some(new_ref) = rename_map.get(ref_path) {
+                            *val = new_ref.clone();
+                        }
+                    }
+                } else {
+                    update_refs_in_value(val, rename_map);
+                }
+            }
+        }
+        Value::Array(arr) => {
+            for item in arr.iter_mut() {
+                update_refs_in_value(item, rename_map);
+            }
+        }
+        _ => {}
+    }
+}
 
 /// Fetch Cloudflare specs by cloning the GitHub repo.
 ///
@@ -100,12 +187,27 @@ pub fn fetch_cloudflare_specs(
         let output_path = output_dir.join("openapi.json");
 
         if spec_files.len() == 1 {
-            // Single file - copy directly
+            // Single file - copy, normalize, and write
             let (_, src_path) = &spec_files[0];
-            std::fs::copy(src_path, &output_path).map_err(|e| DeploymentError::Generic(format!(
-                "Failed to copy spec file: {e}"
+            let content = std::fs::read_to_string(src_path).map_err(|e| DeploymentError::Generic(format!(
+                "Failed to read spec file: {e}"
             )))?;
-            tracing::info!("Copied Cloudflare spec to: {}", output_path.display());
+
+            let mut spec: Value = serde_json::from_str(&content).map_err(|e| DeploymentError::Generic(format!(
+                "Failed to parse spec: {e}"
+            )))?;
+
+            // Normalize schema names and update $refs
+            normalize_cloudflare_spec(&mut spec);
+
+            let normalized = serde_json::to_string_pretty(&spec).map_err(|e| DeploymentError::Generic(format!(
+                "Failed to serialize normalized spec: {e}"
+            )))?;
+
+            std::fs::write(&output_path, normalized).map_err(|e| DeploymentError::Generic(format!(
+                "Failed to write output file: {e}"
+            )))?;
+            tracing::info!("Copied and normalized Cloudflare spec to: {}", output_path.display());
         } else {
             // Multiple files - consolidate by merging paths and schemas
             let mut merged_paths = serde_json::Map::new();
@@ -129,7 +231,9 @@ pub fn fetch_cloudflare_specs(
                         // Merge components/schemas
                         if let Some(schemas) = obj.get("components").and_then(|c| c.get("schemas")).and_then(|s| s.as_object()) {
                             for (schema_name, schema) in schemas {
-                                let prefixed_name = format!("{}_{schema_name}", name.replace(".json", ""));
+                                // Normalize and prefix the schema name
+                                let normalized = normalize_schema_name(schema_name);
+                                let prefixed_name = format!("{}_{}", name.replace(".json", ""), normalized);
                                 merged_schemas.insert(prefixed_name, schema.clone());
                             }
                         }

@@ -1,3 +1,4 @@
+pub mod clients;
 pub mod fetch;
 pub mod provider;
-// pub mod resources; // Auto-generated, not yet compiling
+pub mod resources;
