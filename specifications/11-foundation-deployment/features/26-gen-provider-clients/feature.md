@@ -39,7 +39,7 @@ The `gen_resources clients` subcommand generates **type-safe API endpoint functi
 **Design Philosophy:**
 - **No client structs** - Just plain functions
 - **No hidden state** - Pass `SimpleHttpClient` explicitly
-- **Three-tier API** - Builder + Execute + Convenience functions for each endpoint
+- **Four-tier API** - Builder + Task + Execute + Convenience functions for each endpoint
 
 **Input:** 
 - OpenAPI specs in `artefacts/cloud_providers/{provider}/{api}/openapi.json`
@@ -48,9 +48,9 @@ The `gen_resources clients` subcommand generates **type-safe API endpoint functi
 **Output:** 
 - Rust client modules in `backends/foundation_deployment/src/providers/{provider}/clients/`
 
-## Three-Tier Function Design
+## Four-Tier Function Design
 
-For each OpenAPI endpoint, generate **three functions**:
+For each OpenAPI endpoint, generate **four functions**:
 
 ### Tier 1: Request Builder Function
 
@@ -88,16 +88,16 @@ pub fn list_services_builder(
 - Modify timeouts per-request
 - Add custom middleware
 
-### Tier 2: Execute Function
+### Tier 2: Task Function (NEW)
 
-Takes a `ClientRequestBuilder`, calls `.build_send_request()` to get `SendRequestTask`, applies valtron combinators, and returns `Result<StreamIterator, Error>`:
+Takes a `ClientRequestBuilder`, calls `.build_send_request()` to get `SendRequestTask`, applies valtron combinators, and returns `Result<TaskIterator, Error>`:
 
 ```rust
 // providers/gcp/clients/run.rs - Generated
 
-use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt};
+use foundation_core::valtron::{TaskIterator, TaskIteratorExt};
 use foundation_core::wire::simple_http::client::{
-    RequestIntro, body_reader, SimpleHttpClient,
+    RequestIntro, body_reader, ClientRequestBuilder, SystemDnsResolver,
 };
 use crate::providers::gcp::resources::run::*;
 use crate::providers::gcp::clients::types::*;
@@ -105,17 +105,86 @@ use crate::providers::gcp::clients::types::*;
 /// GET /apis/serving.k8s.io/v1/namespaces/{namespace}/services
 /// List all Cloud Run services in a namespace.
 ///
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `list_services_execute()` or `list_services()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `list_services_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+pub fn list_services_task(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl TaskIterator<
+        D = Result<ApiResponse<ListServicesResponse>, ApiError>,
+        P = ApiPending
+    > + Send + 'static,
+    ApiError,
+> {
+    Ok(builder
+        .build_send_request()
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
+        .map_ready(|intro| match intro {
+            RequestIntro::Success { stream, status, headers } => {
+                // Extract headers, check status, parse body
+                // Return ApiResponse<T> or Err(ApiError)
+            }
+            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e)),
+        })
+        .map_pending(|_| ApiPending::Sending))
+}
+```
+
+**Key Design Points:**
+
+- **`build_send_request()`** - Returns `SendRequestTask` directly
+- **`TaskIteratorExt` combinators** - `map_ready()`, `map_pending()` applied
+- **NO `execute()`** - Returns `TaskIterator` for user to wrap
+- **Wrapped in `Ok()`** - Returns `Result<TaskIterator, Error>` for sync build errors
+- **Return type uses `impl Trait`** - Hides concrete task type
+
+**Use cases for task functions:**
+- Wrap with custom valtron combinators (retry, timeout, logging)
+- Compose with other tasks using `join()`, `race()`, `chain()`
+- Test task construction without triggering execution
+- Defer execution to a later point in the pipeline
+
+### Tier 3: Execute Function
+
+Takes a `ClientRequestBuilder`, calls `*_task()` to get the `TaskIterator`, then calls `execute()` to return `Result<StreamIterator, Error>`:
+
+```rust
+// providers/gcp/clients/run.rs - Generated
+
+use foundation_core::valtron::{execute, StreamIterator};
+use foundation_core::wire::simple_http::client::ClientRequestBuilder;
+use crate::providers::gcp::resources::run::*;
+use crate::providers::gcp::clients::types::*;
+
+/// GET /apis/serving.k8s.io/v1/namespaces/{namespace}/services
+/// List all Cloud Run services in a namespace.
+///
 /// Takes a `ClientRequestBuilder`, builds and executes the request,
-/// and returns the parsed response.
+/// and returns the parsed response via a `StreamIterator`.
 ///
 /// For full customization, use `list_services_builder()` to create the builder,
 /// modify it, then call `list_services_execute()` with your customized builder.
+/// For task-level control, use `list_services_task()`.
 /// For the simplest API, use `list_services()` directly.
 ///
 /// # Arguments
 ///
 /// * `builder` - A `ClientRequestBuilder`, typically from `list_services_builder()`
-/// * `client` - The HTTP client (for pool/config in execute)
 ///
 /// # Errors
 ///
@@ -123,7 +192,6 @@ use crate::providers::gcp::clients::types::*;
 /// HTTP errors during execution are returned via the StreamIterator.
 pub fn list_services_execute(
     builder: ClientRequestBuilder<SystemDnsResolver>,
-    _client: &SimpleHttpClient,
 ) -> Result<
     impl StreamIterator<
         D = Result<ApiResponse<ListServicesResponse>, ApiError>,
@@ -131,41 +199,20 @@ pub fn list_services_execute(
     > + Send + 'static,
     ApiError,
 > {
-    // Step 1: Get SendRequestTask directly from builder
-    // build_send_request() extracts pool/config from builder internally
-    let task = builder
-        .build_send_request()
-        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
-        .map_ready(|intro| match intro {
-            RequestIntro::Success { stream, status } => {
-                // Extract headers
-                let headers = status.headers().clone();
-                
-                // Check status
-                if !status.is_success() {
-                    return Err(ApiError::HttpStatus {
-                        code: status.as_u16(),
-                        headers,
-                    });
-                }
-                
-                // Parse body
-                let body = body_reader::collect_string(stream);
-                let parsed: ListServicesResponse = serde_json::from_str(&body)
-                    .map_err(|e| ApiError::ParseFailed(e.to_string()))?;
-                
-                Ok(ApiResponse {
-                    status: status.as_u16(),
-                    headers,
-                    body: parsed,
-                })
-            }
-            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
-        })
-        .map_pending(|_| ApiPending::Sending);
+    // Delegate to task function
+    let task = list_services_task(builder)?;
     
-    // Step 2: Convert TaskIterator to StreamIterator via execute()
+    // Convert TaskIterator to StreamIterator via execute()
     execute(task, None)
+        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
+}
+```
+
+**Key Design Points:**
+
+- **Delegates to `*_task()`** - Avoids code duplication
+- **`execute()`** - Converts `TaskIterator` to `StreamIterator`
+- **Pattern reference** - Follow existing execute function pattern
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 ```
@@ -242,18 +289,19 @@ pub struct ApiResponse<T> {
 
 ## Function Naming Convention
 
-| OpenAPI | Builder Function | Execute Function | Convenience Function |
-|---------|-----------------|------------------|---------------------|
-| `GET /services` | `list_services_builder()` | `list_services_execute()` | `list_services()` |
-| `POST /services` | `create_service_builder()` | `create_service_execute()` | `create_service()` |
-| `GET /services/{name}` | `get_service_builder()` | `get_service_execute()` | `get_service()` |
-| `PUT /services/{name}` | `update_service_builder()` | `update_service_execute()` | `update_service()` |
-| `DELETE /services/{name}` | `delete_service_builder()` | `delete_service_execute()` | `delete_service()` |
+| OpenAPI | Builder | Task | Execute | Convenience |
+|---------|---------|------|---------|-------------|
+| `GET /services` | `list_services_builder()` | `list_services_task()` | `list_services_execute()` | `list_services()` |
+| `POST /services` | `create_service_builder()` | `create_service_task()` | `create_service_execute()` | `create_service()` |
+| `GET /services/{name}` | `get_service_builder()` | `get_service_task()` | `get_service_execute()` | `get_service()` |
+| `PUT /services/{name}` | `update_service_builder()` | `update_service_task()` | `update_service_execute()` | `update_service()` |
+| `DELETE /services/{name}` | `delete_service_builder()` | `delete_service_task()` | `delete_service_execute()` | `delete_service()` |
 
 **Naming Rationale:**
 
 - **Builder** (`_builder` suffix): Returns `ClientRequestBuilder` for customization
-- **Execute** (`_execute` suffix): Takes builder, applies valtron combinators, returns `StreamIterator`
+- **Task** (`_task` suffix): Returns `TaskIterator` for composition/wrapping
+- **Execute** (`_execute` suffix): Takes builder, calls `*_task()`, then `execute()`, returns `StreamIterator`
 - **Convenience** (no suffix): Combines builder + execute for simplest API
 
 ## Directory Structure
@@ -787,9 +835,10 @@ fn generate_valtron_chain_execute(
 ## Success Criteria
 
 - [x] All 8 tasks completed
-- [x] Three functions per endpoint (builder + execute + convenience)
+- [x] Four functions per endpoint (builder + task + execute + convenience)
 - [x] Builder returns `Result<ClientRequestBuilder, Error>`
-- [x] Execute (`{endpoint}_execute()`) takes builder, returns `Result<StreamIterator<ApiResponse<T>>, Error>`
+- [x] Task (`{endpoint}_task()`) takes builder, returns `Result<impl TaskIterator<...>, Error>`
+- [x] Execute (`{endpoint}_execute()`) delegates to task function, returns `Result<StreamIterator<ApiResponse<T>>, Error>`
 - [x] Convenience (`{endpoint}()`) combines builder + execute
 - [x] Generated code compiles with zero warnings
 - [x] All providers have generated clients
@@ -832,7 +881,7 @@ cargo clippy -p foundation_deployment -- -D warnings -W clippy::pedantic
 ```rust
 use crate::providers::gcp::clients::run::*;
 use crate::providers::gcp::resources::run::*;
-use foundation_core::valtron::Stream;
+use foundation_core::valtron::{Stream, execute};
 
 // Option 1: Convenience function - simplest API
 let stream = list_services(&client, "my-project")?;
@@ -849,22 +898,43 @@ for item in stream {
     }
 }
 
-// Option 2: Builder + Execute - full customization
+// Option 2: Builder + Task + Execute - full customization
 let builder = list_services_builder(&client, "my-project")?
     .header("X-Custom-Header", "value")
     .header("Authorization", "Bearer token");
+
+let task = list_services_task(builder)?;
+// Wrap with custom valtron combinators (retry, timeout, logging)
+let wrapped_task = task
+    .map_pending(|p| {
+        println!("Task pending: {:?}", p);
+        p
+    });
+
+let stream = execute(wrapped_task, None)?;
+for item in stream {
+    // Handle response
+}
+
+// Option 3: Builder + Execute - still supported
+let builder = list_services_builder(&client, "my-project")?
+    .header("X-Custom-Header", "value");
 
 let stream = list_services_execute(builder)?;
 for item in stream {
     // Handle response
 }
 
-// Option 3: Reuse execution logic with different builders
+// Option 4: Task composition
 let builder1 = list_services_builder(&client, "project-1")?;
-let stream1 = list_services_execute(builder1)?;
-
 let builder2 = list_services_builder(&client, "project-2")?;
-let stream2 = list_services_execute(builder2)?;
+
+let task1 = list_services_task(builder1)?;
+let task2 = list_services_task(builder2)?;
+
+// Compose tasks using valtron combinators
+let joined = task1.join(task2);
+let results = execute(joined, None)?;
 ```
 
 ---

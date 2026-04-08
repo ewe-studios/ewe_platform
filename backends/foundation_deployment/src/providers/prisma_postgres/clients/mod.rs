@@ -11,7 +11,9 @@ pub mod types;
 
 use crate::providers::prisma_postgres::clients::types::*;
 use crate::providers::prisma_postgres::resources::*;
-use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskIteratorExt};
+use foundation_core::valtron::{
+    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+};
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
@@ -61,29 +63,33 @@ pub fn get_v1_compute_services_builder(
 /// GET /v1/compute-services
 /// List compute services
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_compute_services_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_compute_services_execute()` or `get_v1_compute_services`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_compute_services_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_compute_services_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_compute_services_execute(
+pub fn get_v1_compute_services_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ComputeservicesGetResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
+    impl TaskIterator<D = Result<ApiResponse<ComputeservicesGetResponse>, ApiError>, P = ApiPending>
+        + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -122,9 +128,40 @@ pub fn get_v1_compute_services_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/compute-services
+/// List compute services
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_compute_services_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_compute_services_task()`.
+/// For the simplest API, use `get_v1_compute_services()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_compute_services_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_compute_services_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ComputeservicesGetResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_compute_services_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -144,6 +181,7 @@ pub struct GetV1ComputeServicesArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_compute_services_builder()` + `get_v1_compute_services_execute()`.
+/// For task-level control, use `get_v1_compute_services_task()`.
 ///
 /// # Errors
 ///
@@ -195,29 +233,33 @@ pub fn post_v1_compute_services_builder(
 /// POST /v1/compute-services
 /// Create compute service
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_v1_compute_services_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_v1_compute_services_execute()` or `post_v1_compute_services`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_v1_compute_services_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_compute_services_execute(
+pub fn post_v1_compute_services_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ComputeservicesPostResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
+    impl TaskIterator<D = Result<ApiResponse<ComputeservicesPostResponse>, ApiError>, P = ApiPending>
+        + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -256,9 +298,40 @@ pub fn post_v1_compute_services_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /v1/compute-services
+/// Create compute service
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_v1_compute_services_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_v1_compute_services_task()`.
+/// For the simplest API, use `post_v1_compute_services()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_v1_compute_services_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ComputeservicesPostResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_v1_compute_services_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -274,6 +347,7 @@ pub struct PostV1ComputeServicesArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_v1_compute_services_builder()` + `post_v1_compute_services_execute()`.
+/// For task-level control, use `post_v1_compute_services_task()`.
 ///
 /// # Errors
 ///
@@ -321,29 +395,35 @@ pub fn get_v1_compute_services_versions_versionId_builder(
 /// GET /v1/compute-services/versions/{versionId}
 /// Get compute version
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_compute_services_versions_versionId_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_compute_services_versions_versionId_execute()` or `get_v1_compute_services_versions_versionId`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_compute_services_versions_versionId_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_compute_services_versions_versionId_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_compute_services_versions_versionId_execute(
+pub fn get_v1_compute_services_versions_versionId_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
+    impl TaskIterator<
             D = Result<ApiResponse<ComputeservicesVersionsGetResponse>, ApiError>,
             P = ApiPending,
         > + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -382,9 +462,40 @@ pub fn get_v1_compute_services_versions_versionId_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/compute-services/versions/{versionId}
+/// Get compute version
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_compute_services_versions_versionId_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_compute_services_versions_versionId_task()`.
+/// For the simplest API, use `get_v1_compute_services_versions_versionId()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_compute_services_versions_versionId_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_compute_services_versions_versionId_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ComputeservicesVersionsGetResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_compute_services_versions_versionId_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -400,6 +511,7 @@ pub struct GetV1ComputeServicesVersionsVersionIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_compute_services_versions_versionId_builder()` + `get_v1_compute_services_versions_versionId_execute()`.
+/// For task-level control, use `get_v1_compute_services_versions_versionId_task()`.
 ///
 /// # Errors
 ///
@@ -447,25 +559,31 @@ pub fn delete_v1_compute_services_versions_versionId_builder(
 /// DELETE /v1/compute-services/versions/{versionId}
 /// Delete compute version
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_v1_compute_services_versions_versionId_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_v1_compute_services_versions_versionId_execute()` or `delete_v1_compute_services_versions_versionId`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_v1_compute_services_versions_versionId_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_compute_services_versions_versionId_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_v1_compute_services_versions_versionId_execute(
+pub fn delete_v1_compute_services_versions_versionId_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -501,9 +619,36 @@ pub fn delete_v1_compute_services_versions_versionId_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /v1/compute-services/versions/{versionId}
+/// Delete compute version
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_v1_compute_services_versions_versionId_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_v1_compute_services_versions_versionId_task()`.
+/// For the simplest API, use `delete_v1_compute_services_versions_versionId()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_compute_services_versions_versionId_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_v1_compute_services_versions_versionId_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_v1_compute_services_versions_versionId_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -519,6 +664,7 @@ pub struct DeleteV1ComputeServicesVersionsVersionIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_v1_compute_services_versions_versionId_builder()` + `delete_v1_compute_services_versions_versionId_execute()`.
+/// For task-level control, use `delete_v1_compute_services_versions_versionId_task()`.
 ///
 /// # Errors
 ///
@@ -562,29 +708,35 @@ pub fn post_v1_compute_services_versions_versionId_start_builder(
 /// POST /v1/compute-services/versions/{versionId}/start
 /// Start compute version
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_v1_compute_services_versions_versionId_start_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_v1_compute_services_versions_versionId_start_execute()` or `post_v1_compute_services_versions_versionId_start`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_v1_compute_services_versions_versionId_start_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_versions_versionId_start_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_compute_services_versions_versionId_start_execute(
+pub fn post_v1_compute_services_versions_versionId_start_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
+    impl TaskIterator<
             D = Result<ApiResponse<ComputeservicesVersionsStartPostResponse>, ApiError>,
             P = ApiPending,
         > + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -623,9 +775,40 @@ pub fn post_v1_compute_services_versions_versionId_start_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /v1/compute-services/versions/{versionId}/start
+/// Start compute version
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_v1_compute_services_versions_versionId_start_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_v1_compute_services_versions_versionId_start_task()`.
+/// For the simplest API, use `post_v1_compute_services_versions_versionId_start()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_versions_versionId_start_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_v1_compute_services_versions_versionId_start_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ComputeservicesVersionsStartPostResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_v1_compute_services_versions_versionId_start_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -641,6 +824,7 @@ pub struct PostV1ComputeServicesVersionsVersionIdStartArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_v1_compute_services_versions_versionId_start_builder()` + `post_v1_compute_services_versions_versionId_start_execute()`.
+/// For task-level control, use `post_v1_compute_services_versions_versionId_start_task()`.
 ///
 /// # Errors
 ///
@@ -689,25 +873,31 @@ pub fn post_v1_compute_services_versions_versionId_stop_builder(
 /// POST /v1/compute-services/versions/{versionId}/stop
 /// Stop compute version
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_v1_compute_services_versions_versionId_stop_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_v1_compute_services_versions_versionId_stop_execute()` or `post_v1_compute_services_versions_versionId_stop`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_v1_compute_services_versions_versionId_stop_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_versions_versionId_stop_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_compute_services_versions_versionId_stop_execute(
+pub fn post_v1_compute_services_versions_versionId_stop_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -743,9 +933,36 @@ pub fn post_v1_compute_services_versions_versionId_stop_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /v1/compute-services/versions/{versionId}/stop
+/// Stop compute version
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_v1_compute_services_versions_versionId_stop_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_v1_compute_services_versions_versionId_stop_task()`.
+/// For the simplest API, use `post_v1_compute_services_versions_versionId_stop()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_versions_versionId_stop_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_v1_compute_services_versions_versionId_stop_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_v1_compute_services_versions_versionId_stop_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -761,6 +978,7 @@ pub struct PostV1ComputeServicesVersionsVersionIdStopArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_v1_compute_services_versions_versionId_stop_builder()` + `post_v1_compute_services_versions_versionId_stop_execute()`.
+/// For task-level control, use `post_v1_compute_services_versions_versionId_stop_task()`.
 ///
 /// # Errors
 ///
@@ -805,29 +1023,33 @@ pub fn get_v1_compute_services_computeServiceId_builder(
 /// GET /v1/compute-services/{computeServiceId}
 /// Get compute service
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_compute_services_computeServiceId_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_compute_services_computeServiceId_execute()` or `get_v1_compute_services_computeServiceId`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_compute_services_computeServiceId_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_compute_services_computeServiceId_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_compute_services_computeServiceId_execute(
+pub fn get_v1_compute_services_computeServiceId_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<ComputeservicesGetResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
+    impl TaskIterator<D = Result<ApiResponse<ComputeservicesGetResponse>, ApiError>, P = ApiPending>
+        + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -866,9 +1088,40 @@ pub fn get_v1_compute_services_computeServiceId_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/compute-services/{computeServiceId}
+/// Get compute service
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_compute_services_computeServiceId_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_compute_services_computeServiceId_task()`.
+/// For the simplest API, use `get_v1_compute_services_computeServiceId()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_compute_services_computeServiceId_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_compute_services_computeServiceId_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ComputeservicesGetResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_compute_services_computeServiceId_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -884,6 +1137,7 @@ pub struct GetV1ComputeServicesComputeServiceIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_compute_services_computeServiceId_builder()` + `get_v1_compute_services_computeServiceId_execute()`.
+/// For task-level control, use `get_v1_compute_services_computeServiceId_task()`.
 ///
 /// # Errors
 ///
@@ -934,29 +1188,35 @@ pub fn patch_v1_compute_services_computeServiceId_builder(
 /// PATCH /v1/compute-services/{computeServiceId}
 /// Update compute service
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_v1_compute_services_computeServiceId_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_v1_compute_services_computeServiceId_execute()` or `patch_v1_compute_services_computeServiceId`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_v1_compute_services_computeServiceId_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_v1_compute_services_computeServiceId_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_v1_compute_services_computeServiceId_execute(
+pub fn patch_v1_compute_services_computeServiceId_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
+    impl TaskIterator<
             D = Result<ApiResponse<ComputeservicesPatchResponse>, ApiError>,
             P = ApiPending,
         > + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -995,9 +1255,40 @@ pub fn patch_v1_compute_services_computeServiceId_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /v1/compute-services/{computeServiceId}
+/// Update compute service
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_v1_compute_services_computeServiceId_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_v1_compute_services_computeServiceId_task()`.
+/// For the simplest API, use `patch_v1_compute_services_computeServiceId()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_v1_compute_services_computeServiceId_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_v1_compute_services_computeServiceId_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ComputeservicesPatchResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = patch_v1_compute_services_computeServiceId_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1015,6 +1306,7 @@ pub struct PatchV1ComputeServicesComputeServiceIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_v1_compute_services_computeServiceId_builder()` + `patch_v1_compute_services_computeServiceId_execute()`.
+/// For task-level control, use `patch_v1_compute_services_computeServiceId_task()`.
 ///
 /// # Errors
 ///
@@ -1066,25 +1358,31 @@ pub fn delete_v1_compute_services_computeServiceId_builder(
 /// DELETE /v1/compute-services/{computeServiceId}
 /// Delete compute service
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_v1_compute_services_computeServiceId_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_v1_compute_services_computeServiceId_execute()` or `delete_v1_compute_services_computeServiceId`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_v1_compute_services_computeServiceId_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_compute_services_computeServiceId_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_v1_compute_services_computeServiceId_execute(
+pub fn delete_v1_compute_services_computeServiceId_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -1120,9 +1418,36 @@ pub fn delete_v1_compute_services_computeServiceId_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /v1/compute-services/{computeServiceId}
+/// Delete compute service
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_v1_compute_services_computeServiceId_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_v1_compute_services_computeServiceId_task()`.
+/// For the simplest API, use `delete_v1_compute_services_computeServiceId()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_compute_services_computeServiceId_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_v1_compute_services_computeServiceId_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_v1_compute_services_computeServiceId_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1138,6 +1463,7 @@ pub struct DeleteV1ComputeServicesComputeServiceIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_v1_compute_services_computeServiceId_builder()` + `delete_v1_compute_services_computeServiceId_execute()`.
+/// For task-level control, use `delete_v1_compute_services_computeServiceId_task()`.
 ///
 /// # Errors
 ///
@@ -1185,29 +1511,35 @@ pub fn post_v1_compute_services_computeServiceId_promote_builder(
 /// POST /v1/compute-services/{computeServiceId}/promote
 /// Promote compute version
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_v1_compute_services_computeServiceId_promote_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_v1_compute_services_computeServiceId_promote_execute()` or `post_v1_compute_services_computeServiceId_promote`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_v1_compute_services_computeServiceId_promote_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_computeServiceId_promote_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_compute_services_computeServiceId_promote_execute(
+pub fn post_v1_compute_services_computeServiceId_promote_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
+    impl TaskIterator<
             D = Result<ApiResponse<ComputeservicesPromotePostResponse>, ApiError>,
             P = ApiPending,
         > + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -1246,9 +1578,40 @@ pub fn post_v1_compute_services_computeServiceId_promote_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /v1/compute-services/{computeServiceId}/promote
+/// Promote compute version
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_v1_compute_services_computeServiceId_promote_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_v1_compute_services_computeServiceId_promote_task()`.
+/// For the simplest API, use `post_v1_compute_services_computeServiceId_promote()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_computeServiceId_promote_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_v1_compute_services_computeServiceId_promote_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ComputeservicesPromotePostResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_v1_compute_services_computeServiceId_promote_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1266,6 +1629,7 @@ pub struct PostV1ComputeServicesComputeServiceIdPromoteArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_v1_compute_services_computeServiceId_promote_builder()` + `post_v1_compute_services_computeServiceId_promote_execute()`.
+/// For task-level control, use `post_v1_compute_services_computeServiceId_promote_task()`.
 ///
 /// # Errors
 ///
@@ -1333,29 +1697,35 @@ pub fn get_v1_compute_services_computeServiceId_versions_builder(
 /// GET /v1/compute-services/{computeServiceId}/versions
 /// List compute versions
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_compute_services_computeServiceId_versions_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_compute_services_computeServiceId_versions_execute()` or `get_v1_compute_services_computeServiceId_versions`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_compute_services_computeServiceId_versions_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_compute_services_computeServiceId_versions_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_compute_services_computeServiceId_versions_execute(
+pub fn get_v1_compute_services_computeServiceId_versions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
+    impl TaskIterator<
             D = Result<ApiResponse<ComputeservicesVersionsGetResponse>, ApiError>,
             P = ApiPending,
         > + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -1394,9 +1764,40 @@ pub fn get_v1_compute_services_computeServiceId_versions_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/compute-services/{computeServiceId}/versions
+/// List compute versions
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_compute_services_computeServiceId_versions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_compute_services_computeServiceId_versions_task()`.
+/// For the simplest API, use `get_v1_compute_services_computeServiceId_versions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_compute_services_computeServiceId_versions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_compute_services_computeServiceId_versions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ComputeservicesVersionsGetResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_compute_services_computeServiceId_versions_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1416,6 +1817,7 @@ pub struct GetV1ComputeServicesComputeServiceIdVersionsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_compute_services_computeServiceId_versions_builder()` + `get_v1_compute_services_computeServiceId_versions_execute()`.
+/// For task-level control, use `get_v1_compute_services_computeServiceId_versions_task()`.
 ///
 /// # Errors
 ///
@@ -1471,29 +1873,35 @@ pub fn post_v1_compute_services_computeServiceId_versions_builder(
 /// POST /v1/compute-services/{computeServiceId}/versions
 /// Create compute version
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_v1_compute_services_computeServiceId_versions_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_v1_compute_services_computeServiceId_versions_execute()` or `post_v1_compute_services_computeServiceId_versions`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_v1_compute_services_computeServiceId_versions_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_computeServiceId_versions_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_compute_services_computeServiceId_versions_execute(
+pub fn post_v1_compute_services_computeServiceId_versions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
+    impl TaskIterator<
             D = Result<ApiResponse<ComputeservicesVersionsPostResponse>, ApiError>,
             P = ApiPending,
         > + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -1532,9 +1940,40 @@ pub fn post_v1_compute_services_computeServiceId_versions_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /v1/compute-services/{computeServiceId}/versions
+/// Create compute version
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_v1_compute_services_computeServiceId_versions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_v1_compute_services_computeServiceId_versions_task()`.
+/// For the simplest API, use `post_v1_compute_services_computeServiceId_versions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_compute_services_computeServiceId_versions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_v1_compute_services_computeServiceId_versions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ComputeservicesVersionsPostResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_v1_compute_services_computeServiceId_versions_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1552,6 +1991,7 @@ pub struct PostV1ComputeServicesComputeServiceIdVersionsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_v1_compute_services_computeServiceId_versions_builder()` + `post_v1_compute_services_computeServiceId_versions_execute()`.
+/// For task-level control, use `post_v1_compute_services_computeServiceId_versions_task()`.
 ///
 /// # Errors
 ///
@@ -1619,27 +2059,33 @@ pub fn get_v1_connections_builder(
 /// GET /v1/connections
 /// List connections
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_connections_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_connections_execute()` or `get_v1_connections`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_connections_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_connections_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_connections_execute(
+pub fn get_v1_connections_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ConnectionsGetResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<ConnectionsGetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -1678,9 +2124,38 @@ pub fn get_v1_connections_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/connections
+/// List connections
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_connections_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_connections_task()`.
+/// For the simplest API, use `get_v1_connections()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_connections_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_connections_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ConnectionsGetResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_connections_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1700,6 +2175,7 @@ pub struct GetV1ConnectionsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_connections_builder()` + `get_v1_connections_execute()`.
+/// For task-level control, use `get_v1_connections_task()`.
 ///
 /// # Errors
 ///
@@ -1749,27 +2225,33 @@ pub fn post_v1_connections_builder(
 /// POST /v1/connections
 /// Create connection
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_v1_connections_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_v1_connections_execute()` or `post_v1_connections`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_v1_connections_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_connections_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_connections_execute(
+pub fn post_v1_connections_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ConnectionsPostResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<ConnectionsPostResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -1808,9 +2290,38 @@ pub fn post_v1_connections_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /v1/connections
+/// Create connection
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_v1_connections_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_v1_connections_task()`.
+/// For the simplest API, use `post_v1_connections()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_connections_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_v1_connections_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ConnectionsPostResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_v1_connections_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1826,6 +2337,7 @@ pub struct PostV1ConnectionsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_v1_connections_builder()` + `post_v1_connections_execute()`.
+/// For task-level control, use `post_v1_connections_task()`.
 ///
 /// # Errors
 ///
@@ -1868,27 +2380,33 @@ pub fn get_v1_connections_id_builder(
 /// GET /v1/connections/{id}
 /// Get connection
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_connections_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_connections_id_execute()` or `get_v1_connections_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_connections_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_connections_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_connections_id_execute(
+pub fn get_v1_connections_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ConnectionsGetResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<ConnectionsGetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -1927,9 +2445,38 @@ pub fn get_v1_connections_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/connections/{id}
+/// Get connection
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_connections_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_connections_id_task()`.
+/// For the simplest API, use `get_v1_connections_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_connections_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_connections_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ConnectionsGetResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_connections_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1945,6 +2492,7 @@ pub struct GetV1ConnectionsIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_connections_id_builder()` + `get_v1_connections_id_execute()`.
+/// For task-level control, use `get_v1_connections_id_task()`.
 ///
 /// # Errors
 ///
@@ -1987,25 +2535,31 @@ pub fn delete_v1_connections_id_builder(
 /// DELETE /v1/connections/{id}
 /// Delete connection
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_v1_connections_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_v1_connections_id_execute()` or `delete_v1_connections_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_v1_connections_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_connections_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_v1_connections_id_execute(
+pub fn delete_v1_connections_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -2041,9 +2595,36 @@ pub fn delete_v1_connections_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /v1/connections/{id}
+/// Delete connection
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_v1_connections_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_v1_connections_id_task()`.
+/// For the simplest API, use `delete_v1_connections_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_connections_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_v1_connections_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_v1_connections_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -2059,6 +2640,7 @@ pub struct DeleteV1ConnectionsIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_v1_connections_id_builder()` + `delete_v1_connections_id_execute()`.
+/// For task-level control, use `delete_v1_connections_id_task()`.
 ///
 /// # Errors
 ///
@@ -2099,29 +2681,35 @@ pub fn post_v1_connections_id_rotate_builder(
 /// POST /v1/connections/{id}/rotate
 /// Rotate connection credentials
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_v1_connections_id_rotate_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_v1_connections_id_rotate_execute()` or `post_v1_connections_id_rotate`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_v1_connections_id_rotate_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_connections_id_rotate_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_connections_id_rotate_execute(
+pub fn post_v1_connections_id_rotate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
+    impl TaskIterator<
             D = Result<ApiResponse<ConnectionsRotatePostResponse>, ApiError>,
             P = ApiPending,
         > + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -2160,9 +2748,40 @@ pub fn post_v1_connections_id_rotate_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /v1/connections/{id}/rotate
+/// Rotate connection credentials
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_v1_connections_id_rotate_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_v1_connections_id_rotate_task()`.
+/// For the simplest API, use `post_v1_connections_id_rotate()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_connections_id_rotate_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_v1_connections_id_rotate_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ConnectionsRotatePostResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_v1_connections_id_rotate_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -2178,6 +2797,7 @@ pub struct PostV1ConnectionsIdRotateArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_v1_connections_id_rotate_builder()` + `post_v1_connections_id_rotate_execute()`.
+/// For task-level control, use `post_v1_connections_id_rotate_task()`.
 ///
 /// # Errors
 ///
@@ -2241,27 +2861,33 @@ pub fn get_v1_databases_builder(
 /// GET /v1/databases
 /// List databases
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_databases_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_databases_execute()` or `get_v1_databases`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_databases_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_databases_execute(
+pub fn get_v1_databases_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DatabasesGetResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<DatabasesGetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -2300,9 +2926,38 @@ pub fn get_v1_databases_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/databases
+/// List databases
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_databases_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_databases_task()`.
+/// For the simplest API, use `get_v1_databases()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_databases_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DatabasesGetResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_databases_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -2322,6 +2977,7 @@ pub struct GetV1DatabasesArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_databases_builder()` + `get_v1_databases_execute()`.
+/// For task-level control, use `get_v1_databases_task()`.
 ///
 /// # Errors
 ///
@@ -2371,27 +3027,33 @@ pub fn post_v1_databases_builder(
 /// POST /v1/databases
 /// Create database
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_v1_databases_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_v1_databases_execute()` or `post_v1_databases`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_v1_databases_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_databases_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_databases_execute(
+pub fn post_v1_databases_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DatabasesPostResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<DatabasesPostResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -2430,9 +3092,38 @@ pub fn post_v1_databases_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /v1/databases
+/// Create database
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_v1_databases_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_v1_databases_task()`.
+/// For the simplest API, use `post_v1_databases()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_databases_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_v1_databases_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DatabasesPostResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_v1_databases_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -2448,6 +3139,7 @@ pub struct PostV1DatabasesArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_v1_databases_builder()` + `post_v1_databases_execute()`.
+/// For task-level control, use `post_v1_databases_task()`.
 ///
 /// # Errors
 ///
@@ -2490,27 +3182,33 @@ pub fn get_v1_databases_databaseId_builder(
 /// GET /v1/databases/{databaseId}
 /// Get database
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_databases_databaseId_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_databases_databaseId_execute()` or `get_v1_databases_databaseId`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_databases_databaseId_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_databaseId_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_databases_databaseId_execute(
+pub fn get_v1_databases_databaseId_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DatabasesGetResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<DatabasesGetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -2549,9 +3247,38 @@ pub fn get_v1_databases_databaseId_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/databases/{databaseId}
+/// Get database
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_databases_databaseId_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_databases_databaseId_task()`.
+/// For the simplest API, use `get_v1_databases_databaseId()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_databaseId_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_databases_databaseId_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DatabasesGetResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_databases_databaseId_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -2567,6 +3294,7 @@ pub struct GetV1DatabasesDatabaseIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_databases_databaseId_builder()` + `get_v1_databases_databaseId_execute()`.
+/// For task-level control, use `get_v1_databases_databaseId_task()`.
 ///
 /// # Errors
 ///
@@ -2612,27 +3340,33 @@ pub fn patch_v1_databases_databaseId_builder(
 /// PATCH /v1/databases/{databaseId}
 /// Update database
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_v1_databases_databaseId_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_v1_databases_databaseId_execute()` or `patch_v1_databases_databaseId`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_v1_databases_databaseId_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_v1_databases_databaseId_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_v1_databases_databaseId_execute(
+pub fn patch_v1_databases_databaseId_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DatabasesPatchResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<DatabasesPatchResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -2671,9 +3405,38 @@ pub fn patch_v1_databases_databaseId_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /v1/databases/{databaseId}
+/// Update database
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_v1_databases_databaseId_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_v1_databases_databaseId_task()`.
+/// For the simplest API, use `patch_v1_databases_databaseId()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_v1_databases_databaseId_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_v1_databases_databaseId_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DatabasesPatchResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = patch_v1_databases_databaseId_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -2691,6 +3454,7 @@ pub struct PatchV1DatabasesDatabaseIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_v1_databases_databaseId_builder()` + `patch_v1_databases_databaseId_execute()`.
+/// For task-level control, use `patch_v1_databases_databaseId_task()`.
 ///
 /// # Errors
 ///
@@ -2733,25 +3497,31 @@ pub fn delete_v1_databases_databaseId_builder(
 /// DELETE /v1/databases/{databaseId}
 /// Delete database
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_v1_databases_databaseId_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_v1_databases_databaseId_execute()` or `delete_v1_databases_databaseId`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_v1_databases_databaseId_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_databases_databaseId_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_v1_databases_databaseId_execute(
+pub fn delete_v1_databases_databaseId_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -2787,9 +3557,36 @@ pub fn delete_v1_databases_databaseId_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /v1/databases/{databaseId}
+/// Delete database
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_v1_databases_databaseId_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_v1_databases_databaseId_task()`.
+/// For the simplest API, use `delete_v1_databases_databaseId()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_databases_databaseId_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_v1_databases_databaseId_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_v1_databases_databaseId_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -2805,6 +3602,7 @@ pub struct DeleteV1DatabasesDatabaseIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_v1_databases_databaseId_builder()` + `delete_v1_databases_databaseId_execute()`.
+/// For task-level control, use `delete_v1_databases_databaseId_task()`.
 ///
 /// # Errors
 ///
@@ -2857,29 +3655,33 @@ pub fn get_v1_databases_databaseId_backups_builder(
 /// GET /v1/databases/{databaseId}/backups
 /// Get list of backups
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_databases_databaseId_backups_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_databases_databaseId_backups_execute()` or `get_v1_databases_databaseId_backups`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_databases_databaseId_backups_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_databaseId_backups_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_databases_databaseId_backups_execute(
+pub fn get_v1_databases_databaseId_backups_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<DatabasesBackupsGetResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
+    impl TaskIterator<D = Result<ApiResponse<DatabasesBackupsGetResponse>, ApiError>, P = ApiPending>
+        + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -2918,9 +3720,40 @@ pub fn get_v1_databases_databaseId_backups_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/databases/{databaseId}/backups
+/// Get list of backups
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_databases_databaseId_backups_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_databases_databaseId_backups_task()`.
+/// For the simplest API, use `get_v1_databases_databaseId_backups()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_databaseId_backups_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_databases_databaseId_backups_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<DatabasesBackupsGetResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_databases_databaseId_backups_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -2938,6 +3771,7 @@ pub struct GetV1DatabasesDatabaseIdBackupsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_databases_databaseId_backups_builder()` + `get_v1_databases_databaseId_backups_execute()`.
+/// For task-level control, use `get_v1_databases_databaseId_backups_task()`.
 ///
 /// # Errors
 ///
@@ -3002,29 +3836,35 @@ pub fn get_v1_databases_databaseId_connections_builder(
 /// GET /v1/databases/{databaseId}/connections
 /// Get list of database connections
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_databases_databaseId_connections_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_databases_databaseId_connections_execute()` or `get_v1_databases_databaseId_connections`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_databases_databaseId_connections_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_databaseId_connections_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_databases_databaseId_connections_execute(
+pub fn get_v1_databases_databaseId_connections_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
+    impl TaskIterator<
             D = Result<ApiResponse<DatabasesConnectionsGetResponse>, ApiError>,
             P = ApiPending,
         > + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -3063,9 +3903,40 @@ pub fn get_v1_databases_databaseId_connections_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/databases/{databaseId}/connections
+/// Get list of database connections
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_databases_databaseId_connections_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_databases_databaseId_connections_task()`.
+/// For the simplest API, use `get_v1_databases_databaseId_connections()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_databaseId_connections_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_databases_databaseId_connections_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<DatabasesConnectionsGetResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_databases_databaseId_connections_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -3085,6 +3956,7 @@ pub struct GetV1DatabasesDatabaseIdConnectionsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_databases_databaseId_connections_builder()` + `get_v1_databases_databaseId_connections_execute()`.
+/// For task-level control, use `get_v1_databases_databaseId_connections_task()`.
 ///
 /// # Errors
 ///
@@ -3140,29 +4012,35 @@ pub fn post_v1_databases_databaseId_connections_builder(
 /// POST /v1/databases/{databaseId}/connections
 /// Create database connection string
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_v1_databases_databaseId_connections_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_v1_databases_databaseId_connections_execute()` or `post_v1_databases_databaseId_connections`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_v1_databases_databaseId_connections_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_databases_databaseId_connections_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_databases_databaseId_connections_execute(
+pub fn post_v1_databases_databaseId_connections_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
+    impl TaskIterator<
             D = Result<ApiResponse<DatabasesConnectionsPostResponse>, ApiError>,
             P = ApiPending,
         > + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -3201,9 +4079,40 @@ pub fn post_v1_databases_databaseId_connections_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /v1/databases/{databaseId}/connections
+/// Create database connection string
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_v1_databases_databaseId_connections_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_v1_databases_databaseId_connections_task()`.
+/// For the simplest API, use `post_v1_databases_databaseId_connections()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_databases_databaseId_connections_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_v1_databases_databaseId_connections_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<DatabasesConnectionsPostResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_v1_databases_databaseId_connections_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -3221,6 +4130,7 @@ pub struct PostV1DatabasesDatabaseIdConnectionsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_v1_databases_databaseId_connections_builder()` + `post_v1_databases_databaseId_connections_execute()`.
+/// For task-level control, use `post_v1_databases_databaseId_connections_task()`.
 ///
 /// # Errors
 ///
@@ -3282,27 +4192,33 @@ pub fn get_v1_databases_databaseId_usage_builder(
 /// GET /v1/databases/{databaseId}/usage
 /// Get database usage metrics
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_databases_databaseId_usage_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_databases_databaseId_usage_execute()` or `get_v1_databases_databaseId_usage`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_databases_databaseId_usage_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_databaseId_usage_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_databases_databaseId_usage_execute(
+pub fn get_v1_databases_databaseId_usage_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DatabasesUsageGetResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<DatabasesUsageGetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -3341,9 +4257,38 @@ pub fn get_v1_databases_databaseId_usage_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/databases/{databaseId}/usage
+/// Get database usage metrics
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_databases_databaseId_usage_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_databases_databaseId_usage_task()`.
+/// For the simplest API, use `get_v1_databases_databaseId_usage()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_databases_databaseId_usage_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_databases_databaseId_usage_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DatabasesUsageGetResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_databases_databaseId_usage_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -3363,6 +4308,7 @@ pub struct GetV1DatabasesDatabaseIdUsageArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_databases_databaseId_usage_builder()` + `get_v1_databases_databaseId_usage_execute()`.
+/// For task-level control, use `get_v1_databases_databaseId_usage_task()`.
 ///
 /// # Errors
 ///
@@ -3416,29 +4362,35 @@ pub fn post_v1_databases_targetDatabaseId_restore_builder(
 /// POST /v1/databases/{targetDatabaseId}/restore
 /// Restore database (destructive)
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_v1_databases_targetDatabaseId_restore_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_v1_databases_targetDatabaseId_restore_execute()` or `post_v1_databases_targetDatabaseId_restore`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_v1_databases_targetDatabaseId_restore_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_databases_targetDatabaseId_restore_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_databases_targetDatabaseId_restore_execute(
+pub fn post_v1_databases_targetDatabaseId_restore_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
+    impl TaskIterator<
             D = Result<ApiResponse<DatabasesRestorePostResponse>, ApiError>,
             P = ApiPending,
         > + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -3477,9 +4429,40 @@ pub fn post_v1_databases_targetDatabaseId_restore_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /v1/databases/{targetDatabaseId}/restore
+/// Restore database (destructive)
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_v1_databases_targetDatabaseId_restore_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_v1_databases_targetDatabaseId_restore_task()`.
+/// For the simplest API, use `post_v1_databases_targetDatabaseId_restore()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_databases_targetDatabaseId_restore_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_v1_databases_targetDatabaseId_restore_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<DatabasesRestorePostResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_v1_databases_targetDatabaseId_restore_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -3497,6 +4480,7 @@ pub struct PostV1DatabasesTargetDatabaseIdRestoreArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_v1_databases_targetDatabaseId_restore_builder()` + `post_v1_databases_targetDatabaseId_restore_execute()`.
+/// For task-level control, use `post_v1_databases_targetDatabaseId_restore_task()`.
 ///
 /// # Errors
 ///
@@ -3564,27 +4548,33 @@ pub fn get_v1_integrations_builder(
 /// GET /v1/integrations
 /// Get list of integrations
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_integrations_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_integrations_execute()` or `get_v1_integrations`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_integrations_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_integrations_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_integrations_execute(
+pub fn get_v1_integrations_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<IntegrationsGetResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<IntegrationsGetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -3623,9 +4613,38 @@ pub fn get_v1_integrations_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/integrations
+/// Get list of integrations
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_integrations_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_integrations_task()`.
+/// For the simplest API, use `get_v1_integrations()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_integrations_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_integrations_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<IntegrationsGetResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_integrations_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -3645,6 +4664,7 @@ pub struct GetV1IntegrationsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_integrations_builder()` + `get_v1_integrations_execute()`.
+/// For task-level control, use `get_v1_integrations_task()`.
 ///
 /// # Errors
 ///
@@ -3692,27 +4712,33 @@ pub fn get_v1_integrations_id_builder(
 /// GET /v1/integrations/{id}
 /// Get integration by ID
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_integrations_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_integrations_id_execute()` or `get_v1_integrations_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_integrations_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_integrations_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_integrations_id_execute(
+pub fn get_v1_integrations_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<IntegrationsGetResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<IntegrationsGetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -3751,9 +4777,38 @@ pub fn get_v1_integrations_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/integrations/{id}
+/// Get integration by ID
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_integrations_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_integrations_id_task()`.
+/// For the simplest API, use `get_v1_integrations_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_integrations_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_integrations_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<IntegrationsGetResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_integrations_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -3769,6 +4824,7 @@ pub struct GetV1IntegrationsIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_integrations_id_builder()` + `get_v1_integrations_id_execute()`.
+/// For task-level control, use `get_v1_integrations_id_task()`.
 ///
 /// # Errors
 ///
@@ -3811,25 +4867,31 @@ pub fn delete_v1_integrations_id_builder(
 /// DELETE /v1/integrations/{id}
 /// Delete integration
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_v1_integrations_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_v1_integrations_id_execute()` or `delete_v1_integrations_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_v1_integrations_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_integrations_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_v1_integrations_id_execute(
+pub fn delete_v1_integrations_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -3865,9 +4927,36 @@ pub fn delete_v1_integrations_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /v1/integrations/{id}
+/// Delete integration
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_v1_integrations_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_v1_integrations_id_task()`.
+/// For the simplest API, use `delete_v1_integrations_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_integrations_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_v1_integrations_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_v1_integrations_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -3883,6 +4972,7 @@ pub struct DeleteV1IntegrationsIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_v1_integrations_id_builder()` + `delete_v1_integrations_id_execute()`.
+/// For task-level control, use `delete_v1_integrations_id_task()`.
 ///
 /// # Errors
 ///
@@ -3938,27 +5028,33 @@ pub fn get_v1_projects_builder(
 /// GET /v1/projects
 /// Get list of projects
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_projects_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_projects_execute()` or `get_v1_projects`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_projects_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_projects_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_projects_execute(
+pub fn get_v1_projects_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ProjectsGetResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<ProjectsGetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -3997,9 +5093,38 @@ pub fn get_v1_projects_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/projects
+/// Get list of projects
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_projects_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_projects_task()`.
+/// For the simplest API, use `get_v1_projects()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_projects_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_projects_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectsGetResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_projects_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4017,6 +5142,7 @@ pub struct GetV1ProjectsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_projects_builder()` + `get_v1_projects_execute()`.
+/// For task-level control, use `get_v1_projects_task()`.
 ///
 /// # Errors
 ///
@@ -4061,27 +5187,33 @@ pub fn post_v1_projects_builder(
 /// POST /v1/projects
 /// Create project with a postgres database
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_v1_projects_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_v1_projects_execute()` or `post_v1_projects`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_v1_projects_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_projects_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_projects_execute(
+pub fn post_v1_projects_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ProjectsPostResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<ProjectsPostResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -4120,9 +5252,38 @@ pub fn post_v1_projects_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /v1/projects
+/// Create project with a postgres database
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_v1_projects_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_v1_projects_task()`.
+/// For the simplest API, use `post_v1_projects()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_projects_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_v1_projects_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectsPostResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_v1_projects_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4138,6 +5299,7 @@ pub struct PostV1ProjectsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_v1_projects_builder()` + `post_v1_projects_execute()`.
+/// For task-level control, use `post_v1_projects_task()`.
 ///
 /// # Errors
 ///
@@ -4180,27 +5342,33 @@ pub fn get_v1_projects_id_builder(
 /// GET /v1/projects/{id}
 /// Get project
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_projects_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_projects_id_execute()` or `get_v1_projects_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_projects_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_projects_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_projects_id_execute(
+pub fn get_v1_projects_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ProjectsGetResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<ProjectsGetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -4239,9 +5407,38 @@ pub fn get_v1_projects_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/projects/{id}
+/// Get project
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_projects_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_projects_id_task()`.
+/// For the simplest API, use `get_v1_projects_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_projects_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_projects_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectsGetResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_projects_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4257,6 +5454,7 @@ pub struct GetV1ProjectsIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_projects_id_builder()` + `get_v1_projects_id_execute()`.
+/// For task-level control, use `get_v1_projects_id_task()`.
 ///
 /// # Errors
 ///
@@ -4302,27 +5500,33 @@ pub fn patch_v1_projects_id_builder(
 /// PATCH /v1/projects/{id}
 /// Update project
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_v1_projects_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_v1_projects_id_execute()` or `patch_v1_projects_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_v1_projects_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_v1_projects_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_v1_projects_id_execute(
+pub fn patch_v1_projects_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ProjectsPatchResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<ProjectsPatchResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -4361,9 +5565,38 @@ pub fn patch_v1_projects_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /v1/projects/{id}
+/// Update project
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_v1_projects_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_v1_projects_id_task()`.
+/// For the simplest API, use `patch_v1_projects_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_v1_projects_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_v1_projects_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ProjectsPatchResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = patch_v1_projects_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4381,6 +5614,7 @@ pub struct PatchV1ProjectsIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_v1_projects_id_builder()` + `patch_v1_projects_id_execute()`.
+/// For task-level control, use `patch_v1_projects_id_task()`.
 ///
 /// # Errors
 ///
@@ -4423,25 +5657,31 @@ pub fn delete_v1_projects_id_builder(
 /// DELETE /v1/projects/{id}
 /// Delete project
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_v1_projects_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_v1_projects_id_execute()` or `delete_v1_projects_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_v1_projects_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_projects_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_v1_projects_id_execute(
+pub fn delete_v1_projects_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -4477,9 +5717,36 @@ pub fn delete_v1_projects_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /v1/projects/{id}
+/// Delete project
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_v1_projects_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_v1_projects_id_task()`.
+/// For the simplest API, use `delete_v1_projects_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_projects_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_v1_projects_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_v1_projects_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4495,6 +5762,7 @@ pub struct DeleteV1ProjectsIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_v1_projects_id_builder()` + `delete_v1_projects_id_execute()`.
+/// For task-level control, use `delete_v1_projects_id_task()`.
 ///
 /// # Errors
 ///
@@ -4538,25 +5806,31 @@ pub fn post_v1_projects_id_transfer_builder(
 /// POST /v1/projects/{id}/transfer
 /// Transfer project
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_v1_projects_id_transfer_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_v1_projects_id_transfer_execute()` or `post_v1_projects_id_transfer`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_v1_projects_id_transfer_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_projects_id_transfer_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_projects_id_transfer_execute(
+pub fn post_v1_projects_id_transfer_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -4592,9 +5866,36 @@ pub fn post_v1_projects_id_transfer_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /v1/projects/{id}/transfer
+/// Transfer project
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_v1_projects_id_transfer_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_v1_projects_id_transfer_task()`.
+/// For the simplest API, use `post_v1_projects_id_transfer()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_projects_id_transfer_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_v1_projects_id_transfer_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_v1_projects_id_transfer_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4612,6 +5913,7 @@ pub struct PostV1ProjectsIdTransferArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_v1_projects_id_transfer_builder()` + `post_v1_projects_id_transfer_execute()`.
+/// For task-level control, use `post_v1_projects_id_transfer_task()`.
 ///
 /// # Errors
 ///
@@ -4671,29 +5973,35 @@ pub fn get_v1_projects_projectId_compute_services_builder(
 /// GET /v1/projects/{projectId}/compute-services
 /// List compute services for a project
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_projects_projectId_compute_services_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_projects_projectId_compute_services_execute()` or `get_v1_projects_projectId_compute_services`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_projects_projectId_compute_services_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_projects_projectId_compute_services_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_projects_projectId_compute_services_execute(
+pub fn get_v1_projects_projectId_compute_services_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
+    impl TaskIterator<
             D = Result<ApiResponse<ProjectsComputeservicesGetResponse>, ApiError>,
             P = ApiPending,
         > + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -4732,9 +6040,40 @@ pub fn get_v1_projects_projectId_compute_services_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/projects/{projectId}/compute-services
+/// List compute services for a project
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_projects_projectId_compute_services_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_projects_projectId_compute_services_task()`.
+/// For the simplest API, use `get_v1_projects_projectId_compute_services()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_projects_projectId_compute_services_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_projects_projectId_compute_services_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ProjectsComputeservicesGetResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_projects_projectId_compute_services_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4754,6 +6093,7 @@ pub struct GetV1ProjectsProjectIdComputeServicesArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_projects_projectId_compute_services_builder()` + `get_v1_projects_projectId_compute_services_execute()`.
+/// For task-level control, use `get_v1_projects_projectId_compute_services_task()`.
 ///
 /// # Errors
 ///
@@ -4809,29 +6149,35 @@ pub fn post_v1_projects_projectId_compute_services_builder(
 /// POST /v1/projects/{projectId}/compute-services
 /// Create compute service
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_v1_projects_projectId_compute_services_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_v1_projects_projectId_compute_services_execute()` or `post_v1_projects_projectId_compute_services`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_v1_projects_projectId_compute_services_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_projects_projectId_compute_services_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_projects_projectId_compute_services_execute(
+pub fn post_v1_projects_projectId_compute_services_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
+    impl TaskIterator<
             D = Result<ApiResponse<ProjectsComputeservicesPostResponse>, ApiError>,
             P = ApiPending,
         > + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -4870,9 +6216,40 @@ pub fn post_v1_projects_projectId_compute_services_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /v1/projects/{projectId}/compute-services
+/// Create compute service
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_v1_projects_projectId_compute_services_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_v1_projects_projectId_compute_services_task()`.
+/// For the simplest API, use `post_v1_projects_projectId_compute_services()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_projects_projectId_compute_services_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_v1_projects_projectId_compute_services_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ProjectsComputeservicesPostResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_v1_projects_projectId_compute_services_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4890,6 +6267,7 @@ pub struct PostV1ProjectsProjectIdComputeServicesArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_v1_projects_projectId_compute_services_builder()` + `post_v1_projects_projectId_compute_services_execute()`.
+/// For task-level control, use `post_v1_projects_projectId_compute_services_task()`.
 ///
 /// # Errors
 ///
@@ -4951,29 +6329,35 @@ pub fn get_v1_projects_projectId_databases_builder(
 /// GET /v1/projects/{projectId}/databases
 /// Get list of databases
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_projects_projectId_databases_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_projects_projectId_databases_execute()` or `get_v1_projects_projectId_databases`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_projects_projectId_databases_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_projects_projectId_databases_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_projects_projectId_databases_execute(
+pub fn get_v1_projects_projectId_databases_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
+    impl TaskIterator<
             D = Result<ApiResponse<ProjectsDatabasesGetResponse>, ApiError>,
             P = ApiPending,
         > + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -5012,9 +6396,40 @@ pub fn get_v1_projects_projectId_databases_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/projects/{projectId}/databases
+/// Get list of databases
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_projects_projectId_databases_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_projects_projectId_databases_task()`.
+/// For the simplest API, use `get_v1_projects_projectId_databases()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_projects_projectId_databases_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_projects_projectId_databases_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ProjectsDatabasesGetResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_projects_projectId_databases_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -5034,6 +6449,7 @@ pub struct GetV1ProjectsProjectIdDatabasesArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_projects_projectId_databases_builder()` + `get_v1_projects_projectId_databases_execute()`.
+/// For task-level control, use `get_v1_projects_projectId_databases_task()`.
 ///
 /// # Errors
 ///
@@ -5086,29 +6502,35 @@ pub fn post_v1_projects_projectId_databases_builder(
 /// POST /v1/projects/{projectId}/databases
 /// Create database
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_v1_projects_projectId_databases_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_v1_projects_projectId_databases_execute()` or `post_v1_projects_projectId_databases`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_v1_projects_projectId_databases_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_projects_projectId_databases_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_projects_projectId_databases_execute(
+pub fn post_v1_projects_projectId_databases_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
+    impl TaskIterator<
             D = Result<ApiResponse<ProjectsDatabasesPostResponse>, ApiError>,
             P = ApiPending,
         > + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -5147,9 +6569,40 @@ pub fn post_v1_projects_projectId_databases_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /v1/projects/{projectId}/databases
+/// Create database
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_v1_projects_projectId_databases_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_v1_projects_projectId_databases_task()`.
+/// For the simplest API, use `post_v1_projects_projectId_databases()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_projects_projectId_databases_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_v1_projects_projectId_databases_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<ProjectsDatabasesPostResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_v1_projects_projectId_databases_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -5167,6 +6620,7 @@ pub struct PostV1ProjectsProjectIdDatabasesArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_v1_projects_projectId_databases_builder()` + `post_v1_projects_projectId_databases_execute()`.
+/// For task-level control, use `post_v1_projects_projectId_databases_task()`.
 ///
 /// # Errors
 ///
@@ -5223,27 +6677,33 @@ pub fn get_v1_regions_builder(
 /// GET /v1/regions
 /// Get all regions
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_regions_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_regions_execute()` or `get_v1_regions`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_regions_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_regions_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_regions_execute(
+pub fn get_v1_regions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<RegionsGetResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<RegionsGetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -5282,9 +6742,38 @@ pub fn get_v1_regions_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/regions
+/// Get all regions
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_regions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_regions_task()`.
+/// For the simplest API, use `get_v1_regions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_regions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_regions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<RegionsGetResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_regions_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -5300,6 +6789,7 @@ pub struct GetV1RegionsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_regions_builder()` + `get_v1_regions_execute()`.
+/// For task-level control, use `get_v1_regions_task()`.
 ///
 /// # Errors
 ///
@@ -5341,29 +6831,35 @@ pub fn get_v1_regions_accelerate_builder(
 /// GET /v1/regions/accelerate
 /// Get Prisma Accelerate regions
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_regions_accelerate_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_regions_accelerate_execute()` or `get_v1_regions_accelerate`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_regions_accelerate_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_regions_accelerate_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_regions_accelerate_execute(
+pub fn get_v1_regions_accelerate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
+    impl TaskIterator<
             D = Result<ApiResponse<RegionsAccelerateGetResponse>, ApiError>,
             P = ApiPending,
         > + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -5402,9 +6898,40 @@ pub fn get_v1_regions_accelerate_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/regions/accelerate
+/// Get Prisma Accelerate regions
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_regions_accelerate_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_regions_accelerate_task()`.
+/// For the simplest API, use `get_v1_regions_accelerate()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_regions_accelerate_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_regions_accelerate_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<RegionsAccelerateGetResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_regions_accelerate_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -5413,6 +6940,7 @@ pub fn get_v1_regions_accelerate_execute(
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_regions_accelerate_builder()` + `get_v1_regions_accelerate_execute()`.
+/// For task-level control, use `get_v1_regions_accelerate_task()`.
 ///
 /// # Errors
 ///
@@ -5455,29 +6983,33 @@ pub fn get_v1_regions_postgres_builder(
 /// GET /v1/regions/postgres
 /// Get Prisma Postgres regions
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_regions_postgres_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_regions_postgres_execute()` or `get_v1_regions_postgres`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_regions_postgres_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_regions_postgres_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_regions_postgres_execute(
+pub fn get_v1_regions_postgres_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
-            D = Result<ApiResponse<RegionsPostgresGetResponse>, ApiError>,
-            P = ApiPending,
-        > + Send
+    impl TaskIterator<D = Result<ApiResponse<RegionsPostgresGetResponse>, ApiError>, P = ApiPending>
+        + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -5516,9 +7048,40 @@ pub fn get_v1_regions_postgres_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/regions/postgres
+/// Get Prisma Postgres regions
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_regions_postgres_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_regions_postgres_task()`.
+/// For the simplest API, use `get_v1_regions_postgres()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_regions_postgres_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_regions_postgres_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<RegionsPostgresGetResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_regions_postgres_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -5527,6 +7090,7 @@ pub fn get_v1_regions_postgres_execute(
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_regions_postgres_builder()` + `get_v1_regions_postgres_execute()`.
+/// For task-level control, use `get_v1_regions_postgres_task()`.
 ///
 /// # Errors
 ///
@@ -5589,27 +7153,33 @@ pub fn get_v1_versions_builder(
 /// GET /v1/versions
 /// List compute versions
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_versions_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_versions_execute()` or `get_v1_versions`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_versions_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_versions_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_versions_execute(
+pub fn get_v1_versions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<VersionsGetResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<VersionsGetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -5648,9 +7218,38 @@ pub fn get_v1_versions_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/versions
+/// List compute versions
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_versions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_versions_task()`.
+/// For the simplest API, use `get_v1_versions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_versions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_versions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VersionsGetResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_versions_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -5670,6 +7269,7 @@ pub struct GetV1VersionsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_versions_builder()` + `get_v1_versions_execute()`.
+/// For task-level control, use `get_v1_versions_task()`.
 ///
 /// # Errors
 ///
@@ -5719,27 +7319,33 @@ pub fn post_v1_versions_builder(
 /// POST /v1/versions
 /// Create compute version
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_v1_versions_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_v1_versions_execute()` or `post_v1_versions`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_v1_versions_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_versions_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_versions_execute(
+pub fn post_v1_versions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<VersionsPostResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<VersionsPostResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -5778,9 +7384,38 @@ pub fn post_v1_versions_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /v1/versions
+/// Create compute version
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_v1_versions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_v1_versions_task()`.
+/// For the simplest API, use `post_v1_versions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_versions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_v1_versions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VersionsPostResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_v1_versions_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -5796,6 +7431,7 @@ pub struct PostV1VersionsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_v1_versions_builder()` + `post_v1_versions_execute()`.
+/// For task-level control, use `post_v1_versions_task()`.
 ///
 /// # Errors
 ///
@@ -5838,27 +7474,33 @@ pub fn get_v1_versions_versionId_builder(
 /// GET /v1/versions/{versionId}
 /// Get compute version
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_versions_versionId_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_versions_versionId_execute()` or `get_v1_versions_versionId`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_versions_versionId_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_versions_versionId_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_versions_versionId_execute(
+pub fn get_v1_versions_versionId_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<VersionsGetResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<VersionsGetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -5897,9 +7539,38 @@ pub fn get_v1_versions_versionId_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/versions/{versionId}
+/// Get compute version
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_versions_versionId_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_versions_versionId_task()`.
+/// For the simplest API, use `get_v1_versions_versionId()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_versions_versionId_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_versions_versionId_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VersionsGetResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_versions_versionId_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -5915,6 +7586,7 @@ pub struct GetV1VersionsVersionIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_versions_versionId_builder()` + `get_v1_versions_versionId_execute()`.
+/// For task-level control, use `get_v1_versions_versionId_task()`.
 ///
 /// # Errors
 ///
@@ -5957,25 +7629,31 @@ pub fn delete_v1_versions_versionId_builder(
 /// DELETE /v1/versions/{versionId}
 /// Delete compute version
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_v1_versions_versionId_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_v1_versions_versionId_execute()` or `delete_v1_versions_versionId`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_v1_versions_versionId_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_versions_versionId_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_v1_versions_versionId_execute(
+pub fn delete_v1_versions_versionId_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -6011,9 +7689,36 @@ pub fn delete_v1_versions_versionId_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /v1/versions/{versionId}
+/// Delete compute version
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_v1_versions_versionId_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_v1_versions_versionId_task()`.
+/// For the simplest API, use `delete_v1_versions_versionId()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_versions_versionId_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_v1_versions_versionId_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_v1_versions_versionId_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -6029,6 +7734,7 @@ pub struct DeleteV1VersionsVersionIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_v1_versions_versionId_builder()` + `delete_v1_versions_versionId_execute()`.
+/// For task-level control, use `delete_v1_versions_versionId_task()`.
 ///
 /// # Errors
 ///
@@ -6069,27 +7775,33 @@ pub fn post_v1_versions_versionId_start_builder(
 /// POST /v1/versions/{versionId}/start
 /// Start compute version
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_v1_versions_versionId_start_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_v1_versions_versionId_start_execute()` or `post_v1_versions_versionId_start`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_v1_versions_versionId_start_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_versions_versionId_start_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_versions_versionId_start_execute(
+pub fn post_v1_versions_versionId_start_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<VersionsStartPostResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<VersionsStartPostResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -6128,9 +7840,38 @@ pub fn post_v1_versions_versionId_start_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /v1/versions/{versionId}/start
+/// Start compute version
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_v1_versions_versionId_start_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_v1_versions_versionId_start_task()`.
+/// For the simplest API, use `post_v1_versions_versionId_start()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_versions_versionId_start_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_v1_versions_versionId_start_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<VersionsStartPostResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_v1_versions_versionId_start_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -6146,6 +7887,7 @@ pub struct PostV1VersionsVersionIdStartArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_v1_versions_versionId_start_builder()` + `post_v1_versions_versionId_start_execute()`.
+/// For task-level control, use `post_v1_versions_versionId_start_task()`.
 ///
 /// # Errors
 ///
@@ -6188,25 +7930,31 @@ pub fn post_v1_versions_versionId_stop_builder(
 /// POST /v1/versions/{versionId}/stop
 /// Stop compute version
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_v1_versions_versionId_stop_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_v1_versions_versionId_stop_execute()` or `post_v1_versions_versionId_stop`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_v1_versions_versionId_stop_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_versions_versionId_stop_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_v1_versions_versionId_stop_execute(
+pub fn post_v1_versions_versionId_stop_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -6242,9 +7990,36 @@ pub fn post_v1_versions_versionId_stop_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /v1/versions/{versionId}/stop
+/// Stop compute version
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_v1_versions_versionId_stop_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_v1_versions_versionId_stop_task()`.
+/// For the simplest API, use `post_v1_versions_versionId_stop()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_v1_versions_versionId_stop_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_v1_versions_versionId_stop_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_v1_versions_versionId_stop_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -6260,6 +8035,7 @@ pub struct PostV1VersionsVersionIdStopArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_v1_versions_versionId_stop_builder()` + `post_v1_versions_versionId_stop_execute()`.
+/// For task-level control, use `post_v1_versions_versionId_stop_task()`.
 ///
 /// # Errors
 ///
@@ -6315,27 +8091,33 @@ pub fn get_v1_workspaces_builder(
 /// GET /v1/workspaces
 /// Get list of workspaces
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_workspaces_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_workspaces_execute()` or `get_v1_workspaces`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_workspaces_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_workspaces_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_workspaces_execute(
+pub fn get_v1_workspaces_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<WorkspacesGetResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<WorkspacesGetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -6374,9 +8156,38 @@ pub fn get_v1_workspaces_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/workspaces
+/// Get list of workspaces
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_workspaces_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_workspaces_task()`.
+/// For the simplest API, use `get_v1_workspaces()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_workspaces_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_workspaces_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<WorkspacesGetResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_workspaces_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -6394,6 +8205,7 @@ pub struct GetV1WorkspacesArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_workspaces_builder()` + `get_v1_workspaces_execute()`.
+/// For task-level control, use `get_v1_workspaces_task()`.
 ///
 /// # Errors
 ///
@@ -6436,27 +8248,33 @@ pub fn get_v1_workspaces_id_builder(
 /// GET /v1/workspaces/{id}
 /// Get workspace
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_workspaces_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_workspaces_id_execute()` or `get_v1_workspaces_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_workspaces_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_workspaces_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_workspaces_id_execute(
+pub fn get_v1_workspaces_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<WorkspacesGetResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<WorkspacesGetResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -6495,9 +8313,38 @@ pub fn get_v1_workspaces_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/workspaces/{id}
+/// Get workspace
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_workspaces_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_workspaces_id_task()`.
+/// For the simplest API, use `get_v1_workspaces_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_workspaces_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_workspaces_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<WorkspacesGetResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_workspaces_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -6513,6 +8360,7 @@ pub struct GetV1WorkspacesIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_workspaces_id_builder()` + `get_v1_workspaces_id_execute()`.
+/// For task-level control, use `get_v1_workspaces_id_task()`.
 ///
 /// # Errors
 ///
@@ -6574,29 +8422,35 @@ pub fn get_v1_workspaces_workspaceId_integrations_builder(
 /// GET /v1/workspaces/{workspaceId}/integrations
 /// Get list of integrations
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_workspaces_workspaceId_integrations_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_workspaces_workspaceId_integrations_execute()` or `get_v1_workspaces_workspaceId_integrations`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_workspaces_workspaceId_integrations_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_workspaces_workspaceId_integrations_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_workspaces_workspaceId_integrations_execute(
+pub fn get_v1_workspaces_workspaceId_integrations_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
+    impl TaskIterator<
             D = Result<ApiResponse<WorkspacesIntegrationsGetResponse>, ApiError>,
             P = ApiPending,
         > + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -6635,9 +8489,40 @@ pub fn get_v1_workspaces_workspaceId_integrations_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/workspaces/{workspaceId}/integrations
+/// Get list of integrations
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_workspaces_workspaceId_integrations_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_workspaces_workspaceId_integrations_task()`.
+/// For the simplest API, use `get_v1_workspaces_workspaceId_integrations()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_workspaces_workspaceId_integrations_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_workspaces_workspaceId_integrations_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<WorkspacesIntegrationsGetResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_workspaces_workspaceId_integrations_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -6657,6 +8542,7 @@ pub struct GetV1WorkspacesWorkspaceIdIntegrationsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_workspaces_workspaceId_integrations_builder()` + `get_v1_workspaces_workspaceId_integrations_execute()`.
+/// For task-level control, use `get_v1_workspaces_workspaceId_integrations_task()`.
 ///
 /// # Errors
 ///
@@ -6710,25 +8596,31 @@ pub fn delete_v1_workspaces_workspaceId_integrations_clientId_builder(
 /// DELETE /v1/workspaces/{workspaceId}/integrations/{clientId}
 /// Revoke integration tokens
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_v1_workspaces_workspaceId_integrations_clientId_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_v1_workspaces_workspaceId_integrations_clientId_execute()` or `delete_v1_workspaces_workspaceId_integrations_clientId`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_v1_workspaces_workspaceId_integrations_clientId_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_workspaces_workspaceId_integrations_clientId_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_v1_workspaces_workspaceId_integrations_clientId_execute(
+pub fn delete_v1_workspaces_workspaceId_integrations_clientId_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -6764,9 +8656,36 @@ pub fn delete_v1_workspaces_workspaceId_integrations_clientId_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /v1/workspaces/{workspaceId}/integrations/{clientId}
+/// Revoke integration tokens
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_v1_workspaces_workspaceId_integrations_clientId_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_v1_workspaces_workspaceId_integrations_clientId_task()`.
+/// For the simplest API, use `delete_v1_workspaces_workspaceId_integrations_clientId()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_v1_workspaces_workspaceId_integrations_clientId_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_v1_workspaces_workspaceId_integrations_clientId_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_v1_workspaces_workspaceId_integrations_clientId_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -6784,6 +8703,7 @@ pub struct DeleteV1WorkspacesWorkspaceIdIntegrationsClientIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_v1_workspaces_workspaceId_integrations_clientId_builder()` + `delete_v1_workspaces_workspaceId_integrations_clientId_execute()`.
+/// For task-level control, use `delete_v1_workspaces_workspaceId_integrations_clientId_task()`.
 ///
 /// # Errors
 ///

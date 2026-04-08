@@ -11,7 +11,9 @@ pub mod types;
 
 use crate::providers::fly_io::clients::types::*;
 use crate::providers::fly_io::resources::*;
-use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskIteratorExt};
+use foundation_core::valtron::{
+    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+};
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
@@ -57,27 +59,33 @@ pub fn get_apps_builder(
 /// GET /apps
 /// List Apps
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_apps_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_apps_execute()` or `get_apps`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_apps_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_execute(
+pub fn get_apps_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListAppsResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<ListAppsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -116,9 +124,38 @@ pub fn get_apps_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /apps
+/// List Apps
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_apps_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_apps_task()`.
+/// For the simplest API, use `get_apps()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_apps_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListAppsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_apps_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -136,6 +173,7 @@ pub struct GetAppsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_apps_builder()` + `get_apps_execute()`.
+/// For task-level control, use `get_apps_task()`.
 ///
 /// # Errors
 ///
@@ -180,25 +218,31 @@ pub fn post_apps_builder(
 /// POST /apps
 /// Create App
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_execute()` or `post_apps`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_execute(
+pub fn post_apps_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -234,9 +278,36 @@ pub fn post_apps_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps
+/// Create App
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_task()`.
+/// For the simplest API, use `post_apps()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_apps_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -252,6 +323,7 @@ pub struct PostAppsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_builder()` + `post_apps_execute()`.
+/// For task-level control, use `post_apps_task()`.
 ///
 /// # Errors
 ///
@@ -292,25 +364,31 @@ pub fn get_apps_app_name_builder(
 /// GET /apps/{app_name}
 /// Get App
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_apps_app_name_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_apps_app_name_execute()` or `get_apps_app_name`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_apps_app_name_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_execute(
+pub fn get_apps_app_name_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<App>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<App>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -349,9 +427,36 @@ pub fn get_apps_app_name_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /apps/{app_name}
+/// Get App
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_apps_app_name_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_apps_app_name_task()`.
+/// For the simplest API, use `get_apps_app_name()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_apps_app_name_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<App>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_apps_app_name_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -367,6 +472,7 @@ pub struct GetAppsAppNameArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_apps_app_name_builder()` + `get_apps_app_name_execute()`.
+/// For task-level control, use `get_apps_app_name_task()`.
 ///
 /// # Errors
 ///
@@ -407,25 +513,31 @@ pub fn delete_apps_app_name_builder(
 /// DELETE /apps/{app_name}
 /// Destroy App
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_apps_app_name_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_apps_app_name_execute()` or `delete_apps_app_name`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_apps_app_name_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_execute(
+pub fn delete_apps_app_name_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -461,9 +573,36 @@ pub fn delete_apps_app_name_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /apps/{app_name}
+/// Destroy App
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_apps_app_name_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_apps_app_name_task()`.
+/// For the simplest API, use `delete_apps_app_name()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_apps_app_name_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_apps_app_name_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -479,6 +618,7 @@ pub struct DeleteAppsAppNameArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_apps_app_name_builder()` + `delete_apps_app_name_execute()`.
+/// For task-level control, use `delete_apps_app_name_task()`.
 ///
 /// # Errors
 ///
@@ -539,27 +679,33 @@ pub fn get_apps_app_name_certificates_builder(
 /// GET /apps/{app_name}/certificates
 /// List certificates for app
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_apps_app_name_certificates_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_apps_app_name_certificates_execute()` or `get_apps_app_name_certificates`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_apps_app_name_certificates_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_certificates_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_certificates_execute(
+pub fn get_apps_app_name_certificates_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListCertificatesResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<ListCertificatesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -598,9 +744,38 @@ pub fn get_apps_app_name_certificates_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /apps/{app_name}/certificates
+/// List certificates for app
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_apps_app_name_certificates_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_apps_app_name_certificates_task()`.
+/// For the simplest API, use `get_apps_app_name_certificates()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_certificates_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_apps_app_name_certificates_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListCertificatesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_apps_app_name_certificates_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -622,6 +797,7 @@ pub struct GetAppsAppNameCertificatesArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_apps_app_name_certificates_builder()` + `get_apps_app_name_certificates_execute()`.
+/// For task-level control, use `get_apps_app_name_certificates_task()`.
 ///
 /// # Errors
 ///
@@ -676,27 +852,33 @@ pub fn post_apps_app_name_certificates_acme_builder(
 /// POST /apps/{app_name}/certificates/acme
 /// Request ACME certificate
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_certificates_acme_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_certificates_acme_execute()` or `post_apps_app_name_certificates_acme`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_certificates_acme_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_certificates_acme_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_certificates_acme_execute(
+pub fn post_apps_app_name_certificates_acme_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CertificateDetail>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<CertificateDetail>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -735,9 +917,38 @@ pub fn post_apps_app_name_certificates_acme_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/certificates/acme
+/// Request ACME certificate
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_certificates_acme_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_certificates_acme_task()`.
+/// For the simplest API, use `post_apps_app_name_certificates_acme()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_certificates_acme_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_certificates_acme_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CertificateDetail>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_certificates_acme_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -755,6 +966,7 @@ pub struct PostAppsAppNameCertificatesAcmeArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_certificates_acme_builder()` + `post_apps_app_name_certificates_acme_execute()`.
+/// For task-level control, use `post_apps_app_name_certificates_acme_task()`.
 ///
 /// # Errors
 ///
@@ -803,27 +1015,33 @@ pub fn post_apps_app_name_certificates_custom_builder(
 /// POST /apps/{app_name}/certificates/custom
 /// Upload custom certificate
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_certificates_custom_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_certificates_custom_execute()` or `post_apps_app_name_certificates_custom`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_certificates_custom_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_certificates_custom_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_certificates_custom_execute(
+pub fn post_apps_app_name_certificates_custom_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CertificateDetail>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<CertificateDetail>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -862,9 +1080,38 @@ pub fn post_apps_app_name_certificates_custom_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/certificates/custom
+/// Upload custom certificate
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_certificates_custom_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_certificates_custom_task()`.
+/// For the simplest API, use `post_apps_app_name_certificates_custom()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_certificates_custom_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_certificates_custom_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CertificateDetail>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_certificates_custom_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -882,6 +1129,7 @@ pub struct PostAppsAppNameCertificatesCustomArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_certificates_custom_builder()` + `post_apps_app_name_certificates_custom_execute()`.
+/// For task-level control, use `post_apps_app_name_certificates_custom_task()`.
 ///
 /// # Errors
 ///
@@ -929,27 +1177,33 @@ pub fn get_apps_app_name_certificates_hostname_builder(
 /// GET /apps/{app_name}/certificates/{hostname}
 /// Get certificate details
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_apps_app_name_certificates_hostname_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_apps_app_name_certificates_hostname_execute()` or `get_apps_app_name_certificates_hostname`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_apps_app_name_certificates_hostname_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_certificates_hostname_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_certificates_hostname_execute(
+pub fn get_apps_app_name_certificates_hostname_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CertificateDetail>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<CertificateDetail>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -988,9 +1242,38 @@ pub fn get_apps_app_name_certificates_hostname_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /apps/{app_name}/certificates/{hostname}
+/// Get certificate details
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_apps_app_name_certificates_hostname_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_apps_app_name_certificates_hostname_task()`.
+/// For the simplest API, use `get_apps_app_name_certificates_hostname()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_certificates_hostname_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_apps_app_name_certificates_hostname_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CertificateDetail>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_apps_app_name_certificates_hostname_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1008,6 +1291,7 @@ pub struct GetAppsAppNameCertificatesHostnameArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_apps_app_name_certificates_hostname_builder()` + `get_apps_app_name_certificates_hostname_execute()`.
+/// For task-level control, use `get_apps_app_name_certificates_hostname_task()`.
 ///
 /// # Errors
 ///
@@ -1055,25 +1339,31 @@ pub fn delete_apps_app_name_certificates_hostname_builder(
 /// DELETE /apps/{app_name}/certificates/{hostname}
 /// Remove certificate
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_apps_app_name_certificates_hostname_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_apps_app_name_certificates_hostname_execute()` or `delete_apps_app_name_certificates_hostname`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_apps_app_name_certificates_hostname_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_certificates_hostname_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_certificates_hostname_execute(
+pub fn delete_apps_app_name_certificates_hostname_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -1109,9 +1399,36 @@ pub fn delete_apps_app_name_certificates_hostname_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /apps/{app_name}/certificates/{hostname}
+/// Remove certificate
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_apps_app_name_certificates_hostname_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_apps_app_name_certificates_hostname_task()`.
+/// For the simplest API, use `delete_apps_app_name_certificates_hostname()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_certificates_hostname_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_apps_app_name_certificates_hostname_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_apps_app_name_certificates_hostname_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1129,6 +1446,7 @@ pub struct DeleteAppsAppNameCertificatesHostnameArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_apps_app_name_certificates_hostname_builder()` + `delete_apps_app_name_certificates_hostname_execute()`.
+/// For task-level control, use `delete_apps_app_name_certificates_hostname_task()`.
 ///
 /// # Errors
 ///
@@ -1174,27 +1492,33 @@ pub fn delete_apps_app_name_certificates_hostname_acme_builder(
 /// DELETE /apps/{app_name}/certificates/{hostname}/acme
 /// Remove ACME certificates
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_apps_app_name_certificates_hostname_acme_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_apps_app_name_certificates_hostname_acme_execute()` or `delete_apps_app_name_certificates_hostname_acme`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_apps_app_name_certificates_hostname_acme_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_certificates_hostname_acme_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_certificates_hostname_acme_execute(
+pub fn delete_apps_app_name_certificates_hostname_acme_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CertificateDetail>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<CertificateDetail>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -1233,9 +1557,38 @@ pub fn delete_apps_app_name_certificates_hostname_acme_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /apps/{app_name}/certificates/{hostname}/acme
+/// Remove ACME certificates
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_apps_app_name_certificates_hostname_acme_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_apps_app_name_certificates_hostname_acme_task()`.
+/// For the simplest API, use `delete_apps_app_name_certificates_hostname_acme()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_certificates_hostname_acme_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_apps_app_name_certificates_hostname_acme_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CertificateDetail>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = delete_apps_app_name_certificates_hostname_acme_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1253,6 +1606,7 @@ pub struct DeleteAppsAppNameCertificatesHostnameAcmeArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_apps_app_name_certificates_hostname_acme_builder()` + `delete_apps_app_name_certificates_hostname_acme_execute()`.
+/// For task-level control, use `delete_apps_app_name_certificates_hostname_acme_task()`.
 ///
 /// # Errors
 ///
@@ -1303,27 +1657,33 @@ pub fn post_apps_app_name_certificates_hostname_check_builder(
 /// POST /apps/{app_name}/certificates/{hostname}/check
 /// Check DNS and re-validate certificate
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_certificates_hostname_check_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_certificates_hostname_check_execute()` or `post_apps_app_name_certificates_hostname_check`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_certificates_hostname_check_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_certificates_hostname_check_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_certificates_hostname_check_execute(
+pub fn post_apps_app_name_certificates_hostname_check_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CertificateCheckResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<CertificateCheckResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -1362,9 +1722,38 @@ pub fn post_apps_app_name_certificates_hostname_check_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/certificates/{hostname}/check
+/// Check DNS and re-validate certificate
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_certificates_hostname_check_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_certificates_hostname_check_task()`.
+/// For the simplest API, use `post_apps_app_name_certificates_hostname_check()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_certificates_hostname_check_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_certificates_hostname_check_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CertificateCheckResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_certificates_hostname_check_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1382,6 +1771,7 @@ pub struct PostAppsAppNameCertificatesHostnameCheckArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_certificates_hostname_check_builder()` + `post_apps_app_name_certificates_hostname_check_execute()`.
+/// For task-level control, use `post_apps_app_name_certificates_hostname_check_task()`.
 ///
 /// # Errors
 ///
@@ -1432,29 +1822,35 @@ pub fn delete_apps_app_name_certificates_hostname_custom_builder(
 /// DELETE /apps/{app_name}/certificates/{hostname}/custom
 /// Remove custom certificate
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_apps_app_name_certificates_hostname_custom_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_apps_app_name_certificates_hostname_custom_execute()` or `delete_apps_app_name_certificates_hostname_custom`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_apps_app_name_certificates_hostname_custom_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_certificates_hostname_custom_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_certificates_hostname_custom_execute(
+pub fn delete_apps_app_name_certificates_hostname_custom_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<
+    impl TaskIterator<
             D = Result<ApiResponse<DestroyCustomCertificateResponse>, ApiError>,
             P = ApiPending,
         > + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -1493,9 +1889,40 @@ pub fn delete_apps_app_name_certificates_hostname_custom_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /apps/{app_name}/certificates/{hostname}/custom
+/// Remove custom certificate
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_apps_app_name_certificates_hostname_custom_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_apps_app_name_certificates_hostname_custom_task()`.
+/// For the simplest API, use `delete_apps_app_name_certificates_hostname_custom()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_certificates_hostname_custom_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_apps_app_name_certificates_hostname_custom_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<
+            D = Result<ApiResponse<DestroyCustomCertificateResponse>, ApiError>,
+            P = ApiPending,
+        > + Send
+        + 'static,
+    ApiError,
+> {
+    let task = delete_apps_app_name_certificates_hostname_custom_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1513,6 +1940,7 @@ pub struct DeleteAppsAppNameCertificatesHostnameCustomArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_apps_app_name_certificates_hostname_custom_builder()` + `delete_apps_app_name_certificates_hostname_custom_execute()`.
+/// For task-level control, use `delete_apps_app_name_certificates_hostname_custom_task()`.
 ///
 /// # Errors
 ///
@@ -1564,27 +1992,33 @@ pub fn post_apps_app_name_deploy_token_builder(
 /// POST /apps/{app_name}/deploy_token
 /// Create App deploy token
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_deploy_token_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_deploy_token_execute()` or `post_apps_app_name_deploy_token`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_deploy_token_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_deploy_token_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_deploy_token_execute(
+pub fn post_apps_app_name_deploy_token_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CreateAppResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<CreateAppResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -1623,9 +2057,38 @@ pub fn post_apps_app_name_deploy_token_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/deploy_token
+/// Create App deploy token
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_deploy_token_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_deploy_token_task()`.
+/// For the simplest API, use `post_apps_app_name_deploy_token()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_deploy_token_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_deploy_token_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CreateAppResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_deploy_token_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1643,6 +2106,7 @@ pub struct PostAppsAppNameDeployTokenArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_deploy_token_builder()` + `post_apps_app_name_deploy_token_execute()`.
+/// For task-level control, use `post_apps_app_name_deploy_token_task()`.
 ///
 /// # Errors
 ///
@@ -1688,27 +2152,33 @@ pub fn get_apps_app_name_ip_assignments_builder(
 /// GET /apps/{app_name}/ip_assignments
 /// List IP assignments for app
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_apps_app_name_ip_assignments_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_apps_app_name_ip_assignments_execute()` or `get_apps_app_name_ip_assignments`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_apps_app_name_ip_assignments_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_ip_assignments_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_ip_assignments_execute(
+pub fn get_apps_app_name_ip_assignments_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ListIPAssignmentsResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<ListIPAssignmentsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -1747,9 +2217,38 @@ pub fn get_apps_app_name_ip_assignments_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /apps/{app_name}/ip_assignments
+/// List IP assignments for app
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_apps_app_name_ip_assignments_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_apps_app_name_ip_assignments_task()`.
+/// For the simplest API, use `get_apps_app_name_ip_assignments()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_ip_assignments_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_apps_app_name_ip_assignments_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ListIPAssignmentsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_apps_app_name_ip_assignments_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1765,6 +2264,7 @@ pub struct GetAppsAppNameIpAssignmentsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_apps_app_name_ip_assignments_builder()` + `get_apps_app_name_ip_assignments_execute()`.
+/// For task-level control, use `get_apps_app_name_ip_assignments_task()`.
 ///
 /// # Errors
 ///
@@ -1813,27 +2313,31 @@ pub fn post_apps_app_name_ip_assignments_builder(
 /// POST /apps/{app_name}/ip_assignments
 /// Assign new IP address to app
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_ip_assignments_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_ip_assignments_execute()` or `post_apps_app_name_ip_assignments`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_ip_assignments_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_ip_assignments_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_ip_assignments_execute(
+pub fn post_apps_app_name_ip_assignments_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<IPAssignment>, ApiError>, P = ApiPending>
-        + Send
-        + 'static,
+    impl TaskIterator<D = Result<ApiResponse<IPAssignment>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -1872,9 +2376,38 @@ pub fn post_apps_app_name_ip_assignments_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/ip_assignments
+/// Assign new IP address to app
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_ip_assignments_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_ip_assignments_task()`.
+/// For the simplest API, use `post_apps_app_name_ip_assignments()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_ip_assignments_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_ip_assignments_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<IPAssignment>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_ip_assignments_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1892,6 +2425,7 @@ pub struct PostAppsAppNameIpAssignmentsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_ip_assignments_builder()` + `post_apps_app_name_ip_assignments_execute()`.
+/// For task-level control, use `post_apps_app_name_ip_assignments_task()`.
 ///
 /// # Errors
 ///
@@ -1938,25 +2472,31 @@ pub fn delete_apps_app_name_ip_assignments_ip_builder(
 /// DELETE /apps/{app_name}/ip_assignments/{ip}
 /// Remove IP assignment from app
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_apps_app_name_ip_assignments_ip_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_apps_app_name_ip_assignments_ip_execute()` or `delete_apps_app_name_ip_assignments_ip`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_apps_app_name_ip_assignments_ip_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_ip_assignments_ip_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_ip_assignments_ip_execute(
+pub fn delete_apps_app_name_ip_assignments_ip_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -1992,9 +2532,36 @@ pub fn delete_apps_app_name_ip_assignments_ip_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /apps/{app_name}/ip_assignments/{ip}
+/// Remove IP assignment from app
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_apps_app_name_ip_assignments_ip_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_apps_app_name_ip_assignments_ip_task()`.
+/// For the simplest API, use `delete_apps_app_name_ip_assignments_ip()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_ip_assignments_ip_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_apps_app_name_ip_assignments_ip_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_apps_app_name_ip_assignments_ip_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -2012,6 +2579,7 @@ pub struct DeleteAppsAppNameIpAssignmentsIpArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_apps_app_name_ip_assignments_ip_builder()` + `delete_apps_app_name_ip_assignments_ip_execute()`.
+/// For task-level control, use `delete_apps_app_name_ip_assignments_ip_task()`.
 ///
 /// # Errors
 ///
@@ -2076,25 +2644,31 @@ pub fn get_apps_app_name_machines_builder(
 /// GET /apps/{app_name}/machines
 /// List Machines
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_apps_app_name_machines_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_apps_app_name_machines_execute()` or `get_apps_app_name_machines`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_apps_app_name_machines_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_execute(
+pub fn get_apps_app_name_machines_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -2130,9 +2704,36 @@ pub fn get_apps_app_name_machines_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /apps/{app_name}/machines
+/// List Machines
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_apps_app_name_machines_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_apps_app_name_machines_task()`.
+/// For the simplest API, use `get_apps_app_name_machines()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_apps_app_name_machines_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_apps_app_name_machines_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -2156,6 +2757,7 @@ pub struct GetAppsAppNameMachinesArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_apps_app_name_machines_builder()` + `get_apps_app_name_machines_execute()`.
+/// For task-level control, use `get_apps_app_name_machines_task()`.
 ///
 /// # Errors
 ///
@@ -2206,25 +2808,31 @@ pub fn post_apps_app_name_machines_builder(
 /// POST /apps/{app_name}/machines
 /// Create Machine
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_machines_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_machines_execute()` or `post_apps_app_name_machines`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_machines_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_execute(
+pub fn post_apps_app_name_machines_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Machine>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<Machine>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -2263,9 +2871,36 @@ pub fn post_apps_app_name_machines_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/machines
+/// Create Machine
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_machines_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_machines_task()`.
+/// For the simplest API, use `post_apps_app_name_machines()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_machines_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Machine>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_machines_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -2283,6 +2918,7 @@ pub struct PostAppsAppNameMachinesArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_machines_builder()` + `post_apps_app_name_machines_execute()`.
+/// For task-level control, use `post_apps_app_name_machines_task()`.
 ///
 /// # Errors
 ///
@@ -2327,25 +2963,31 @@ pub fn get_apps_app_name_machines_machine_id_builder(
 /// GET /apps/{app_name}/machines/{machine_id}
 /// Get Machine
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_apps_app_name_machines_machine_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_apps_app_name_machines_machine_id_execute()` or `get_apps_app_name_machines_machine_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_apps_app_name_machines_machine_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_execute(
+pub fn get_apps_app_name_machines_machine_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Machine>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<Machine>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -2384,9 +3026,36 @@ pub fn get_apps_app_name_machines_machine_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /apps/{app_name}/machines/{machine_id}
+/// Get Machine
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_apps_app_name_machines_machine_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_apps_app_name_machines_machine_id_task()`.
+/// For the simplest API, use `get_apps_app_name_machines_machine_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_apps_app_name_machines_machine_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Machine>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_apps_app_name_machines_machine_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -2404,6 +3073,7 @@ pub struct GetAppsAppNameMachinesMachineIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_apps_app_name_machines_machine_id_builder()` + `get_apps_app_name_machines_machine_id_execute()`.
+/// For task-level control, use `get_apps_app_name_machines_machine_id_task()`.
 ///
 /// # Errors
 ///
@@ -2452,25 +3122,31 @@ pub fn post_apps_app_name_machines_machine_id_builder(
 /// POST /apps/{app_name}/machines/{machine_id}
 /// Update Machine
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_machines_machine_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_machines_machine_id_execute()` or `post_apps_app_name_machines_machine_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_machines_machine_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_execute(
+pub fn post_apps_app_name_machines_machine_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Machine>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<Machine>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -2509,9 +3185,36 @@ pub fn post_apps_app_name_machines_machine_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/machines/{machine_id}
+/// Update Machine
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_machines_machine_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_machines_machine_id_task()`.
+/// For the simplest API, use `post_apps_app_name_machines_machine_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_machines_machine_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Machine>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_machines_machine_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -2531,6 +3234,7 @@ pub struct PostAppsAppNameMachinesMachineIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_machines_machine_id_builder()` + `post_apps_app_name_machines_machine_id_execute()`.
+/// For task-level control, use `post_apps_app_name_machines_machine_id_task()`.
 ///
 /// # Errors
 ///
@@ -2592,25 +3296,31 @@ pub fn delete_apps_app_name_machines_machine_id_builder(
 /// DELETE /apps/{app_name}/machines/{machine_id}
 /// Destroy Machine
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_apps_app_name_machines_machine_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_apps_app_name_machines_machine_id_execute()` or `delete_apps_app_name_machines_machine_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_apps_app_name_machines_machine_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_machines_machine_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_machines_machine_id_execute(
+pub fn delete_apps_app_name_machines_machine_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -2646,9 +3356,36 @@ pub fn delete_apps_app_name_machines_machine_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /apps/{app_name}/machines/{machine_id}
+/// Destroy Machine
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_apps_app_name_machines_machine_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_apps_app_name_machines_machine_id_task()`.
+/// For the simplest API, use `delete_apps_app_name_machines_machine_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_machines_machine_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_apps_app_name_machines_machine_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_apps_app_name_machines_machine_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -2668,6 +3405,7 @@ pub struct DeleteAppsAppNameMachinesMachineIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_apps_app_name_machines_machine_id_builder()` + `delete_apps_app_name_machines_machine_id_execute()`.
+/// For task-level control, use `delete_apps_app_name_machines_machine_id_task()`.
 ///
 /// # Errors
 ///
@@ -2717,25 +3455,31 @@ pub fn post_apps_app_name_machines_machine_id_cordon_builder(
 /// POST /apps/{app_name}/machines/{machine_id}/cordon
 /// Cordon Machine
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_machines_machine_id_cordon_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_machines_machine_id_cordon_execute()` or `post_apps_app_name_machines_machine_id_cordon`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_machines_machine_id_cordon_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_cordon_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_cordon_execute(
+pub fn post_apps_app_name_machines_machine_id_cordon_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -2771,9 +3515,36 @@ pub fn post_apps_app_name_machines_machine_id_cordon_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/machines/{machine_id}/cordon
+/// Cordon Machine
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_machines_machine_id_cordon_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_machines_machine_id_cordon_task()`.
+/// For the simplest API, use `post_apps_app_name_machines_machine_id_cordon()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_cordon_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_machines_machine_id_cordon_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_machines_machine_id_cordon_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -2791,6 +3562,7 @@ pub struct PostAppsAppNameMachinesMachineIdCordonArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_machines_machine_id_cordon_builder()` + `post_apps_app_name_machines_machine_id_cordon_execute()`.
+/// For task-level control, use `post_apps_app_name_machines_machine_id_cordon_task()`.
 ///
 /// # Errors
 ///
@@ -2851,25 +3623,31 @@ pub fn get_apps_app_name_machines_machine_id_events_builder(
 /// GET /apps/{app_name}/machines/{machine_id}/events
 /// List Events
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_apps_app_name_machines_machine_id_events_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_apps_app_name_machines_machine_id_events_execute()` or `get_apps_app_name_machines_machine_id_events`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_apps_app_name_machines_machine_id_events_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_events_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_events_execute(
+pub fn get_apps_app_name_machines_machine_id_events_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -2905,9 +3683,36 @@ pub fn get_apps_app_name_machines_machine_id_events_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /apps/{app_name}/machines/{machine_id}/events
+/// List Events
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_apps_app_name_machines_machine_id_events_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_apps_app_name_machines_machine_id_events_task()`.
+/// For the simplest API, use `get_apps_app_name_machines_machine_id_events()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_events_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_apps_app_name_machines_machine_id_events_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_apps_app_name_machines_machine_id_events_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -2927,6 +3732,7 @@ pub struct GetAppsAppNameMachinesMachineIdEventsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_apps_app_name_machines_machine_id_events_builder()` + `get_apps_app_name_machines_machine_id_events_execute()`.
+/// For task-level control, use `get_apps_app_name_machines_machine_id_events_task()`.
 ///
 /// # Errors
 ///
@@ -2979,27 +3785,33 @@ pub fn post_apps_app_name_machines_machine_id_exec_builder(
 /// POST /apps/{app_name}/machines/{machine_id}/exec
 /// Execute Command
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_machines_machine_id_exec_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_machines_machine_id_exec_execute()` or `post_apps_app_name_machines_machine_id_exec`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_machines_machine_id_exec_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_exec_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_exec_execute(
+pub fn post_apps_app_name_machines_machine_id_exec_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Flydv1ExecResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<Flydv1ExecResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -3038,9 +3850,38 @@ pub fn post_apps_app_name_machines_machine_id_exec_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/machines/{machine_id}/exec
+/// Execute Command
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_machines_machine_id_exec_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_machines_machine_id_exec_task()`.
+/// For the simplest API, use `post_apps_app_name_machines_machine_id_exec()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_exec_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_machines_machine_id_exec_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Flydv1ExecResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_machines_machine_id_exec_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -3060,6 +3901,7 @@ pub struct PostAppsAppNameMachinesMachineIdExecArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_machines_machine_id_exec_builder()` + `post_apps_app_name_machines_machine_id_exec_execute()`.
+/// For task-level control, use `post_apps_app_name_machines_machine_id_exec_task()`.
 ///
 /// # Errors
 ///
@@ -3111,25 +3953,31 @@ pub fn get_apps_app_name_machines_machine_id_lease_builder(
 /// GET /apps/{app_name}/machines/{machine_id}/lease
 /// Get Lease
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_apps_app_name_machines_machine_id_lease_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_apps_app_name_machines_machine_id_lease_execute()` or `get_apps_app_name_machines_machine_id_lease`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_apps_app_name_machines_machine_id_lease_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_lease_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_lease_execute(
+pub fn get_apps_app_name_machines_machine_id_lease_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Lease>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<Lease>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -3168,9 +4016,36 @@ pub fn get_apps_app_name_machines_machine_id_lease_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /apps/{app_name}/machines/{machine_id}/lease
+/// Get Lease
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_apps_app_name_machines_machine_id_lease_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_apps_app_name_machines_machine_id_lease_task()`.
+/// For the simplest API, use `get_apps_app_name_machines_machine_id_lease()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_lease_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_apps_app_name_machines_machine_id_lease_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Lease>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_apps_app_name_machines_machine_id_lease_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -3188,6 +4063,7 @@ pub struct GetAppsAppNameMachinesMachineIdLeaseArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_apps_app_name_machines_machine_id_lease_builder()` + `get_apps_app_name_machines_machine_id_lease_execute()`.
+/// For task-level control, use `get_apps_app_name_machines_machine_id_lease_task()`.
 ///
 /// # Errors
 ///
@@ -3239,25 +4115,31 @@ pub fn post_apps_app_name_machines_machine_id_lease_builder(
 /// POST /apps/{app_name}/machines/{machine_id}/lease
 /// Create Lease
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_machines_machine_id_lease_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_machines_machine_id_lease_execute()` or `post_apps_app_name_machines_machine_id_lease`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_machines_machine_id_lease_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_lease_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_lease_execute(
+pub fn post_apps_app_name_machines_machine_id_lease_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Lease>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<Lease>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -3296,9 +4178,36 @@ pub fn post_apps_app_name_machines_machine_id_lease_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/machines/{machine_id}/lease
+/// Create Lease
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_machines_machine_id_lease_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_machines_machine_id_lease_task()`.
+/// For the simplest API, use `post_apps_app_name_machines_machine_id_lease()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_lease_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_machines_machine_id_lease_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Lease>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_machines_machine_id_lease_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -3318,6 +4227,7 @@ pub struct PostAppsAppNameMachinesMachineIdLeaseArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_machines_machine_id_lease_builder()` + `post_apps_app_name_machines_machine_id_lease_execute()`.
+/// For task-level control, use `post_apps_app_name_machines_machine_id_lease_task()`.
 ///
 /// # Errors
 ///
@@ -3367,25 +4277,31 @@ pub fn delete_apps_app_name_machines_machine_id_lease_builder(
 /// DELETE /apps/{app_name}/machines/{machine_id}/lease
 /// Release Lease
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_apps_app_name_machines_machine_id_lease_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_apps_app_name_machines_machine_id_lease_execute()` or `delete_apps_app_name_machines_machine_id_lease`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_apps_app_name_machines_machine_id_lease_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_machines_machine_id_lease_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_machines_machine_id_lease_execute(
+pub fn delete_apps_app_name_machines_machine_id_lease_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -3421,9 +4337,36 @@ pub fn delete_apps_app_name_machines_machine_id_lease_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /apps/{app_name}/machines/{machine_id}/lease
+/// Release Lease
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_apps_app_name_machines_machine_id_lease_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_apps_app_name_machines_machine_id_lease_task()`.
+/// For the simplest API, use `delete_apps_app_name_machines_machine_id_lease()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_machines_machine_id_lease_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_apps_app_name_machines_machine_id_lease_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_apps_app_name_machines_machine_id_lease_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -3441,6 +4384,7 @@ pub struct DeleteAppsAppNameMachinesMachineIdLeaseArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_apps_app_name_machines_machine_id_lease_builder()` + `delete_apps_app_name_machines_machine_id_lease_execute()`.
+/// For task-level control, use `delete_apps_app_name_machines_machine_id_lease_task()`.
 ///
 /// # Errors
 ///
@@ -3489,27 +4433,33 @@ pub fn get_apps_app_name_machines_machine_id_memory_builder(
 /// GET /apps/{app_name}/machines/{machine_id}/memory
 /// Get Machine Memory
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_apps_app_name_machines_machine_id_memory_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_apps_app_name_machines_machine_id_memory_execute()` or `get_apps_app_name_machines_machine_id_memory`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_apps_app_name_machines_machine_id_memory_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_memory_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_memory_execute(
+pub fn get_apps_app_name_machines_machine_id_memory_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<MainMemoryResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<MainMemoryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -3548,9 +4498,38 @@ pub fn get_apps_app_name_machines_machine_id_memory_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /apps/{app_name}/machines/{machine_id}/memory
+/// Get Machine Memory
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_apps_app_name_machines_machine_id_memory_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_apps_app_name_machines_machine_id_memory_task()`.
+/// For the simplest API, use `get_apps_app_name_machines_machine_id_memory()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_memory_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_apps_app_name_machines_machine_id_memory_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<MainMemoryResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_apps_app_name_machines_machine_id_memory_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -3568,6 +4547,7 @@ pub struct GetAppsAppNameMachinesMachineIdMemoryArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_apps_app_name_machines_machine_id_memory_builder()` + `get_apps_app_name_machines_machine_id_memory_execute()`.
+/// For task-level control, use `get_apps_app_name_machines_machine_id_memory_task()`.
 ///
 /// # Errors
 ///
@@ -3621,27 +4601,33 @@ pub fn put_apps_app_name_machines_machine_id_memory_builder(
 /// PUT /apps/{app_name}/machines/{machine_id}/memory
 /// Set Machine Memory Limit
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `put_apps_app_name_machines_machine_id_memory_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `put_apps_app_name_machines_machine_id_memory_execute()` or `put_apps_app_name_machines_machine_id_memory`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from put_apps_app_name_machines_machine_id_memory_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `put_apps_app_name_machines_machine_id_memory_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn put_apps_app_name_machines_machine_id_memory_execute(
+pub fn put_apps_app_name_machines_machine_id_memory_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<MainMemoryResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<MainMemoryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -3680,9 +4666,38 @@ pub fn put_apps_app_name_machines_machine_id_memory_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PUT /apps/{app_name}/machines/{machine_id}/memory
+/// Set Machine Memory Limit
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `put_apps_app_name_machines_machine_id_memory_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `put_apps_app_name_machines_machine_id_memory_task()`.
+/// For the simplest API, use `put_apps_app_name_machines_machine_id_memory()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `put_apps_app_name_machines_machine_id_memory_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn put_apps_app_name_machines_machine_id_memory_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<MainMemoryResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = put_apps_app_name_machines_machine_id_memory_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -3702,6 +4717,7 @@ pub struct PutAppsAppNameMachinesMachineIdMemoryArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `put_apps_app_name_machines_machine_id_memory_builder()` + `put_apps_app_name_machines_machine_id_memory_execute()`.
+/// For task-level control, use `put_apps_app_name_machines_machine_id_memory_task()`.
 ///
 /// # Errors
 ///
@@ -3756,27 +4772,33 @@ pub fn post_apps_app_name_machines_machine_id_memory_reclaim_builder(
 /// POST /apps/{app_name}/machines/{machine_id}/memory/reclaim
 /// Reclaim Machine Memory
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_machines_machine_id_memory_reclaim_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_machines_machine_id_memory_reclaim_execute()` or `post_apps_app_name_machines_machine_id_memory_reclaim`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_machines_machine_id_memory_reclaim_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_memory_reclaim_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_memory_reclaim_execute(
+pub fn post_apps_app_name_machines_machine_id_memory_reclaim_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<MainReclaimMemoryResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<MainReclaimMemoryResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -3815,9 +4837,38 @@ pub fn post_apps_app_name_machines_machine_id_memory_reclaim_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/machines/{machine_id}/memory/reclaim
+/// Reclaim Machine Memory
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_machines_machine_id_memory_reclaim_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_machines_machine_id_memory_reclaim_task()`.
+/// For the simplest API, use `post_apps_app_name_machines_machine_id_memory_reclaim()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_memory_reclaim_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_machines_machine_id_memory_reclaim_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<MainReclaimMemoryResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_machines_machine_id_memory_reclaim_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -3837,6 +4888,7 @@ pub struct PostAppsAppNameMachinesMachineIdMemoryReclaimArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_machines_machine_id_memory_reclaim_builder()` + `post_apps_app_name_machines_machine_id_memory_reclaim_execute()`.
+/// For task-level control, use `post_apps_app_name_machines_machine_id_memory_reclaim_task()`.
 ///
 /// # Errors
 ///
@@ -3888,25 +4940,31 @@ pub fn get_apps_app_name_machines_machine_id_metadata_builder(
 /// GET /apps/{app_name}/machines/{machine_id}/metadata
 /// Get Metadata
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_apps_app_name_machines_machine_id_metadata_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_apps_app_name_machines_machine_id_metadata_execute()` or `get_apps_app_name_machines_machine_id_metadata`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_apps_app_name_machines_machine_id_metadata_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_metadata_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_metadata_execute(
+pub fn get_apps_app_name_machines_machine_id_metadata_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -3942,9 +5000,36 @@ pub fn get_apps_app_name_machines_machine_id_metadata_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /apps/{app_name}/machines/{machine_id}/metadata
+/// Get Metadata
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_apps_app_name_machines_machine_id_metadata_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_apps_app_name_machines_machine_id_metadata_task()`.
+/// For the simplest API, use `get_apps_app_name_machines_machine_id_metadata()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_metadata_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_apps_app_name_machines_machine_id_metadata_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_apps_app_name_machines_machine_id_metadata_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -3962,6 +5047,7 @@ pub struct GetAppsAppNameMachinesMachineIdMetadataArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_apps_app_name_machines_machine_id_metadata_builder()` + `get_apps_app_name_machines_machine_id_metadata_execute()`.
+/// For task-level control, use `get_apps_app_name_machines_machine_id_metadata_task()`.
 ///
 /// # Errors
 ///
@@ -4013,25 +5099,31 @@ pub fn put_apps_app_name_machines_machine_id_metadata_builder(
 /// PUT /apps/{app_name}/machines/{machine_id}/metadata
 /// Update Metadata (`set/remove` multiple keys)
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `put_apps_app_name_machines_machine_id_metadata_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `put_apps_app_name_machines_machine_id_metadata_execute()` or `put_apps_app_name_machines_machine_id_metadata`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from put_apps_app_name_machines_machine_id_metadata_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `put_apps_app_name_machines_machine_id_metadata_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn put_apps_app_name_machines_machine_id_metadata_execute(
+pub fn put_apps_app_name_machines_machine_id_metadata_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -4067,9 +5159,36 @@ pub fn put_apps_app_name_machines_machine_id_metadata_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PUT /apps/{app_name}/machines/{machine_id}/metadata
+/// Update Metadata (`set/remove` multiple keys)
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `put_apps_app_name_machines_machine_id_metadata_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `put_apps_app_name_machines_machine_id_metadata_task()`.
+/// For the simplest API, use `put_apps_app_name_machines_machine_id_metadata()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `put_apps_app_name_machines_machine_id_metadata_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn put_apps_app_name_machines_machine_id_metadata_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = put_apps_app_name_machines_machine_id_metadata_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4089,6 +5208,7 @@ pub struct PutAppsAppNameMachinesMachineIdMetadataArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `put_apps_app_name_machines_machine_id_metadata_builder()` + `put_apps_app_name_machines_machine_id_metadata_execute()`.
+/// For task-level control, use `put_apps_app_name_machines_machine_id_metadata_task()`.
 ///
 /// # Errors
 ///
@@ -4139,27 +5259,33 @@ pub fn get_apps_app_name_machines_machine_id_metadata_key_builder(
 /// GET /apps/{app_name}/machines/{machine_id}/metadata/{key}
 /// Get Metadata Value
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_apps_app_name_machines_machine_id_metadata_key_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_apps_app_name_machines_machine_id_metadata_key_execute()` or `get_apps_app_name_machines_machine_id_metadata_key`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_apps_app_name_machines_machine_id_metadata_key_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_metadata_key_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_metadata_key_execute(
+pub fn get_apps_app_name_machines_machine_id_metadata_key_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<MetadataValueResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<MetadataValueResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -4198,9 +5324,38 @@ pub fn get_apps_app_name_machines_machine_id_metadata_key_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /apps/{app_name}/machines/{machine_id}/metadata/{key}
+/// Get Metadata Value
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_apps_app_name_machines_machine_id_metadata_key_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_apps_app_name_machines_machine_id_metadata_key_task()`.
+/// For the simplest API, use `get_apps_app_name_machines_machine_id_metadata_key()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_metadata_key_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_apps_app_name_machines_machine_id_metadata_key_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<MetadataValueResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_apps_app_name_machines_machine_id_metadata_key_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4220,6 +5375,7 @@ pub struct GetAppsAppNameMachinesMachineIdMetadataKeyArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_apps_app_name_machines_machine_id_metadata_key_builder()` + `get_apps_app_name_machines_machine_id_metadata_key_execute()`.
+/// For task-level control, use `get_apps_app_name_machines_machine_id_metadata_key_task()`.
 ///
 /// # Errors
 ///
@@ -4275,25 +5431,31 @@ pub fn post_apps_app_name_machines_machine_id_metadata_key_builder(
 /// POST /apps/{app_name}/machines/{machine_id}/metadata/{key}
 /// Upsert Metadata Key
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_machines_machine_id_metadata_key_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_machines_machine_id_metadata_key_execute()` or `post_apps_app_name_machines_machine_id_metadata_key`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_machines_machine_id_metadata_key_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_metadata_key_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_metadata_key_execute(
+pub fn post_apps_app_name_machines_machine_id_metadata_key_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -4329,9 +5491,36 @@ pub fn post_apps_app_name_machines_machine_id_metadata_key_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/machines/{machine_id}/metadata/{key}
+/// Upsert Metadata Key
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_machines_machine_id_metadata_key_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_machines_machine_id_metadata_key_task()`.
+/// For the simplest API, use `post_apps_app_name_machines_machine_id_metadata_key()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_metadata_key_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_machines_machine_id_metadata_key_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_machines_machine_id_metadata_key_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4353,6 +5542,7 @@ pub struct PostAppsAppNameMachinesMachineIdMetadataKeyArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_machines_machine_id_metadata_key_builder()` + `post_apps_app_name_machines_machine_id_metadata_key_execute()`.
+/// For task-level control, use `post_apps_app_name_machines_machine_id_metadata_key_task()`.
 ///
 /// # Errors
 ///
@@ -4404,25 +5594,31 @@ pub fn delete_apps_app_name_machines_machine_id_metadata_key_builder(
 /// DELETE /apps/{app_name}/machines/{machine_id}/metadata/{key}
 /// Delete Metadata
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_apps_app_name_machines_machine_id_metadata_key_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_apps_app_name_machines_machine_id_metadata_key_execute()` or `delete_apps_app_name_machines_machine_id_metadata_key`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_apps_app_name_machines_machine_id_metadata_key_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_machines_machine_id_metadata_key_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_machines_machine_id_metadata_key_execute(
+pub fn delete_apps_app_name_machines_machine_id_metadata_key_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -4458,9 +5654,36 @@ pub fn delete_apps_app_name_machines_machine_id_metadata_key_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /apps/{app_name}/machines/{machine_id}/metadata/{key}
+/// Delete Metadata
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_apps_app_name_machines_machine_id_metadata_key_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_apps_app_name_machines_machine_id_metadata_key_task()`.
+/// For the simplest API, use `delete_apps_app_name_machines_machine_id_metadata_key()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_machines_machine_id_metadata_key_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_apps_app_name_machines_machine_id_metadata_key_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_apps_app_name_machines_machine_id_metadata_key_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4480,6 +5703,7 @@ pub struct DeleteAppsAppNameMachinesMachineIdMetadataKeyArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_apps_app_name_machines_machine_id_metadata_key_builder()` + `delete_apps_app_name_machines_machine_id_metadata_key_execute()`.
+/// For task-level control, use `delete_apps_app_name_machines_machine_id_metadata_key_task()`.
 ///
 /// # Errors
 ///
@@ -4545,25 +5769,31 @@ pub fn get_apps_app_name_machines_machine_id_ps_builder(
 /// GET /apps/{app_name}/machines/{machine_id}/ps
 /// List Processes
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_apps_app_name_machines_machine_id_ps_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_apps_app_name_machines_machine_id_ps_execute()` or `get_apps_app_name_machines_machine_id_ps`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_apps_app_name_machines_machine_id_ps_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_ps_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_ps_execute(
+pub fn get_apps_app_name_machines_machine_id_ps_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -4599,9 +5829,36 @@ pub fn get_apps_app_name_machines_machine_id_ps_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /apps/{app_name}/machines/{machine_id}/ps
+/// List Processes
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_apps_app_name_machines_machine_id_ps_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_apps_app_name_machines_machine_id_ps_task()`.
+/// For the simplest API, use `get_apps_app_name_machines_machine_id_ps()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_ps_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_apps_app_name_machines_machine_id_ps_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_apps_app_name_machines_machine_id_ps_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4623,6 +5880,7 @@ pub struct GetAppsAppNameMachinesMachineIdPsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_apps_app_name_machines_machine_id_ps_builder()` + `get_apps_app_name_machines_machine_id_ps_execute()`.
+/// For task-level control, use `get_apps_app_name_machines_machine_id_ps_task()`.
 ///
 /// # Errors
 ///
@@ -4689,25 +5947,31 @@ pub fn post_apps_app_name_machines_machine_id_restart_builder(
 /// POST /apps/{app_name}/machines/{machine_id}/restart
 /// Restart Machine
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_machines_machine_id_restart_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_machines_machine_id_restart_execute()` or `post_apps_app_name_machines_machine_id_restart`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_machines_machine_id_restart_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_restart_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_restart_execute(
+pub fn post_apps_app_name_machines_machine_id_restart_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -4743,9 +6007,36 @@ pub fn post_apps_app_name_machines_machine_id_restart_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/machines/{machine_id}/restart
+/// Restart Machine
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_machines_machine_id_restart_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_machines_machine_id_restart_task()`.
+/// For the simplest API, use `post_apps_app_name_machines_machine_id_restart()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_restart_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_machines_machine_id_restart_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_machines_machine_id_restart_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4767,6 +6058,7 @@ pub struct PostAppsAppNameMachinesMachineIdRestartArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_machines_machine_id_restart_builder()` + `post_apps_app_name_machines_machine_id_restart_execute()`.
+/// For task-level control, use `post_apps_app_name_machines_machine_id_restart_task()`.
 ///
 /// # Errors
 ///
@@ -4820,25 +6112,31 @@ pub fn post_apps_app_name_machines_machine_id_signal_builder(
 /// POST /apps/{app_name}/machines/{machine_id}/signal
 /// Signal Machine
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_machines_machine_id_signal_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_machines_machine_id_signal_execute()` or `post_apps_app_name_machines_machine_id_signal`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_machines_machine_id_signal_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_signal_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_signal_execute(
+pub fn post_apps_app_name_machines_machine_id_signal_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -4874,9 +6172,36 @@ pub fn post_apps_app_name_machines_machine_id_signal_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/machines/{machine_id}/signal
+/// Signal Machine
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_machines_machine_id_signal_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_machines_machine_id_signal_task()`.
+/// For the simplest API, use `post_apps_app_name_machines_machine_id_signal()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_signal_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_machines_machine_id_signal_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_machines_machine_id_signal_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4896,6 +6221,7 @@ pub struct PostAppsAppNameMachinesMachineIdSignalArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_machines_machine_id_signal_builder()` + `post_apps_app_name_machines_machine_id_signal_execute()`.
+/// For task-level control, use `post_apps_app_name_machines_machine_id_signal_task()`.
 ///
 /// # Errors
 ///
@@ -4945,25 +6271,31 @@ pub fn post_apps_app_name_machines_machine_id_start_builder(
 /// POST /apps/{app_name}/machines/{machine_id}/start
 /// Start Machine
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_machines_machine_id_start_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_machines_machine_id_start_execute()` or `post_apps_app_name_machines_machine_id_start`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_machines_machine_id_start_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_start_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_start_execute(
+pub fn post_apps_app_name_machines_machine_id_start_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -4999,9 +6331,36 @@ pub fn post_apps_app_name_machines_machine_id_start_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/machines/{machine_id}/start
+/// Start Machine
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_machines_machine_id_start_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_machines_machine_id_start_task()`.
+/// For the simplest API, use `post_apps_app_name_machines_machine_id_start()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_start_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_machines_machine_id_start_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_machines_machine_id_start_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -5019,6 +6378,7 @@ pub struct PostAppsAppNameMachinesMachineIdStartArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_machines_machine_id_start_builder()` + `post_apps_app_name_machines_machine_id_start_execute()`.
+/// For task-level control, use `post_apps_app_name_machines_machine_id_start_task()`.
 ///
 /// # Errors
 ///
@@ -5070,25 +6430,31 @@ pub fn post_apps_app_name_machines_machine_id_stop_builder(
 /// POST /apps/{app_name}/machines/{machine_id}/stop
 /// Stop Machine
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_machines_machine_id_stop_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_machines_machine_id_stop_execute()` or `post_apps_app_name_machines_machine_id_stop`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_machines_machine_id_stop_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_stop_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_stop_execute(
+pub fn post_apps_app_name_machines_machine_id_stop_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -5124,9 +6490,36 @@ pub fn post_apps_app_name_machines_machine_id_stop_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/machines/{machine_id}/stop
+/// Stop Machine
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_machines_machine_id_stop_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_machines_machine_id_stop_task()`.
+/// For the simplest API, use `post_apps_app_name_machines_machine_id_stop()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_stop_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_machines_machine_id_stop_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_machines_machine_id_stop_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -5146,6 +6539,7 @@ pub struct PostAppsAppNameMachinesMachineIdStopArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_machines_machine_id_stop_builder()` + `post_apps_app_name_machines_machine_id_stop_execute()`.
+/// For task-level control, use `post_apps_app_name_machines_machine_id_stop_task()`.
 ///
 /// # Errors
 ///
@@ -5195,25 +6589,31 @@ pub fn post_apps_app_name_machines_machine_id_suspend_builder(
 /// POST /apps/{app_name}/machines/{machine_id}/suspend
 /// Suspend Machine
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_machines_machine_id_suspend_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_machines_machine_id_suspend_execute()` or `post_apps_app_name_machines_machine_id_suspend`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_machines_machine_id_suspend_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_suspend_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_suspend_execute(
+pub fn post_apps_app_name_machines_machine_id_suspend_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -5249,9 +6649,36 @@ pub fn post_apps_app_name_machines_machine_id_suspend_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/machines/{machine_id}/suspend
+/// Suspend Machine
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_machines_machine_id_suspend_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_machines_machine_id_suspend_task()`.
+/// For the simplest API, use `post_apps_app_name_machines_machine_id_suspend()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_suspend_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_machines_machine_id_suspend_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_machines_machine_id_suspend_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -5269,6 +6696,7 @@ pub struct PostAppsAppNameMachinesMachineIdSuspendArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_machines_machine_id_suspend_builder()` + `post_apps_app_name_machines_machine_id_suspend_execute()`.
+/// For task-level control, use `post_apps_app_name_machines_machine_id_suspend_task()`.
 ///
 /// # Errors
 ///
@@ -5317,25 +6745,31 @@ pub fn post_apps_app_name_machines_machine_id_uncordon_builder(
 /// POST /apps/{app_name}/machines/{machine_id}/uncordon
 /// Uncordon Machine
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_machines_machine_id_uncordon_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_machines_machine_id_uncordon_execute()` or `post_apps_app_name_machines_machine_id_uncordon`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_machines_machine_id_uncordon_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_uncordon_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_machines_machine_id_uncordon_execute(
+pub fn post_apps_app_name_machines_machine_id_uncordon_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -5371,9 +6805,36 @@ pub fn post_apps_app_name_machines_machine_id_uncordon_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/machines/{machine_id}/uncordon
+/// Uncordon Machine
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_machines_machine_id_uncordon_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_machines_machine_id_uncordon_task()`.
+/// For the simplest API, use `post_apps_app_name_machines_machine_id_uncordon()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_machines_machine_id_uncordon_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_machines_machine_id_uncordon_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_machines_machine_id_uncordon_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -5391,6 +6852,7 @@ pub struct PostAppsAppNameMachinesMachineIdUncordonArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_machines_machine_id_uncordon_builder()` + `post_apps_app_name_machines_machine_id_uncordon_execute()`.
+/// For task-level control, use `post_apps_app_name_machines_machine_id_uncordon_task()`.
 ///
 /// # Errors
 ///
@@ -5439,25 +6901,31 @@ pub fn get_apps_app_name_machines_machine_id_versions_builder(
 /// GET /apps/{app_name}/machines/{machine_id}/versions
 /// List Versions
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_apps_app_name_machines_machine_id_versions_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_apps_app_name_machines_machine_id_versions_execute()` or `get_apps_app_name_machines_machine_id_versions`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_apps_app_name_machines_machine_id_versions_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_versions_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_versions_execute(
+pub fn get_apps_app_name_machines_machine_id_versions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -5493,9 +6961,36 @@ pub fn get_apps_app_name_machines_machine_id_versions_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /apps/{app_name}/machines/{machine_id}/versions
+/// List Versions
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_apps_app_name_machines_machine_id_versions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_apps_app_name_machines_machine_id_versions_task()`.
+/// For the simplest API, use `get_apps_app_name_machines_machine_id_versions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_versions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_apps_app_name_machines_machine_id_versions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_apps_app_name_machines_machine_id_versions_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -5513,6 +7008,7 @@ pub struct GetAppsAppNameMachinesMachineIdVersionsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_apps_app_name_machines_machine_id_versions_builder()` + `get_apps_app_name_machines_machine_id_versions_execute()`.
+/// For task-level control, use `get_apps_app_name_machines_machine_id_versions_task()`.
 ///
 /// # Errors
 ///
@@ -5589,27 +7085,33 @@ pub fn get_apps_app_name_machines_machine_id_wait_builder(
 /// GET /apps/{app_name}/machines/{machine_id}/wait
 /// Wait for State
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_apps_app_name_machines_machine_id_wait_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_apps_app_name_machines_machine_id_wait_execute()` or `get_apps_app_name_machines_machine_id_wait`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_apps_app_name_machines_machine_id_wait_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_wait_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_machines_machine_id_wait_execute(
+pub fn get_apps_app_name_machines_machine_id_wait_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<WaitMachineResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<WaitMachineResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -5648,9 +7150,38 @@ pub fn get_apps_app_name_machines_machine_id_wait_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /apps/{app_name}/machines/{machine_id}/wait
+/// Wait for State
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_apps_app_name_machines_machine_id_wait_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_apps_app_name_machines_machine_id_wait_task()`.
+/// For the simplest API, use `get_apps_app_name_machines_machine_id_wait()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_machines_machine_id_wait_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_apps_app_name_machines_machine_id_wait_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<WaitMachineResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_apps_app_name_machines_machine_id_wait_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -5678,6 +7209,7 @@ pub struct GetAppsAppNameMachinesMachineIdWaitArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_apps_app_name_machines_machine_id_wait_builder()` + `get_apps_app_name_machines_machine_id_wait_execute()`.
+/// For task-level control, use `get_apps_app_name_machines_machine_id_wait_task()`.
 ///
 /// # Errors
 ///
@@ -5745,25 +7277,31 @@ pub fn get_apps_app_name_secretkeys_builder(
 /// GET /apps/{app_name}/secretkeys
 /// List secret keys belonging to an app
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_apps_app_name_secretkeys_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_apps_app_name_secretkeys_execute()` or `get_apps_app_name_secretkeys`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_apps_app_name_secretkeys_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_secretkeys_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_secretkeys_execute(
+pub fn get_apps_app_name_secretkeys_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SecretKeys>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<SecretKeys>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -5802,9 +7340,36 @@ pub fn get_apps_app_name_secretkeys_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /apps/{app_name}/secretkeys
+/// List secret keys belonging to an app
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_apps_app_name_secretkeys_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_apps_app_name_secretkeys_task()`.
+/// For the simplest API, use `get_apps_app_name_secretkeys()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_secretkeys_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_apps_app_name_secretkeys_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SecretKeys>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_apps_app_name_secretkeys_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -5824,6 +7389,7 @@ pub struct GetAppsAppNameSecretkeysArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_apps_app_name_secretkeys_builder()` + `get_apps_app_name_secretkeys_execute()`.
+/// For task-level control, use `get_apps_app_name_secretkeys_task()`.
 ///
 /// # Errors
 ///
@@ -5885,25 +7451,31 @@ pub fn get_apps_app_name_secretkeys_secret_name_builder(
 /// GET /apps/{app_name}/secretkeys/{secret_name}
 /// Get an app's secret key
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_apps_app_name_secretkeys_secret_name_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_apps_app_name_secretkeys_secret_name_execute()` or `get_apps_app_name_secretkeys_secret_name`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_apps_app_name_secretkeys_secret_name_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_secretkeys_secret_name_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_secretkeys_secret_name_execute(
+pub fn get_apps_app_name_secretkeys_secret_name_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SecretKey>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<SecretKey>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -5942,9 +7514,36 @@ pub fn get_apps_app_name_secretkeys_secret_name_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /apps/{app_name}/secretkeys/{secret_name}
+/// Get an app's secret key
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_apps_app_name_secretkeys_secret_name_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_apps_app_name_secretkeys_secret_name_task()`.
+/// For the simplest API, use `get_apps_app_name_secretkeys_secret_name()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_secretkeys_secret_name_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_apps_app_name_secretkeys_secret_name_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SecretKey>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_apps_app_name_secretkeys_secret_name_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -5964,6 +7563,7 @@ pub struct GetAppsAppNameSecretkeysSecretNameArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_apps_app_name_secretkeys_secret_name_builder()` + `get_apps_app_name_secretkeys_secret_name_execute()`.
+/// For task-level control, use `get_apps_app_name_secretkeys_secret_name_task()`.
 ///
 /// # Errors
 ///
@@ -6016,27 +7616,33 @@ pub fn post_apps_app_name_secretkeys_secret_name_builder(
 /// POST /apps/{app_name}/secretkeys/{secret_name}
 /// Create or update a secret key
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_secretkeys_secret_name_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_secretkeys_secret_name_execute()` or `post_apps_app_name_secretkeys_secret_name`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_secretkeys_secret_name_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secretkeys_secret_name_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_secretkeys_secret_name_execute(
+pub fn post_apps_app_name_secretkeys_secret_name_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SetSecretkeyResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<SetSecretkeyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -6075,9 +7681,38 @@ pub fn post_apps_app_name_secretkeys_secret_name_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/secretkeys/{secret_name}
+/// Create or update a secret key
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_secretkeys_secret_name_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_secretkeys_secret_name_task()`.
+/// For the simplest API, use `post_apps_app_name_secretkeys_secret_name()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secretkeys_secret_name_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_secretkeys_secret_name_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SetSecretkeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_secretkeys_secret_name_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -6097,6 +7732,7 @@ pub struct PostAppsAppNameSecretkeysSecretNameArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_secretkeys_secret_name_builder()` + `post_apps_app_name_secretkeys_secret_name_execute()`.
+/// For task-level control, use `post_apps_app_name_secretkeys_secret_name_task()`.
 ///
 /// # Errors
 ///
@@ -6148,27 +7784,33 @@ pub fn delete_apps_app_name_secretkeys_secret_name_builder(
 /// DELETE /apps/{app_name}/secretkeys/{secret_name}
 /// Delete an app's secret key
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_apps_app_name_secretkeys_secret_name_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_apps_app_name_secretkeys_secret_name_execute()` or `delete_apps_app_name_secretkeys_secret_name`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_apps_app_name_secretkeys_secret_name_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_secretkeys_secret_name_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_secretkeys_secret_name_execute(
+pub fn delete_apps_app_name_secretkeys_secret_name_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DeleteSecretkeyResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<DeleteSecretkeyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -6207,9 +7849,38 @@ pub fn delete_apps_app_name_secretkeys_secret_name_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /apps/{app_name}/secretkeys/{secret_name}
+/// Delete an app's secret key
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_apps_app_name_secretkeys_secret_name_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_apps_app_name_secretkeys_secret_name_task()`.
+/// For the simplest API, use `delete_apps_app_name_secretkeys_secret_name()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_secretkeys_secret_name_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_apps_app_name_secretkeys_secret_name_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DeleteSecretkeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = delete_apps_app_name_secretkeys_secret_name_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -6227,6 +7898,7 @@ pub struct DeleteAppsAppNameSecretkeysSecretNameArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_apps_app_name_secretkeys_secret_name_builder()` + `delete_apps_app_name_secretkeys_secret_name_execute()`.
+/// For task-level control, use `delete_apps_app_name_secretkeys_secret_name_task()`.
 ///
 /// # Errors
 ///
@@ -6292,27 +7964,33 @@ pub fn post_apps_app_name_secretkeys_secret_name_decrypt_builder(
 /// POST /apps/{app_name}/secretkeys/{secret_name}/decrypt
 /// Decrypt with a secret key
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_secretkeys_secret_name_decrypt_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_secretkeys_secret_name_decrypt_execute()` or `post_apps_app_name_secretkeys_secret_name_decrypt`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_secretkeys_secret_name_decrypt_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secretkeys_secret_name_decrypt_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_secretkeys_secret_name_decrypt_execute(
+pub fn post_apps_app_name_secretkeys_secret_name_decrypt_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DecryptSecretkeyResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<DecryptSecretkeyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -6351,9 +8029,38 @@ pub fn post_apps_app_name_secretkeys_secret_name_decrypt_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/secretkeys/{secret_name}/decrypt
+/// Decrypt with a secret key
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_secretkeys_secret_name_decrypt_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_secretkeys_secret_name_decrypt_task()`.
+/// For the simplest API, use `post_apps_app_name_secretkeys_secret_name_decrypt()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secretkeys_secret_name_decrypt_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_secretkeys_secret_name_decrypt_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DecryptSecretkeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_secretkeys_secret_name_decrypt_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -6375,6 +8082,7 @@ pub struct PostAppsAppNameSecretkeysSecretNameDecryptArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_secretkeys_secret_name_decrypt_builder()` + `post_apps_app_name_secretkeys_secret_name_decrypt_execute()`.
+/// For task-level control, use `post_apps_app_name_secretkeys_secret_name_decrypt_task()`.
 ///
 /// # Errors
 ///
@@ -6442,27 +8150,33 @@ pub fn post_apps_app_name_secretkeys_secret_name_encrypt_builder(
 /// POST /apps/{app_name}/secretkeys/{secret_name}/encrypt
 /// Encrypt with a secret key
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_secretkeys_secret_name_encrypt_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_secretkeys_secret_name_encrypt_execute()` or `post_apps_app_name_secretkeys_secret_name_encrypt`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_secretkeys_secret_name_encrypt_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secretkeys_secret_name_encrypt_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_secretkeys_secret_name_encrypt_execute(
+pub fn post_apps_app_name_secretkeys_secret_name_encrypt_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<EncryptSecretkeyResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<EncryptSecretkeyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -6501,9 +8215,38 @@ pub fn post_apps_app_name_secretkeys_secret_name_encrypt_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/secretkeys/{secret_name}/encrypt
+/// Encrypt with a secret key
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_secretkeys_secret_name_encrypt_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_secretkeys_secret_name_encrypt_task()`.
+/// For the simplest API, use `post_apps_app_name_secretkeys_secret_name_encrypt()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secretkeys_secret_name_encrypt_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_secretkeys_secret_name_encrypt_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<EncryptSecretkeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_secretkeys_secret_name_encrypt_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -6525,6 +8268,7 @@ pub struct PostAppsAppNameSecretkeysSecretNameEncryptArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_secretkeys_secret_name_encrypt_builder()` + `post_apps_app_name_secretkeys_secret_name_encrypt_execute()`.
+/// For task-level control, use `post_apps_app_name_secretkeys_secret_name_encrypt_task()`.
 ///
 /// # Errors
 ///
@@ -6580,27 +8324,33 @@ pub fn post_apps_app_name_secretkeys_secret_name_generate_builder(
 /// POST /apps/{app_name}/secretkeys/{secret_name}/generate
 /// Generate a random secret key
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_secretkeys_secret_name_generate_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_secretkeys_secret_name_generate_execute()` or `post_apps_app_name_secretkeys_secret_name_generate`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_secretkeys_secret_name_generate_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secretkeys_secret_name_generate_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_secretkeys_secret_name_generate_execute(
+pub fn post_apps_app_name_secretkeys_secret_name_generate_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SetSecretkeyResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<SetSecretkeyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -6639,9 +8389,38 @@ pub fn post_apps_app_name_secretkeys_secret_name_generate_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/secretkeys/{secret_name}/generate
+/// Generate a random secret key
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_secretkeys_secret_name_generate_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_secretkeys_secret_name_generate_task()`.
+/// For the simplest API, use `post_apps_app_name_secretkeys_secret_name_generate()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secretkeys_secret_name_generate_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_secretkeys_secret_name_generate_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SetSecretkeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_secretkeys_secret_name_generate_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -6661,6 +8440,7 @@ pub struct PostAppsAppNameSecretkeysSecretNameGenerateArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_secretkeys_secret_name_generate_builder()` + `post_apps_app_name_secretkeys_secret_name_generate_execute()`.
+/// For task-level control, use `post_apps_app_name_secretkeys_secret_name_generate_task()`.
 ///
 /// # Errors
 ///
@@ -6727,27 +8507,33 @@ pub fn post_apps_app_name_secretkeys_secret_name_sign_builder(
 /// POST /apps/{app_name}/secretkeys/{secret_name}/sign
 /// Sign with a secret key
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_secretkeys_secret_name_sign_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_secretkeys_secret_name_sign_execute()` or `post_apps_app_name_secretkeys_secret_name_sign`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_secretkeys_secret_name_sign_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secretkeys_secret_name_sign_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_secretkeys_secret_name_sign_execute(
+pub fn post_apps_app_name_secretkeys_secret_name_sign_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SignSecretkeyResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<SignSecretkeyResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -6786,9 +8572,38 @@ pub fn post_apps_app_name_secretkeys_secret_name_sign_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/secretkeys/{secret_name}/sign
+/// Sign with a secret key
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_secretkeys_secret_name_sign_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_secretkeys_secret_name_sign_task()`.
+/// For the simplest API, use `post_apps_app_name_secretkeys_secret_name_sign()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secretkeys_secret_name_sign_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_secretkeys_secret_name_sign_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SignSecretkeyResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_secretkeys_secret_name_sign_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -6810,6 +8625,7 @@ pub struct PostAppsAppNameSecretkeysSecretNameSignArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_secretkeys_secret_name_sign_builder()` + `post_apps_app_name_secretkeys_secret_name_sign_execute()`.
+/// For task-level control, use `post_apps_app_name_secretkeys_secret_name_sign_task()`.
 ///
 /// # Errors
 ///
@@ -6877,25 +8693,31 @@ pub fn post_apps_app_name_secretkeys_secret_name_verify_builder(
 /// POST /apps/{app_name}/secretkeys/{secret_name}/verify
 /// Verify with a secret key
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_secretkeys_secret_name_verify_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_secretkeys_secret_name_verify_execute()` or `post_apps_app_name_secretkeys_secret_name_verify`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_secretkeys_secret_name_verify_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secretkeys_secret_name_verify_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_secretkeys_secret_name_verify_execute(
+pub fn post_apps_app_name_secretkeys_secret_name_verify_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -6931,9 +8753,36 @@ pub fn post_apps_app_name_secretkeys_secret_name_verify_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/secretkeys/{secret_name}/verify
+/// Verify with a secret key
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_secretkeys_secret_name_verify_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_secretkeys_secret_name_verify_task()`.
+/// For the simplest API, use `post_apps_app_name_secretkeys_secret_name_verify()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secretkeys_secret_name_verify_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_secretkeys_secret_name_verify_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_secretkeys_secret_name_verify_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -6955,6 +8804,7 @@ pub struct PostAppsAppNameSecretkeysSecretNameVerifyArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_secretkeys_secret_name_verify_builder()` + `post_apps_app_name_secretkeys_secret_name_verify_execute()`.
+/// For task-level control, use `post_apps_app_name_secretkeys_secret_name_verify_task()`.
 ///
 /// # Errors
 ///
@@ -7017,25 +8867,31 @@ pub fn get_apps_app_name_secrets_builder(
 /// GET /apps/{app_name}/secrets
 /// List app secrets belonging to an app
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_apps_app_name_secrets_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_apps_app_name_secrets_execute()` or `get_apps_app_name_secrets`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_apps_app_name_secrets_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_secrets_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_secrets_execute(
+pub fn get_apps_app_name_secrets_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AppSecrets>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<AppSecrets>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -7074,9 +8930,36 @@ pub fn get_apps_app_name_secrets_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /apps/{app_name}/secrets
+/// List app secrets belonging to an app
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_apps_app_name_secrets_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_apps_app_name_secrets_task()`.
+/// For the simplest API, use `get_apps_app_name_secrets()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_secrets_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_apps_app_name_secrets_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AppSecrets>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_apps_app_name_secrets_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -7096,6 +8979,7 @@ pub struct GetAppsAppNameSecretsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_apps_app_name_secrets_builder()` + `get_apps_app_name_secrets_execute()`.
+/// For task-level control, use `get_apps_app_name_secrets_task()`.
 ///
 /// # Errors
 ///
@@ -7144,27 +9028,33 @@ pub fn post_apps_app_name_secrets_builder(
 /// POST /apps/{app_name}/secrets
 /// Update app secrets belonging to an app
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_secrets_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_secrets_execute()` or `post_apps_app_name_secrets`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_secrets_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secrets_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_secrets_execute(
+pub fn post_apps_app_name_secrets_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AppSecretsUpdateResp>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<AppSecretsUpdateResp>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -7203,9 +9093,38 @@ pub fn post_apps_app_name_secrets_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/secrets
+/// Update app secrets belonging to an app
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_secrets_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_secrets_task()`.
+/// For the simplest API, use `post_apps_app_name_secrets()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secrets_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_secrets_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AppSecretsUpdateResp>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_secrets_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -7223,6 +9142,7 @@ pub struct PostAppsAppNameSecretsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_secrets_builder()` + `post_apps_app_name_secrets_execute()`.
+/// For task-level control, use `post_apps_app_name_secrets_task()`.
 ///
 /// # Errors
 ///
@@ -7285,25 +9205,31 @@ pub fn get_apps_app_name_secrets_secret_name_builder(
 /// GET /apps/{app_name}/secrets/{secret_name}
 /// Get an app secret
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_apps_app_name_secrets_secret_name_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_apps_app_name_secrets_secret_name_execute()` or `get_apps_app_name_secrets_secret_name`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_apps_app_name_secrets_secret_name_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_secrets_secret_name_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_secrets_secret_name_execute(
+pub fn get_apps_app_name_secrets_secret_name_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<AppSecret>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<AppSecret>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -7342,9 +9268,36 @@ pub fn get_apps_app_name_secrets_secret_name_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /apps/{app_name}/secrets/{secret_name}
+/// Get an app secret
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_apps_app_name_secrets_secret_name_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_apps_app_name_secrets_secret_name_task()`.
+/// For the simplest API, use `get_apps_app_name_secrets_secret_name()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_secrets_secret_name_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_apps_app_name_secrets_secret_name_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<AppSecret>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_apps_app_name_secrets_secret_name_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -7366,6 +9319,7 @@ pub struct GetAppsAppNameSecretsSecretNameArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_apps_app_name_secrets_secret_name_builder()` + `get_apps_app_name_secrets_secret_name_execute()`.
+/// For task-level control, use `get_apps_app_name_secrets_secret_name_task()`.
 ///
 /// # Errors
 ///
@@ -7419,27 +9373,33 @@ pub fn post_apps_app_name_secrets_secret_name_builder(
 /// POST /apps/{app_name}/secrets/{secret_name}
 /// Create or update Secret
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_secrets_secret_name_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_secrets_secret_name_execute()` or `post_apps_app_name_secrets_secret_name`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_secrets_secret_name_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secrets_secret_name_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_secrets_secret_name_execute(
+pub fn post_apps_app_name_secrets_secret_name_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<SetAppSecretResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<SetAppSecretResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -7478,9 +9438,38 @@ pub fn post_apps_app_name_secrets_secret_name_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/secrets/{secret_name}
+/// Create or update Secret
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_secrets_secret_name_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_secrets_secret_name_task()`.
+/// For the simplest API, use `post_apps_app_name_secrets_secret_name()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_secrets_secret_name_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_secrets_secret_name_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<SetAppSecretResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_secrets_secret_name_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -7500,6 +9489,7 @@ pub struct PostAppsAppNameSecretsSecretNameArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_secrets_secret_name_builder()` + `post_apps_app_name_secrets_secret_name_execute()`.
+/// For task-level control, use `post_apps_app_name_secrets_secret_name_task()`.
 ///
 /// # Errors
 ///
@@ -7551,27 +9541,33 @@ pub fn delete_apps_app_name_secrets_secret_name_builder(
 /// DELETE /apps/{app_name}/secrets/{secret_name}
 /// Delete an app secret
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_apps_app_name_secrets_secret_name_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_apps_app_name_secrets_secret_name_execute()` or `delete_apps_app_name_secrets_secret_name`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_apps_app_name_secrets_secret_name_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_secrets_secret_name_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_secrets_secret_name_execute(
+pub fn delete_apps_app_name_secrets_secret_name_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<DeleteAppSecretResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<DeleteAppSecretResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -7610,9 +9606,38 @@ pub fn delete_apps_app_name_secrets_secret_name_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /apps/{app_name}/secrets/{secret_name}
+/// Delete an app secret
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_apps_app_name_secrets_secret_name_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_apps_app_name_secrets_secret_name_task()`.
+/// For the simplest API, use `delete_apps_app_name_secrets_secret_name()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_secrets_secret_name_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_apps_app_name_secrets_secret_name_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<DeleteAppSecretResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = delete_apps_app_name_secrets_secret_name_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -7630,6 +9655,7 @@ pub struct DeleteAppsAppNameSecretsSecretNameArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_apps_app_name_secrets_secret_name_builder()` + `delete_apps_app_name_secrets_secret_name_execute()`.
+/// For task-level control, use `delete_apps_app_name_secrets_secret_name_task()`.
 ///
 /// # Errors
 ///
@@ -7688,25 +9714,31 @@ pub fn get_apps_app_name_volumes_builder(
 /// GET /apps/{app_name}/volumes
 /// List Volumes
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_apps_app_name_volumes_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_apps_app_name_volumes_execute()` or `get_apps_app_name_volumes`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_apps_app_name_volumes_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_volumes_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_volumes_execute(
+pub fn get_apps_app_name_volumes_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -7742,9 +9774,36 @@ pub fn get_apps_app_name_volumes_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /apps/{app_name}/volumes
+/// List Volumes
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_apps_app_name_volumes_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_apps_app_name_volumes_task()`.
+/// For the simplest API, use `get_apps_app_name_volumes()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_volumes_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_apps_app_name_volumes_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_apps_app_name_volumes_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -7762,6 +9821,7 @@ pub struct GetAppsAppNameVolumesArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_apps_app_name_volumes_builder()` + `get_apps_app_name_volumes_execute()`.
+/// For task-level control, use `get_apps_app_name_volumes_task()`.
 ///
 /// # Errors
 ///
@@ -7805,25 +9865,31 @@ pub fn post_apps_app_name_volumes_builder(
 /// POST /apps/{app_name}/volumes
 /// Create Volume
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_volumes_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_volumes_execute()` or `post_apps_app_name_volumes`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_volumes_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_volumes_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_volumes_execute(
+pub fn post_apps_app_name_volumes_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -7862,9 +9928,36 @@ pub fn post_apps_app_name_volumes_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/volumes
+/// Create Volume
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_volumes_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_volumes_task()`.
+/// For the simplest API, use `post_apps_app_name_volumes()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_volumes_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_volumes_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_volumes_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -7882,6 +9975,7 @@ pub struct PostAppsAppNameVolumesArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_volumes_builder()` + `post_apps_app_name_volumes_execute()`.
+/// For task-level control, use `post_apps_app_name_volumes_task()`.
 ///
 /// # Errors
 ///
@@ -7926,25 +10020,31 @@ pub fn get_apps_app_name_volumes_volume_id_builder(
 /// GET /apps/{app_name}/volumes/{volume_id}
 /// Get Volume
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_apps_app_name_volumes_volume_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_apps_app_name_volumes_volume_id_execute()` or `get_apps_app_name_volumes_volume_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_apps_app_name_volumes_volume_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_volumes_volume_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_volumes_volume_id_execute(
+pub fn get_apps_app_name_volumes_volume_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -7983,9 +10083,36 @@ pub fn get_apps_app_name_volumes_volume_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /apps/{app_name}/volumes/{volume_id}
+/// Get Volume
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_apps_app_name_volumes_volume_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_apps_app_name_volumes_volume_id_task()`.
+/// For the simplest API, use `get_apps_app_name_volumes_volume_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_volumes_volume_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_apps_app_name_volumes_volume_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_apps_app_name_volumes_volume_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -8003,6 +10130,7 @@ pub struct GetAppsAppNameVolumesVolumeIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_apps_app_name_volumes_volume_id_builder()` + `get_apps_app_name_volumes_volume_id_execute()`.
+/// For task-level control, use `get_apps_app_name_volumes_volume_id_task()`.
 ///
 /// # Errors
 ///
@@ -8051,25 +10179,31 @@ pub fn put_apps_app_name_volumes_volume_id_builder(
 /// PUT /apps/{app_name}/volumes/{volume_id}
 /// Update Volume
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `put_apps_app_name_volumes_volume_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `put_apps_app_name_volumes_volume_id_execute()` or `put_apps_app_name_volumes_volume_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from put_apps_app_name_volumes_volume_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `put_apps_app_name_volumes_volume_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn put_apps_app_name_volumes_volume_id_execute(
+pub fn put_apps_app_name_volumes_volume_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -8108,9 +10242,36 @@ pub fn put_apps_app_name_volumes_volume_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PUT /apps/{app_name}/volumes/{volume_id}
+/// Update Volume
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `put_apps_app_name_volumes_volume_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `put_apps_app_name_volumes_volume_id_task()`.
+/// For the simplest API, use `put_apps_app_name_volumes_volume_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `put_apps_app_name_volumes_volume_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn put_apps_app_name_volumes_volume_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = put_apps_app_name_volumes_volume_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -8130,6 +10291,7 @@ pub struct PutAppsAppNameVolumesVolumeIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `put_apps_app_name_volumes_volume_id_builder()` + `put_apps_app_name_volumes_volume_id_execute()`.
+/// For task-level control, use `put_apps_app_name_volumes_volume_id_task()`.
 ///
 /// # Errors
 ///
@@ -8179,25 +10341,31 @@ pub fn delete_apps_app_name_volumes_volume_id_builder(
 /// DELETE /apps/{app_name}/volumes/{volume_id}
 /// Destroy Volume
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_apps_app_name_volumes_volume_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_apps_app_name_volumes_volume_id_execute()` or `delete_apps_app_name_volumes_volume_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_apps_app_name_volumes_volume_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_volumes_volume_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_apps_app_name_volumes_volume_id_execute(
+pub fn delete_apps_app_name_volumes_volume_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -8236,9 +10404,36 @@ pub fn delete_apps_app_name_volumes_volume_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /apps/{app_name}/volumes/{volume_id}
+/// Destroy Volume
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_apps_app_name_volumes_volume_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_apps_app_name_volumes_volume_id_task()`.
+/// For the simplest API, use `delete_apps_app_name_volumes_volume_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_apps_app_name_volumes_volume_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_apps_app_name_volumes_volume_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<Volume>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_apps_app_name_volumes_volume_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -8256,6 +10451,7 @@ pub struct DeleteAppsAppNameVolumesVolumeIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_apps_app_name_volumes_volume_id_builder()` + `delete_apps_app_name_volumes_volume_id_execute()`.
+/// For task-level control, use `delete_apps_app_name_volumes_volume_id_task()`.
 ///
 /// # Errors
 ///
@@ -8304,27 +10500,33 @@ pub fn put_apps_app_name_volumes_volume_id_extend_builder(
 /// PUT /apps/{app_name}/volumes/{volume_id}/extend
 /// Extend Volume
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `put_apps_app_name_volumes_volume_id_extend_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `put_apps_app_name_volumes_volume_id_extend_execute()` or `put_apps_app_name_volumes_volume_id_extend`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from put_apps_app_name_volumes_volume_id_extend_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `put_apps_app_name_volumes_volume_id_extend_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn put_apps_app_name_volumes_volume_id_extend_execute(
+pub fn put_apps_app_name_volumes_volume_id_extend_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<ExtendVolumeResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<ExtendVolumeResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -8363,9 +10565,38 @@ pub fn put_apps_app_name_volumes_volume_id_extend_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PUT /apps/{app_name}/volumes/{volume_id}/extend
+/// Extend Volume
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `put_apps_app_name_volumes_volume_id_extend_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `put_apps_app_name_volumes_volume_id_extend_task()`.
+/// For the simplest API, use `put_apps_app_name_volumes_volume_id_extend()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `put_apps_app_name_volumes_volume_id_extend_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn put_apps_app_name_volumes_volume_id_extend_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<ExtendVolumeResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = put_apps_app_name_volumes_volume_id_extend_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -8385,6 +10616,7 @@ pub struct PutAppsAppNameVolumesVolumeIdExtendArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `put_apps_app_name_volumes_volume_id_extend_builder()` + `put_apps_app_name_volumes_volume_id_extend_execute()`.
+/// For task-level control, use `put_apps_app_name_volumes_volume_id_extend_task()`.
 ///
 /// # Errors
 ///
@@ -8436,25 +10668,31 @@ pub fn get_apps_app_name_volumes_volume_id_snapshots_builder(
 /// GET /apps/{app_name}/volumes/{volume_id}/snapshots
 /// List Snapshots
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_apps_app_name_volumes_volume_id_snapshots_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_apps_app_name_volumes_volume_id_snapshots_execute()` or `get_apps_app_name_volumes_volume_id_snapshots`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_apps_app_name_volumes_volume_id_snapshots_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_volumes_volume_id_snapshots_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_apps_app_name_volumes_volume_id_snapshots_execute(
+pub fn get_apps_app_name_volumes_volume_id_snapshots_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -8490,9 +10728,36 @@ pub fn get_apps_app_name_volumes_volume_id_snapshots_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /apps/{app_name}/volumes/{volume_id}/snapshots
+/// List Snapshots
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_apps_app_name_volumes_volume_id_snapshots_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_apps_app_name_volumes_volume_id_snapshots_task()`.
+/// For the simplest API, use `get_apps_app_name_volumes_volume_id_snapshots()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_apps_app_name_volumes_volume_id_snapshots_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_apps_app_name_volumes_volume_id_snapshots_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_apps_app_name_volumes_volume_id_snapshots_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -8510,6 +10775,7 @@ pub struct GetAppsAppNameVolumesVolumeIdSnapshotsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_apps_app_name_volumes_volume_id_snapshots_builder()` + `get_apps_app_name_volumes_volume_id_snapshots_execute()`.
+/// For task-level control, use `get_apps_app_name_volumes_volume_id_snapshots_task()`.
 ///
 /// # Errors
 ///
@@ -8558,25 +10824,31 @@ pub fn post_apps_app_name_volumes_volume_id_snapshots_builder(
 /// POST /apps/{app_name}/volumes/{volume_id}/snapshots
 /// Create Snapshot
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_apps_app_name_volumes_volume_id_snapshots_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_apps_app_name_volumes_volume_id_snapshots_execute()` or `post_apps_app_name_volumes_volume_id_snapshots`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_apps_app_name_volumes_volume_id_snapshots_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_volumes_volume_id_snapshots_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_apps_app_name_volumes_volume_id_snapshots_execute(
+pub fn post_apps_app_name_volumes_volume_id_snapshots_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -8612,9 +10884,36 @@ pub fn post_apps_app_name_volumes_volume_id_snapshots_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /apps/{app_name}/volumes/{volume_id}/snapshots
+/// Create Snapshot
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_apps_app_name_volumes_volume_id_snapshots_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_apps_app_name_volumes_volume_id_snapshots_task()`.
+/// For the simplest API, use `post_apps_app_name_volumes_volume_id_snapshots()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_apps_app_name_volumes_volume_id_snapshots_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_apps_app_name_volumes_volume_id_snapshots_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_apps_app_name_volumes_volume_id_snapshots_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -8632,6 +10931,7 @@ pub struct PostAppsAppNameVolumesVolumeIdSnapshotsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_apps_app_name_volumes_volume_id_snapshots_builder()` + `post_apps_app_name_volumes_volume_id_snapshots_execute()`.
+/// For task-level control, use `post_apps_app_name_volumes_volume_id_snapshots_task()`.
 ///
 /// # Errors
 ///
@@ -8712,27 +11012,33 @@ pub fn get_orgs_org_slug_machines_builder(
 /// GET /orgs/{org_slug}/machines
 /// List All Machines
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_orgs_org_slug_machines_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_orgs_org_slug_machines_execute()` or `get_orgs_org_slug_machines`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_orgs_org_slug_machines_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_orgs_org_slug_machines_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_orgs_org_slug_machines_execute(
+pub fn get_orgs_org_slug_machines_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<OrgMachinesResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<OrgMachinesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -8771,9 +11077,38 @@ pub fn get_orgs_org_slug_machines_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /orgs/{org_slug}/machines
+/// List All Machines
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_orgs_org_slug_machines_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_orgs_org_slug_machines_task()`.
+/// For the simplest API, use `get_orgs_org_slug_machines()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_orgs_org_slug_machines_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_orgs_org_slug_machines_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OrgMachinesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_orgs_org_slug_machines_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -8803,6 +11138,7 @@ pub struct GetOrgsOrgSlugMachinesArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_orgs_org_slug_machines_builder()` + `get_orgs_org_slug_machines_execute()`.
+/// For task-level control, use `get_orgs_org_slug_machines_task()`.
 ///
 /// # Errors
 ///
@@ -8891,27 +11227,33 @@ pub fn get_orgs_org_slug_volumes_builder(
 /// GET /orgs/{org_slug}/volumes
 /// List All Volumes
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_orgs_org_slug_volumes_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_orgs_org_slug_volumes_execute()` or `get_orgs_org_slug_volumes`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_orgs_org_slug_volumes_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_orgs_org_slug_volumes_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_orgs_org_slug_volumes_execute(
+pub fn get_orgs_org_slug_volumes_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<OrgVolumesResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<OrgVolumesResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -8950,9 +11292,38 @@ pub fn get_orgs_org_slug_volumes_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /orgs/{org_slug}/volumes
+/// List All Volumes
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_orgs_org_slug_volumes_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_orgs_org_slug_volumes_task()`.
+/// For the simplest API, use `get_orgs_org_slug_volumes()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_orgs_org_slug_volumes_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_orgs_org_slug_volumes_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<OrgVolumesResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_orgs_org_slug_volumes_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -8982,6 +11353,7 @@ pub struct GetOrgsOrgSlugVolumesArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_orgs_org_slug_volumes_builder()` + `get_orgs_org_slug_volumes_execute()`.
+/// For task-level control, use `get_orgs_org_slug_volumes_task()`.
 ///
 /// # Errors
 ///
@@ -9036,27 +11408,33 @@ pub fn post_platform_placements_builder(
 /// POST /platform/placements
 /// Get Placements
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_platform_placements_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_platform_placements_execute()` or `post_platform_placements`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_platform_placements_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_platform_placements_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_platform_placements_execute(
+pub fn post_platform_placements_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<MainGetPlacementsResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<MainGetPlacementsResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -9095,9 +11473,38 @@ pub fn post_platform_placements_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /platform/placements
+/// Get Placements
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_platform_placements_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_platform_placements_task()`.
+/// For the simplest API, use `post_platform_placements()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_platform_placements_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_platform_placements_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<MainGetPlacementsResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = post_platform_placements_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -9113,6 +11520,7 @@ pub struct PostPlatformPlacementsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_platform_placements_builder()` + `post_platform_placements_execute()`.
+/// For task-level control, use `post_platform_placements_task()`.
 ///
 /// # Errors
 ///
@@ -9154,27 +11562,33 @@ pub fn get_platform_regions_builder(
 /// GET /platform/regions
 /// Get Regions
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_platform_regions_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_platform_regions_execute()` or `get_platform_regions`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_platform_regions_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_platform_regions_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_platform_regions_execute(
+pub fn get_platform_regions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<MainRegionResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<MainRegionResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -9213,9 +11627,38 @@ pub fn get_platform_regions_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /platform/regions
+/// Get Regions
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_platform_regions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_platform_regions_task()`.
+/// For the simplest API, use `get_platform_regions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_platform_regions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_platform_regions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<MainRegionResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_platform_regions_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -9224,6 +11667,7 @@ pub fn get_platform_regions_execute(
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_platform_regions_builder()` + `get_platform_regions_execute()`.
+/// For task-level control, use `get_platform_regions_task()`.
 ///
 /// # Errors
 ///
@@ -9264,25 +11708,31 @@ pub fn post_tokens_kms_builder(
 /// POST /tokens/kms
 /// Request a Petsem token for accessing KMS
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_tokens_kms_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_tokens_kms_execute()` or `post_tokens_kms`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_tokens_kms_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_tokens_kms_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_tokens_kms_execute(
+pub fn post_tokens_kms_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -9318,9 +11768,36 @@ pub fn post_tokens_kms_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /tokens/kms
+/// Request a Petsem token for accessing KMS
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_tokens_kms_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_tokens_kms_task()`.
+/// For the simplest API, use `post_tokens_kms()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_tokens_kms_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_tokens_kms_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_tokens_kms_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -9329,6 +11806,7 @@ pub fn post_tokens_kms_execute(
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_tokens_kms_builder()` + `post_tokens_kms_execute()`.
+/// For task-level control, use `post_tokens_kms_task()`.
 ///
 /// # Errors
 ///
@@ -9370,25 +11848,31 @@ pub fn post_tokens_oidc_builder(
 /// POST /tokens/oidc
 /// Request an OIDC token
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_tokens_oidc_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_tokens_oidc_execute()` or `post_tokens_oidc`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_tokens_oidc_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_tokens_oidc_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_tokens_oidc_execute(
+pub fn post_tokens_oidc_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -9424,9 +11908,36 @@ pub fn post_tokens_oidc_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /tokens/oidc
+/// Request an OIDC token
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_tokens_oidc_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_tokens_oidc_task()`.
+/// For the simplest API, use `post_tokens_oidc()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_tokens_oidc_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_tokens_oidc_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_tokens_oidc_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -9442,6 +11953,7 @@ pub struct PostTokensOidcArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_tokens_oidc_builder()` + `post_tokens_oidc_execute()`.
+/// For task-level control, use `post_tokens_oidc_task()`.
 ///
 /// # Errors
 ///
@@ -9481,27 +11993,33 @@ pub fn get_v1_tokens_current_builder(
 /// GET /v1/tokens/current
 /// Get Current Token Information
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_v1_tokens_current_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_v1_tokens_current_execute()` or `get_v1_tokens_current`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_v1_tokens_current_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_tokens_current_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_v1_tokens_current_execute(
+pub fn get_v1_tokens_current_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<CurrentTokenResponse>, ApiError>, P = ApiPending>
+    impl TaskIterator<D = Result<ApiResponse<CurrentTokenResponse>, ApiError>, P = ApiPending>
         + Send
         + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -9540,9 +12058,38 @@ pub fn get_v1_tokens_current_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /v1/tokens/current
+/// Get Current Token Information
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_v1_tokens_current_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_v1_tokens_current_task()`.
+/// For the simplest API, use `get_v1_tokens_current()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_v1_tokens_current_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_v1_tokens_current_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<CurrentTokenResponse>, ApiError>, P = ApiPending>
+        + Send
+        + 'static,
+    ApiError,
+> {
+    let task = get_v1_tokens_current_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -9551,6 +12098,7 @@ pub fn get_v1_tokens_current_execute(
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_v1_tokens_current_builder()` + `get_v1_tokens_current_execute()`.
+/// For task-level control, use `get_v1_tokens_current_task()`.
 ///
 /// # Errors
 ///

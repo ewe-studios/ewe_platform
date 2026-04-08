@@ -11,7 +11,9 @@ pub mod types;
 
 use crate::providers::planetscale::clients::types::*;
 use crate::providers::planetscale::resources::*;
-use foundation_core::valtron::{execute, StreamIterator, StreamIteratorExt, TaskIteratorExt};
+use foundation_core::valtron::{
+    execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt,
+};
 use foundation_core::wire::simple_http::client::{
     body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,
 };
@@ -57,25 +59,31 @@ pub fn get_organizations_builder(
 /// GET /organizations
 /// List organizations
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_execute()` or `get_organizations`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_execute(
+pub fn get_organizations_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -111,9 +119,36 @@ pub fn get_organizations_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations
+/// List organizations
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_task()`.
+/// For the simplest API, use `get_organizations()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -131,6 +166,7 @@ pub struct GetOrganizationsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_builder()` + `get_organizations_execute()`.
+/// For task-level control, use `get_organizations_task()`.
 ///
 /// # Errors
 ///
@@ -175,25 +211,31 @@ pub fn get_organizations_organization_builder(
 /// GET /organizations/{organization}
 /// Get an organization
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_execute()` or `get_organizations_organization`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_execute(
+pub fn get_organizations_organization_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -229,9 +271,36 @@ pub fn get_organizations_organization_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}
+/// Get an organization
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_task()`.
+/// For the simplest API, use `get_organizations_organization()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -247,6 +316,7 @@ pub struct GetOrganizationsOrganizationArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_builder()` + `get_organizations_organization_execute()`.
+/// For task-level control, use `get_organizations_organization_task()`.
 ///
 /// # Errors
 ///
@@ -290,25 +360,31 @@ pub fn patch_organizations_organization_builder(
 /// PATCH /organizations/{organization}
 /// Update an organization
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_execute()` or `patch_organizations_organization`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_execute(
+pub fn patch_organizations_organization_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -344,9 +420,36 @@ pub fn patch_organizations_organization_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}
+/// Update an organization
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_task()`.
+/// For the simplest API, use `patch_organizations_organization()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = patch_organizations_organization_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -362,6 +465,7 @@ pub struct PatchOrganizationsOrganizationArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_builder()` + `patch_organizations_organization_execute()`.
+/// For task-level control, use `patch_organizations_organization_task()`.
 ///
 /// # Errors
 ///
@@ -425,25 +529,31 @@ pub fn get_organizations_organization_audit_log_builder(
 /// GET /organizations/{organization}/audit-log
 /// List audit logs
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_audit_log_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_audit_log_execute()` or `get_organizations_organization_audit_log`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_audit_log_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_audit_log_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_audit_log_execute(
+pub fn get_organizations_organization_audit_log_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -479,9 +589,36 @@ pub fn get_organizations_organization_audit_log_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/audit-log
+/// List audit logs
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_audit_log_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_audit_log_task()`.
+/// For the simplest API, use `get_organizations_organization_audit_log()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_audit_log_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_audit_log_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_audit_log_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -503,6 +640,7 @@ pub struct GetOrganizationsOrganizationAuditLogArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_audit_log_builder()` + `get_organizations_organization_audit_log_execute()`.
+/// For task-level control, use `get_organizations_organization_audit_log_task()`.
 ///
 /// # Errors
 ///
@@ -572,25 +710,31 @@ pub fn get_organizations_organization_cluster_size_skus_builder(
 /// GET /organizations/{organization}/cluster-size-skus
 /// List available cluster sizes
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_cluster_size_skus_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_cluster_size_skus_execute()` or `get_organizations_organization_cluster_size_skus`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_cluster_size_skus_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_cluster_size_skus_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_cluster_size_skus_execute(
+pub fn get_organizations_organization_cluster_size_skus_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -626,9 +770,36 @@ pub fn get_organizations_organization_cluster_size_skus_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/cluster-size-skus
+/// List available cluster sizes
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_cluster_size_skus_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_cluster_size_skus_task()`.
+/// For the simplest API, use `get_organizations_organization_cluster_size_skus()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_cluster_size_skus_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_cluster_size_skus_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_cluster_size_skus_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -650,6 +821,7 @@ pub struct GetOrganizationsOrganizationClusterSizeSkusArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_cluster_size_skus_builder()` + `get_organizations_organization_cluster_size_skus_execute()`.
+/// For task-level control, use `get_organizations_organization_cluster_size_skus_task()`.
 ///
 /// # Errors
 ///
@@ -719,25 +891,31 @@ pub fn get_organizations_organization_databases_builder(
 /// GET /organizations/{organization}/databases
 /// List databases
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_execute()` or `get_organizations_organization_databases`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_execute(
+pub fn get_organizations_organization_databases_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -773,9 +951,36 @@ pub fn get_organizations_organization_databases_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases
+/// List databases
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_task()`.
+/// For the simplest API, use `get_organizations_organization_databases()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_databases_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -797,6 +1002,7 @@ pub struct GetOrganizationsOrganizationDatabasesArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_builder()` + `get_organizations_organization_databases_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_task()`.
 ///
 /// # Errors
 ///
@@ -846,25 +1052,31 @@ pub fn post_organizations_organization_databases_builder(
 /// POST /organizations/{organization}/databases
 /// Create a database
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_execute()` or `post_organizations_organization_databases`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_execute(
+pub fn post_organizations_organization_databases_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -900,9 +1112,36 @@ pub fn post_organizations_organization_databases_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases
+/// Create a database
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_task()`.
+/// For the simplest API, use `post_organizations_organization_databases()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_organizations_organization_databases_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -918,6 +1157,7 @@ pub struct PostOrganizationsOrganizationDatabasesArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_builder()` + `post_organizations_organization_databases_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_task()`.
 ///
 /// # Errors
 ///
@@ -962,25 +1202,31 @@ pub fn get_organizations_organization_databases_database_builder(
 /// GET /organizations/{organization}/databases/{database}
 /// Get a database
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_execute()` or `get_organizations_organization_databases_database`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_execute(
+pub fn get_organizations_organization_databases_database_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -1016,9 +1262,36 @@ pub fn get_organizations_organization_databases_database_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}
+/// Get a database
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_databases_database_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1036,6 +1309,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_builder()` + `get_organizations_organization_databases_database_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_task()`.
 ///
 /// # Errors
 ///
@@ -1084,25 +1358,31 @@ pub fn patch_organizations_organization_databases_database_builder(
 /// PATCH /organizations/{organization}/databases/{database}
 /// Update database settings
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_databases_database_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_databases_database_execute()` or `patch_organizations_organization_databases_database`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_databases_database_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_databases_database_execute(
+pub fn patch_organizations_organization_databases_database_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -1138,9 +1418,36 @@ pub fn patch_organizations_organization_databases_database_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/databases/{database}
+/// Update database settings
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_databases_database_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_databases_database_task()`.
+/// For the simplest API, use `patch_organizations_organization_databases_database()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_databases_database_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = patch_organizations_organization_databases_database_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1158,6 +1465,7 @@ pub struct PatchOrganizationsOrganizationDatabasesDatabaseArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_databases_database_builder()` + `patch_organizations_organization_databases_database_execute()`.
+/// For task-level control, use `patch_organizations_organization_databases_database_task()`.
 ///
 /// # Errors
 ///
@@ -1206,25 +1514,31 @@ pub fn delete_organizations_organization_databases_database_builder(
 /// DELETE /organizations/{organization}/databases/{database}
 /// Delete a database
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_organizations_organization_databases_database_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_organizations_organization_databases_database_execute()` or `delete_organizations_organization_databases_database`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_organizations_organization_databases_database_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_organizations_organization_databases_database_execute(
+pub fn delete_organizations_organization_databases_database_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -1260,9 +1574,36 @@ pub fn delete_organizations_organization_databases_database_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /organizations/{organization}/databases/{database}
+/// Delete a database
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_organizations_organization_databases_database_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_organizations_organization_databases_database_task()`.
+/// For the simplest API, use `delete_organizations_organization_databases_database()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_organizations_organization_databases_database_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_organizations_organization_databases_database_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1280,6 +1621,7 @@ pub struct DeleteOrganizationsOrganizationDatabasesDatabaseArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_organizations_organization_databases_database_builder()` + `delete_organizations_organization_databases_database_execute()`.
+/// For task-level control, use `delete_organizations_organization_databases_database_task()`.
 ///
 /// # Errors
 ///
@@ -1344,25 +1686,31 @@ pub fn get_organizations_organization_databases_database_backup_policies_builder
 /// GET /organizations/{organization}/databases/{database}/backup-policies
 /// List backup policies
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_backup_policies_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_backup_policies_execute()` or `get_organizations_organization_databases_database_backup_policies`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_backup_policies_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_backup_policies_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_backup_policies_execute(
+pub fn get_organizations_organization_databases_database_backup_policies_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -1398,9 +1746,36 @@ pub fn get_organizations_organization_databases_database_backup_policies_execute
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/backup-policies
+/// List backup policies
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_backup_policies_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_backup_policies_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_backup_policies()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_backup_policies_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_backup_policies_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_databases_database_backup_policies_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1422,6 +1797,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBackupPoliciesArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_backup_policies_builder()` + `get_organizations_organization_databases_database_backup_policies_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_backup_policies_task()`.
 ///
 /// # Errors
 ///
@@ -1472,25 +1848,31 @@ pub fn post_organizations_organization_databases_database_backup_policies_builde
 /// POST /organizations/{organization}/databases/{database}/backup-policies
 /// Create a backup policy
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_backup_policies_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_backup_policies_execute()` or `post_organizations_organization_databases_database_backup_policies`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_backup_policies_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_backup_policies_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_backup_policies_execute(
+pub fn post_organizations_organization_databases_database_backup_policies_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -1526,9 +1908,36 @@ pub fn post_organizations_organization_databases_database_backup_policies_execut
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/backup-policies
+/// Create a backup policy
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_backup_policies_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_backup_policies_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_backup_policies()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_backup_policies_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_backup_policies_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_organizations_organization_databases_database_backup_policies_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1546,6 +1955,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseBackupPoliciesArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_backup_policies_builder()` + `post_organizations_organization_databases_database_backup_policies_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_backup_policies_task()`.
 ///
 /// # Errors
 ///
@@ -1595,25 +2005,31 @@ pub fn get_organizations_organization_databases_database_backup_policies_id_buil
 /// GET /organizations/{organization}/databases/{database}/backup-policies/{id}
 /// Get a backup policy
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_backup_policies_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_backup_policies_id_execute()` or `get_organizations_organization_databases_database_backup_policies_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_backup_policies_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_backup_policies_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_backup_policies_id_execute(
+pub fn get_organizations_organization_databases_database_backup_policies_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -1649,9 +2065,36 @@ pub fn get_organizations_organization_databases_database_backup_policies_id_exec
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/backup-policies/{id}
+/// Get a backup policy
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_backup_policies_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_backup_policies_id_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_backup_policies_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_backup_policies_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_backup_policies_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_databases_database_backup_policies_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1671,6 +2114,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBackupPoliciesIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_backup_policies_id_builder()` + `get_organizations_organization_databases_database_backup_policies_id_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_backup_policies_id_task()`.
 ///
 /// # Errors
 ///
@@ -1721,25 +2165,31 @@ pub fn patch_organizations_organization_databases_database_backup_policies_id_bu
 /// PATCH /organizations/{organization}/databases/{database}/backup-policies/{id}
 /// Update a backup policy
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_databases_database_backup_policies_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_databases_database_backup_policies_id_execute()` or `patch_organizations_organization_databases_database_backup_policies_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_databases_database_backup_policies_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_backup_policies_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_databases_database_backup_policies_id_execute(
+pub fn patch_organizations_organization_databases_database_backup_policies_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -1775,9 +2225,37 @@ pub fn patch_organizations_organization_databases_database_backup_policies_id_ex
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/databases/{database}/backup-policies/{id}
+/// Update a backup policy
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_databases_database_backup_policies_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_databases_database_backup_policies_id_task()`.
+/// For the simplest API, use `patch_organizations_organization_databases_database_backup_policies_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_backup_policies_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_databases_database_backup_policies_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        patch_organizations_organization_databases_database_backup_policies_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1797,6 +2275,7 @@ pub struct PatchOrganizationsOrganizationDatabasesDatabaseBackupPoliciesIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_databases_database_backup_policies_id_builder()` + `patch_organizations_organization_databases_database_backup_policies_id_execute()`.
+/// For task-level control, use `patch_organizations_organization_databases_database_backup_policies_id_task()`.
 ///
 /// # Errors
 ///
@@ -1847,25 +2326,31 @@ pub fn delete_organizations_organization_databases_database_backup_policies_id_b
 /// DELETE /organizations/{organization}/databases/{database}/backup-policies/{id}
 /// Delete a backup policy
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_organizations_organization_databases_database_backup_policies_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_organizations_organization_databases_database_backup_policies_id_execute()` or `delete_organizations_organization_databases_database_backup_policies_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_organizations_organization_databases_database_backup_policies_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_backup_policies_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_organizations_organization_databases_database_backup_policies_id_execute(
+pub fn delete_organizations_organization_databases_database_backup_policies_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -1901,9 +2386,37 @@ pub fn delete_organizations_organization_databases_database_backup_policies_id_e
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /organizations/{organization}/databases/{database}/backup-policies/{id}
+/// Delete a backup policy
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_organizations_organization_databases_database_backup_policies_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_organizations_organization_databases_database_backup_policies_id_task()`.
+/// For the simplest API, use `delete_organizations_organization_databases_database_backup_policies_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_backup_policies_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_organizations_organization_databases_database_backup_policies_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        delete_organizations_organization_databases_database_backup_policies_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -1923,6 +2436,7 @@ pub struct DeleteOrganizationsOrganizationDatabasesDatabaseBackupPoliciesIdArgs 
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_organizations_organization_databases_database_backup_policies_id_builder()` + `delete_organizations_organization_databases_database_backup_policies_id_execute()`.
+/// For task-level control, use `delete_organizations_organization_databases_database_backup_policies_id_task()`.
 ///
 /// # Errors
 ///
@@ -2004,25 +2518,31 @@ pub fn get_organizations_organization_databases_database_branches_builder(
 /// GET /organizations/{organization}/databases/{database}/branches
 /// List branches
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_execute()` or `get_organizations_organization_databases_database_branches`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_execute(
+pub fn get_organizations_organization_databases_database_branches_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -2058,9 +2578,36 @@ pub fn get_organizations_organization_databases_database_branches_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches
+/// List branches
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_databases_database_branches_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -2090,6 +2637,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_builder()` + `get_organizations_organization_databases_database_branches_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_task()`.
 ///
 /// # Errors
 ///
@@ -2144,25 +2692,31 @@ pub fn post_organizations_organization_databases_database_branches_builder(
 /// POST /organizations/{organization}/databases/{database}/branches
 /// Create a branch
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_branches_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_branches_execute()` or `post_organizations_organization_databases_database_branches`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_branches_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_branches_execute(
+pub fn post_organizations_organization_databases_database_branches_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -2198,9 +2752,36 @@ pub fn post_organizations_organization_databases_database_branches_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/branches
+/// Create a branch
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_branches_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_branches()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_branches_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_organizations_organization_databases_database_branches_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -2218,6 +2799,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseBranchesArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_branches_builder()` + `post_organizations_organization_databases_database_branches_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_task()`.
 ///
 /// # Errors
 ///
@@ -2267,25 +2849,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_builder
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}
 /// Get a branch
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_execute()` or `get_organizations_organization_databases_database_branches_branch`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -2321,9 +2909,36 @@ pub fn get_organizations_organization_databases_database_branches_branch_execute
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}
+/// Get a branch
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_databases_database_branches_branch_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -2343,6 +2958,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_builder()` + `get_organizations_organization_databases_database_branches_branch_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_task()`.
 ///
 /// # Errors
 ///
@@ -2393,25 +3009,31 @@ pub fn patch_organizations_organization_databases_database_branches_branch_build
 /// PATCH /organizations/{organization}/databases/{database}/branches/{branch}
 /// Update a branch
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_databases_database_branches_branch_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_databases_database_branches_branch_execute()` or `patch_organizations_organization_databases_database_branches_branch`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_databases_database_branches_branch_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_branches_branch_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_databases_database_branches_branch_execute(
+pub fn patch_organizations_organization_databases_database_branches_branch_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -2447,9 +3069,36 @@ pub fn patch_organizations_organization_databases_database_branches_branch_execu
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/databases/{database}/branches/{branch}
+/// Update a branch
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_databases_database_branches_branch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_databases_database_branches_branch_task()`.
+/// For the simplest API, use `patch_organizations_organization_databases_database_branches_branch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_branches_branch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_databases_database_branches_branch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = patch_organizations_organization_databases_database_branches_branch_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -2469,6 +3118,7 @@ pub struct PatchOrganizationsOrganizationDatabasesDatabaseBranchesBranchArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_databases_database_branches_branch_builder()` + `patch_organizations_organization_databases_database_branches_branch_execute()`.
+/// For task-level control, use `patch_organizations_organization_databases_database_branches_branch_task()`.
 ///
 /// # Errors
 ///
@@ -2531,25 +3181,31 @@ pub fn delete_organizations_organization_databases_database_branches_branch_buil
 /// DELETE /organizations/{organization}/databases/{database}/branches/{branch}
 /// Delete a branch
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_organizations_organization_databases_database_branches_branch_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_organizations_organization_databases_database_branches_branch_execute()` or `delete_organizations_organization_databases_database_branches_branch`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_organizations_organization_databases_database_branches_branch_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_branches_branch_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_organizations_organization_databases_database_branches_branch_execute(
+pub fn delete_organizations_organization_databases_database_branches_branch_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -2585,9 +3241,36 @@ pub fn delete_organizations_organization_databases_database_branches_branch_exec
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /organizations/{organization}/databases/{database}/branches/{branch}
+/// Delete a branch
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_organizations_organization_databases_database_branches_branch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_organizations_organization_databases_database_branches_branch_task()`.
+/// For the simplest API, use `delete_organizations_organization_databases_database_branches_branch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_branches_branch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_organizations_organization_databases_database_branches_branch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_organizations_organization_databases_database_branches_branch_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -2609,6 +3292,7 @@ pub struct DeleteOrganizationsOrganizationDatabasesDatabaseBranchesBranchArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_organizations_organization_databases_database_branches_branch_builder()` + `delete_organizations_organization_databases_database_branches_branch_execute()`.
+/// For task-level control, use `delete_organizations_organization_databases_database_branches_branch_task()`.
 ///
 /// # Errors
 ///
@@ -2704,25 +3388,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_backups
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/backups
 /// List backups
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_backups_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_backups_execute()` or `get_organizations_organization_databases_database_branches_branch_backups`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_backups_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_backups_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_backups_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_backups_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -2758,9 +3448,37 @@ pub fn get_organizations_organization_databases_database_branches_branch_backups
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/backups
+/// List backups
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_backups_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_backups_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_backups()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_backups_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_backups_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_branches_branch_backups_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -2798,6 +3516,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchBackupsArg
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_backups_builder()` + `get_organizations_organization_databases_database_branches_branch_backups_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_backups_task()`.
 ///
 /// # Errors
 ///
@@ -2858,25 +3577,31 @@ pub fn post_organizations_organization_databases_database_branches_branch_backup
 /// POST /organizations/{organization}/databases/{database}/branches/{branch}/backups
 /// Create a backup
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_branches_branch_backups_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_branches_branch_backups_execute()` or `post_organizations_organization_databases_database_branches_branch_backups`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_branches_branch_backups_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_backups_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_branches_branch_backups_execute(
+pub fn post_organizations_organization_databases_database_branches_branch_backups_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -2912,9 +3637,37 @@ pub fn post_organizations_organization_databases_database_branches_branch_backup
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/branches/{branch}/backups
+/// Create a backup
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_branches_branch_backups_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_backups_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_branches_branch_backups()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_backups_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_branches_branch_backups_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        post_organizations_organization_databases_database_branches_branch_backups_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -2934,6 +3687,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseBranchesBranchBackupsAr
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_branches_branch_backups_builder()` + `post_organizations_organization_databases_database_branches_branch_backups_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_backups_task()`.
 ///
 /// # Errors
 ///
@@ -2986,25 +3740,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_backups
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/backups/{id}
 /// Get a backup
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_backups_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_backups_id_execute()` or `get_organizations_organization_databases_database_branches_branch_backups_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_backups_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_backups_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_backups_id_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_backups_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -3040,9 +3800,37 @@ pub fn get_organizations_organization_databases_database_branches_branch_backups
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/backups/{id}
+/// Get a backup
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_backups_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_backups_id_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_backups_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_backups_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_backups_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_branches_branch_backups_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -3064,6 +3852,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchBackupsIdA
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_backups_id_builder()` + `get_organizations_organization_databases_database_branches_branch_backups_id_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_backups_id_task()`.
 ///
 /// # Errors
 ///
@@ -3117,25 +3906,31 @@ pub fn patch_organizations_organization_databases_database_branches_branch_backu
 /// PATCH /organizations/{organization}/databases/{database}/branches/{branch}/backups/{id}
 /// Update a backup
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_databases_database_branches_branch_backups_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_databases_database_branches_branch_backups_id_execute()` or `patch_organizations_organization_databases_database_branches_branch_backups_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_databases_database_branches_branch_backups_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_branches_branch_backups_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_databases_database_branches_branch_backups_id_execute(
+pub fn patch_organizations_organization_databases_database_branches_branch_backups_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -3171,9 +3966,38 @@ pub fn patch_organizations_organization_databases_database_branches_branch_backu
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/databases/{database}/branches/{branch}/backups/{id}
+/// Update a backup
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_databases_database_branches_branch_backups_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_databases_database_branches_branch_backups_id_task()`.
+/// For the simplest API, use `patch_organizations_organization_databases_database_branches_branch_backups_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_branches_branch_backups_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_databases_database_branches_branch_backups_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = patch_organizations_organization_databases_database_branches_branch_backups_id_task(
+        builder,
+    )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -3195,6 +4019,7 @@ pub struct PatchOrganizationsOrganizationDatabasesDatabaseBranchesBranchBackupsI
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_databases_database_branches_branch_backups_id_builder()` + `patch_organizations_organization_databases_database_branches_branch_backups_id_execute()`.
+/// For task-level control, use `patch_organizations_organization_databases_database_branches_branch_backups_id_task()`.
 ///
 /// # Errors
 ///
@@ -3248,25 +4073,31 @@ pub fn delete_organizations_organization_databases_database_branches_branch_back
 /// DELETE /organizations/{organization}/databases/{database}/branches/{branch}/backups/{id}
 /// Delete a backup
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_organizations_organization_databases_database_branches_branch_backups_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_organizations_organization_databases_database_branches_branch_backups_id_execute()` or `delete_organizations_organization_databases_database_branches_branch_backups_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_organizations_organization_databases_database_branches_branch_backups_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_branches_branch_backups_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_organizations_organization_databases_database_branches_branch_backups_id_execute(
+pub fn delete_organizations_organization_databases_database_branches_branch_backups_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -3302,9 +4133,39 @@ pub fn delete_organizations_organization_databases_database_branches_branch_back
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /organizations/{organization}/databases/{database}/branches/{branch}/backups/{id}
+/// Delete a backup
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_organizations_organization_databases_database_branches_branch_backups_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_organizations_organization_databases_database_branches_branch_backups_id_task()`.
+/// For the simplest API, use `delete_organizations_organization_databases_database_branches_branch_backups_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_branches_branch_backups_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_organizations_organization_databases_database_branches_branch_backups_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        delete_organizations_organization_databases_database_branches_branch_backups_id_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -3326,6 +4187,7 @@ pub struct DeleteOrganizationsOrganizationDatabasesDatabaseBranchesBranchBackups
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_organizations_organization_databases_database_branches_branch_backups_id_builder()` + `delete_organizations_organization_databases_database_branches_branch_backups_id_execute()`.
+/// For task-level control, use `delete_organizations_organization_databases_database_branches_branch_backups_id_task()`.
 ///
 /// # Errors
 ///
@@ -3394,25 +4256,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_bouncer
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/bouncer-resizes
 /// Get bouncer resize requests
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_bouncer_resizes_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_bouncer_resizes_execute()` or `get_organizations_organization_databases_database_branches_branch_bouncer_resizes`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_bouncer_resizes_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_bouncer_resizes_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_bouncer_resizes_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_bouncer_resizes_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -3448,9 +4316,39 @@ pub fn get_organizations_organization_databases_database_branches_branch_bouncer
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/bouncer-resizes
+/// Get bouncer resize requests
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_bouncer_resizes_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_bouncer_resizes_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_bouncer_resizes()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_bouncer_resizes_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_bouncer_resizes_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_branches_branch_bouncer_resizes_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -3474,6 +4372,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchBouncerRes
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_bouncer_resizes_builder()` + `get_organizations_organization_databases_database_branches_branch_bouncer_resizes_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_bouncer_resizes_task()`.
 ///
 /// # Errors
 ///
@@ -3545,25 +4444,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_bouncer
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/bouncers
 /// List bouncers
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_bouncers_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_bouncers_execute()` or `get_organizations_organization_databases_database_branches_branch_bouncers`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_bouncers_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_bouncers_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_bouncers_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_bouncers_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -3599,9 +4504,37 @@ pub fn get_organizations_organization_databases_database_branches_branch_bouncer
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/bouncers
+/// List bouncers
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_bouncers_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_bouncers_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_bouncers()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_bouncers_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_bouncers_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_branches_branch_bouncers_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -3625,6 +4558,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchBouncersAr
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_bouncers_builder()` + `get_organizations_organization_databases_database_branches_branch_bouncers_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_bouncers_task()`.
 ///
 /// # Errors
 ///
@@ -3678,25 +4612,31 @@ pub fn post_organizations_organization_databases_database_branches_branch_bounce
 /// POST /organizations/{organization}/databases/{database}/branches/{branch}/bouncers
 /// Create a bouncer
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_branches_branch_bouncers_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_branches_branch_bouncers_execute()` or `post_organizations_organization_databases_database_branches_branch_bouncers`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_branches_branch_bouncers_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_bouncers_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_branches_branch_bouncers_execute(
+pub fn post_organizations_organization_databases_database_branches_branch_bouncers_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -3732,9 +4672,37 @@ pub fn post_organizations_organization_databases_database_branches_branch_bounce
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/branches/{branch}/bouncers
+/// Create a bouncer
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_branches_branch_bouncers_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_bouncers_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_branches_branch_bouncers()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_bouncers_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_branches_branch_bouncers_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        post_organizations_organization_databases_database_branches_branch_bouncers_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -3754,6 +4722,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseBranchesBranchBouncersA
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_branches_branch_bouncers_builder()` + `post_organizations_organization_databases_database_branches_branch_bouncers_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_bouncers_task()`.
 ///
 /// # Errors
 ///
@@ -3806,25 +4775,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_bouncer
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/bouncers/{bouncer}
 /// Get a bouncer
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_execute()` or `get_organizations_organization_databases_database_branches_branch_bouncers_bouncer`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -3860,9 +4835,39 @@ pub fn get_organizations_organization_databases_database_branches_branch_bouncer
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/bouncers/{bouncer}
+/// Get a bouncer
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_bouncers_bouncer()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -3884,6 +4889,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchBouncersBo
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_builder()` + `get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_task()`.
 ///
 /// # Errors
 ///
@@ -3939,25 +4945,31 @@ pub fn delete_organizations_organization_databases_database_branches_branch_boun
 /// DELETE /organizations/{organization}/databases/{database}/branches/{branch}/bouncers/{bouncer}
 /// Delete a bouncer
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_execute()` or `delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_execute(
+pub fn delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -3993,9 +5005,39 @@ pub fn delete_organizations_organization_databases_database_branches_branch_boun
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /organizations/{organization}/databases/{database}/branches/{branch}/bouncers/{bouncer}
+/// Delete a bouncer
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_task()`.
+/// For the simplest API, use `delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4017,6 +5059,7 @@ pub struct DeleteOrganizationsOrganizationDatabasesDatabaseBranchesBranchBouncer
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_builder()` + `delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_execute()`.
+/// For task-level control, use `delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_task()`.
 ///
 /// # Errors
 ///
@@ -4084,25 +5127,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_bouncer
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/bouncers/{bouncer}/resizes
 /// Get bouncer resize requests
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_execute()` or `get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -4138,9 +5187,36 @@ pub fn get_organizations_organization_databases_database_branches_branch_bouncer
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/bouncers/{bouncer}/resizes
+/// Get bouncer resize requests
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4166,6 +5242,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchBouncersBo
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder()` + `get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_task()`.
 ///
 /// # Errors
 ///
@@ -4215,25 +5292,31 @@ pub fn patch_organizations_organization_databases_database_branches_branch_bounc
 /// PATCH /organizations/{organization}/databases/{database}/branches/{branch}/bouncers/{bouncer}/resizes
 /// Upsert a bouncer resize request
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_execute()` or `patch_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_execute(
+pub fn patch_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -4269,9 +5352,36 @@ pub fn patch_organizations_organization_databases_database_branches_branch_bounc
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/databases/{database}/branches/{branch}/bouncers/{bouncer}/resizes
+/// Upsert a bouncer resize request
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_task()`.
+/// For the simplest API, use `patch_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = patch_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4293,6 +5403,7 @@ pub struct PatchOrganizationsOrganizationDatabasesDatabaseBranchesBranchBouncers
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder()` + `patch_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_execute()`.
+/// For task-level control, use `patch_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_task()`.
 ///
 /// # Errors
 ///
@@ -4342,25 +5453,31 @@ pub fn delete_organizations_organization_databases_database_branches_branch_boun
 /// DELETE /organizations/{organization}/databases/{database}/branches/{branch}/bouncers/{bouncer}/resizes
 /// Cancel a resize request
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_execute()` or `delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_execute(
+pub fn delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -4396,9 +5513,36 @@ pub fn delete_organizations_organization_databases_database_branches_branch_boun
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /organizations/{organization}/databases/{database}/branches/{branch}/bouncers/{bouncer}/resizes
+/// Cancel a resize request
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_task()`.
+/// For the simplest API, use `delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4421,6 +5565,7 @@ pub struct DeleteOrganizationsOrganizationDatabasesDatabaseBranchesBranchBouncer
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_builder()` + `delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_execute()`.
+/// For task-level control, use `delete_organizations_organization_databases_database_branches_branch_bouncers_bouncer_resizes_task()`.
 ///
 /// # Errors
 ///
@@ -4482,25 +5627,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_changes
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/changes
 /// Get branch change requests
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_changes_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_changes_execute()` or `get_organizations_organization_databases_database_branches_branch_changes`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_changes_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_changes_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_changes_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_changes_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -4536,9 +5687,37 @@ pub fn get_organizations_organization_databases_database_branches_branch_changes
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/changes
+/// Get branch change requests
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_changes_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_changes_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_changes()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_changes_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_changes_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_branches_branch_changes_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4562,6 +5741,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchChangesArg
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_changes_builder()` + `get_organizations_organization_databases_database_branches_branch_changes_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_changes_task()`.
 ///
 /// # Errors
 ///
@@ -4615,25 +5795,31 @@ pub fn patch_organizations_organization_databases_database_branches_branch_chang
 /// PATCH /organizations/{organization}/databases/{database}/branches/{branch}/changes
 /// Upsert a change request
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_databases_database_branches_branch_changes_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_databases_database_branches_branch_changes_execute()` or `patch_organizations_organization_databases_database_branches_branch_changes`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_databases_database_branches_branch_changes_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_branches_branch_changes_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_databases_database_branches_branch_changes_execute(
+pub fn patch_organizations_organization_databases_database_branches_branch_changes_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -4669,9 +5855,37 @@ pub fn patch_organizations_organization_databases_database_branches_branch_chang
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/databases/{database}/branches/{branch}/changes
+/// Upsert a change request
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_databases_database_branches_branch_changes_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_databases_database_branches_branch_changes_task()`.
+/// For the simplest API, use `patch_organizations_organization_databases_database_branches_branch_changes()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_branches_branch_changes_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_databases_database_branches_branch_changes_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        patch_organizations_organization_databases_database_branches_branch_changes_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4691,6 +5905,7 @@ pub struct PatchOrganizationsOrganizationDatabasesDatabaseBranchesBranchChangesA
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_databases_database_branches_branch_changes_builder()` + `patch_organizations_organization_databases_database_branches_branch_changes_execute()`.
+/// For task-level control, use `patch_organizations_organization_databases_database_branches_branch_changes_task()`.
 ///
 /// # Errors
 ///
@@ -4743,25 +5958,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_changes
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/changes/{id}
 /// Get a branch change request
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_changes_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_changes_id_execute()` or `get_organizations_organization_databases_database_branches_branch_changes_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_changes_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_changes_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_changes_id_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_changes_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -4797,9 +6018,37 @@ pub fn get_organizations_organization_databases_database_branches_branch_changes
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/changes/{id}
+/// Get a branch change request
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_changes_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_changes_id_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_changes_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_changes_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_changes_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_branches_branch_changes_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4821,6 +6070,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchChangesIdA
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_changes_id_builder()` + `get_organizations_organization_databases_database_branches_branch_changes_id_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_changes_id_task()`.
 ///
 /// # Errors
 ///
@@ -4873,25 +6123,31 @@ pub fn patch_organizations_organization_databases_database_branches_branch_clust
 /// PATCH /organizations/{organization}/databases/{database}/branches/{branch}/cluster
 /// Change a branch cluster configuration
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_databases_database_branches_branch_cluster_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_databases_database_branches_branch_cluster_execute()` or `patch_organizations_organization_databases_database_branches_branch_cluster`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_databases_database_branches_branch_cluster_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_branches_branch_cluster_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_databases_database_branches_branch_cluster_execute(
+pub fn patch_organizations_organization_databases_database_branches_branch_cluster_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -4927,9 +6183,37 @@ pub fn patch_organizations_organization_databases_database_branches_branch_clust
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/databases/{database}/branches/{branch}/cluster
+/// Change a branch cluster configuration
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_databases_database_branches_branch_cluster_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_databases_database_branches_branch_cluster_task()`.
+/// For the simplest API, use `patch_organizations_organization_databases_database_branches_branch_cluster()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_branches_branch_cluster_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_databases_database_branches_branch_cluster_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        patch_organizations_organization_databases_database_branches_branch_cluster_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -4949,6 +6233,7 @@ pub struct PatchOrganizationsOrganizationDatabasesDatabaseBranchesBranchClusterA
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_databases_database_branches_branch_cluster_builder()` + `patch_organizations_organization_databases_database_branches_branch_cluster_execute()`.
+/// For task-level control, use `patch_organizations_organization_databases_database_branches_branch_cluster_task()`.
 ///
 /// # Errors
 ///
@@ -5000,25 +6285,31 @@ pub fn post_organizations_organization_databases_database_branches_branch_demote
 /// POST /organizations/{organization}/databases/{database}/branches/{branch}/demote
 /// Demote a branch
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_branches_branch_demote_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_branches_branch_demote_execute()` or `post_organizations_organization_databases_database_branches_branch_demote`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_branches_branch_demote_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_demote_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_branches_branch_demote_execute(
+pub fn post_organizations_organization_databases_database_branches_branch_demote_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -5054,9 +6345,37 @@ pub fn post_organizations_organization_databases_database_branches_branch_demote
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/branches/{branch}/demote
+/// Demote a branch
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_branches_branch_demote_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_demote_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_branches_branch_demote()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_demote_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_branches_branch_demote_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        post_organizations_organization_databases_database_branches_branch_demote_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -5076,6 +6395,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseBranchesBranchDemoteArg
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_branches_branch_demote_builder()` + `post_organizations_organization_databases_database_branches_branch_demote_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_demote_task()`.
 ///
 /// # Errors
 ///
@@ -5127,25 +6447,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_extensi
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/extensions
 /// List cluster extensions
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_extensions_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_extensions_execute()` or `get_organizations_organization_databases_database_branches_branch_extensions`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_extensions_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_extensions_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_extensions_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_extensions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -5181,9 +6507,37 @@ pub fn get_organizations_organization_databases_database_branches_branch_extensi
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/extensions
+/// List cluster extensions
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_extensions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_extensions_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_extensions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_extensions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_extensions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_branches_branch_extensions_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -5203,6 +6557,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchExtensions
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_extensions_builder()` + `get_organizations_organization_databases_database_branches_branch_extensions_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_extensions_task()`.
 ///
 /// # Errors
 ///
@@ -5270,25 +6625,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_keyspac
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/keyspaces
 /// Get keyspaces
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_keyspaces_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_keyspaces_execute()` or `get_organizations_organization_databases_database_branches_branch_keyspaces`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_keyspaces_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_keyspaces_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_keyspaces_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_keyspaces_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -5324,9 +6685,37 @@ pub fn get_organizations_organization_databases_database_branches_branch_keyspac
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/keyspaces
+/// Get keyspaces
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_keyspaces_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_keyspaces_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_keyspaces()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_keyspaces_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_keyspaces_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_branches_branch_keyspaces_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -5350,6 +6739,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchKeyspacesA
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_keyspaces_builder()` + `get_organizations_organization_databases_database_branches_branch_keyspaces_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_keyspaces_task()`.
 ///
 /// # Errors
 ///
@@ -5403,25 +6793,31 @@ pub fn post_organizations_organization_databases_database_branches_branch_keyspa
 /// POST /organizations/{organization}/databases/{database}/branches/{branch}/keyspaces
 /// Create a keyspace
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_branches_branch_keyspaces_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_branches_branch_keyspaces_execute()` or `post_organizations_organization_databases_database_branches_branch_keyspaces`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_branches_branch_keyspaces_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_keyspaces_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_branches_branch_keyspaces_execute(
+pub fn post_organizations_organization_databases_database_branches_branch_keyspaces_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -5457,9 +6853,37 @@ pub fn post_organizations_organization_databases_database_branches_branch_keyspa
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/branches/{branch}/keyspaces
+/// Create a keyspace
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_branches_branch_keyspaces_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_keyspaces_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_branches_branch_keyspaces()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_keyspaces_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_branches_branch_keyspaces_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        post_organizations_organization_databases_database_branches_branch_keyspaces_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -5479,6 +6903,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseBranchesBranchKeyspaces
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_branches_branch_keyspaces_builder()` + `post_organizations_organization_databases_database_branches_branch_keyspaces_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_keyspaces_task()`.
 ///
 /// # Errors
 ///
@@ -5531,25 +6956,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_keyspac
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/keyspaces/{keyspace}
 /// Get a keyspace
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_execute()` or `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -5585,9 +7016,39 @@ pub fn get_organizations_organization_databases_database_branches_branch_keyspac
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/keyspaces/{keyspace}
+/// Get a keyspace
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -5609,6 +7070,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchKeyspacesK
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder()` + `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_task()`.
 ///
 /// # Errors
 ///
@@ -5657,25 +7119,31 @@ pub fn patch_organizations_organization_databases_database_branches_branch_keysp
 /// PATCH /organizations/{organization}/databases/{database}/branches/{branch}/keyspaces/{keyspace}
 /// Configure keyspace settings
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_execute()` or `patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_execute(
+pub fn patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -5711,9 +7179,36 @@ pub fn patch_organizations_organization_databases_database_branches_branch_keysp
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/databases/{database}/branches/{branch}/keyspaces/{keyspace}
+/// Configure keyspace settings
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_task()`.
+/// For the simplest API, use `patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -5735,6 +7230,7 @@ pub struct PatchOrganizationsOrganizationDatabasesDatabaseBranchesBranchKeyspace
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder()` + `patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_execute()`.
+/// For task-level control, use `patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_task()`.
 ///
 /// # Errors
 ///
@@ -5783,25 +7279,31 @@ pub fn delete_organizations_organization_databases_database_branches_branch_keys
 /// DELETE /organizations/{organization}/databases/{database}/branches/{branch}/keyspaces/{keyspace}
 /// Delete a keyspace
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_execute()` or `delete_organizations_organization_databases_database_branches_branch_keyspaces_keyspace`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_execute(
+pub fn delete_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -5837,9 +7339,36 @@ pub fn delete_organizations_organization_databases_database_branches_branch_keys
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /organizations/{organization}/databases/{database}/branches/{branch}/keyspaces/{keyspace}
+/// Delete a keyspace
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_task()`.
+/// For the simplest API, use `delete_organizations_organization_databases_database_branches_branch_keyspaces_keyspace()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -5861,6 +7390,7 @@ pub struct DeleteOrganizationsOrganizationDatabasesDatabaseBranchesBranchKeyspac
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_builder()` + `delete_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_execute()`.
+/// For task-level control, use `delete_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_task()`.
 ///
 /// # Errors
 ///
@@ -5912,25 +7442,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_keyspac
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/keyspaces/{keyspace}/rollout-status
 /// Get keyspace rollout status
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_rollout_status_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_rollout_status_execute()` or `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_rollout_status`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_rollout_status_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_rollout_status_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_rollout_status_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_rollout_status_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -5966,9 +7502,36 @@ pub fn get_organizations_organization_databases_database_branches_branch_keyspac
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/keyspaces/{keyspace}/rollout-status
+/// Get keyspace rollout status
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_rollout_status_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_rollout_status_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_rollout_status()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_rollout_status_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_rollout_status_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_rollout_status_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -5991,6 +7554,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchKeyspacesK
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_rollout_status_builder()` + `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_rollout_status_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_rollout_status_task()`.
 ///
 /// # Errors
 ///
@@ -6040,25 +7604,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_keyspac
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/keyspaces/{keyspace}/vschema
 /// Get the VSchema for the keyspace
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_execute()` or `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -6094,9 +7664,36 @@ pub fn get_organizations_organization_databases_database_branches_branch_keyspac
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/keyspaces/{keyspace}/vschema
+/// Get the VSchema for the keyspace
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -6118,6 +7715,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchKeyspacesK
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_builder()` + `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_task()`.
 ///
 /// # Errors
 ///
@@ -6167,25 +7765,31 @@ pub fn patch_organizations_organization_databases_database_branches_branch_keysp
 /// PATCH /organizations/{organization}/databases/{database}/branches/{branch}/keyspaces/{keyspace}/vschema
 /// Update the VSchema for the keyspace
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_execute()` or `patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_execute(
+pub fn patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -6221,9 +7825,36 @@ pub fn patch_organizations_organization_databases_database_branches_branch_keysp
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/databases/{database}/branches/{branch}/keyspaces/{keyspace}/vschema
+/// Update the VSchema for the keyspace
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_task()`.
+/// For the simplest API, use `patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -6246,6 +7877,7 @@ pub struct PatchOrganizationsOrganizationDatabasesDatabaseBranchesBranchKeyspace
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_builder()` + `patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_execute()`.
+/// For task-level control, use `patch_organizations_organization_databases_database_branches_branch_keyspaces_keyspace_vschema_task()`.
 ///
 /// # Errors
 ///
@@ -6291,25 +7923,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_paramet
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/parameters
 /// List cluster parameters
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_parameters_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_parameters_execute()` or `get_organizations_organization_databases_database_branches_branch_parameters`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_parameters_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_parameters_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_parameters_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_parameters_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -6345,9 +7983,37 @@ pub fn get_organizations_organization_databases_database_branches_branch_paramet
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/parameters
+/// List cluster parameters
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_parameters_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_parameters_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_parameters()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_parameters_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_parameters_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_branches_branch_parameters_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -6367,6 +8033,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchParameters
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_parameters_builder()` + `get_organizations_organization_databases_database_branches_branch_parameters_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_parameters_task()`.
 ///
 /// # Errors
 ///
@@ -6438,25 +8105,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_passwor
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/passwords
 /// List passwords
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_passwords_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_passwords_execute()` or `get_organizations_organization_databases_database_branches_branch_passwords`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_passwords_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_passwords_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_passwords_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_passwords_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -6492,9 +8165,37 @@ pub fn get_organizations_organization_databases_database_branches_branch_passwor
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/passwords
+/// List passwords
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_passwords_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_passwords_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_passwords()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_passwords_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_passwords_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_branches_branch_passwords_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -6520,6 +8221,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchPasswordsA
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_passwords_builder()` + `get_organizations_organization_databases_database_branches_branch_passwords_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_passwords_task()`.
 ///
 /// # Errors
 ///
@@ -6574,25 +8276,31 @@ pub fn post_organizations_organization_databases_database_branches_branch_passwo
 /// POST /organizations/{organization}/databases/{database}/branches/{branch}/passwords
 /// Create a password
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_branches_branch_passwords_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_branches_branch_passwords_execute()` or `post_organizations_organization_databases_database_branches_branch_passwords`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_branches_branch_passwords_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_passwords_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_branches_branch_passwords_execute(
+pub fn post_organizations_organization_databases_database_branches_branch_passwords_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -6628,9 +8336,37 @@ pub fn post_organizations_organization_databases_database_branches_branch_passwo
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/branches/{branch}/passwords
+/// Create a password
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_branches_branch_passwords_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_passwords_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_branches_branch_passwords()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_passwords_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_branches_branch_passwords_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        post_organizations_organization_databases_database_branches_branch_passwords_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -6650,6 +8386,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseBranchesBranchPasswords
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_branches_branch_passwords_builder()` + `post_organizations_organization_databases_database_branches_branch_passwords_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_passwords_task()`.
 ///
 /// # Errors
 ///
@@ -6702,25 +8439,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_passwor
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/passwords/{id}
 /// Get a password
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_passwords_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_passwords_id_execute()` or `get_organizations_organization_databases_database_branches_branch_passwords_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_passwords_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_passwords_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_passwords_id_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_passwords_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -6756,9 +8499,38 @@ pub fn get_organizations_organization_databases_database_branches_branch_passwor
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/passwords/{id}
+/// Get a password
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_passwords_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_passwords_id_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_passwords_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_passwords_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_passwords_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_databases_database_branches_branch_passwords_id_task(
+        builder,
+    )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -6780,6 +8552,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchPasswordsI
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_passwords_id_builder()` + `get_organizations_organization_databases_database_branches_branch_passwords_id_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_passwords_id_task()`.
 ///
 /// # Errors
 ///
@@ -6833,25 +8606,31 @@ pub fn patch_organizations_organization_databases_database_branches_branch_passw
 /// PATCH /organizations/{organization}/databases/{database}/branches/{branch}/passwords/{id}
 /// Update a password
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_databases_database_branches_branch_passwords_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_databases_database_branches_branch_passwords_id_execute()` or `patch_organizations_organization_databases_database_branches_branch_passwords_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_databases_database_branches_branch_passwords_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_branches_branch_passwords_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_databases_database_branches_branch_passwords_id_execute(
+pub fn patch_organizations_organization_databases_database_branches_branch_passwords_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -6887,9 +8666,39 @@ pub fn patch_organizations_organization_databases_database_branches_branch_passw
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/databases/{database}/branches/{branch}/passwords/{id}
+/// Update a password
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_databases_database_branches_branch_passwords_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_databases_database_branches_branch_passwords_id_task()`.
+/// For the simplest API, use `patch_organizations_organization_databases_database_branches_branch_passwords_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_branches_branch_passwords_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_databases_database_branches_branch_passwords_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        patch_organizations_organization_databases_database_branches_branch_passwords_id_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -6911,6 +8720,7 @@ pub struct PatchOrganizationsOrganizationDatabasesDatabaseBranchesBranchPassword
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_databases_database_branches_branch_passwords_id_builder()` + `patch_organizations_organization_databases_database_branches_branch_passwords_id_execute()`.
+/// For task-level control, use `patch_organizations_organization_databases_database_branches_branch_passwords_id_task()`.
 ///
 /// # Errors
 ///
@@ -6966,25 +8776,31 @@ pub fn delete_organizations_organization_databases_database_branches_branch_pass
 /// DELETE /organizations/{organization}/databases/{database}/branches/{branch}/passwords/{id}
 /// Delete a password
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_organizations_organization_databases_database_branches_branch_passwords_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_organizations_organization_databases_database_branches_branch_passwords_id_execute()` or `delete_organizations_organization_databases_database_branches_branch_passwords_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_organizations_organization_databases_database_branches_branch_passwords_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_branches_branch_passwords_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_organizations_organization_databases_database_branches_branch_passwords_id_execute(
+pub fn delete_organizations_organization_databases_database_branches_branch_passwords_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -7020,9 +8836,39 @@ pub fn delete_organizations_organization_databases_database_branches_branch_pass
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /organizations/{organization}/databases/{database}/branches/{branch}/passwords/{id}
+/// Delete a password
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_organizations_organization_databases_database_branches_branch_passwords_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_organizations_organization_databases_database_branches_branch_passwords_id_task()`.
+/// For the simplest API, use `delete_organizations_organization_databases_database_branches_branch_passwords_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_branches_branch_passwords_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_organizations_organization_databases_database_branches_branch_passwords_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        delete_organizations_organization_databases_database_branches_branch_passwords_id_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -7044,6 +8890,7 @@ pub struct DeleteOrganizationsOrganizationDatabasesDatabaseBranchesBranchPasswor
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_organizations_organization_databases_database_branches_branch_passwords_id_builder()` + `delete_organizations_organization_databases_database_branches_branch_passwords_id_execute()`.
+/// For task-level control, use `delete_organizations_organization_databases_database_branches_branch_passwords_id_task()`.
 ///
 /// # Errors
 ///
@@ -7102,25 +8949,31 @@ pub fn post_organizations_organization_databases_database_branches_branch_passwo
 /// POST /organizations/{organization}/databases/{database}/branches/{branch}/passwords/{id}/renew
 /// Renew a password
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_branches_branch_passwords_id_renew_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_branches_branch_passwords_id_renew_execute()` or `post_organizations_organization_databases_database_branches_branch_passwords_id_renew`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_branches_branch_passwords_id_renew_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_passwords_id_renew_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_branches_branch_passwords_id_renew_execute(
+pub fn post_organizations_organization_databases_database_branches_branch_passwords_id_renew_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -7156,9 +9009,39 @@ pub fn post_organizations_organization_databases_database_branches_branch_passwo
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/branches/{branch}/passwords/{id}/renew
+/// Renew a password
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_branches_branch_passwords_id_renew_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_passwords_id_renew_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_branches_branch_passwords_id_renew()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_passwords_id_renew_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_branches_branch_passwords_id_renew_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        post_organizations_organization_databases_database_branches_branch_passwords_id_renew_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -7180,6 +9063,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseBranchesBranchPasswords
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_branches_branch_passwords_id_renew_builder()` + `post_organizations_organization_databases_database_branches_branch_passwords_id_renew_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_passwords_id_renew_task()`.
 ///
 /// # Errors
 ///
@@ -7227,25 +9111,31 @@ pub fn post_organizations_organization_databases_database_branches_branch_promot
 /// POST /organizations/{organization}/databases/{database}/branches/{branch}/promote
 /// Promote a branch
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_branches_branch_promote_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_branches_branch_promote_execute()` or `post_organizations_organization_databases_database_branches_branch_promote`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_branches_branch_promote_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_promote_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_branches_branch_promote_execute(
+pub fn post_organizations_organization_databases_database_branches_branch_promote_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -7281,9 +9171,37 @@ pub fn post_organizations_organization_databases_database_branches_branch_promot
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/branches/{branch}/promote
+/// Promote a branch
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_branches_branch_promote_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_promote_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_branches_branch_promote()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_promote_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_branches_branch_promote_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        post_organizations_organization_databases_database_branches_branch_promote_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -7303,6 +9221,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseBranchesBranchPromoteAr
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_branches_branch_promote_builder()` + `post_organizations_organization_databases_database_branches_branch_promote_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_promote_task()`.
 ///
 /// # Errors
 ///
@@ -7374,25 +9293,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_query_p
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/query-patterns
 /// List generated query patterns reports
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_query_patterns_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_query_patterns_execute()` or `get_organizations_organization_databases_database_branches_branch_query_patterns`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_query_patterns_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_query_patterns_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_query_patterns_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_query_patterns_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -7428,9 +9353,39 @@ pub fn get_organizations_organization_databases_database_branches_branch_query_p
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/query-patterns
+/// List generated query patterns reports
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_query_patterns_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_query_patterns_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_query_patterns()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_query_patterns_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_query_patterns_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_branches_branch_query_patterns_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -7456,6 +9411,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchQueryPatte
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_query_patterns_builder()` + `get_organizations_organization_databases_database_branches_branch_query_patterns_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_query_patterns_task()`.
 ///
 /// # Errors
 ///
@@ -7512,25 +9468,31 @@ pub fn post_organizations_organization_databases_database_branches_branch_query_
 /// POST /organizations/{organization}/databases/{database}/branches/{branch}/query-patterns
 /// Create a new query patterns report
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_branches_branch_query_patterns_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_branches_branch_query_patterns_execute()` or `post_organizations_organization_databases_database_branches_branch_query_patterns`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_branches_branch_query_patterns_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_query_patterns_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_branches_branch_query_patterns_execute(
+pub fn post_organizations_organization_databases_database_branches_branch_query_patterns_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -7566,9 +9528,39 @@ pub fn post_organizations_organization_databases_database_branches_branch_query_
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/branches/{branch}/query-patterns
+/// Create a new query patterns report
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_branches_branch_query_patterns_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_query_patterns_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_branches_branch_query_patterns()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_query_patterns_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_branches_branch_query_patterns_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        post_organizations_organization_databases_database_branches_branch_query_patterns_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -7588,6 +9580,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseBranchesBranchQueryPatt
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_branches_branch_query_patterns_builder()` + `post_organizations_organization_databases_database_branches_branch_query_patterns_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_query_patterns_task()`.
 ///
 /// # Errors
 ///
@@ -7645,25 +9638,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_query_p
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/query-patterns/{id}
 /// Show the status of a query patterns report
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_query_patterns_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_query_patterns_id_execute()` or `get_organizations_organization_databases_database_branches_branch_query_patterns_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_query_patterns_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_query_patterns_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_query_patterns_id_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_query_patterns_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -7699,9 +9698,39 @@ pub fn get_organizations_organization_databases_database_branches_branch_query_p
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/query-patterns/{id}
+/// Show the status of a query patterns report
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_query_patterns_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_query_patterns_id_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_query_patterns_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_query_patterns_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_query_patterns_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_branches_branch_query_patterns_id_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -7723,6 +9752,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchQueryPatte
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_query_patterns_id_builder()` + `get_organizations_organization_databases_database_branches_branch_query_patterns_id_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_query_patterns_id_task()`.
 ///
 /// # Errors
 ///
@@ -7774,25 +9804,31 @@ pub fn delete_organizations_organization_databases_database_branches_branch_quer
 /// DELETE /organizations/{organization}/databases/{database}/branches/{branch}/query-patterns/{id}
 /// Delete a query patterns report
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_organizations_organization_databases_database_branches_branch_query_patterns_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_organizations_organization_databases_database_branches_branch_query_patterns_id_execute()` or `delete_organizations_organization_databases_database_branches_branch_query_patterns_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_organizations_organization_databases_database_branches_branch_query_patterns_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_branches_branch_query_patterns_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_organizations_organization_databases_database_branches_branch_query_patterns_id_execute(
+pub fn delete_organizations_organization_databases_database_branches_branch_query_patterns_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -7828,9 +9864,36 @@ pub fn delete_organizations_organization_databases_database_branches_branch_quer
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /organizations/{organization}/databases/{database}/branches/{branch}/query-patterns/{id}
+/// Delete a query patterns report
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_organizations_organization_databases_database_branches_branch_query_patterns_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_organizations_organization_databases_database_branches_branch_query_patterns_id_task()`.
+/// For the simplest API, use `delete_organizations_organization_databases_database_branches_branch_query_patterns_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_branches_branch_query_patterns_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_organizations_organization_databases_database_branches_branch_query_patterns_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_organizations_organization_databases_database_branches_branch_query_patterns_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -7852,6 +9915,7 @@ pub struct DeleteOrganizationsOrganizationDatabasesDatabaseBranchesBranchQueryPa
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_organizations_organization_databases_database_branches_branch_query_patterns_id_builder()` + `delete_organizations_organization_databases_database_branches_branch_query_patterns_id_execute()`.
+/// For task-level control, use `delete_organizations_organization_databases_database_branches_branch_query_patterns_id_task()`.
 ///
 /// # Errors
 ///
@@ -7903,25 +9967,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_query_p
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/query-patterns/{id}/download
 /// Download a finished query patterns report
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_query_patterns_id_download_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_query_patterns_id_download_execute()` or `get_organizations_organization_databases_database_branches_branch_query_patterns_id_download`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_query_patterns_id_download_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_query_patterns_id_download_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_query_patterns_id_download_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_query_patterns_id_download_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -7957,9 +10027,36 @@ pub fn get_organizations_organization_databases_database_branches_branch_query_p
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/query-patterns/{id}/download
+/// Download a finished query patterns report
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_query_patterns_id_download_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_query_patterns_id_download_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_query_patterns_id_download()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_query_patterns_id_download_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_query_patterns_id_download_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_databases_database_branches_branch_query_patterns_id_download_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -7981,6 +10078,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchQueryPatte
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_query_patterns_id_download_builder()` + `get_organizations_organization_databases_database_branches_branch_query_patterns_id_download_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_query_patterns_id_download_task()`.
 ///
 /// # Errors
 ///
@@ -8026,25 +10124,31 @@ pub fn delete_organizations_organization_databases_database_branches_branch_resi
 /// DELETE /organizations/{organization}/databases/{database}/branches/{branch}/resizes
 /// Cancel a change request
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_organizations_organization_databases_database_branches_branch_resizes_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_organizations_organization_databases_database_branches_branch_resizes_execute()` or `delete_organizations_organization_databases_database_branches_branch_resizes`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_organizations_organization_databases_database_branches_branch_resizes_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_branches_branch_resizes_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_organizations_organization_databases_database_branches_branch_resizes_execute(
+pub fn delete_organizations_organization_databases_database_branches_branch_resizes_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -8080,9 +10184,37 @@ pub fn delete_organizations_organization_databases_database_branches_branch_resi
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /organizations/{organization}/databases/{database}/branches/{branch}/resizes
+/// Cancel a change request
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_organizations_organization_databases_database_branches_branch_resizes_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_organizations_organization_databases_database_branches_branch_resizes_task()`.
+/// For the simplest API, use `delete_organizations_organization_databases_database_branches_branch_resizes()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_branches_branch_resizes_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_organizations_organization_databases_database_branches_branch_resizes_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        delete_organizations_organization_databases_database_branches_branch_resizes_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -8102,6 +10234,7 @@ pub struct DeleteOrganizationsOrganizationDatabasesDatabaseBranchesBranchResizes
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_organizations_organization_databases_database_branches_branch_resizes_builder()` + `delete_organizations_organization_databases_database_branches_branch_resizes_execute()`.
+/// For task-level control, use `delete_organizations_organization_databases_database_branches_branch_resizes_task()`.
 ///
 /// # Errors
 ///
@@ -8169,25 +10302,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_roles_b
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/roles
 /// List roles
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_roles_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_roles_execute()` or `get_organizations_organization_databases_database_branches_branch_roles`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_roles_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_roles_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_roles_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_roles_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -8223,9 +10362,37 @@ pub fn get_organizations_organization_databases_database_branches_branch_roles_e
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/roles
+/// List roles
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_roles_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_roles_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_roles()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_roles_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_roles_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_branches_branch_roles_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -8249,6 +10416,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchRolesArgs 
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_roles_builder()` + `get_organizations_organization_databases_database_branches_branch_roles_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_roles_task()`.
 ///
 /// # Errors
 ///
@@ -8301,25 +10469,31 @@ pub fn post_organizations_organization_databases_database_branches_branch_roles_
 /// POST /organizations/{organization}/databases/{database}/branches/{branch}/roles
 /// Create role credentials
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_branches_branch_roles_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_branches_branch_roles_execute()` or `post_organizations_organization_databases_database_branches_branch_roles`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_branches_branch_roles_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_roles_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_branches_branch_roles_execute(
+pub fn post_organizations_organization_databases_database_branches_branch_roles_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -8355,9 +10529,37 @@ pub fn post_organizations_organization_databases_database_branches_branch_roles_
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/branches/{branch}/roles
+/// Create role credentials
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_branches_branch_roles_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_roles_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_branches_branch_roles()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_roles_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_branches_branch_roles_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        post_organizations_organization_databases_database_branches_branch_roles_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -8377,6 +10579,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseBranchesBranchRolesArgs
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_branches_branch_roles_builder()` + `post_organizations_organization_databases_database_branches_branch_roles_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_roles_task()`.
 ///
 /// # Errors
 ///
@@ -8427,25 +10630,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_roles_d
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/roles/default
 /// Get the default postgres role
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_roles_default_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_roles_default_execute()` or `get_organizations_organization_databases_database_branches_branch_roles_default`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_roles_default_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_roles_default_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_roles_default_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_roles_default_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -8481,9 +10690,39 @@ pub fn get_organizations_organization_databases_database_branches_branch_roles_d
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/roles/default
+/// Get the default postgres role
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_roles_default_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_roles_default_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_roles_default()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_roles_default_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_roles_default_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_branches_branch_roles_default_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -8503,6 +10742,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchRolesDefau
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_roles_default_builder()` + `get_organizations_organization_databases_database_branches_branch_roles_default_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_roles_default_task()`.
 ///
 /// # Errors
 ///
@@ -8556,25 +10796,31 @@ pub fn post_organizations_organization_databases_database_branches_branch_roles_
 /// POST /organizations/{organization}/databases/{database}/branches/{branch}/roles/reset-default
 /// Reset default credentials
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_branches_branch_roles_reset_default_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_branches_branch_roles_reset_default_execute()` or `post_organizations_organization_databases_database_branches_branch_roles_reset_default`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_branches_branch_roles_reset_default_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_roles_reset_default_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_branches_branch_roles_reset_default_execute(
+pub fn post_organizations_organization_databases_database_branches_branch_roles_reset_default_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -8610,9 +10856,36 @@ pub fn post_organizations_organization_databases_database_branches_branch_roles_
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/branches/{branch}/roles/reset-default
+/// Reset default credentials
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_branches_branch_roles_reset_default_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_roles_reset_default_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_branches_branch_roles_reset_default()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_roles_reset_default_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_branches_branch_roles_reset_default_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_organizations_organization_databases_database_branches_branch_roles_reset_default_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -8632,6 +10905,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseBranchesBranchRolesRese
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_branches_branch_roles_reset_default_builder()` + `post_organizations_organization_databases_database_branches_branch_roles_reset_default_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_roles_reset_default_task()`.
 ///
 /// # Errors
 ///
@@ -8680,25 +10954,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_roles_i
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/roles/{id}
 /// Get a role
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_roles_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_roles_id_execute()` or `get_organizations_organization_databases_database_branches_branch_roles_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_roles_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_roles_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_roles_id_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_roles_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -8734,9 +11014,37 @@ pub fn get_organizations_organization_databases_database_branches_branch_roles_i
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/roles/{id}
+/// Get a role
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_roles_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_roles_id_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_roles_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_roles_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_roles_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_branches_branch_roles_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -8758,6 +11066,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchRolesIdArg
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_roles_id_builder()` + `get_organizations_organization_databases_database_branches_branch_roles_id_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_roles_id_task()`.
 ///
 /// # Errors
 ///
@@ -8811,25 +11120,31 @@ pub fn patch_organizations_organization_databases_database_branches_branch_roles
 /// PATCH /organizations/{organization}/databases/{database}/branches/{branch}/roles/{id}
 /// Update role name
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_databases_database_branches_branch_roles_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_databases_database_branches_branch_roles_id_execute()` or `patch_organizations_organization_databases_database_branches_branch_roles_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_databases_database_branches_branch_roles_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_branches_branch_roles_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_databases_database_branches_branch_roles_id_execute(
+pub fn patch_organizations_organization_databases_database_branches_branch_roles_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -8865,9 +11180,37 @@ pub fn patch_organizations_organization_databases_database_branches_branch_roles
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/databases/{database}/branches/{branch}/roles/{id}
+/// Update role name
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_databases_database_branches_branch_roles_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_databases_database_branches_branch_roles_id_task()`.
+/// For the simplest API, use `patch_organizations_organization_databases_database_branches_branch_roles_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_branches_branch_roles_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_databases_database_branches_branch_roles_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        patch_organizations_organization_databases_database_branches_branch_roles_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -8889,6 +11232,7 @@ pub struct PatchOrganizationsOrganizationDatabasesDatabaseBranchesBranchRolesIdA
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_databases_database_branches_branch_roles_id_builder()` + `patch_organizations_organization_databases_database_branches_branch_roles_id_execute()`.
+/// For task-level control, use `patch_organizations_organization_databases_database_branches_branch_roles_id_task()`.
 ///
 /// # Errors
 ///
@@ -8954,25 +11298,31 @@ pub fn delete_organizations_organization_databases_database_branches_branch_role
 /// DELETE /organizations/{organization}/databases/{database}/branches/{branch}/roles/{id}
 /// Delete role credentials
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_organizations_organization_databases_database_branches_branch_roles_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_organizations_organization_databases_database_branches_branch_roles_id_execute()` or `delete_organizations_organization_databases_database_branches_branch_roles_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_organizations_organization_databases_database_branches_branch_roles_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_branches_branch_roles_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_organizations_organization_databases_database_branches_branch_roles_id_execute(
+pub fn delete_organizations_organization_databases_database_branches_branch_roles_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -9008,9 +11358,38 @@ pub fn delete_organizations_organization_databases_database_branches_branch_role
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /organizations/{organization}/databases/{database}/branches/{branch}/roles/{id}
+/// Delete role credentials
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_organizations_organization_databases_database_branches_branch_roles_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_organizations_organization_databases_database_branches_branch_roles_id_task()`.
+/// For the simplest API, use `delete_organizations_organization_databases_database_branches_branch_roles_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_branches_branch_roles_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_organizations_organization_databases_database_branches_branch_roles_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_organizations_organization_databases_database_branches_branch_roles_id_task(
+        builder,
+    )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -9034,6 +11413,7 @@ pub struct DeleteOrganizationsOrganizationDatabasesDatabaseBranchesBranchRolesId
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_organizations_organization_databases_database_branches_branch_roles_id_builder()` + `delete_organizations_organization_databases_database_branches_branch_roles_id_execute()`.
+/// For task-level control, use `delete_organizations_organization_databases_database_branches_branch_roles_id_task()`.
 ///
 /// # Errors
 ///
@@ -9091,25 +11471,31 @@ pub fn post_organizations_organization_databases_database_branches_branch_roles_
 /// POST /organizations/{organization}/databases/{database}/branches/{branch}/roles/{id}/reassign
 /// Reassign objects owned by one role to another role
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_branches_branch_roles_id_reassign_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_branches_branch_roles_id_reassign_execute()` or `post_organizations_organization_databases_database_branches_branch_roles_id_reassign`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_branches_branch_roles_id_reassign_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_roles_id_reassign_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_branches_branch_roles_id_reassign_execute(
+pub fn post_organizations_organization_databases_database_branches_branch_roles_id_reassign_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -9145,9 +11531,39 @@ pub fn post_organizations_organization_databases_database_branches_branch_roles_
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/branches/{branch}/roles/{id}/reassign
+/// Reassign objects owned by one role to another role
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_branches_branch_roles_id_reassign_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_roles_id_reassign_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_branches_branch_roles_id_reassign()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_roles_id_reassign_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_branches_branch_roles_id_reassign_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        post_organizations_organization_databases_database_branches_branch_roles_id_reassign_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -9169,6 +11585,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseBranchesBranchRolesIdRe
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_branches_branch_roles_id_reassign_builder()` + `post_organizations_organization_databases_database_branches_branch_roles_id_reassign_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_roles_id_reassign_task()`.
 ///
 /// # Errors
 ///
@@ -9217,25 +11634,31 @@ pub fn post_organizations_organization_databases_database_branches_branch_roles_
 /// POST /organizations/{organization}/databases/{database}/branches/{branch}/roles/{id}/renew
 /// Renew role expiration
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_branches_branch_roles_id_renew_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_branches_branch_roles_id_renew_execute()` or `post_organizations_organization_databases_database_branches_branch_roles_id_renew`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_branches_branch_roles_id_renew_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_roles_id_renew_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_branches_branch_roles_id_renew_execute(
+pub fn post_organizations_organization_databases_database_branches_branch_roles_id_renew_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -9271,9 +11694,39 @@ pub fn post_organizations_organization_databases_database_branches_branch_roles_
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/branches/{branch}/roles/{id}/renew
+/// Renew role expiration
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_branches_branch_roles_id_renew_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_roles_id_renew_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_branches_branch_roles_id_renew()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_roles_id_renew_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_branches_branch_roles_id_renew_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        post_organizations_organization_databases_database_branches_branch_roles_id_renew_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -9295,6 +11748,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseBranchesBranchRolesIdRe
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_branches_branch_roles_id_renew_builder()` + `post_organizations_organization_databases_database_branches_branch_roles_id_renew_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_roles_id_renew_task()`.
 ///
 /// # Errors
 ///
@@ -9350,25 +11804,31 @@ pub fn post_organizations_organization_databases_database_branches_branch_roles_
 /// POST /organizations/{organization}/databases/{database}/branches/{branch}/roles/{id}/reset
 /// Reset a role's password
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_branches_branch_roles_id_reset_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_branches_branch_roles_id_reset_execute()` or `post_organizations_organization_databases_database_branches_branch_roles_id_reset`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_branches_branch_roles_id_reset_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_roles_id_reset_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_branches_branch_roles_id_reset_execute(
+pub fn post_organizations_organization_databases_database_branches_branch_roles_id_reset_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -9404,9 +11864,39 @@ pub fn post_organizations_organization_databases_database_branches_branch_roles_
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/branches/{branch}/roles/{id}/reset
+/// Reset a role's password
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_branches_branch_roles_id_reset_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_roles_id_reset_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_branches_branch_roles_id_reset()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_roles_id_reset_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_branches_branch_roles_id_reset_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        post_organizations_organization_databases_database_branches_branch_roles_id_reset_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -9428,6 +11918,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseBranchesBranchRolesIdRe
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_branches_branch_roles_id_reset_builder()` + `post_organizations_organization_databases_database_branches_branch_roles_id_reset_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_roles_id_reset_task()`.
 ///
 /// # Errors
 ///
@@ -9482,25 +11973,31 @@ pub fn post_organizations_organization_databases_database_branches_branch_safe_m
 /// POST /organizations/{organization}/databases/{database}/branches/{branch}/safe-migrations
 /// Enable safe migrations for a branch
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_branches_branch_safe_migrations_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_branches_branch_safe_migrations_execute()` or `post_organizations_organization_databases_database_branches_branch_safe_migrations`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_branches_branch_safe_migrations_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_safe_migrations_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_branches_branch_safe_migrations_execute(
+pub fn post_organizations_organization_databases_database_branches_branch_safe_migrations_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -9536,9 +12033,39 @@ pub fn post_organizations_organization_databases_database_branches_branch_safe_m
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/branches/{branch}/safe-migrations
+/// Enable safe migrations for a branch
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_branches_branch_safe_migrations_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_safe_migrations_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_branches_branch_safe_migrations()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_safe_migrations_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_branches_branch_safe_migrations_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        post_organizations_organization_databases_database_branches_branch_safe_migrations_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -9558,6 +12085,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseBranchesBranchSafeMigra
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_branches_branch_safe_migrations_builder()` + `post_organizations_organization_databases_database_branches_branch_safe_migrations_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_safe_migrations_task()`.
 ///
 /// # Errors
 ///
@@ -9611,25 +12139,31 @@ pub fn delete_organizations_organization_databases_database_branches_branch_safe
 /// DELETE /organizations/{organization}/databases/{database}/branches/{branch}/safe-migrations
 /// Disable safe migrations for a branch
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_organizations_organization_databases_database_branches_branch_safe_migrations_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_organizations_organization_databases_database_branches_branch_safe_migrations_execute()` or `delete_organizations_organization_databases_database_branches_branch_safe_migrations`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_organizations_organization_databases_database_branches_branch_safe_migrations_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_branches_branch_safe_migrations_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_organizations_organization_databases_database_branches_branch_safe_migrations_execute(
+pub fn delete_organizations_organization_databases_database_branches_branch_safe_migrations_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -9665,9 +12199,39 @@ pub fn delete_organizations_organization_databases_database_branches_branch_safe
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /organizations/{organization}/databases/{database}/branches/{branch}/safe-migrations
+/// Disable safe migrations for a branch
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_organizations_organization_databases_database_branches_branch_safe_migrations_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_organizations_organization_databases_database_branches_branch_safe_migrations_task()`.
+/// For the simplest API, use `delete_organizations_organization_databases_database_branches_branch_safe_migrations()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_branches_branch_safe_migrations_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_organizations_organization_databases_database_branches_branch_safe_migrations_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        delete_organizations_organization_databases_database_branches_branch_safe_migrations_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -9687,6 +12251,7 @@ pub struct DeleteOrganizationsOrganizationDatabasesDatabaseBranchesBranchSafeMig
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_organizations_organization_databases_database_branches_branch_safe_migrations_builder()` + `delete_organizations_organization_databases_database_branches_branch_safe_migrations_execute()`.
+/// For task-level control, use `delete_organizations_organization_databases_database_branches_branch_safe_migrations_task()`.
 ///
 /// # Errors
 ///
@@ -9750,25 +12315,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_schema_
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/schema
 /// Get a branch schema
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_schema_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_schema_execute()` or `get_organizations_organization_databases_database_branches_branch_schema`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_schema_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_schema_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_schema_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_schema_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -9804,9 +12375,37 @@ pub fn get_organizations_organization_databases_database_branches_branch_schema_
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/schema
+/// Get a branch schema
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_schema_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_schema_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_schema()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_schema_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_schema_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_branches_branch_schema_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -9830,6 +12429,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchSchemaArgs
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_schema_builder()` + `get_organizations_organization_databases_database_branches_branch_schema_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_schema_task()`.
 ///
 /// # Errors
 ///
@@ -9898,25 +12498,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_schema_
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/schema/lint
 /// Lint a branch schema
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_schema_lint_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_schema_lint_execute()` or `get_organizations_organization_databases_database_branches_branch_schema_lint`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_schema_lint_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_schema_lint_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_schema_lint_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_schema_lint_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -9952,9 +12558,38 @@ pub fn get_organizations_organization_databases_database_branches_branch_schema_
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/schema/lint
+/// Lint a branch schema
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_schema_lint_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_schema_lint_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_schema_lint()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_schema_lint_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_schema_lint_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_databases_database_branches_branch_schema_lint_task(
+        builder,
+    )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -9978,6 +12613,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchSchemaLint
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_schema_lint_builder()` + `get_organizations_organization_databases_database_branches_branch_schema_lint_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_schema_lint_task()`.
 ///
 /// # Errors
 ///
@@ -10059,25 +12695,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_traffic
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/traffic/budgets
 /// List traffic budgets
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_traffic_budgets_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_traffic_budgets_execute()` or `get_organizations_organization_databases_database_branches_branch_traffic_budgets`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_traffic_budgets_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_traffic_budgets_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_traffic_budgets_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_traffic_budgets_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -10113,9 +12755,39 @@ pub fn get_organizations_organization_databases_database_branches_branch_traffic
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/traffic/budgets
+/// List traffic budgets
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_traffic_budgets_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_traffic_budgets_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_traffic_budgets()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_traffic_budgets_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_traffic_budgets_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_branches_branch_traffic_budgets_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -10145,6 +12817,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchTrafficBud
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_traffic_budgets_builder()` + `get_organizations_organization_databases_database_branches_branch_traffic_budgets_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_traffic_budgets_task()`.
 ///
 /// # Errors
 ///
@@ -10203,25 +12876,31 @@ pub fn post_organizations_organization_databases_database_branches_branch_traffi
 /// POST /organizations/{organization}/databases/{database}/branches/{branch}/traffic/budgets
 /// Create a traffic budget
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_branches_branch_traffic_budgets_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_branches_branch_traffic_budgets_execute()` or `post_organizations_organization_databases_database_branches_branch_traffic_budgets`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_branches_branch_traffic_budgets_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_traffic_budgets_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_branches_branch_traffic_budgets_execute(
+pub fn post_organizations_organization_databases_database_branches_branch_traffic_budgets_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -10257,9 +12936,39 @@ pub fn post_organizations_organization_databases_database_branches_branch_traffi
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/branches/{branch}/traffic/budgets
+/// Create a traffic budget
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_branches_branch_traffic_budgets_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_traffic_budgets_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_branches_branch_traffic_budgets()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_traffic_budgets_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_branches_branch_traffic_budgets_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        post_organizations_organization_databases_database_branches_branch_traffic_budgets_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -10279,6 +12988,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseBranchesBranchTrafficBu
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_branches_branch_traffic_budgets_builder()` + `post_organizations_organization_databases_database_branches_branch_traffic_budgets_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_traffic_budgets_task()`.
 ///
 /// # Errors
 ///
@@ -10336,25 +13046,31 @@ pub fn post_organizations_organization_databases_database_branches_branch_traffi
 /// POST /organizations/{organization}/databases/{database}/branches/{branch}/traffic/budgets/{budget_id}/rules
 /// Create a traffic rule
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_execute()` or `post_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_execute(
+pub fn post_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -10390,9 +13106,36 @@ pub fn post_organizations_organization_databases_database_branches_branch_traffi
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/branches/{branch}/traffic/budgets/{budget_id}/rules
+/// Create a traffic rule
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -10415,6 +13158,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseBranchesBranchTrafficBu
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_builder()` + `post_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_task()`.
 ///
 /// # Errors
 ///
@@ -10466,25 +13210,31 @@ pub fn delete_organizations_organization_databases_database_branches_branch_traf
 /// DELETE /organizations/{organization}/databases/{database}/branches/{branch}/traffic/budgets/{budget_id}/rules/{id}
 /// Delete a traffic rule
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_id_execute()` or `delete_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_id_execute(
+pub fn delete_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -10520,9 +13270,36 @@ pub fn delete_organizations_organization_databases_database_branches_branch_traf
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /organizations/{organization}/databases/{database}/branches/{branch}/traffic/budgets/{budget_id}/rules/{id}
+/// Delete a traffic rule
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_id_task()`.
+/// For the simplest API, use `delete_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -10547,6 +13324,7 @@ pub struct DeleteOrganizationsOrganizationDatabasesDatabaseBranchesBranchTraffic
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_id_builder()` + `delete_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_id_execute()`.
+/// For task-level control, use `delete_organizations_organization_databases_database_branches_branch_traffic_budgets_budget_id_rules_id_task()`.
 ///
 /// # Errors
 ///
@@ -10596,25 +13374,31 @@ pub fn get_organizations_organization_databases_database_branches_branch_traffic
 /// GET /organizations/{organization}/databases/{database}/branches/{branch}/traffic/budgets/{id}
 /// Get a traffic budget
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_branches_branch_traffic_budgets_id_execute()` or `get_organizations_organization_databases_database_branches_branch_traffic_budgets_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_branches_branch_traffic_budgets_id_execute(
+pub fn get_organizations_organization_databases_database_branches_branch_traffic_budgets_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -10650,9 +13434,39 @@ pub fn get_organizations_organization_databases_database_branches_branch_traffic
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/branches/{branch}/traffic/budgets/{id}
+/// Get a traffic budget
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_traffic_budgets_id_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_branches_branch_traffic_budgets_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_branches_branch_traffic_budgets_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_branches_branch_traffic_budgets_id_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -10674,6 +13488,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseBranchesBranchTrafficBud
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder()` + `get_organizations_organization_databases_database_branches_branch_traffic_budgets_id_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_branches_branch_traffic_budgets_id_task()`.
 ///
 /// # Errors
 ///
@@ -10725,25 +13540,31 @@ pub fn patch_organizations_organization_databases_database_branches_branch_traff
 /// PATCH /organizations/{organization}/databases/{database}/branches/{branch}/traffic/budgets/{id}
 /// Update a traffic budget
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_databases_database_branches_branch_traffic_budgets_id_execute()` or `patch_organizations_organization_databases_database_branches_branch_traffic_budgets_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_databases_database_branches_branch_traffic_budgets_id_execute(
+pub fn patch_organizations_organization_databases_database_branches_branch_traffic_budgets_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -10779,9 +13600,36 @@ pub fn patch_organizations_organization_databases_database_branches_branch_traff
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/databases/{database}/branches/{branch}/traffic/budgets/{id}
+/// Update a traffic budget
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_databases_database_branches_branch_traffic_budgets_id_task()`.
+/// For the simplest API, use `patch_organizations_organization_databases_database_branches_branch_traffic_budgets_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_databases_database_branches_branch_traffic_budgets_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = patch_organizations_organization_databases_database_branches_branch_traffic_budgets_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -10803,6 +13651,7 @@ pub struct PatchOrganizationsOrganizationDatabasesDatabaseBranchesBranchTrafficB
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder()` + `patch_organizations_organization_databases_database_branches_branch_traffic_budgets_id_execute()`.
+/// For task-level control, use `patch_organizations_organization_databases_database_branches_branch_traffic_budgets_id_task()`.
 ///
 /// # Errors
 ///
@@ -10854,25 +13703,31 @@ pub fn delete_organizations_organization_databases_database_branches_branch_traf
 /// DELETE /organizations/{organization}/databases/{database}/branches/{branch}/traffic/budgets/{id}
 /// Delete a traffic budget
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_organizations_organization_databases_database_branches_branch_traffic_budgets_id_execute()` or `delete_organizations_organization_databases_database_branches_branch_traffic_budgets_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_organizations_organization_databases_database_branches_branch_traffic_budgets_id_execute(
+pub fn delete_organizations_organization_databases_database_branches_branch_traffic_budgets_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -10908,9 +13763,36 @@ pub fn delete_organizations_organization_databases_database_branches_branch_traf
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /organizations/{organization}/databases/{database}/branches/{branch}/traffic/budgets/{id}
+/// Delete a traffic budget
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_organizations_organization_databases_database_branches_branch_traffic_budgets_id_task()`.
+/// For the simplest API, use `delete_organizations_organization_databases_database_branches_branch_traffic_budgets_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_organizations_organization_databases_database_branches_branch_traffic_budgets_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_organizations_organization_databases_database_branches_branch_traffic_budgets_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -10932,6 +13814,7 @@ pub struct DeleteOrganizationsOrganizationDatabasesDatabaseBranchesBranchTraffic
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_organizations_organization_databases_database_branches_branch_traffic_budgets_id_builder()` + `delete_organizations_organization_databases_database_branches_branch_traffic_budgets_id_execute()`.
+/// For task-level control, use `delete_organizations_organization_databases_database_branches_branch_traffic_budgets_id_task()`.
 ///
 /// # Errors
 ///
@@ -10994,25 +13877,31 @@ pub fn get_organizations_organization_databases_database_cidrs_builder(
 /// GET /organizations/{organization}/databases/{database}/cidrs
 /// List IP restriction entries
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_cidrs_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_cidrs_execute()` or `get_organizations_organization_databases_database_cidrs`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_cidrs_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_cidrs_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_cidrs_execute(
+pub fn get_organizations_organization_databases_database_cidrs_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -11048,9 +13937,36 @@ pub fn get_organizations_organization_databases_database_cidrs_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/cidrs
+/// List IP restriction entries
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_cidrs_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_cidrs_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_cidrs()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_cidrs_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_cidrs_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_databases_database_cidrs_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -11072,6 +13988,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseCidrsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_cidrs_builder()` + `get_organizations_organization_databases_database_cidrs_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_cidrs_task()`.
 ///
 /// # Errors
 ///
@@ -11122,25 +14039,31 @@ pub fn post_organizations_organization_databases_database_cidrs_builder(
 /// POST /organizations/{organization}/databases/{database}/cidrs
 /// Create an IP restriction entry
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_cidrs_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_cidrs_execute()` or `post_organizations_organization_databases_database_cidrs`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_cidrs_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_cidrs_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_cidrs_execute(
+pub fn post_organizations_organization_databases_database_cidrs_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -11176,9 +14099,36 @@ pub fn post_organizations_organization_databases_database_cidrs_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/cidrs
+/// Create an IP restriction entry
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_cidrs_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_cidrs_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_cidrs()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_cidrs_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_cidrs_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_organizations_organization_databases_database_cidrs_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -11196,6 +14146,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseCidrsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_cidrs_builder()` + `post_organizations_organization_databases_database_cidrs_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_cidrs_task()`.
 ///
 /// # Errors
 ///
@@ -11245,25 +14196,31 @@ pub fn get_organizations_organization_databases_database_cidrs_id_builder(
 /// GET /organizations/{organization}/databases/{database}/cidrs/{id}
 /// Get an IP restriction entry
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_cidrs_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_cidrs_id_execute()` or `get_organizations_organization_databases_database_cidrs_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_cidrs_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_cidrs_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_cidrs_id_execute(
+pub fn get_organizations_organization_databases_database_cidrs_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -11299,9 +14256,36 @@ pub fn get_organizations_organization_databases_database_cidrs_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/cidrs/{id}
+/// Get an IP restriction entry
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_cidrs_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_cidrs_id_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_cidrs_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_cidrs_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_cidrs_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_databases_database_cidrs_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -11321,6 +14305,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseCidrsIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_cidrs_id_builder()` + `get_organizations_organization_databases_database_cidrs_id_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_cidrs_id_task()`.
 ///
 /// # Errors
 ///
@@ -11371,25 +14356,31 @@ pub fn put_organizations_organization_databases_database_cidrs_id_builder(
 /// PUT /organizations/{organization}/databases/{database}/cidrs/{id}
 /// Update an IP restriction entry
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `put_organizations_organization_databases_database_cidrs_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `put_organizations_organization_databases_database_cidrs_id_execute()` or `put_organizations_organization_databases_database_cidrs_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from put_organizations_organization_databases_database_cidrs_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `put_organizations_organization_databases_database_cidrs_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn put_organizations_organization_databases_database_cidrs_id_execute(
+pub fn put_organizations_organization_databases_database_cidrs_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -11425,9 +14416,36 @@ pub fn put_organizations_organization_databases_database_cidrs_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PUT /organizations/{organization}/databases/{database}/cidrs/{id}
+/// Update an IP restriction entry
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `put_organizations_organization_databases_database_cidrs_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `put_organizations_organization_databases_database_cidrs_id_task()`.
+/// For the simplest API, use `put_organizations_organization_databases_database_cidrs_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `put_organizations_organization_databases_database_cidrs_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn put_organizations_organization_databases_database_cidrs_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = put_organizations_organization_databases_database_cidrs_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -11447,6 +14465,7 @@ pub struct PutOrganizationsOrganizationDatabasesDatabaseCidrsIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `put_organizations_organization_databases_database_cidrs_id_builder()` + `put_organizations_organization_databases_database_cidrs_id_execute()`.
+/// For task-level control, use `put_organizations_organization_databases_database_cidrs_id_task()`.
 ///
 /// # Errors
 ///
@@ -11497,25 +14516,31 @@ pub fn delete_organizations_organization_databases_database_cidrs_id_builder(
 /// DELETE /organizations/{organization}/databases/{database}/cidrs/{id}
 /// Delete an IP restriction entry
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_organizations_organization_databases_database_cidrs_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_organizations_organization_databases_database_cidrs_id_execute()` or `delete_organizations_organization_databases_database_cidrs_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_organizations_organization_databases_database_cidrs_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_cidrs_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_organizations_organization_databases_database_cidrs_id_execute(
+pub fn delete_organizations_organization_databases_database_cidrs_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -11551,9 +14576,36 @@ pub fn delete_organizations_organization_databases_database_cidrs_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /organizations/{organization}/databases/{database}/cidrs/{id}
+/// Delete an IP restriction entry
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_organizations_organization_databases_database_cidrs_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_organizations_organization_databases_database_cidrs_id_task()`.
+/// For the simplest API, use `delete_organizations_organization_databases_database_cidrs_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_cidrs_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_organizations_organization_databases_database_cidrs_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_organizations_organization_databases_database_cidrs_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -11573,6 +14625,7 @@ pub struct DeleteOrganizationsOrganizationDatabasesDatabaseCidrsIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_organizations_organization_databases_database_cidrs_id_builder()` + `delete_organizations_organization_databases_database_cidrs_id_execute()`.
+/// For task-level control, use `delete_organizations_organization_databases_database_cidrs_id_task()`.
 ///
 /// # Errors
 ///
@@ -11638,25 +14691,31 @@ pub fn get_organizations_organization_databases_database_deploy_queue_builder(
 /// GET /organizations/{organization}/databases/{database}/deploy-queue
 /// Get the deploy queue
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_deploy_queue_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_deploy_queue_execute()` or `get_organizations_organization_databases_database_deploy_queue`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_deploy_queue_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_deploy_queue_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_deploy_queue_execute(
+pub fn get_organizations_organization_databases_database_deploy_queue_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -11692,9 +14751,36 @@ pub fn get_organizations_organization_databases_database_deploy_queue_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/deploy-queue
+/// Get the deploy queue
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_deploy_queue_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_deploy_queue_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_deploy_queue()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_deploy_queue_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_deploy_queue_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_databases_database_deploy_queue_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -11716,6 +14802,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseDeployQueueArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_deploy_queue_builder()` + `get_organizations_organization_databases_database_deploy_queue_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_deploy_queue_task()`.
 ///
 /// # Errors
 ///
@@ -11802,25 +14889,31 @@ pub fn get_organizations_organization_databases_database_deploy_requests_builder
 /// GET /organizations/{organization}/databases/{database}/deploy-requests
 /// List deploy requests
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_deploy_requests_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_deploy_requests_execute()` or `get_organizations_organization_databases_database_deploy_requests`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_deploy_requests_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_deploy_requests_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_deploy_requests_execute(
+pub fn get_organizations_organization_databases_database_deploy_requests_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -11856,9 +14949,36 @@ pub fn get_organizations_organization_databases_database_deploy_requests_execute
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/deploy-requests
+/// List deploy requests
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_deploy_requests_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_deploy_requests_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_deploy_requests()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_deploy_requests_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_deploy_requests_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_databases_database_deploy_requests_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -11890,6 +15010,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseDeployRequestsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_deploy_requests_builder()` + `get_organizations_organization_databases_database_deploy_requests_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_deploy_requests_task()`.
 ///
 /// # Errors
 ///
@@ -11945,25 +15066,31 @@ pub fn post_organizations_organization_databases_database_deploy_requests_builde
 /// POST /organizations/{organization}/databases/{database}/deploy-requests
 /// Create a deploy request
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_deploy_requests_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_deploy_requests_execute()` or `post_organizations_organization_databases_database_deploy_requests`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_deploy_requests_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_deploy_requests_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_deploy_requests_execute(
+pub fn post_organizations_organization_databases_database_deploy_requests_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -11999,9 +15126,36 @@ pub fn post_organizations_organization_databases_database_deploy_requests_execut
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/deploy-requests
+/// Create a deploy request
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_deploy_requests_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_deploy_requests_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_deploy_requests()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_deploy_requests_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_deploy_requests_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_organizations_organization_databases_database_deploy_requests_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -12019,6 +15173,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseDeployRequestsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_deploy_requests_builder()` + `post_organizations_organization_databases_database_deploy_requests_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_deploy_requests_task()`.
 ///
 /// # Errors
 ///
@@ -12068,25 +15223,31 @@ pub fn get_organizations_organization_databases_database_deploy_requests_number_
 /// GET /organizations/{organization}/databases/{database}/deploy-requests/{number}
 /// Get a deploy request
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_deploy_requests_number_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_deploy_requests_number_execute()` or `get_organizations_organization_databases_database_deploy_requests_number`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_deploy_requests_number_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_deploy_requests_number_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_deploy_requests_number_execute(
+pub fn get_organizations_organization_databases_database_deploy_requests_number_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -12122,9 +15283,37 @@ pub fn get_organizations_organization_databases_database_deploy_requests_number_
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/deploy-requests/{number}
+/// Get a deploy request
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_deploy_requests_number_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_deploy_requests_number_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_deploy_requests_number()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_deploy_requests_number_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_deploy_requests_number_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_deploy_requests_number_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -12144,6 +15333,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseDeployRequestsNumberArgs
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_deploy_requests_number_builder()` + `get_organizations_organization_databases_database_deploy_requests_number_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_deploy_requests_number_task()`.
 ///
 /// # Errors
 ///
@@ -12194,25 +15384,31 @@ pub fn patch_organizations_organization_databases_database_deploy_requests_numbe
 /// PATCH /organizations/{organization}/databases/{database}/deploy-requests/{number}
 /// Close a deploy request
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_databases_database_deploy_requests_number_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_databases_database_deploy_requests_number_execute()` or `patch_organizations_organization_databases_database_deploy_requests_number`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_databases_database_deploy_requests_number_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_deploy_requests_number_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_databases_database_deploy_requests_number_execute(
+pub fn patch_organizations_organization_databases_database_deploy_requests_number_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -12248,9 +15444,37 @@ pub fn patch_organizations_organization_databases_database_deploy_requests_numbe
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/databases/{database}/deploy-requests/{number}
+/// Close a deploy request
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_databases_database_deploy_requests_number_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_databases_database_deploy_requests_number_task()`.
+/// For the simplest API, use `patch_organizations_organization_databases_database_deploy_requests_number()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_deploy_requests_number_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_databases_database_deploy_requests_number_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        patch_organizations_organization_databases_database_deploy_requests_number_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -12270,6 +15494,7 @@ pub struct PatchOrganizationsOrganizationDatabasesDatabaseDeployRequestsNumberAr
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_databases_database_deploy_requests_number_builder()` + `patch_organizations_organization_databases_database_deploy_requests_number_execute()`.
+/// For task-level control, use `patch_organizations_organization_databases_database_deploy_requests_number_task()`.
 ///
 /// # Errors
 ///
@@ -12323,25 +15548,31 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
 /// POST /organizations/{organization}/databases/{database}/deploy-requests/{number}/apply-deploy
 /// Complete a gated deploy request
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_deploy_requests_number_apply_deploy_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_deploy_requests_number_apply_deploy_execute()` or `post_organizations_organization_databases_database_deploy_requests_number_apply_deploy`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_deploy_requests_number_apply_deploy_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_deploy_requests_number_apply_deploy_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_deploy_requests_number_apply_deploy_execute(
+pub fn post_organizations_organization_databases_database_deploy_requests_number_apply_deploy_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -12377,9 +15608,36 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/deploy-requests/{number}/apply-deploy
+/// Complete a gated deploy request
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_deploy_requests_number_apply_deploy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_deploy_requests_number_apply_deploy_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_deploy_requests_number_apply_deploy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_deploy_requests_number_apply_deploy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_deploy_requests_number_apply_deploy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_organizations_organization_databases_database_deploy_requests_number_apply_deploy_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -12399,6 +15657,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseDeployRequestsNumberApp
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_deploy_requests_number_apply_deploy_builder()` + `post_organizations_organization_databases_database_deploy_requests_number_apply_deploy_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_deploy_requests_number_apply_deploy_task()`.
 ///
 /// # Errors
 ///
@@ -12448,25 +15707,31 @@ pub fn put_organizations_organization_databases_database_deploy_requests_number_
 /// PUT /organizations/{organization}/databases/{database}/deploy-requests/{number}/auto-apply
 /// Update auto-apply for deploy request
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `put_organizations_organization_databases_database_deploy_requests_number_auto_apply_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `put_organizations_organization_databases_database_deploy_requests_number_auto_apply_execute()` or `put_organizations_organization_databases_database_deploy_requests_number_auto_apply`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from put_organizations_organization_databases_database_deploy_requests_number_auto_apply_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `put_organizations_organization_databases_database_deploy_requests_number_auto_apply_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn put_organizations_organization_databases_database_deploy_requests_number_auto_apply_execute(
+pub fn put_organizations_organization_databases_database_deploy_requests_number_auto_apply_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -12502,9 +15767,39 @@ pub fn put_organizations_organization_databases_database_deploy_requests_number_
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PUT /organizations/{organization}/databases/{database}/deploy-requests/{number}/auto-apply
+/// Update auto-apply for deploy request
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `put_organizations_organization_databases_database_deploy_requests_number_auto_apply_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `put_organizations_organization_databases_database_deploy_requests_number_auto_apply_task()`.
+/// For the simplest API, use `put_organizations_organization_databases_database_deploy_requests_number_auto_apply()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `put_organizations_organization_databases_database_deploy_requests_number_auto_apply_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn put_organizations_organization_databases_database_deploy_requests_number_auto_apply_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        put_organizations_organization_databases_database_deploy_requests_number_auto_apply_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -12524,6 +15819,7 @@ pub struct PutOrganizationsOrganizationDatabasesDatabaseDeployRequestsNumberAuto
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `put_organizations_organization_databases_database_deploy_requests_number_auto_apply_builder()` + `put_organizations_organization_databases_database_deploy_requests_number_auto_apply_execute()`.
+/// For task-level control, use `put_organizations_organization_databases_database_deploy_requests_number_auto_apply_task()`.
 ///
 /// # Errors
 ///
@@ -12573,25 +15869,31 @@ pub fn put_organizations_organization_databases_database_deploy_requests_number_
 /// PUT /organizations/{organization}/databases/{database}/deploy-requests/{number}/auto-delete-branch
 /// Update auto-delete branch for deploy request
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `put_organizations_organization_databases_database_deploy_requests_number_auto_delete_branch_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `put_organizations_organization_databases_database_deploy_requests_number_auto_delete_branch_execute()` or `put_organizations_organization_databases_database_deploy_requests_number_auto_delete_branch`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from put_organizations_organization_databases_database_deploy_requests_number_auto_delete_branch_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `put_organizations_organization_databases_database_deploy_requests_number_auto_delete_branch_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn put_organizations_organization_databases_database_deploy_requests_number_auto_delete_branch_execute(
+pub fn put_organizations_organization_databases_database_deploy_requests_number_auto_delete_branch_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -12627,9 +15929,36 @@ pub fn put_organizations_organization_databases_database_deploy_requests_number_
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PUT /organizations/{organization}/databases/{database}/deploy-requests/{number}/auto-delete-branch
+/// Update auto-delete branch for deploy request
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `put_organizations_organization_databases_database_deploy_requests_number_auto_delete_branch_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `put_organizations_organization_databases_database_deploy_requests_number_auto_delete_branch_task()`.
+/// For the simplest API, use `put_organizations_organization_databases_database_deploy_requests_number_auto_delete_branch()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `put_organizations_organization_databases_database_deploy_requests_number_auto_delete_branch_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn put_organizations_organization_databases_database_deploy_requests_number_auto_delete_branch_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = put_organizations_organization_databases_database_deploy_requests_number_auto_delete_branch_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -12649,6 +15978,7 @@ pub struct PutOrganizationsOrganizationDatabasesDatabaseDeployRequestsNumberAuto
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `put_organizations_organization_databases_database_deploy_requests_number_auto_delete_branch_builder()` + `put_organizations_organization_databases_database_deploy_requests_number_auto_delete_branch_execute()`.
+/// For task-level control, use `put_organizations_organization_databases_database_deploy_requests_number_auto_delete_branch_task()`.
 ///
 /// # Errors
 ///
@@ -12694,25 +16024,31 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
 /// POST /organizations/{organization}/databases/{database}/deploy-requests/{number}/cancel
 /// Cancel a queued deploy request
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_deploy_requests_number_cancel_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_deploy_requests_number_cancel_execute()` or `post_organizations_organization_databases_database_deploy_requests_number_cancel`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_deploy_requests_number_cancel_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_deploy_requests_number_cancel_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_deploy_requests_number_cancel_execute(
+pub fn post_organizations_organization_databases_database_deploy_requests_number_cancel_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -12748,9 +16084,39 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/deploy-requests/{number}/cancel
+/// Cancel a queued deploy request
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_deploy_requests_number_cancel_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_deploy_requests_number_cancel_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_deploy_requests_number_cancel()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_deploy_requests_number_cancel_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_deploy_requests_number_cancel_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        post_organizations_organization_databases_database_deploy_requests_number_cancel_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -12770,6 +16136,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseDeployRequestsNumberCan
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_deploy_requests_number_cancel_builder()` + `post_organizations_organization_databases_database_deploy_requests_number_cancel_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_deploy_requests_number_cancel_task()`.
 ///
 /// # Errors
 ///
@@ -12825,25 +16192,31 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
 /// POST /organizations/{organization}/databases/{database}/deploy-requests/{number}/complete-deploy
 /// Complete an errored deploy
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_deploy_requests_number_complete_deploy_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_deploy_requests_number_complete_deploy_execute()` or `post_organizations_organization_databases_database_deploy_requests_number_complete_deploy`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_deploy_requests_number_complete_deploy_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_deploy_requests_number_complete_deploy_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_deploy_requests_number_complete_deploy_execute(
+pub fn post_organizations_organization_databases_database_deploy_requests_number_complete_deploy_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -12879,9 +16252,36 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/deploy-requests/{number}/complete-deploy
+/// Complete an errored deploy
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_deploy_requests_number_complete_deploy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_deploy_requests_number_complete_deploy_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_deploy_requests_number_complete_deploy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_deploy_requests_number_complete_deploy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_deploy_requests_number_complete_deploy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_organizations_organization_databases_database_deploy_requests_number_complete_deploy_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -12901,6 +16301,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseDeployRequestsNumberCom
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_deploy_requests_number_complete_deploy_builder()` + `post_organizations_organization_databases_database_deploy_requests_number_complete_deploy_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_deploy_requests_number_complete_deploy_task()`.
 ///
 /// # Errors
 ///
@@ -12946,25 +16347,31 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
 /// POST /organizations/{organization}/databases/{database}/deploy-requests/{number}/deploy
 /// Queue a deploy request
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_deploy_requests_number_deploy_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_deploy_requests_number_deploy_execute()` or `post_organizations_organization_databases_database_deploy_requests_number_deploy`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_deploy_requests_number_deploy_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_deploy_requests_number_deploy_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_deploy_requests_number_deploy_execute(
+pub fn post_organizations_organization_databases_database_deploy_requests_number_deploy_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -13000,9 +16407,39 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/deploy-requests/{number}/deploy
+/// Queue a deploy request
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_deploy_requests_number_deploy_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_deploy_requests_number_deploy_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_deploy_requests_number_deploy()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_deploy_requests_number_deploy_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_deploy_requests_number_deploy_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        post_organizations_organization_databases_database_deploy_requests_number_deploy_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -13022,6 +16459,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseDeployRequestsNumberDep
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_deploy_requests_number_deploy_builder()` + `post_organizations_organization_databases_database_deploy_requests_number_deploy_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_deploy_requests_number_deploy_task()`.
 ///
 /// # Errors
 ///
@@ -13077,25 +16515,31 @@ pub fn get_organizations_organization_databases_database_deploy_requests_number_
 /// GET /organizations/{organization}/databases/{database}/deploy-requests/{number}/deployment
 /// Get a deployment
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_deploy_requests_number_deployment_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_deploy_requests_number_deployment_execute()` or `get_organizations_organization_databases_database_deploy_requests_number_deployment`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_deploy_requests_number_deployment_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_deploy_requests_number_deployment_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_deploy_requests_number_deployment_execute(
+pub fn get_organizations_organization_databases_database_deploy_requests_number_deployment_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -13131,9 +16575,39 @@ pub fn get_organizations_organization_databases_database_deploy_requests_number_
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/deploy-requests/{number}/deployment
+/// Get a deployment
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_deploy_requests_number_deployment_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_deploy_requests_number_deployment_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_deploy_requests_number_deployment()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_deploy_requests_number_deployment_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_deploy_requests_number_deployment_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_deploy_requests_number_deployment_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -13153,6 +16627,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseDeployRequestsNumberDepl
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_deploy_requests_number_deployment_builder()` + `get_organizations_organization_databases_database_deploy_requests_number_deployment_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_deploy_requests_number_deployment_task()`.
 ///
 /// # Errors
 ///
@@ -13218,25 +16693,31 @@ pub fn get_organizations_organization_databases_database_deploy_requests_number_
 /// GET /organizations/{organization}/databases/{database}/deploy-requests/{number}/operations
 /// List deploy operations
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_deploy_requests_number_operations_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_deploy_requests_number_operations_execute()` or `get_organizations_organization_databases_database_deploy_requests_number_operations`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_deploy_requests_number_operations_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_deploy_requests_number_operations_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_deploy_requests_number_operations_execute(
+pub fn get_organizations_organization_databases_database_deploy_requests_number_operations_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -13272,9 +16753,39 @@ pub fn get_organizations_organization_databases_database_deploy_requests_number_
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/deploy-requests/{number}/operations
+/// List deploy operations
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_deploy_requests_number_operations_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_deploy_requests_number_operations_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_deploy_requests_number_operations()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_deploy_requests_number_operations_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_deploy_requests_number_operations_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_deploy_requests_number_operations_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -13298,6 +16809,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseDeployRequestsNumberOper
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_deploy_requests_number_operations_builder()` + `get_organizations_organization_databases_database_deploy_requests_number_operations_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_deploy_requests_number_operations_task()`.
 ///
 /// # Errors
 ///
@@ -13345,25 +16857,31 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
 /// POST /organizations/{organization}/databases/{database}/deploy-requests/{number}/revert
 /// Complete a revert
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_deploy_requests_number_revert_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_deploy_requests_number_revert_execute()` or `post_organizations_organization_databases_database_deploy_requests_number_revert`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_deploy_requests_number_revert_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_deploy_requests_number_revert_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_deploy_requests_number_revert_execute(
+pub fn post_organizations_organization_databases_database_deploy_requests_number_revert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -13399,9 +16917,39 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/deploy-requests/{number}/revert
+/// Complete a revert
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_deploy_requests_number_revert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_deploy_requests_number_revert_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_deploy_requests_number_revert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_deploy_requests_number_revert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_deploy_requests_number_revert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        post_organizations_organization_databases_database_deploy_requests_number_revert_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -13421,6 +16969,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseDeployRequestsNumberRev
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_deploy_requests_number_revert_builder()` + `post_organizations_organization_databases_database_deploy_requests_number_revert_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_deploy_requests_number_revert_task()`.
 ///
 /// # Errors
 ///
@@ -13490,25 +17039,31 @@ pub fn get_organizations_organization_databases_database_deploy_requests_number_
 /// GET /organizations/{organization}/databases/{database}/deploy-requests/{number}/reviews
 /// List deploy request reviews
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_deploy_requests_number_reviews_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_deploy_requests_number_reviews_execute()` or `get_organizations_organization_databases_database_deploy_requests_number_reviews`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_deploy_requests_number_reviews_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_deploy_requests_number_reviews_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_deploy_requests_number_reviews_execute(
+pub fn get_organizations_organization_databases_database_deploy_requests_number_reviews_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -13544,9 +17099,39 @@ pub fn get_organizations_organization_databases_database_deploy_requests_number_
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/deploy-requests/{number}/reviews
+/// List deploy request reviews
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_deploy_requests_number_reviews_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_deploy_requests_number_reviews_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_deploy_requests_number_reviews()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_deploy_requests_number_reviews_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_deploy_requests_number_reviews_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_deploy_requests_number_reviews_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -13570,6 +17155,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseDeployRequestsNumberRevi
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_deploy_requests_number_reviews_builder()` + `get_organizations_organization_databases_database_deploy_requests_number_reviews_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_deploy_requests_number_reviews_task()`.
 ///
 /// # Errors
 ///
@@ -13625,25 +17211,31 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
 /// POST /organizations/{organization}/databases/{database}/deploy-requests/{number}/reviews
 /// Review a deploy request
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_deploy_requests_number_reviews_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_deploy_requests_number_reviews_execute()` or `post_organizations_organization_databases_database_deploy_requests_number_reviews`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_deploy_requests_number_reviews_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_deploy_requests_number_reviews_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_deploy_requests_number_reviews_execute(
+pub fn post_organizations_organization_databases_database_deploy_requests_number_reviews_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -13679,9 +17271,39 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/deploy-requests/{number}/reviews
+/// Review a deploy request
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_deploy_requests_number_reviews_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_deploy_requests_number_reviews_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_deploy_requests_number_reviews()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_deploy_requests_number_reviews_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_deploy_requests_number_reviews_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        post_organizations_organization_databases_database_deploy_requests_number_reviews_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -13701,6 +17323,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseDeployRequestsNumberRev
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_deploy_requests_number_reviews_builder()` + `post_organizations_organization_databases_database_deploy_requests_number_reviews_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_deploy_requests_number_reviews_task()`.
 ///
 /// # Errors
 ///
@@ -13756,25 +17379,31 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
 /// POST /organizations/{organization}/databases/{database}/deploy-requests/{number}/skip-revert
 /// Skip revert period
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_deploy_requests_number_skip_revert_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_deploy_requests_number_skip_revert_execute()` or `post_organizations_organization_databases_database_deploy_requests_number_skip_revert`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_deploy_requests_number_skip_revert_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_deploy_requests_number_skip_revert_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_deploy_requests_number_skip_revert_execute(
+pub fn post_organizations_organization_databases_database_deploy_requests_number_skip_revert_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -13810,9 +17439,39 @@ pub fn post_organizations_organization_databases_database_deploy_requests_number
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/deploy-requests/{number}/skip-revert
+/// Skip revert period
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_deploy_requests_number_skip_revert_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_deploy_requests_number_skip_revert_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_deploy_requests_number_skip_revert()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_deploy_requests_number_skip_revert_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_deploy_requests_number_skip_revert_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        post_organizations_organization_databases_database_deploy_requests_number_skip_revert_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -13832,6 +17491,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseDeployRequestsNumberSki
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_deploy_requests_number_skip_revert_builder()` + `post_organizations_organization_databases_database_deploy_requests_number_skip_revert_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_deploy_requests_number_skip_revert_task()`.
 ///
 /// # Errors
 ///
@@ -13881,25 +17541,31 @@ pub fn get_organizations_organization_databases_database_deploy_requests_number_
 /// GET /organizations/{organization}/databases/{database}/deploy-requests/{number}/storage-check
 /// Check deploy request storage
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_deploy_requests_number_storage_check_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_deploy_requests_number_storage_check_execute()` or `get_organizations_organization_databases_database_deploy_requests_number_storage_check`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_deploy_requests_number_storage_check_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_deploy_requests_number_storage_check_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_deploy_requests_number_storage_check_execute(
+pub fn get_organizations_organization_databases_database_deploy_requests_number_storage_check_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -13935,9 +17601,36 @@ pub fn get_organizations_organization_databases_database_deploy_requests_number_
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/deploy-requests/{number}/storage-check
+/// Check deploy request storage
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_deploy_requests_number_storage_check_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_deploy_requests_number_storage_check_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_deploy_requests_number_storage_check()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_deploy_requests_number_storage_check_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_deploy_requests_number_storage_check_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_databases_database_deploy_requests_number_storage_check_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -13957,6 +17650,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseDeployRequestsNumberStor
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_deploy_requests_number_storage_check_builder()` + `get_organizations_organization_databases_database_deploy_requests_number_storage_check_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_deploy_requests_number_storage_check_task()`.
 ///
 /// # Errors
 ///
@@ -14004,25 +17698,31 @@ pub fn get_organizations_organization_databases_database_deploy_requests_number_
 /// GET /organizations/{organization}/databases/{database}/deploy-requests/{number}/throttler
 /// Get deploy request throttler configurations
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_deploy_requests_number_throttler_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_deploy_requests_number_throttler_execute()` or `get_organizations_organization_databases_database_deploy_requests_number_throttler`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_deploy_requests_number_throttler_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_deploy_requests_number_throttler_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_deploy_requests_number_throttler_execute(
+pub fn get_organizations_organization_databases_database_deploy_requests_number_throttler_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -14058,9 +17758,39 @@ pub fn get_organizations_organization_databases_database_deploy_requests_number_
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/deploy-requests/{number}/throttler
+/// Get deploy request throttler configurations
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_deploy_requests_number_throttler_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_deploy_requests_number_throttler_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_deploy_requests_number_throttler()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_deploy_requests_number_throttler_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_deploy_requests_number_throttler_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_deploy_requests_number_throttler_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -14080,6 +17810,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseDeployRequestsNumberThro
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_deploy_requests_number_throttler_builder()` + `get_organizations_organization_databases_database_deploy_requests_number_throttler_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_deploy_requests_number_throttler_task()`.
 ///
 /// # Errors
 ///
@@ -14133,25 +17864,31 @@ pub fn patch_organizations_organization_databases_database_deploy_requests_numbe
 /// PATCH /organizations/{organization}/databases/{database}/deploy-requests/{number}/throttler
 /// Update deploy request throttler configurations
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_databases_database_deploy_requests_number_throttler_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_databases_database_deploy_requests_number_throttler_execute()` or `patch_organizations_organization_databases_database_deploy_requests_number_throttler`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_databases_database_deploy_requests_number_throttler_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_deploy_requests_number_throttler_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_databases_database_deploy_requests_number_throttler_execute(
+pub fn patch_organizations_organization_databases_database_deploy_requests_number_throttler_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -14187,9 +17924,39 @@ pub fn patch_organizations_organization_databases_database_deploy_requests_numbe
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/databases/{database}/deploy-requests/{number}/throttler
+/// Update deploy request throttler configurations
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_databases_database_deploy_requests_number_throttler_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_databases_database_deploy_requests_number_throttler_task()`.
+/// For the simplest API, use `patch_organizations_organization_databases_database_deploy_requests_number_throttler()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_deploy_requests_number_throttler_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_databases_database_deploy_requests_number_throttler_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        patch_organizations_organization_databases_database_deploy_requests_number_throttler_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -14209,6 +17976,7 @@ pub struct PatchOrganizationsOrganizationDatabasesDatabaseDeployRequestsNumberTh
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_databases_database_deploy_requests_number_throttler_builder()` + `patch_organizations_organization_databases_database_deploy_requests_number_throttler_execute()`.
+/// For task-level control, use `patch_organizations_organization_databases_database_deploy_requests_number_throttler_task()`.
 ///
 /// # Errors
 ///
@@ -14271,25 +18039,31 @@ pub fn get_organizations_organization_databases_database_maintenance_schedules_b
 /// GET /organizations/{organization}/databases/{database}/maintenance-schedules
 /// List maintenance schedules
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_maintenance_schedules_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_maintenance_schedules_execute()` or `get_organizations_organization_databases_database_maintenance_schedules`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_maintenance_schedules_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_maintenance_schedules_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_maintenance_schedules_execute(
+pub fn get_organizations_organization_databases_database_maintenance_schedules_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -14325,9 +18099,37 @@ pub fn get_organizations_organization_databases_database_maintenance_schedules_e
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/maintenance-schedules
+/// List maintenance schedules
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_maintenance_schedules_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_maintenance_schedules_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_maintenance_schedules()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_maintenance_schedules_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_maintenance_schedules_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_maintenance_schedules_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -14349,6 +18151,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseMaintenanceSchedulesArgs
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_maintenance_schedules_builder()` + `get_organizations_organization_databases_database_maintenance_schedules_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_maintenance_schedules_task()`.
 ///
 /// # Errors
 ///
@@ -14400,25 +18203,31 @@ pub fn get_organizations_organization_databases_database_maintenance_schedules_i
 /// GET /organizations/{organization}/databases/{database}/maintenance-schedules/{id}
 /// Get a maintenance schedule
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_maintenance_schedules_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_maintenance_schedules_id_execute()` or `get_organizations_organization_databases_database_maintenance_schedules_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_maintenance_schedules_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_maintenance_schedules_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_maintenance_schedules_id_execute(
+pub fn get_organizations_organization_databases_database_maintenance_schedules_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -14454,9 +18263,37 @@ pub fn get_organizations_organization_databases_database_maintenance_schedules_i
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/maintenance-schedules/{id}
+/// Get a maintenance schedule
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_maintenance_schedules_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_maintenance_schedules_id_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_maintenance_schedules_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_maintenance_schedules_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_maintenance_schedules_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_maintenance_schedules_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -14476,6 +18313,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseMaintenanceSchedulesIdAr
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_maintenance_schedules_id_builder()` + `get_organizations_organization_databases_database_maintenance_schedules_id_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_maintenance_schedules_id_task()`.
 ///
 /// # Errors
 ///
@@ -14545,25 +18383,31 @@ pub fn get_organizations_organization_databases_database_maintenance_schedules_i
 /// GET /organizations/{organization}/databases/{database}/maintenance-schedules/{id}/windows
 /// List maintenance windows
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_maintenance_schedules_id_windows_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_maintenance_schedules_id_windows_execute()` or `get_organizations_organization_databases_database_maintenance_schedules_id_windows`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_maintenance_schedules_id_windows_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_maintenance_schedules_id_windows_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_maintenance_schedules_id_windows_execute(
+pub fn get_organizations_organization_databases_database_maintenance_schedules_id_windows_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -14599,9 +18443,39 @@ pub fn get_organizations_organization_databases_database_maintenance_schedules_i
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/maintenance-schedules/{id}/windows
+/// List maintenance windows
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_maintenance_schedules_id_windows_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_maintenance_schedules_id_windows_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_maintenance_schedules_id_windows()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_maintenance_schedules_id_windows_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_maintenance_schedules_id_windows_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_maintenance_schedules_id_windows_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -14625,6 +18499,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseMaintenanceSchedulesIdWi
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_maintenance_schedules_id_windows_builder()` + `get_organizations_organization_databases_database_maintenance_schedules_id_windows_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_maintenance_schedules_id_windows_task()`.
 ///
 /// # Errors
 ///
@@ -14695,25 +18570,31 @@ pub fn get_organizations_organization_databases_database_read_only_regions_build
 /// GET /organizations/{organization}/databases/{database}/read-only-regions
 /// List read-only regions
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_read_only_regions_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_read_only_regions_execute()` or `get_organizations_organization_databases_database_read_only_regions`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_read_only_regions_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_read_only_regions_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_read_only_regions_execute(
+pub fn get_organizations_organization_databases_database_read_only_regions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -14749,9 +18630,36 @@ pub fn get_organizations_organization_databases_database_read_only_regions_execu
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/read-only-regions
+/// List read-only regions
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_read_only_regions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_read_only_regions_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_read_only_regions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_read_only_regions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_read_only_regions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_databases_database_read_only_regions_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -14773,6 +18681,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseReadOnlyRegionsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_read_only_regions_builder()` + `get_organizations_organization_databases_database_read_only_regions_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_read_only_regions_task()`.
 ///
 /// # Errors
 ///
@@ -14839,25 +18748,31 @@ pub fn get_organizations_organization_databases_database_regions_builder(
 /// GET /organizations/{organization}/databases/{database}/regions
 /// List database regions
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_regions_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_regions_execute()` or `get_organizations_organization_databases_database_regions`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_regions_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_regions_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_regions_execute(
+pub fn get_organizations_organization_databases_database_regions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -14893,9 +18808,36 @@ pub fn get_organizations_organization_databases_database_regions_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/regions
+/// List database regions
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_regions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_regions_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_regions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_regions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_regions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_databases_database_regions_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -14917,6 +18859,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseRegionsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_regions_builder()` + `get_organizations_organization_databases_database_regions_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_regions_task()`.
 ///
 /// # Errors
 ///
@@ -14987,25 +18930,31 @@ pub fn get_organizations_organization_databases_database_schema_recommendations_
 /// GET /organizations/{organization}/databases/{database}/schema-recommendations
 /// List schema recommendations
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_schema_recommendations_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_schema_recommendations_execute()` or `get_organizations_organization_databases_database_schema_recommendations`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_schema_recommendations_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_schema_recommendations_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_schema_recommendations_execute(
+pub fn get_organizations_organization_databases_database_schema_recommendations_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -15041,9 +18990,37 @@ pub fn get_organizations_organization_databases_database_schema_recommendations_
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/schema-recommendations
+/// List schema recommendations
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_schema_recommendations_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_schema_recommendations_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_schema_recommendations()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_schema_recommendations_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_schema_recommendations_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_schema_recommendations_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -15067,6 +19044,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseSchemaRecommendationsArg
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_schema_recommendations_builder()` + `get_organizations_organization_databases_database_schema_recommendations_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_schema_recommendations_task()`.
 ///
 /// # Errors
 ///
@@ -15119,25 +19097,31 @@ pub fn get_organizations_organization_databases_database_schema_recommendations_
 /// GET /organizations/{organization}/databases/{database}/schema-recommendations/{number}
 /// Get a schema recommendation
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_schema_recommendations_number_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_schema_recommendations_number_execute()` or `get_organizations_organization_databases_database_schema_recommendations_number`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_schema_recommendations_number_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_schema_recommendations_number_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_schema_recommendations_number_execute(
+pub fn get_organizations_organization_databases_database_schema_recommendations_number_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -15173,9 +19157,39 @@ pub fn get_organizations_organization_databases_database_schema_recommendations_
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/schema-recommendations/{number}
+/// Get a schema recommendation
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_schema_recommendations_number_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_schema_recommendations_number_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_schema_recommendations_number()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_schema_recommendations_number_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_schema_recommendations_number_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_databases_database_schema_recommendations_number_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -15195,6 +19209,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseSchemaRecommendationsNum
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_schema_recommendations_number_builder()` + `get_organizations_organization_databases_database_schema_recommendations_number_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_schema_recommendations_number_task()`.
 ///
 /// # Errors
 ///
@@ -15248,25 +19263,31 @@ pub fn post_organizations_organization_databases_database_schema_recommendations
 /// POST /organizations/{organization}/databases/{database}/schema-recommendations/{number}/dismiss
 /// Dismiss a schema recommendation
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_schema_recommendations_number_dismiss_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_schema_recommendations_number_dismiss_execute()` or `post_organizations_organization_databases_database_schema_recommendations_number_dismiss`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_schema_recommendations_number_dismiss_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_schema_recommendations_number_dismiss_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_schema_recommendations_number_dismiss_execute(
+pub fn post_organizations_organization_databases_database_schema_recommendations_number_dismiss_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -15302,9 +19323,36 @@ pub fn post_organizations_organization_databases_database_schema_recommendations
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/schema-recommendations/{number}/dismiss
+/// Dismiss a schema recommendation
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_schema_recommendations_number_dismiss_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_schema_recommendations_number_dismiss_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_schema_recommendations_number_dismiss()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_schema_recommendations_number_dismiss_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_schema_recommendations_number_dismiss_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_organizations_organization_databases_database_schema_recommendations_number_dismiss_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -15324,6 +19372,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseSchemaRecommendationsNu
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_schema_recommendations_number_dismiss_builder()` + `post_organizations_organization_databases_database_schema_recommendations_number_dismiss_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_schema_recommendations_number_dismiss_task()`.
 ///
 /// # Errors
 ///
@@ -15370,25 +19419,31 @@ pub fn get_organizations_organization_databases_database_throttler_builder(
 /// GET /organizations/{organization}/databases/{database}/throttler
 /// Get database throttler configurations
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_throttler_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_throttler_execute()` or `get_organizations_organization_databases_database_throttler`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_throttler_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_throttler_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_throttler_execute(
+pub fn get_organizations_organization_databases_database_throttler_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -15424,9 +19479,36 @@ pub fn get_organizations_organization_databases_database_throttler_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/throttler
+/// Get database throttler configurations
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_throttler_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_throttler_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_throttler()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_throttler_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_throttler_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_databases_database_throttler_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -15444,6 +19526,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseThrottlerArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_throttler_builder()` + `get_organizations_organization_databases_database_throttler_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_throttler_task()`.
 ///
 /// # Errors
 ///
@@ -15492,25 +19575,31 @@ pub fn patch_organizations_organization_databases_database_throttler_builder(
 /// PATCH /organizations/{organization}/databases/{database}/throttler
 /// Update database throttler configurations
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_databases_database_throttler_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_databases_database_throttler_execute()` or `patch_organizations_organization_databases_database_throttler`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_databases_database_throttler_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_throttler_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_databases_database_throttler_execute(
+pub fn patch_organizations_organization_databases_database_throttler_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -15546,9 +19635,36 @@ pub fn patch_organizations_organization_databases_database_throttler_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/databases/{database}/throttler
+/// Update database throttler configurations
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_databases_database_throttler_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_databases_database_throttler_task()`.
+/// For the simplest API, use `patch_organizations_organization_databases_database_throttler()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_throttler_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_databases_database_throttler_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = patch_organizations_organization_databases_database_throttler_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -15566,6 +19682,7 @@ pub struct PatchOrganizationsOrganizationDatabasesDatabaseThrottlerArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_databases_database_throttler_builder()` + `patch_organizations_organization_databases_database_throttler_execute()`.
+/// For task-level control, use `patch_organizations_organization_databases_database_throttler_task()`.
 ///
 /// # Errors
 ///
@@ -15630,25 +19747,31 @@ pub fn get_organizations_organization_databases_database_webhooks_builder(
 /// GET /organizations/{organization}/databases/{database}/webhooks
 /// List webhooks
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_webhooks_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_webhooks_execute()` or `get_organizations_organization_databases_database_webhooks`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_webhooks_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_webhooks_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_webhooks_execute(
+pub fn get_organizations_organization_databases_database_webhooks_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -15684,9 +19807,36 @@ pub fn get_organizations_organization_databases_database_webhooks_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/webhooks
+/// List webhooks
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_webhooks_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_webhooks_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_webhooks()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_webhooks_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_webhooks_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_databases_database_webhooks_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -15708,6 +19858,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseWebhooksArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_webhooks_builder()` + `get_organizations_organization_databases_database_webhooks_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_webhooks_task()`.
 ///
 /// # Errors
 ///
@@ -15758,25 +19909,31 @@ pub fn post_organizations_organization_databases_database_webhooks_builder(
 /// POST /organizations/{organization}/databases/{database}/webhooks
 /// Create a webhook
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_webhooks_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_webhooks_execute()` or `post_organizations_organization_databases_database_webhooks`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_webhooks_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_webhooks_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_webhooks_execute(
+pub fn post_organizations_organization_databases_database_webhooks_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -15812,9 +19969,36 @@ pub fn post_organizations_organization_databases_database_webhooks_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/webhooks
+/// Create a webhook
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_webhooks_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_webhooks_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_webhooks()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_webhooks_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_webhooks_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_organizations_organization_databases_database_webhooks_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -15832,6 +20016,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseWebhooksArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_webhooks_builder()` + `post_organizations_organization_databases_database_webhooks_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_webhooks_task()`.
 ///
 /// # Errors
 ///
@@ -15881,25 +20066,31 @@ pub fn get_organizations_organization_databases_database_webhooks_id_builder(
 /// GET /organizations/{organization}/databases/{database}/webhooks/{id}
 /// Get a webhook
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_webhooks_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_webhooks_id_execute()` or `get_organizations_organization_databases_database_webhooks_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_webhooks_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_webhooks_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_webhooks_id_execute(
+pub fn get_organizations_organization_databases_database_webhooks_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -15935,9 +20126,36 @@ pub fn get_organizations_organization_databases_database_webhooks_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/webhooks/{id}
+/// Get a webhook
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_webhooks_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_webhooks_id_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_webhooks_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_webhooks_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_webhooks_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_databases_database_webhooks_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -15957,6 +20175,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseWebhooksIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_webhooks_id_builder()` + `get_organizations_organization_databases_database_webhooks_id_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_webhooks_id_task()`.
 ///
 /// # Errors
 ///
@@ -16007,25 +20226,31 @@ pub fn patch_organizations_organization_databases_database_webhooks_id_builder(
 /// PATCH /organizations/{organization}/databases/{database}/webhooks/{id}
 /// Update a webhook
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_databases_database_webhooks_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_databases_database_webhooks_id_execute()` or `patch_organizations_organization_databases_database_webhooks_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_databases_database_webhooks_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_webhooks_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_databases_database_webhooks_id_execute(
+pub fn patch_organizations_organization_databases_database_webhooks_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -16061,9 +20286,36 @@ pub fn patch_organizations_organization_databases_database_webhooks_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/databases/{database}/webhooks/{id}
+/// Update a webhook
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_databases_database_webhooks_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_databases_database_webhooks_id_task()`.
+/// For the simplest API, use `patch_organizations_organization_databases_database_webhooks_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_webhooks_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_databases_database_webhooks_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = patch_organizations_organization_databases_database_webhooks_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -16083,6 +20335,7 @@ pub struct PatchOrganizationsOrganizationDatabasesDatabaseWebhooksIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_databases_database_webhooks_id_builder()` + `patch_organizations_organization_databases_database_webhooks_id_execute()`.
+/// For task-level control, use `patch_organizations_organization_databases_database_webhooks_id_task()`.
 ///
 /// # Errors
 ///
@@ -16133,25 +20386,31 @@ pub fn delete_organizations_organization_databases_database_webhooks_id_builder(
 /// DELETE /organizations/{organization}/databases/{database}/webhooks/{id}
 /// Delete a webhook
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_organizations_organization_databases_database_webhooks_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_organizations_organization_databases_database_webhooks_id_execute()` or `delete_organizations_organization_databases_database_webhooks_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_organizations_organization_databases_database_webhooks_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_webhooks_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_organizations_organization_databases_database_webhooks_id_execute(
+pub fn delete_organizations_organization_databases_database_webhooks_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -16187,9 +20446,36 @@ pub fn delete_organizations_organization_databases_database_webhooks_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /organizations/{organization}/databases/{database}/webhooks/{id}
+/// Delete a webhook
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_organizations_organization_databases_database_webhooks_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_organizations_organization_databases_database_webhooks_id_task()`.
+/// For the simplest API, use `delete_organizations_organization_databases_database_webhooks_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_webhooks_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_organizations_organization_databases_database_webhooks_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_organizations_organization_databases_database_webhooks_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -16209,6 +20495,7 @@ pub struct DeleteOrganizationsOrganizationDatabasesDatabaseWebhooksIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_organizations_organization_databases_database_webhooks_id_builder()` + `delete_organizations_organization_databases_database_webhooks_id_execute()`.
+/// For task-level control, use `delete_organizations_organization_databases_database_webhooks_id_task()`.
 ///
 /// # Errors
 ///
@@ -16259,25 +20546,31 @@ pub fn post_organizations_organization_databases_database_webhooks_id_test_build
 /// POST /organizations/{organization}/databases/{database}/webhooks/{id}/test
 /// Test a webhook
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_webhooks_id_test_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_webhooks_id_test_execute()` or `post_organizations_organization_databases_database_webhooks_id_test`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_webhooks_id_test_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_webhooks_id_test_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_webhooks_id_test_execute(
+pub fn post_organizations_organization_databases_database_webhooks_id_test_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -16313,9 +20606,36 @@ pub fn post_organizations_organization_databases_database_webhooks_id_test_execu
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/webhooks/{id}/test
+/// Test a webhook
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_webhooks_id_test_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_webhooks_id_test_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_webhooks_id_test()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_webhooks_id_test_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_webhooks_id_test_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_organizations_organization_databases_database_webhooks_id_test_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -16335,6 +20655,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseWebhooksIdTestArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_webhooks_id_test_builder()` + `post_organizations_organization_databases_database_webhooks_id_test_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_webhooks_id_test_task()`.
 ///
 /// # Errors
 ///
@@ -16404,25 +20725,31 @@ pub fn get_organizations_organization_databases_database_workflows_builder(
 /// GET /organizations/{organization}/databases/{database}/workflows
 /// List workflows
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_workflows_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_workflows_execute()` or `get_organizations_organization_databases_database_workflows`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_workflows_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_workflows_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_workflows_execute(
+pub fn get_organizations_organization_databases_database_workflows_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -16458,9 +20785,36 @@ pub fn get_organizations_organization_databases_database_workflows_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/workflows
+/// List workflows
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_workflows_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_workflows_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_workflows()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_workflows_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_workflows_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_databases_database_workflows_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -16484,6 +20838,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseWorkflowsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_workflows_builder()` + `get_organizations_organization_databases_database_workflows_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_workflows_task()`.
 ///
 /// # Errors
 ///
@@ -16535,25 +20890,31 @@ pub fn post_organizations_organization_databases_database_workflows_builder(
 /// POST /organizations/{organization}/databases/{database}/workflows
 /// Create a workflow
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_databases_database_workflows_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_databases_database_workflows_execute()` or `post_organizations_organization_databases_database_workflows`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_databases_database_workflows_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_workflows_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_databases_database_workflows_execute(
+pub fn post_organizations_organization_databases_database_workflows_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -16589,9 +20950,36 @@ pub fn post_organizations_organization_databases_database_workflows_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/databases/{database}/workflows
+/// Create a workflow
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_databases_database_workflows_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_databases_database_workflows_task()`.
+/// For the simplest API, use `post_organizations_organization_databases_database_workflows()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_databases_database_workflows_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_databases_database_workflows_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_organizations_organization_databases_database_workflows_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -16609,6 +20997,7 @@ pub struct PostOrganizationsOrganizationDatabasesDatabaseWorkflowsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_databases_database_workflows_builder()` + `post_organizations_organization_databases_database_workflows_execute()`.
+/// For task-level control, use `post_organizations_organization_databases_database_workflows_task()`.
 ///
 /// # Errors
 ///
@@ -16658,25 +21047,31 @@ pub fn get_organizations_organization_databases_database_workflows_number_builde
 /// GET /organizations/{organization}/databases/{database}/workflows/{number}
 /// Get a workflow
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_databases_database_workflows_number_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_databases_database_workflows_number_execute()` or `get_organizations_organization_databases_database_workflows_number`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_databases_database_workflows_number_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_workflows_number_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_databases_database_workflows_number_execute(
+pub fn get_organizations_organization_databases_database_workflows_number_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -16712,9 +21107,36 @@ pub fn get_organizations_organization_databases_database_workflows_number_execut
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/databases/{database}/workflows/{number}
+/// Get a workflow
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_databases_database_workflows_number_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_databases_database_workflows_number_task()`.
+/// For the simplest API, use `get_organizations_organization_databases_database_workflows_number()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_databases_database_workflows_number_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_databases_database_workflows_number_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_databases_database_workflows_number_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -16734,6 +21156,7 @@ pub struct GetOrganizationsOrganizationDatabasesDatabaseWorkflowsNumberArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_databases_database_workflows_number_builder()` + `get_organizations_organization_databases_database_workflows_number_execute()`.
+/// For task-level control, use `get_organizations_organization_databases_database_workflows_number_task()`.
 ///
 /// # Errors
 ///
@@ -16784,25 +21207,31 @@ pub fn delete_organizations_organization_databases_database_workflows_number_bui
 /// DELETE /organizations/{organization}/databases/{database}/workflows/{number}
 /// Cancel a workflow
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_organizations_organization_databases_database_workflows_number_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_organizations_organization_databases_database_workflows_number_execute()` or `delete_organizations_organization_databases_database_workflows_number`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_organizations_organization_databases_database_workflows_number_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_workflows_number_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_organizations_organization_databases_database_workflows_number_execute(
+pub fn delete_organizations_organization_databases_database_workflows_number_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -16838,9 +21267,36 @@ pub fn delete_organizations_organization_databases_database_workflows_number_exe
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /organizations/{organization}/databases/{database}/workflows/{number}
+/// Cancel a workflow
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_organizations_organization_databases_database_workflows_number_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_organizations_organization_databases_database_workflows_number_task()`.
+/// For the simplest API, use `delete_organizations_organization_databases_database_workflows_number()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_databases_database_workflows_number_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_organizations_organization_databases_database_workflows_number_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_organizations_organization_databases_database_workflows_number_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -16860,6 +21316,7 @@ pub struct DeleteOrganizationsOrganizationDatabasesDatabaseWorkflowsNumberArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_organizations_organization_databases_database_workflows_number_builder()` + `delete_organizations_organization_databases_database_workflows_number_execute()`.
+/// For task-level control, use `delete_organizations_organization_databases_database_workflows_number_task()`.
 ///
 /// # Errors
 ///
@@ -16910,25 +21367,31 @@ pub fn patch_organizations_organization_databases_database_workflows_number_comp
 /// PATCH /organizations/{organization}/databases/{database}/workflows/{number}/complete
 /// Complete a workflow
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_databases_database_workflows_number_complete_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_databases_database_workflows_number_complete_execute()` or `patch_organizations_organization_databases_database_workflows_number_complete`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_databases_database_workflows_number_complete_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_workflows_number_complete_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_databases_database_workflows_number_complete_execute(
+pub fn patch_organizations_organization_databases_database_workflows_number_complete_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -16964,9 +21427,38 @@ pub fn patch_organizations_organization_databases_database_workflows_number_comp
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/databases/{database}/workflows/{number}/complete
+/// Complete a workflow
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_databases_database_workflows_number_complete_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_databases_database_workflows_number_complete_task()`.
+/// For the simplest API, use `patch_organizations_organization_databases_database_workflows_number_complete()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_workflows_number_complete_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_databases_database_workflows_number_complete_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = patch_organizations_organization_databases_database_workflows_number_complete_task(
+        builder,
+    )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -16986,6 +21478,7 @@ pub struct PatchOrganizationsOrganizationDatabasesDatabaseWorkflowsNumberComplet
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_databases_database_workflows_number_complete_builder()` + `patch_organizations_organization_databases_database_workflows_number_complete_execute()`.
+/// For task-level control, use `patch_organizations_organization_databases_database_workflows_number_complete_task()`.
 ///
 /// # Errors
 ///
@@ -17037,25 +21530,31 @@ pub fn patch_organizations_organization_databases_database_workflows_number_cuto
 /// PATCH /organizations/{organization}/databases/{database}/workflows/{number}/cutover
 /// Cutover traffic
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_databases_database_workflows_number_cutover_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_databases_database_workflows_number_cutover_execute()` or `patch_organizations_organization_databases_database_workflows_number_cutover`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_databases_database_workflows_number_cutover_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_workflows_number_cutover_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_databases_database_workflows_number_cutover_execute(
+pub fn patch_organizations_organization_databases_database_workflows_number_cutover_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -17091,9 +21590,37 @@ pub fn patch_organizations_organization_databases_database_workflows_number_cuto
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/databases/{database}/workflows/{number}/cutover
+/// Cutover traffic
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_databases_database_workflows_number_cutover_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_databases_database_workflows_number_cutover_task()`.
+/// For the simplest API, use `patch_organizations_organization_databases_database_workflows_number_cutover()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_workflows_number_cutover_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_databases_database_workflows_number_cutover_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        patch_organizations_organization_databases_database_workflows_number_cutover_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -17113,6 +21640,7 @@ pub struct PatchOrganizationsOrganizationDatabasesDatabaseWorkflowsNumberCutover
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_databases_database_workflows_number_cutover_builder()` + `patch_organizations_organization_databases_database_workflows_number_cutover_execute()`.
+/// For task-level control, use `patch_organizations_organization_databases_database_workflows_number_cutover_task()`.
 ///
 /// # Errors
 ///
@@ -17164,25 +21692,31 @@ pub fn patch_organizations_organization_databases_database_workflows_number_retr
 /// PATCH /organizations/{organization}/databases/{database}/workflows/{number}/retry
 /// Retry a failed workflow
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_databases_database_workflows_number_retry_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_databases_database_workflows_number_retry_execute()` or `patch_organizations_organization_databases_database_workflows_number_retry`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_databases_database_workflows_number_retry_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_workflows_number_retry_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_databases_database_workflows_number_retry_execute(
+pub fn patch_organizations_organization_databases_database_workflows_number_retry_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -17218,9 +21752,37 @@ pub fn patch_organizations_organization_databases_database_workflows_number_retr
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/databases/{database}/workflows/{number}/retry
+/// Retry a failed workflow
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_databases_database_workflows_number_retry_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_databases_database_workflows_number_retry_task()`.
+/// For the simplest API, use `patch_organizations_organization_databases_database_workflows_number_retry()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_workflows_number_retry_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_databases_database_workflows_number_retry_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        patch_organizations_organization_databases_database_workflows_number_retry_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -17240,6 +21802,7 @@ pub struct PatchOrganizationsOrganizationDatabasesDatabaseWorkflowsNumberRetryAr
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_databases_database_workflows_number_retry_builder()` + `patch_organizations_organization_databases_database_workflows_number_retry_execute()`.
+/// For task-level control, use `patch_organizations_organization_databases_database_workflows_number_retry_task()`.
 ///
 /// # Errors
 ///
@@ -17291,25 +21854,31 @@ pub fn patch_organizations_organization_databases_database_workflows_number_reve
 /// PATCH /organizations/{organization}/databases/{database}/workflows/{number}/reverse-cutover
 /// Reverse traffic cutover
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_databases_database_workflows_number_reverse_cutover_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_databases_database_workflows_number_reverse_cutover_execute()` or `patch_organizations_organization_databases_database_workflows_number_reverse_cutover`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_databases_database_workflows_number_reverse_cutover_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_workflows_number_reverse_cutover_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_databases_database_workflows_number_reverse_cutover_execute(
+pub fn patch_organizations_organization_databases_database_workflows_number_reverse_cutover_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -17345,9 +21914,39 @@ pub fn patch_organizations_organization_databases_database_workflows_number_reve
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/databases/{database}/workflows/{number}/reverse-cutover
+/// Reverse traffic cutover
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_databases_database_workflows_number_reverse_cutover_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_databases_database_workflows_number_reverse_cutover_task()`.
+/// For the simplest API, use `patch_organizations_organization_databases_database_workflows_number_reverse_cutover()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_workflows_number_reverse_cutover_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_databases_database_workflows_number_reverse_cutover_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        patch_organizations_organization_databases_database_workflows_number_reverse_cutover_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -17367,6 +21966,7 @@ pub struct PatchOrganizationsOrganizationDatabasesDatabaseWorkflowsNumberReverse
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_databases_database_workflows_number_reverse_cutover_builder()` + `patch_organizations_organization_databases_database_workflows_number_reverse_cutover_execute()`.
+/// For task-level control, use `patch_organizations_organization_databases_database_workflows_number_reverse_cutover_task()`.
 ///
 /// # Errors
 ///
@@ -17414,25 +22014,31 @@ pub fn patch_organizations_organization_databases_database_workflows_number_reve
 /// PATCH /organizations/{organization}/databases/{database}/workflows/{number}/reverse-traffic
 /// Reverse traffic
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_databases_database_workflows_number_reverse_traffic_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_databases_database_workflows_number_reverse_traffic_execute()` or `patch_organizations_organization_databases_database_workflows_number_reverse_traffic`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_databases_database_workflows_number_reverse_traffic_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_workflows_number_reverse_traffic_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_databases_database_workflows_number_reverse_traffic_execute(
+pub fn patch_organizations_organization_databases_database_workflows_number_reverse_traffic_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -17468,9 +22074,39 @@ pub fn patch_organizations_organization_databases_database_workflows_number_reve
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/databases/{database}/workflows/{number}/reverse-traffic
+/// Reverse traffic
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_databases_database_workflows_number_reverse_traffic_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_databases_database_workflows_number_reverse_traffic_task()`.
+/// For the simplest API, use `patch_organizations_organization_databases_database_workflows_number_reverse_traffic()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_workflows_number_reverse_traffic_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_databases_database_workflows_number_reverse_traffic_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        patch_organizations_organization_databases_database_workflows_number_reverse_traffic_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -17490,6 +22126,7 @@ pub struct PatchOrganizationsOrganizationDatabasesDatabaseWorkflowsNumberReverse
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_databases_database_workflows_number_reverse_traffic_builder()` + `patch_organizations_organization_databases_database_workflows_number_reverse_traffic_execute()`.
+/// For task-level control, use `patch_organizations_organization_databases_database_workflows_number_reverse_traffic_task()`.
 ///
 /// # Errors
 ///
@@ -17539,25 +22176,31 @@ pub fn patch_organizations_organization_databases_database_workflows_number_swit
 /// PATCH /organizations/{organization}/databases/{database}/workflows/{number}/switch-primaries
 /// Switch primary traffic
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_databases_database_workflows_number_switch_primaries_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_databases_database_workflows_number_switch_primaries_execute()` or `patch_organizations_organization_databases_database_workflows_number_switch_primaries`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_databases_database_workflows_number_switch_primaries_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_workflows_number_switch_primaries_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_databases_database_workflows_number_switch_primaries_execute(
+pub fn patch_organizations_organization_databases_database_workflows_number_switch_primaries_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -17593,9 +22236,39 @@ pub fn patch_organizations_organization_databases_database_workflows_number_swit
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/databases/{database}/workflows/{number}/switch-primaries
+/// Switch primary traffic
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_databases_database_workflows_number_switch_primaries_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_databases_database_workflows_number_switch_primaries_task()`.
+/// For the simplest API, use `patch_organizations_organization_databases_database_workflows_number_switch_primaries()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_workflows_number_switch_primaries_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_databases_database_workflows_number_switch_primaries_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        patch_organizations_organization_databases_database_workflows_number_switch_primaries_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -17615,6 +22288,7 @@ pub struct PatchOrganizationsOrganizationDatabasesDatabaseWorkflowsNumberSwitchP
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_databases_database_workflows_number_switch_primaries_builder()` + `patch_organizations_organization_databases_database_workflows_number_switch_primaries_execute()`.
+/// For task-level control, use `patch_organizations_organization_databases_database_workflows_number_switch_primaries_task()`.
 ///
 /// # Errors
 ///
@@ -17662,25 +22336,31 @@ pub fn patch_organizations_organization_databases_database_workflows_number_swit
 /// PATCH /organizations/{organization}/databases/{database}/workflows/{number}/switch-replicas
 /// Switch replica traffic
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_databases_database_workflows_number_switch_replicas_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_databases_database_workflows_number_switch_replicas_execute()` or `patch_organizations_organization_databases_database_workflows_number_switch_replicas`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_databases_database_workflows_number_switch_replicas_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_workflows_number_switch_replicas_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_databases_database_workflows_number_switch_replicas_execute(
+pub fn patch_organizations_organization_databases_database_workflows_number_switch_replicas_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -17716,9 +22396,39 @@ pub fn patch_organizations_organization_databases_database_workflows_number_swit
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/databases/{database}/workflows/{number}/switch-replicas
+/// Switch replica traffic
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_databases_database_workflows_number_switch_replicas_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_databases_database_workflows_number_switch_replicas_task()`.
+/// For the simplest API, use `patch_organizations_organization_databases_database_workflows_number_switch_replicas()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_workflows_number_switch_replicas_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_databases_database_workflows_number_switch_replicas_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        patch_organizations_organization_databases_database_workflows_number_switch_replicas_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -17738,6 +22448,7 @@ pub struct PatchOrganizationsOrganizationDatabasesDatabaseWorkflowsNumberSwitchR
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_databases_database_workflows_number_switch_replicas_builder()` + `patch_organizations_organization_databases_database_workflows_number_switch_replicas_execute()`.
+/// For task-level control, use `patch_organizations_organization_databases_database_workflows_number_switch_replicas_task()`.
 ///
 /// # Errors
 ///
@@ -17785,25 +22496,31 @@ pub fn patch_organizations_organization_databases_database_workflows_number_veri
 /// PATCH /organizations/{organization}/databases/{database}/workflows/{number}/verify-data
 /// Verify workflow data
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_databases_database_workflows_number_verify_data_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_databases_database_workflows_number_verify_data_execute()` or `patch_organizations_organization_databases_database_workflows_number_verify_data`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_databases_database_workflows_number_verify_data_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_workflows_number_verify_data_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_databases_database_workflows_number_verify_data_execute(
+pub fn patch_organizations_organization_databases_database_workflows_number_verify_data_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -17839,9 +22556,39 @@ pub fn patch_organizations_organization_databases_database_workflows_number_veri
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/databases/{database}/workflows/{number}/verify-data
+/// Verify workflow data
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_databases_database_workflows_number_verify_data_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_databases_database_workflows_number_verify_data_task()`.
+/// For the simplest API, use `patch_organizations_organization_databases_database_workflows_number_verify_data()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_databases_database_workflows_number_verify_data_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_databases_database_workflows_number_verify_data_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        patch_organizations_organization_databases_database_workflows_number_verify_data_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -17861,6 +22608,7 @@ pub struct PatchOrganizationsOrganizationDatabasesDatabaseWorkflowsNumberVerifyD
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_databases_database_workflows_number_verify_data_builder()` + `patch_organizations_organization_databases_database_workflows_number_verify_data_execute()`.
+/// For task-level control, use `patch_organizations_organization_databases_database_workflows_number_verify_data_task()`.
 ///
 /// # Errors
 ///
@@ -17928,25 +22676,31 @@ pub fn get_organizations_organization_invoices_builder(
 /// GET /organizations/{organization}/invoices
 /// Get invoices
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_invoices_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_invoices_execute()` or `get_organizations_organization_invoices`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_invoices_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_invoices_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_invoices_execute(
+pub fn get_organizations_organization_invoices_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -17982,9 +22736,36 @@ pub fn get_organizations_organization_invoices_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/invoices
+/// Get invoices
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_invoices_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_invoices_task()`.
+/// For the simplest API, use `get_organizations_organization_invoices()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_invoices_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_invoices_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_invoices_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -18004,6 +22785,7 @@ pub struct GetOrganizationsOrganizationInvoicesArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_invoices_builder()` + `get_organizations_organization_invoices_execute()`.
+/// For task-level control, use `get_organizations_organization_invoices_task()`.
 ///
 /// # Errors
 ///
@@ -18053,25 +22835,31 @@ pub fn get_organizations_organization_invoices_id_builder(
 /// GET /organizations/{organization}/invoices/{id}
 /// Get an invoice
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_invoices_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_invoices_id_execute()` or `get_organizations_organization_invoices_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_invoices_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_invoices_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_invoices_id_execute(
+pub fn get_organizations_organization_invoices_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -18107,9 +22895,36 @@ pub fn get_organizations_organization_invoices_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/invoices/{id}
+/// Get an invoice
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_invoices_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_invoices_id_task()`.
+/// For the simplest API, use `get_organizations_organization_invoices_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_invoices_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_invoices_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_invoices_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -18127,6 +22942,7 @@ pub struct GetOrganizationsOrganizationInvoicesIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_invoices_id_builder()` + `get_organizations_organization_invoices_id_execute()`.
+/// For task-level control, use `get_organizations_organization_invoices_id_task()`.
 ///
 /// # Errors
 ///
@@ -18188,25 +23004,31 @@ pub fn get_organizations_organization_invoices_id_line_items_builder(
 /// GET /organizations/{organization}/invoices/{id}/line-items
 /// Get invoice line items
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_invoices_id_line_items_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_invoices_id_line_items_execute()` or `get_organizations_organization_invoices_id_line_items`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_invoices_id_line_items_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_invoices_id_line_items_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_invoices_id_line_items_execute(
+pub fn get_organizations_organization_invoices_id_line_items_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -18242,9 +23064,36 @@ pub fn get_organizations_organization_invoices_id_line_items_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/invoices/{id}/line-items
+/// Get invoice line items
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_invoices_id_line_items_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_invoices_id_line_items_task()`.
+/// For the simplest API, use `get_organizations_organization_invoices_id_line_items()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_invoices_id_line_items_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_invoices_id_line_items_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_invoices_id_line_items_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -18266,6 +23115,7 @@ pub struct GetOrganizationsOrganizationInvoicesIdLineItemsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_invoices_id_line_items_builder()` + `get_organizations_organization_invoices_id_line_items_execute()`.
+/// For task-level control, use `get_organizations_organization_invoices_id_line_items_task()`.
 ///
 /// # Errors
 ///
@@ -18335,25 +23185,31 @@ pub fn get_organizations_organization_members_builder(
 /// GET /organizations/{organization}/members
 /// List organization members
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_members_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_members_execute()` or `get_organizations_organization_members`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_members_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_members_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_members_execute(
+pub fn get_organizations_organization_members_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -18389,9 +23245,36 @@ pub fn get_organizations_organization_members_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/members
+/// List organization members
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_members_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_members_task()`.
+/// For the simplest API, use `get_organizations_organization_members()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_members_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_members_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_members_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -18413,6 +23296,7 @@ pub struct GetOrganizationsOrganizationMembersArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_members_builder()` + `get_organizations_organization_members_execute()`.
+/// For task-level control, use `get_organizations_organization_members_task()`.
 ///
 /// # Errors
 ///
@@ -18463,25 +23347,31 @@ pub fn get_organizations_organization_members_id_builder(
 /// GET /organizations/{organization}/members/{id}
 /// Get an organization member
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_members_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_members_id_execute()` or `get_organizations_organization_members_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_members_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_members_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_members_id_execute(
+pub fn get_organizations_organization_members_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -18517,9 +23407,36 @@ pub fn get_organizations_organization_members_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/members/{id}
+/// Get an organization member
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_members_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_members_id_task()`.
+/// For the simplest API, use `get_organizations_organization_members_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_members_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_members_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_members_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -18537,6 +23454,7 @@ pub struct GetOrganizationsOrganizationMembersIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_members_id_builder()` + `get_organizations_organization_members_id_execute()`.
+/// For task-level control, use `get_organizations_organization_members_id_task()`.
 ///
 /// # Errors
 ///
@@ -18582,25 +23500,31 @@ pub fn patch_organizations_organization_members_id_builder(
 /// PATCH /organizations/{organization}/members/{id}
 /// Update organization member role
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_members_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_members_id_execute()` or `patch_organizations_organization_members_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_members_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_members_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_members_id_execute(
+pub fn patch_organizations_organization_members_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -18636,9 +23560,36 @@ pub fn patch_organizations_organization_members_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/members/{id}
+/// Update organization member role
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_members_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_members_id_task()`.
+/// For the simplest API, use `patch_organizations_organization_members_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_members_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_members_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = patch_organizations_organization_members_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -18656,6 +23607,7 @@ pub struct PatchOrganizationsOrganizationMembersIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_members_id_builder()` + `patch_organizations_organization_members_id_execute()`.
+/// For task-level control, use `patch_organizations_organization_members_id_task()`.
 ///
 /// # Errors
 ///
@@ -18717,25 +23669,31 @@ pub fn delete_organizations_organization_members_id_builder(
 /// DELETE /organizations/{organization}/members/{id}
 /// Remove a member from an organization
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_organizations_organization_members_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_organizations_organization_members_id_execute()` or `delete_organizations_organization_members_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_organizations_organization_members_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_members_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_organizations_organization_members_id_execute(
+pub fn delete_organizations_organization_members_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -18771,9 +23729,36 @@ pub fn delete_organizations_organization_members_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /organizations/{organization}/members/{id}
+/// Remove a member from an organization
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_organizations_organization_members_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_organizations_organization_members_id_task()`.
+/// For the simplest API, use `delete_organizations_organization_members_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_members_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_organizations_organization_members_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_organizations_organization_members_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -18795,6 +23780,7 @@ pub struct DeleteOrganizationsOrganizationMembersIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_organizations_organization_members_id_builder()` + `delete_organizations_organization_members_id_execute()`.
+/// For task-level control, use `delete_organizations_organization_members_id_task()`.
 ///
 /// # Errors
 ///
@@ -18860,25 +23846,31 @@ pub fn get_organizations_organization_oauth_applications_builder(
 /// GET /organizations/{organization}/oauth-applications
 /// List OAuth applications
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_oauth_applications_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_oauth_applications_execute()` or `get_organizations_organization_oauth_applications`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_oauth_applications_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_oauth_applications_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_oauth_applications_execute(
+pub fn get_organizations_organization_oauth_applications_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -18914,9 +23906,36 @@ pub fn get_organizations_organization_oauth_applications_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/oauth-applications
+/// List OAuth applications
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_oauth_applications_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_oauth_applications_task()`.
+/// For the simplest API, use `get_organizations_organization_oauth_applications()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_oauth_applications_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_oauth_applications_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_oauth_applications_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -18936,6 +23955,7 @@ pub struct GetOrganizationsOrganizationOauthApplicationsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_oauth_applications_builder()` + `get_organizations_organization_oauth_applications_execute()`.
+/// For task-level control, use `get_organizations_organization_oauth_applications_task()`.
 ///
 /// # Errors
 ///
@@ -18985,25 +24005,31 @@ pub fn get_organizations_organization_oauth_applications_application_id_builder(
 /// GET /organizations/{organization}/oauth-applications/{application_id}
 /// Get an OAuth application
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_oauth_applications_application_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_oauth_applications_application_id_execute()` or `get_organizations_organization_oauth_applications_application_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_oauth_applications_application_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_oauth_applications_application_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_oauth_applications_application_id_execute(
+pub fn get_organizations_organization_oauth_applications_application_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -19039,9 +24065,36 @@ pub fn get_organizations_organization_oauth_applications_application_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/oauth-applications/{application_id}
+/// Get an OAuth application
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_oauth_applications_application_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_oauth_applications_application_id_task()`.
+/// For the simplest API, use `get_organizations_organization_oauth_applications_application_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_oauth_applications_application_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_oauth_applications_application_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_oauth_applications_application_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -19059,6 +24112,7 @@ pub struct GetOrganizationsOrganizationOauthApplicationsApplicationIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_oauth_applications_application_id_builder()` + `get_organizations_organization_oauth_applications_application_id_execute()`.
+/// For task-level control, use `get_organizations_organization_oauth_applications_application_id_task()`.
 ///
 /// # Errors
 ///
@@ -19123,25 +24177,31 @@ pub fn get_organizations_organization_oauth_applications_application_id_tokens_b
 /// GET /organizations/{organization}/oauth-applications/{application_id}/tokens
 /// List OAuth tokens
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_oauth_applications_application_id_tokens_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_oauth_applications_application_id_tokens_execute()` or `get_organizations_organization_oauth_applications_application_id_tokens`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_oauth_applications_application_id_tokens_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_oauth_applications_application_id_tokens_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_oauth_applications_application_id_tokens_execute(
+pub fn get_organizations_organization_oauth_applications_application_id_tokens_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -19177,9 +24237,37 @@ pub fn get_organizations_organization_oauth_applications_application_id_tokens_e
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/oauth-applications/{application_id}/tokens
+/// List OAuth tokens
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_oauth_applications_application_id_tokens_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_oauth_applications_application_id_tokens_task()`.
+/// For the simplest API, use `get_organizations_organization_oauth_applications_application_id_tokens()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_oauth_applications_application_id_tokens_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_oauth_applications_application_id_tokens_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_oauth_applications_application_id_tokens_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -19201,6 +24289,7 @@ pub struct GetOrganizationsOrganizationOauthApplicationsApplicationIdTokensArgs 
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_oauth_applications_application_id_tokens_builder()` + `get_organizations_organization_oauth_applications_application_id_tokens_execute()`.
+/// For task-level control, use `get_organizations_organization_oauth_applications_application_id_tokens_task()`.
 ///
 /// # Errors
 ///
@@ -19252,25 +24341,31 @@ pub fn get_organizations_organization_oauth_applications_application_id_tokens_t
 /// GET /organizations/{organization}/oauth-applications/{application_id}/tokens/{token_id}
 /// Get an OAuth token
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_oauth_applications_application_id_tokens_token_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_oauth_applications_application_id_tokens_token_id_execute()` or `get_organizations_organization_oauth_applications_application_id_tokens_token_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_oauth_applications_application_id_tokens_token_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_oauth_applications_application_id_tokens_token_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_oauth_applications_application_id_tokens_token_id_execute(
+pub fn get_organizations_organization_oauth_applications_application_id_tokens_token_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -19306,9 +24401,39 @@ pub fn get_organizations_organization_oauth_applications_application_id_tokens_t
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/oauth-applications/{application_id}/tokens/{token_id}
+/// Get an OAuth token
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_oauth_applications_application_id_tokens_token_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_oauth_applications_application_id_tokens_token_id_task()`.
+/// For the simplest API, use `get_organizations_organization_oauth_applications_application_id_tokens_token_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_oauth_applications_application_id_tokens_token_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_oauth_applications_application_id_tokens_token_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        get_organizations_organization_oauth_applications_application_id_tokens_token_id_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -19328,6 +24453,7 @@ pub struct GetOrganizationsOrganizationOauthApplicationsApplicationIdTokensToken
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_oauth_applications_application_id_tokens_token_id_builder()` + `get_organizations_organization_oauth_applications_application_id_tokens_token_id_execute()`.
+/// For task-level control, use `get_organizations_organization_oauth_applications_application_id_tokens_token_id_task()`.
 ///
 /// # Errors
 ///
@@ -19381,25 +24507,31 @@ pub fn delete_organizations_organization_oauth_applications_application_id_token
 /// DELETE /organizations/{organization}/oauth-applications/{application_id}/tokens/{token_id}
 /// Delete an OAuth token
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_organizations_organization_oauth_applications_application_id_tokens_token_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_organizations_organization_oauth_applications_application_id_tokens_token_id_execute()` or `delete_organizations_organization_oauth_applications_application_id_tokens_token_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_organizations_organization_oauth_applications_application_id_tokens_token_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_oauth_applications_application_id_tokens_token_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_organizations_organization_oauth_applications_application_id_tokens_token_id_execute(
+pub fn delete_organizations_organization_oauth_applications_application_id_tokens_token_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -19435,9 +24567,39 @@ pub fn delete_organizations_organization_oauth_applications_application_id_token
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /organizations/{organization}/oauth-applications/{application_id}/tokens/{token_id}
+/// Delete an OAuth token
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_organizations_organization_oauth_applications_application_id_tokens_token_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_organizations_organization_oauth_applications_application_id_tokens_token_id_task()`.
+/// For the simplest API, use `delete_organizations_organization_oauth_applications_application_id_tokens_token_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_oauth_applications_application_id_tokens_token_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_organizations_organization_oauth_applications_application_id_tokens_token_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task =
+        delete_organizations_organization_oauth_applications_application_id_tokens_token_id_task(
+            builder,
+        )?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -19457,6 +24619,7 @@ pub struct DeleteOrganizationsOrganizationOauthApplicationsApplicationIdTokensTo
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_organizations_organization_oauth_applications_application_id_tokens_token_id_builder()` + `delete_organizations_organization_oauth_applications_application_id_tokens_token_id_execute()`.
+/// For task-level control, use `delete_organizations_organization_oauth_applications_application_id_tokens_token_id_task()`.
 ///
 /// # Errors
 ///
@@ -19503,25 +24666,31 @@ pub fn post_organizations_organization_oauth_applications_id_token_builder(
 /// POST /organizations/{organization}/oauth-applications/{id}/token
 /// Create or renew an OAuth token
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_oauth_applications_id_token_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_oauth_applications_id_token_execute()` or `post_organizations_organization_oauth_applications_id_token`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_oauth_applications_id_token_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_oauth_applications_id_token_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_oauth_applications_id_token_execute(
+pub fn post_organizations_organization_oauth_applications_id_token_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -19557,9 +24726,36 @@ pub fn post_organizations_organization_oauth_applications_id_token_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/oauth-applications/{id}/token
+/// Create or renew an OAuth token
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_oauth_applications_id_token_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_oauth_applications_id_token_task()`.
+/// For the simplest API, use `post_organizations_organization_oauth_applications_id_token()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_oauth_applications_id_token_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_oauth_applications_id_token_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_organizations_organization_oauth_applications_id_token_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -19577,6 +24773,7 @@ pub struct PostOrganizationsOrganizationOauthApplicationsIdTokenArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_oauth_applications_id_token_builder()` + `post_organizations_organization_oauth_applications_id_token_execute()`.
+/// For task-level control, use `post_organizations_organization_oauth_applications_id_token_task()`.
 ///
 /// # Errors
 ///
@@ -19640,25 +24837,31 @@ pub fn get_organizations_organization_regions_builder(
 /// GET /organizations/{organization}/regions
 /// List regions for an organization
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_regions_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_regions_execute()` or `get_organizations_organization_regions`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_regions_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_regions_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_regions_execute(
+pub fn get_organizations_organization_regions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -19694,9 +24897,36 @@ pub fn get_organizations_organization_regions_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/regions
+/// List regions for an organization
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_regions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_regions_task()`.
+/// For the simplest API, use `get_organizations_organization_regions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_regions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_regions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_regions_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -19716,6 +24946,7 @@ pub struct GetOrganizationsOrganizationRegionsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_regions_builder()` + `get_organizations_organization_regions_execute()`.
+/// For task-level control, use `get_organizations_organization_regions_task()`.
 ///
 /// # Errors
 ///
@@ -19780,25 +25011,31 @@ pub fn get_organizations_organization_service_tokens_builder(
 /// GET /organizations/{organization}/service-tokens
 /// List service tokens
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_service_tokens_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_service_tokens_execute()` or `get_organizations_organization_service_tokens`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_service_tokens_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_service_tokens_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_service_tokens_execute(
+pub fn get_organizations_organization_service_tokens_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -19834,9 +25071,36 @@ pub fn get_organizations_organization_service_tokens_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/service-tokens
+/// List service tokens
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_service_tokens_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_service_tokens_task()`.
+/// For the simplest API, use `get_organizations_organization_service_tokens()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_service_tokens_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_service_tokens_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_service_tokens_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -19856,6 +25120,7 @@ pub struct GetOrganizationsOrganizationServiceTokensArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_service_tokens_builder()` + `get_organizations_organization_service_tokens_execute()`.
+/// For task-level control, use `get_organizations_organization_service_tokens_task()`.
 ///
 /// # Errors
 ///
@@ -19904,25 +25169,31 @@ pub fn post_organizations_organization_service_tokens_builder(
 /// POST /organizations/{organization}/service-tokens
 /// Create a service token
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_service_tokens_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_service_tokens_execute()` or `post_organizations_organization_service_tokens`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_service_tokens_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_service_tokens_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_service_tokens_execute(
+pub fn post_organizations_organization_service_tokens_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -19958,9 +25229,36 @@ pub fn post_organizations_organization_service_tokens_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/service-tokens
+/// Create a service token
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_service_tokens_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_service_tokens_task()`.
+/// For the simplest API, use `post_organizations_organization_service_tokens()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_service_tokens_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_service_tokens_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_organizations_organization_service_tokens_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -19976,6 +25274,7 @@ pub struct PostOrganizationsOrganizationServiceTokensArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_service_tokens_builder()` + `post_organizations_organization_service_tokens_execute()`.
+/// For task-level control, use `post_organizations_organization_service_tokens_task()`.
 ///
 /// # Errors
 ///
@@ -20021,25 +25320,31 @@ pub fn get_organizations_organization_service_tokens_id_builder(
 /// GET /organizations/{organization}/service-tokens/{id}
 /// Get a service token
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_service_tokens_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_service_tokens_id_execute()` or `get_organizations_organization_service_tokens_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_service_tokens_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_service_tokens_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_service_tokens_id_execute(
+pub fn get_organizations_organization_service_tokens_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -20075,9 +25380,36 @@ pub fn get_organizations_organization_service_tokens_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/service-tokens/{id}
+/// Get a service token
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_service_tokens_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_service_tokens_id_task()`.
+/// For the simplest API, use `get_organizations_organization_service_tokens_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_service_tokens_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_service_tokens_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_service_tokens_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -20095,6 +25427,7 @@ pub struct GetOrganizationsOrganizationServiceTokensIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_service_tokens_id_builder()` + `get_organizations_organization_service_tokens_id_execute()`.
+/// For task-level control, use `get_organizations_organization_service_tokens_id_task()`.
 ///
 /// # Errors
 ///
@@ -20143,25 +25476,31 @@ pub fn delete_organizations_organization_service_tokens_id_builder(
 /// DELETE /organizations/{organization}/service-tokens/{id}
 /// Delete a service token
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_organizations_organization_service_tokens_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_organizations_organization_service_tokens_id_execute()` or `delete_organizations_organization_service_tokens_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_organizations_organization_service_tokens_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_service_tokens_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_organizations_organization_service_tokens_id_execute(
+pub fn delete_organizations_organization_service_tokens_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -20197,9 +25536,36 @@ pub fn delete_organizations_organization_service_tokens_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /organizations/{organization}/service-tokens/{id}
+/// Delete a service token
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_organizations_organization_service_tokens_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_organizations_organization_service_tokens_id_task()`.
+/// For the simplest API, use `delete_organizations_organization_service_tokens_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_service_tokens_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_organizations_organization_service_tokens_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_organizations_organization_service_tokens_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -20217,6 +25583,7 @@ pub struct DeleteOrganizationsOrganizationServiceTokensIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_organizations_organization_service_tokens_id_builder()` + `delete_organizations_organization_service_tokens_id_execute()`.
+/// For task-level control, use `delete_organizations_organization_service_tokens_id_task()`.
 ///
 /// # Errors
 ///
@@ -20284,25 +25651,31 @@ pub fn get_organizations_organization_teams_builder(
 /// GET /organizations/{organization}/teams
 /// List teams in an organization
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_teams_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_teams_execute()` or `get_organizations_organization_teams`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_teams_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_teams_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_teams_execute(
+pub fn get_organizations_organization_teams_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -20338,9 +25711,36 @@ pub fn get_organizations_organization_teams_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/teams
+/// List teams in an organization
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_teams_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_teams_task()`.
+/// For the simplest API, use `get_organizations_organization_teams()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_teams_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_teams_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_teams_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -20362,6 +25762,7 @@ pub struct GetOrganizationsOrganizationTeamsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_teams_builder()` + `get_organizations_organization_teams_execute()`.
+/// For task-level control, use `get_organizations_organization_teams_task()`.
 ///
 /// # Errors
 ///
@@ -20411,25 +25812,31 @@ pub fn post_organizations_organization_teams_builder(
 /// POST /organizations/{organization}/teams
 /// Create an organization team
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_teams_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_teams_execute()` or `post_organizations_organization_teams`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_teams_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_teams_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_teams_execute(
+pub fn post_organizations_organization_teams_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -20465,9 +25872,36 @@ pub fn post_organizations_organization_teams_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/teams
+/// Create an organization team
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_teams_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_teams_task()`.
+/// For the simplest API, use `post_organizations_organization_teams()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_teams_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_teams_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_organizations_organization_teams_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -20483,6 +25917,7 @@ pub struct PostOrganizationsOrganizationTeamsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_teams_builder()` + `post_organizations_organization_teams_execute()`.
+/// For task-level control, use `post_organizations_organization_teams_task()`.
 ///
 /// # Errors
 ///
@@ -20527,25 +25962,31 @@ pub fn get_organizations_organization_teams_team_builder(
 /// GET /organizations/{organization}/teams/{team}
 /// Get an organization team
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_teams_team_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_teams_team_execute()` or `get_organizations_organization_teams_team`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_teams_team_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_teams_team_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_teams_team_execute(
+pub fn get_organizations_organization_teams_team_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -20581,9 +26022,36 @@ pub fn get_organizations_organization_teams_team_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/teams/{team}
+/// Get an organization team
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_teams_team_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_teams_team_task()`.
+/// For the simplest API, use `get_organizations_organization_teams_team()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_teams_team_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_teams_team_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_teams_team_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -20601,6 +26069,7 @@ pub struct GetOrganizationsOrganizationTeamsTeamArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_teams_team_builder()` + `get_organizations_organization_teams_team_execute()`.
+/// For task-level control, use `get_organizations_organization_teams_team_task()`.
 ///
 /// # Errors
 ///
@@ -20646,25 +26115,31 @@ pub fn patch_organizations_organization_teams_team_builder(
 /// PATCH /organizations/{organization}/teams/{team}
 /// Update an organization team
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `patch_organizations_organization_teams_team_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `patch_organizations_organization_teams_team_execute()` or `patch_organizations_organization_teams_team`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from patch_organizations_organization_teams_team_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_teams_team_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn patch_organizations_organization_teams_team_execute(
+pub fn patch_organizations_organization_teams_team_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -20700,9 +26175,36 @@ pub fn patch_organizations_organization_teams_team_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// PATCH /organizations/{organization}/teams/{team}
+/// Update an organization team
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `patch_organizations_organization_teams_team_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `patch_organizations_organization_teams_team_task()`.
+/// For the simplest API, use `patch_organizations_organization_teams_team()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `patch_organizations_organization_teams_team_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn patch_organizations_organization_teams_team_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = patch_organizations_organization_teams_team_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -20720,6 +26222,7 @@ pub struct PatchOrganizationsOrganizationTeamsTeamArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `patch_organizations_organization_teams_team_builder()` + `patch_organizations_organization_teams_team_execute()`.
+/// For task-level control, use `patch_organizations_organization_teams_team_task()`.
 ///
 /// # Errors
 ///
@@ -20768,25 +26271,31 @@ pub fn delete_organizations_organization_teams_team_builder(
 /// DELETE /organizations/{organization}/teams/{team}
 /// Delete an organization team
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_organizations_organization_teams_team_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_organizations_organization_teams_team_execute()` or `delete_organizations_organization_teams_team`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_organizations_organization_teams_team_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_teams_team_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_organizations_organization_teams_team_execute(
+pub fn delete_organizations_organization_teams_team_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -20822,9 +26331,36 @@ pub fn delete_organizations_organization_teams_team_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /organizations/{organization}/teams/{team}
+/// Delete an organization team
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_organizations_organization_teams_team_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_organizations_organization_teams_team_task()`.
+/// For the simplest API, use `delete_organizations_organization_teams_team()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_teams_team_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_organizations_organization_teams_team_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_organizations_organization_teams_team_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -20842,6 +26378,7 @@ pub struct DeleteOrganizationsOrganizationTeamsTeamArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_organizations_organization_teams_team_builder()` + `delete_organizations_organization_teams_team_execute()`.
+/// For task-level control, use `delete_organizations_organization_teams_team_task()`.
 ///
 /// # Errors
 ///
@@ -20906,25 +26443,31 @@ pub fn get_organizations_organization_teams_team_members_builder(
 /// GET /organizations/{organization}/teams/{team}/members
 /// List team members
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_teams_team_members_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_teams_team_members_execute()` or `get_organizations_organization_teams_team_members`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_teams_team_members_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_teams_team_members_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_teams_team_members_execute(
+pub fn get_organizations_organization_teams_team_members_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -20960,9 +26503,36 @@ pub fn get_organizations_organization_teams_team_members_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/teams/{team}/members
+/// List team members
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_teams_team_members_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_teams_team_members_task()`.
+/// For the simplest API, use `get_organizations_organization_teams_team_members()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_teams_team_members_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_teams_team_members_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_teams_team_members_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -20984,6 +26554,7 @@ pub struct GetOrganizationsOrganizationTeamsTeamMembersArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_teams_team_members_builder()` + `get_organizations_organization_teams_team_members_execute()`.
+/// For task-level control, use `get_organizations_organization_teams_team_members_task()`.
 ///
 /// # Errors
 ///
@@ -21034,25 +26605,31 @@ pub fn post_organizations_organization_teams_team_members_builder(
 /// POST /organizations/{organization}/teams/{team}/members
 /// Add a member to a team
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `post_organizations_organization_teams_team_members_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `post_organizations_organization_teams_team_members_execute()` or `post_organizations_organization_teams_team_members`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from post_organizations_organization_teams_team_members_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_teams_team_members_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn post_organizations_organization_teams_team_members_execute(
+pub fn post_organizations_organization_teams_team_members_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -21088,9 +26665,36 @@ pub fn post_organizations_organization_teams_team_members_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// POST /organizations/{organization}/teams/{team}/members
+/// Add a member to a team
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `post_organizations_organization_teams_team_members_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `post_organizations_organization_teams_team_members_task()`.
+/// For the simplest API, use `post_organizations_organization_teams_team_members()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `post_organizations_organization_teams_team_members_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn post_organizations_organization_teams_team_members_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = post_organizations_organization_teams_team_members_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -21108,6 +26712,7 @@ pub struct PostOrganizationsOrganizationTeamsTeamMembersArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `post_organizations_organization_teams_team_members_builder()` + `post_organizations_organization_teams_team_members_execute()`.
+/// For task-level control, use `post_organizations_organization_teams_team_members_task()`.
 ///
 /// # Errors
 ///
@@ -21157,25 +26762,31 @@ pub fn get_organizations_organization_teams_team_members_id_builder(
 /// GET /organizations/{organization}/teams/{team}/members/{id}
 /// Get a team member
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_organizations_organization_teams_team_members_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_organizations_organization_teams_team_members_id_execute()` or `get_organizations_organization_teams_team_members_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_organizations_organization_teams_team_members_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_teams_team_members_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_organizations_organization_teams_team_members_id_execute(
+pub fn get_organizations_organization_teams_team_members_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -21211,9 +26822,36 @@ pub fn get_organizations_organization_teams_team_members_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /organizations/{organization}/teams/{team}/members/{id}
+/// Get a team member
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_organizations_organization_teams_team_members_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_organizations_organization_teams_team_members_id_task()`.
+/// For the simplest API, use `get_organizations_organization_teams_team_members_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_organizations_organization_teams_team_members_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_organizations_organization_teams_team_members_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_organizations_organization_teams_team_members_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -21233,6 +26871,7 @@ pub struct GetOrganizationsOrganizationTeamsTeamMembersIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_organizations_organization_teams_team_members_id_builder()` + `get_organizations_organization_teams_team_members_id_execute()`.
+/// For task-level control, use `get_organizations_organization_teams_team_members_id_task()`.
 ///
 /// # Errors
 ///
@@ -21295,25 +26934,31 @@ pub fn delete_organizations_organization_teams_team_members_id_builder(
 /// DELETE /organizations/{organization}/teams/{team}/members/{id}
 /// Remove a member from a team
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `delete_organizations_organization_teams_team_members_id_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `delete_organizations_organization_teams_team_members_id_execute()` or `delete_organizations_organization_teams_team_members_id`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from delete_organizations_organization_teams_team_members_id_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_teams_team_members_id_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn delete_organizations_organization_teams_team_members_id_execute(
+pub fn delete_organizations_organization_teams_team_members_id_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -21349,9 +26994,36 @@ pub fn delete_organizations_organization_teams_team_members_id_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// DELETE /organizations/{organization}/teams/{team}/members/{id}
+/// Remove a member from a team
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `delete_organizations_organization_teams_team_members_id_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `delete_organizations_organization_teams_team_members_id_task()`.
+/// For the simplest API, use `delete_organizations_organization_teams_team_members_id()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `delete_organizations_organization_teams_team_members_id_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn delete_organizations_organization_teams_team_members_id_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = delete_organizations_organization_teams_team_members_id_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -21373,6 +27045,7 @@ pub struct DeleteOrganizationsOrganizationTeamsTeamMembersIdArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `delete_organizations_organization_teams_team_members_id_builder()` + `delete_organizations_organization_teams_team_members_id_execute()`.
+/// For task-level control, use `delete_organizations_organization_teams_team_members_id_task()`.
 ///
 /// # Errors
 ///
@@ -21434,25 +27107,31 @@ pub fn get_regions_builder(
 /// GET /regions
 /// List public regions
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_regions_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_regions_execute()` or `get_regions`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_regions_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_regions_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_regions_execute(
+pub fn get_regions_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -21488,9 +27167,36 @@ pub fn get_regions_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /regions
+/// List public regions
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_regions_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_regions_task()`.
+/// For the simplest API, use `get_regions()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_regions_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_regions_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_regions_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -21508,6 +27214,7 @@ pub struct GetRegionsArgs {
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_regions_builder()` + `get_regions_execute()`.
+/// For task-level control, use `get_regions_task()`.
 ///
 /// # Errors
 ///
@@ -21547,25 +27254,31 @@ pub fn get_user_builder(
 /// GET /user
 /// Get current user
 ///
-/// Takes a `ClientRequestBuilder`, builds and executes the request.
-/// For customization, use `get_user_builder()` then pass to this function.
+/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,
+/// and returns a `TaskIterator` for customization before execution.
+///
+/// Use this function when you need to:
+/// - Wrap the task with custom valtron combinators
+/// - Compose multiple tasks before execution
+/// - Intercept task execution for logging or testing
+///
+/// For direct execution, use `get_user_execute()` or `get_user`.
 ///
 /// # Arguments
 ///
-/// * `builder` - ClientRequestBuilder from get_user_builder()
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_user_builder()`
 ///
 /// # Errors
 ///
 /// Returns an error if the request cannot be built.
 
-pub fn get_user_execute(
+pub fn get_user_task(
     builder: ClientRequestBuilder<SystemDnsResolver>,
 ) -> Result<
-    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    impl TaskIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
     ApiError,
 > {
-    // Get SendRequestTask from builder
-    let task = builder
+    Ok(builder
         .build_send_request()
         .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?
         .map_ready(|intro| match intro {
@@ -21601,9 +27314,36 @@ pub fn get_user_execute(
             }
             RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),
         })
-        .map_pending(|_| ApiPending::Sending);
+        .map_pending(|_| ApiPending::Sending))
+}
 
-    // Convert TaskIterator to StreamIterator
+/// GET /user
+/// Get current user
+///
+/// Takes a `ClientRequestBuilder`, builds and executes the request,
+/// and returns the parsed response via a `StreamIterator`.
+///
+/// For full customization, use `get_user_builder()` to create the builder,
+/// modify it, then call this function with your customized builder.
+/// For task-level control, use `get_user_task()`.
+/// For the simplest API, use `get_user()`.
+///
+/// # Arguments
+///
+/// * `builder` - A `ClientRequestBuilder`, typically from `get_user_builder()`
+///
+/// # Errors
+///
+/// Returns an error if the request cannot be built.
+/// HTTP errors during execution are returned via the StreamIterator.
+
+pub fn get_user_execute(
+    builder: ClientRequestBuilder<SystemDnsResolver>,
+) -> Result<
+    impl StreamIterator<D = Result<ApiResponse<()>, ApiError>, P = ApiPending> + Send + 'static,
+    ApiError,
+> {
+    let task = get_user_task(builder)?;
     execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))
 }
 
@@ -21612,6 +27352,7 @@ pub fn get_user_execute(
 ///
 /// Simplest API - builds and executes the request in one call.
 /// For customization, use `get_user_builder()` + `get_user_execute()`.
+/// For task-level control, use `get_user_task()`.
 ///
 /// # Errors
 ///
