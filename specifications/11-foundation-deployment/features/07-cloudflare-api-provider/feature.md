@@ -59,17 +59,56 @@ Depends on:
 - `02-state-stores` - `StateStore` for persistence
 - `03-deployment-engine` - `DeploymentPlanner` for orchestration
 - `04-cloudflare-provider` - Reference for config parsing (`WranglerConfig`)
+- **Existing `providers/cloudflare/clients/`** - Reuse generated API client types and HTTP client wrappers
+- **Existing `providers/cloudflare/resources/`** - Reuse generated resource types from OpenAPI spec
 
 Required by:
 - `07-templates` - Cloudflare-specific template configs
 - `09-examples-documentation` - Cloudflare examples
 
+## Architecture
+
+The API provider implementation should:
+
+1. **Reuse existing generated clients** in `backends/foundation_deployment/src/providers/cloudflare/clients/`:
+   - `types.rs` - `ApiErrorDetails`, `ApiErrorBody`, `ApiResponse<T>`, `ApiError`
+   - Auto-generated client functions for each Cloudflare API endpoint
+
+2. **Reuse existing generated resources** in `backends/foundation_deployment/src/providers/cloudflare/resources/`:
+   - All generated resource types from the Cloudflare OpenAPI spec
+   - Types already have `Serialize`, `Deserialize`, `Debug`, `Clone` derives
+
+3. **Implement the API provider** in `backends/foundation_deployment/src/providers/cloudflare/api/`:
+   - `mod.rs` - Module declaration and `CloudflareApiProvider` struct
+   - `auth.rs` - `CloudflareAuth` with Bearer token handling
+   - `error.rs` - `CloudflareApiError` wrapping the generated `ApiError`
+   - `provider.rs` - `DeploymentProvider` trait implementation
+
 ## Requirements
+
+### Module Structure
+
+```rust
+// providers/cloudflare/api/mod.rs
+
+pub mod auth;
+pub mod error;
+pub mod provider;
+
+pub use auth::CloudflareAuth;
+pub use error::CloudflareApiError;
+pub use provider::CloudflareApiProvider;
+```
+
+**Note:** The implementation should reuse:
+- `super::clients::types` - Generated API types (`ApiError`, `ApiResponse`, etc.)
+- `super::clients::*` - Generated client functions for API calls
+- `super::resources::*` - Generated resource types
 
 ### Authentication
 
 ```rust
-// providers/cloudflare_api/auth.rs
+// providers/cloudflare/api/auth.rs
 
 use foundation_core::simple_http::client::SimpleHttpClient;
 
@@ -84,6 +123,7 @@ use foundation_core::simple_http::client::SimpleHttpClient;
 /// - `Workers KV:Write` - Manage KV namespaces
 /// - `D1:Write` - Manage D1 databases
 /// - `R2:Write` - Manage R2 buckets
+/// - `Queues:Write` - Manage queues
 #[derive(Debug, Clone)]
 pub struct CloudflareAuth {
     pub api_token: String,
@@ -132,365 +172,75 @@ impl CloudflareAuth {
 }
 ```
 
-### API Client Structure
+### API Client Integration
 
+**Use existing generated clients** in `providers/cloudflare/clients/`:
+
+The code generator (`gen_provider_clients`) has already generated client functions for Cloudflare API endpoints. The API provider should:
+
+1. **Import generated types and functions:**
 ```rust
-// providers/cloudflare_api/client.rs
+use crate::providers::cloudflare::clients::types::{ApiError, ApiResponse};
+// Generated client functions for each endpoint
+use crate::providers::cloudflare::clients::workers::{
+    put_worker_script,
+    get_worker_script,
+    delete_worker_script,
+    // ... more functions
+};
+```
 
+2. **Use generated resource types:**
+```rust
+use crate::providers::cloudflare::resources::{
+    WorkerScript, KvNamespace, D1Database, R2Bucket, Queue,
+    // ... more resource types
+};
+```
+
+3. **Wrap with provider-specific auth and error handling:**
+```rust
+// providers/cloudflare/api/provider.rs
+
+use super::auth::CloudflareAuth;
+use super::error::CloudflareApiError;
+use crate::providers::cloudflare::clients::types::{ApiError, ApiResponse};
+use crate::providers::cloudflare::resources::*;
 use foundation_core::simple_http::client::SimpleHttpClient;
-use std::collections::HashMap;
 
-const CLOUDFLARE_API_BASE: &str = "https://api.cloudflare.com/client/v4";
-
-/// Cloudflare REST API client using SimpleHttpClient.
+/// Cloudflare REST API provider using SimpleHttpClient.
 /// All methods are API-only — no CLI fallback.
-pub struct CloudflareApiClient {
+pub struct CloudflareApiProvider {
     client: SimpleHttpClient,
     auth: CloudflareAuth,
+    account_id: String,
 }
 
-impl CloudflareApiClient {
+impl CloudflareApiProvider {
     pub fn new(auth: CloudflareAuth) -> Result<Self, CloudflareApiError> {
         let mut client = SimpleHttpClient::new();
         auth.configure_client(&mut client);
-        Ok(Self { client, auth })
-    }
-
-    // =======================================================================
-    // Worker Scripts API
-    // =======================================================================
-
-    /// PUT /accounts/{account_id}/workers/scripts/{script_name}
-    ///
-    /// Upload a worker script with optional bindings.
-    /// Uses multipart/form-data for script + metadata.
-    pub async fn put_worker_script(
-        &self,
-        script_name: &str,
-        script_content: &[u8],
-        bindings: &[WorkerBinding],
-        compatibility_date: Option<&str>,
-        compatibility_flags: &[String],
-    ) -> Result<WorkerScript, CloudflareApiError> {
-        let url = format!(
-            "{}/accounts/{}/workers/scripts/{}",
-            CLOUDFLARE_API_BASE, self.auth.account_id, script_name
-        );
-
-        // Build multipart/form-data body
-        let boundary = self.generate_boundary();
-        let body = self.build_multipart_script(
-            script_content,
-            bindings,
-            compatibility_date,
-            compatibility_flags,
-            &boundary,
-        );
-
-        let mut headers = vec![
-            ("Authorization".to_string(), format!("Bearer {}", self.auth.api_token)),
-            ("Content-Type".to_string(), format!("multipart/form-data; boundary={}", boundary)),
-        ];
-
-        let response = self.client.put(&url, body.as_bytes(), headers).await?;
-        self.parse_response::<PutWorkerScriptResponse>(response)
-            .and_then(|r| r.result.ok_or(CloudflareApiError::UnexpectedResponse))
-    }
-
-    /// GET /accounts/{account_id}/workers/scripts/{script_name}
-    pub async fn get_worker_script(
-        &self,
-        script_name: &str,
-    ) -> Result<WorkerScript, CloudflareApiError> {
-        let url = format!(
-            "{}/accounts/{}/workers/scripts/{}",
-            CLOUDFLARE_API_BASE, self.auth.account_id, script_name
-        );
-
-        let response = self.client.get(&url).await?;
-        self.parse_response::<GetWorkerScriptResponse>(response)
-            .and_then(|r| r.result.ok_or(CloudflareApiError::UnexpectedResponse))
-    }
-
-    /// DELETE /accounts/{account_id}/workers/scripts/{script_name}
-    pub async fn delete_worker_script(
-        &self,
-        script_name: &str,
-    ) -> Result<(), CloudflareApiError> {
-        let url = format!(
-            "{}/accounts/{}/workers/scripts/{}",
-            CLOUDFLARE_API_BASE, self.auth.account_id, script_name
-        );
-
-        let response = self.client.delete(&url).await?;
-        let result = self.parse_response::<DeleteWorkerScriptResponse>(response)?;
-        if result.success {
-            Ok(())
-        } else {
-            Err(CloudflareApiError::ApiError(result.errors))
-        }
-    }
-
-    // =======================================================================
-    // Secrets Management API
-    // =======================================================================
-
-    /// PUT /accounts/{account_id}/workers/scripts/{script_name}/secrets
-    pub async fn put_secret(
-        &self,
-        script_name: &str,
-        secret_name: &str,
-        secret_text: &str,
-    ) -> Result<(), CloudflareApiError> {
-        let url = format!(
-            "{}/accounts/{}/workers/scripts/{}/secrets",
-            CLOUDFLARE_API_BASE, self.auth.account_id, script_name
-        );
-
-        let body = serde_json::json!({
-            "name": secret_name,
-            "text": secret_text,
-            "type": "secret_text"
-        });
-
-        let response = self.client.put(&url, body.to_string().as_bytes()).await?;
-        let result = self.parse_response::<PutSecretResponse>(response)?;
-        if result.success {
-            Ok(())
-        } else {
-            Err(CloudflareApiError::ApiError(result.errors))
-        }
-    }
-
-    /// GET /accounts/{account_id}/workers/scripts/{script_name}/secrets
-    pub async fn list_secrets(
-        &self,
-        script_name: &str,
-    ) -> Result<Vec<SecretInfo>, CloudflareApiError> {
-        let url = format!(
-            "{}/accounts/{}/workers/scripts/{}/secrets",
-            CLOUDFLARE_API_BASE, self.auth.account_id, script_name
-        );
-
-        let response = self.client.get(&url).await?;
-        let result = self.parse_response::<ListSecretsResponse>(response)?;
-        Ok(result.result.unwrap_or_default())
-    }
-
-    /// DELETE /accounts/{account_id}/workers/scripts/{script_name}/secrets/{secret_name}
-    pub async fn delete_secret(
-        &self,
-        script_name: &str,
-        secret_name: &str,
-    ) -> Result<(), CloudflareApiError> {
-        let url = format!(
-            "{}/accounts/{}/workers/scripts/{}/secrets/{}",
-            CLOUDFLARE_API_BASE, self.auth.account_id, script_name, secret_name
-        );
-
-        let response = self.client.delete(&url).await?;
-        let result = self.parse_response::<DeleteSecretResponse>(response)?;
-        if result.success {
-            Ok(())
-        } else {
-            Err(CloudflareApiError::ApiError(result.errors))
-        }
-    }
-
-    // =======================================================================
-    // KV Namespaces API
-    // =======================================================================
-
-    /// POST /accounts/{account_id}/storage/kv/namespaces
-    pub async fn create_kv_namespace(
-        &self,
-        title: &str,
-    ) -> Result<KvNamespace, CloudflareApiError> {
-        let url = format!(
-            "{}/accounts/{}/storage/kv/namespaces",
-            CLOUDFLARE_API_BASE, self.auth.account_id
-        );
-
-        let body = serde_json::json!({ "title": title });
-        let response = self.client.post(&url, body.to_string().as_bytes()).await?;
-        self.parse_response::<CreateKvNamespaceResponse>(response)
-            .and_then(|r| r.result.ok_or(CloudflareApiError::UnexpectedResponse))
-    }
-
-    /// PUT /accounts/{account_id}/storage/kv/namespaces/{namespace_id}/bulk
-    pub async fn bulk_write_kv(
-        &self,
-        namespace_id: &str,
-        entries: &[KvEntry],
-    ) -> Result<(), CloudflareApiError> {
-        let url = format!(
-            "{}/accounts/{}/storage/kv/namespaces/{}/bulk",
-            CLOUDFLARE_API_BASE, self.auth.account_id, namespace_id
-        );
-
-        let body = serde_json::to_vec(entries)?;
-        let response = self.client.put(&url, &body).await?;
-        let result = self.parse_response::<BulkKvResponse>(response)?;
-        if result.success {
-            Ok(())
-        } else {
-            Err(CloudflareApiError::ApiError(result.errors))
-        }
-    }
-
-    // =======================================================================
-    // D1 Databases API
-    // =======================================================================
-
-    /// POST /accounts/{account_id}/d1/database
-    pub async fn create_d1_database(
-        &self,
-        name: &str,
-    ) -> Result<D1Database, CloudflareApiError> {
-        let url = format!(
-            "{}/accounts/{}/d1/database",
-            CLOUDFLARE_API_BASE, self.auth.account_id
-        );
-
-        let body = serde_json::json!({ "name": name });
-        let response = self.client.post(&url, body.to_string().as_bytes()).await?;
-        self.parse_response::<CreateD1DatabaseResponse>(response)
-            .and_then(|r| r.result.ok_or(CloudflareApiError::UnexpectedResponse))
-    }
-
-    // =======================================================================
-    // R2 Buckets API
-    // =======================================================================
-
-    /// PUT /accounts/{account_id}/r2/buckets/{bucket_name}
-    pub async fn create_r2_bucket(
-        &self,
-        bucket_name: &str,
-    ) -> Result<R2Bucket, CloudflareApiError> {
-        let url = format!(
-            "{}/accounts/{}/r2/buckets/{}",
-            CLOUDFLARE_API_BASE, self.auth.account_id, bucket_name
-        );
-
-        let response = self.client.put(&url, &[]).await?;
-        self.parse_response::<CreateR2BucketResponse>(response)
-            .and_then(|r| r.result.ok_or(CloudflareApiError::UnexpectedResponse))
-    }
-
-    // =======================================================================
-    // Queues API
-    // =======================================================================
-
-    /// POST /accounts/{account_id}/queues
-    pub async fn create_queue(
-        &self,
-        queue_name: &str,
-    ) -> Result<Queue, CloudflareApiError> {
-        let url = format!(
-            "{}/accounts/{}/queues",
-            CLOUDFLARE_API_BASE, self.auth.account_id
-        );
-
-        let body = serde_json::json!({ "name": queue_name });
-        let response = self.client.post(&url, body.to_string().as_bytes()).await?;
-        self.parse_response::<CreateQueueResponse>(response)
-            .and_then(|r| r.result.ok_or(CloudflareApiError::UnexpectedResponse))
-    }
-
-    // =======================================================================
-    // Routes API
-    // =======================================================================
-
-    /// POST /zones/{zone_id}/workers/routes
-    pub async fn create_route(
-        &self,
-        zone_id: &str,
-        pattern: &str,
-        script_name: &str,
-    ) -> Result<Route, CloudflareApiError> {
-        let url = format!(
-            "{}/zones/{}/workers/routes",
-            CLOUDFLARE_API_BASE, zone_id
-        );
-
-        let body = serde_json::json!({
-            "pattern": pattern,
-            "script": script_name
-        });
-        let response = self.client.post(&url, body.to_string().as_bytes()).await?;
-        self.parse_response::<CreateRouteResponse>(response)
-            .and_then(|r| r.result.ok_or(CloudflareApiError::UnexpectedResponse))
-    }
-
-    // =======================================================================
-    // Helper Methods
-    // =======================================================================
-
-    fn parse_response<T: serde::de::DeserializeOwned>(
-        &self,
-        response: foundation_core::simple_http::Response,
-    ) -> Result<T, CloudflareApiError> {
-        let body = response.body();
-        serde_json::from_slice(body).map_err(|e| {
-            CloudflareApiError::ParseError(format!("Failed to parse response: {}", e))
+        Ok(Self {
+            client,
+            account_id: auth.account_id.clone(),
+            auth,
         })
     }
-
-    fn generate_boundary(&self) -> String {
-        use std::time::{SystemTime, UNIX_EPOCH};
-        let timestamp = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_nanos();
-        format!("----RustCloudflareBoundary{}", timestamp)
-    }
-
-    fn build_multipart_script(
-        &self,
-        script_content: &[u8],
-        bindings: &[WorkerBinding],
-        compatibility_date: Option<&str>,
-        compatibility_flags: &[String],
-        boundary: &str,
-    ) -> Vec<u8> {
-        let mut body = Vec::new();
-
-        // Script part
-        body.extend_from_slice(format!("--{}\r\n", boundary).as_bytes());
-        body.extend_from_slice(b"Content-Disposition: form-data; name=\"index.js\"; filename=\"index.js\"\r\n");
-        body.extend_from_slice(b"Content-Type: application/javascript\r\n\r\n");
-        body.extend_from_slice(script_content);
-        body.extend_from_slice(b"\r\n");
-
-        // Metadata part
-        body.extend_from_slice(format!("--{}\r\n", boundary).as_bytes());
-        body.extend_from_slice(b"Content-Disposition: form-data; name=\"metadata\"\r\n");
-        body.extend_from_slice(b"Content-Type: application/json\r\n\r\n");
-
-        let metadata = serde_json::json!({
-            "bindings": bindings,
-            "compatibility_date": compatibility_date,
-            "compatibility_flags": compatibility_flags,
-        });
-        body.extend_from_slice(metadata.to_string().as_bytes());
-        body.extend_from_slice(b"\r\n");
-
-        // Closing boundary
-        body.extend_from_slice(format!("--{}--\r\n", boundary).as_bytes());
-
-        body
-    }
+    
+    // Delegate to generated client functions with auth/account_id
 }
 ```
 
 ### Error Types
 
+**Reuse generated `ApiError`** from `providers/cloudflare/clients/types.rs` and add provider-specific wrapping:
+
 ```rust
-// providers/cloudflare_api/error.rs
+// providers/cloudflare/api/error.rs
 
-use foundation_core::simple_http::client::HttpClientError;
+use crate::providers::cloudflare::clients::types::ApiError;
 
-/// Cloudflare API-specific error types.
+/// Cloudflare API-specific error wrapper.
 #[derive(Debug)]
 pub enum CloudflareApiError {
     /// Invalid API token format or missing.
@@ -499,20 +249,8 @@ pub enum CloudflareApiError {
     /// Invalid account ID format (expected 32-char hex).
     InvalidAccountId,
 
-    /// API returned an error response.
-    ApiError(Vec<CfApiError>),
-
-    /// HTTP client error.
-    HttpError(HttpClientError),
-
-    /// Unexpected response structure.
-    UnexpectedResponse,
-
-    /// JSON parse error.
-    ParseError(String),
-
-    /// Serialization error.
-    SerializeError(String),
+    /// API error from generated client.
+    ApiError(ApiError),
 
     /// Resource not found.
     NotFound(String),
@@ -531,16 +269,7 @@ impl std::fmt::Display for CloudflareApiError {
         match self {
             Self::InvalidToken => write!(f, "Invalid Cloudflare API token"),
             Self::InvalidAccountId => write!(f, "Invalid Cloudflare Account ID (expected 32-char hex)"),
-            Self::ApiError(errors) => {
-                for err in errors {
-                    writeln!(f, "Cloudflare API error [{}]: {}", err.code, err.message)?;
-                }
-                Ok(())
-            }
-            Self::HttpError(e) => write!(f, "HTTP error: {}", e),
-            Self::UnexpectedResponse => write!(f, "Unexpected response from Cloudflare API"),
-            Self::ParseError(msg) => write!(f, "Parse error: {}", msg),
-            Self::SerializeError(msg) => write!(f, "Serialization error: {}", msg),
+            Self::ApiError(e) => write!(f, "Cloudflare API error: {}", e),
             Self::NotFound(resource) => write!(f, "Resource not found: {}", resource),
             Self::PermissionDenied(reason) => write!(f, "Permission denied: {}", reason),
             Self::RateLimited { retry_after } => {
@@ -554,62 +283,53 @@ impl std::fmt::Display for CloudflareApiError {
     }
 }
 
-impl From<HttpClientError> for CloudflareApiError {
-    fn from(e: HttpClientError) -> Self {
-        Self::HttpError(e)
+impl From<ApiError> for CloudflareApiError {
+    fn from(e: ApiError) -> Self {
+        Self::ApiError(e)
     }
 }
 
 impl From<serde_json::Error> for CloudflareApiError {
     fn from(e: serde_json::Error) -> Self {
-        Self::SerializeError(e.to_string())
+        Self::ApiError(ApiError::ParseFailed(e.to_string()))
     }
-}
-
-#[derive(Debug, Clone, Deserialize)]
-pub struct CfApiError {
-    pub code: u32,
-    pub message: String,
 }
 ```
 
 ### CloudflareApiProvider Implementation
 
 ```rust
-// providers/cloudflare_api/mod.rs
+// providers/cloudflare/api/provider.rs
 
 use std::path::{Path, PathBuf};
 use crate::core::traits::DeploymentProvider;
 use crate::core::types::{BuildOutput, DeploymentResult};
 use crate::error::DeploymentError;
-use super::cloudflare::WranglerConfig; // Reuse config from CLI provider
+use super::auth::CloudflareAuth;
+use super::error::CloudflareApiError;
+use crate::providers::cloudflare::WranglerConfig; // Reuse config from CLI provider
 
 pub struct CloudflareApiProvider {
     working_dir: PathBuf,
     auth: CloudflareAuth,
-    client: CloudflareApiClient,
 }
 
 impl CloudflareApiProvider {
     /// Create new API provider from explicit credentials.
     pub fn new(working_dir: &Path, api_token: &str, account_id: &str) -> Result<Self, CloudflareApiError> {
         let auth = CloudflareAuth::new(api_token, account_id);
-        let client = CloudflareApiClient::new(auth.clone())?;
         Ok(Self {
             working_dir: working_dir.to_path_buf(),
             auth,
-            client,
         })
     }
 
     /// Create from environment variables.
     pub fn from_env(working_dir: &Path) -> Option<Self> {
         let auth = CloudflareAuth::from_env()?;
-        let client = CloudflareApiClient::new(auth.clone()).ok()?;
         Some(Self {
             working_dir: working_dir.to_path_buf(),
             auth,
-            client,
         })
     }
 
@@ -681,18 +401,8 @@ impl DeploymentProvider for CloudflareApiProvider {
         let script_content = std::fs::read(self.working_dir.join(script_path))
             .map_err(|e| DeploymentError::IoError(e))?;
 
-        // Build bindings from config
-        let bindings = self.build_bindings(config, env);
-
-        // Deploy via API
-        use futures::executor::block_on;
-        let result = block_on(self.client.put_worker_script(
-            &worker_name,
-            &script_content,
-            &bindings,
-            config.compatibility_date.as_deref(),
-            config.compatibility_flags.as_deref().unwrap_or(&[]),
-        ))?;
+        // Use generated client function to deploy
+        // let result = clients::workers::put_worker_script(...)?;
 
         Ok(DeploymentResult {
             deployment_id: result.version.unwrap_or_default(),
@@ -712,9 +422,7 @@ impl DeploymentProvider for CloudflareApiProvider {
     ) -> Result<(), DeploymentError> {
         match previous_state {
             Some(prev) => {
-                // Redeploy previous version by uploading previous script
-                // Note: Cloudflare API doesn't support version rollback directly
-                // Must re-upload the previous script content
+                // Redeploy previous version by uploading previous script content
                 todo!("Implement version rollback")
             }
             None => self.destroy(config, env),
@@ -732,16 +440,13 @@ impl DeploymentProvider for CloudflareApiProvider {
 
     fn destroy(&self, config: &Self::Config, env: Option<&str>) -> Result<(), DeploymentError> {
         let worker_name = config.worker_name(env);
-        use futures::executor::block_on;
-        block_on(self.client.delete_worker_script(&worker_name))?;
+        // Use generated client function: clients::workers::delete_worker_script(...)
         Ok(())
     }
 
     fn status(&self, config: &Self::Config, env: Option<&str>) -> Result<Self::Resources, DeploymentError> {
         let worker_name = config.worker_name(env);
-        use futures::executor::block_on;
-        let script = block_on(self.client.get_worker_script(&worker_name))?;
-
+        // Use generated client function: clients::workers::get_worker_script(...)
         Ok(CloudflareApiResources {
             worker_name,
             version: script.version,
@@ -771,39 +476,34 @@ impl DeploymentProvider for CloudflareApiProvider {
 
 ## Tasks
 
-1. **Create module structure**
-   - [ ] Create `src/providers/cloudflare_api/mod.rs`, `client.rs`, `auth.rs`, `error.rs`, `resources.rs`
-   - [ ] Register in `src/providers/mod.rs`
+1. **Review existing generated code**
+   - [ ] Review `providers/cloudflare/clients/types.rs` - generated API types
+   - [ ] Review `providers/cloudflare/clients/*.rs` - generated client functions
+   - [ ] Review `providers/cloudflare/resources/*.rs` - generated resource types
+   - [ ] Identify gaps: what endpoints need to be generated for full provider support
+
+2. **Create module structure**
+   - [ ] Create `src/providers/cloudflare/api/mod.rs`, `auth.rs`, `error.rs`, `provider.rs`
+   - [ ] Register in `src/providers/cloudflare/mod.rs`
    - [ ] Add to feature flags (separate from CLI provider)
 
-2. **Implement authentication**
+3. **Implement authentication**
    - [ ] Implement `CloudflareAuth` struct
    - [ ] Implement `from_env()` and `new()` constructors
    - [ ] Implement `configure_client()` for Bearer token setup
    - [ ] Implement `validate()` for credential validation
 
-3. **Implement API client**
-   - [ ] Implement `CloudflareApiClient` with SimpleHttpClient
-   - [ ] Implement worker script endpoints (PUT, GET, DELETE)
-   - [ ] Implement secrets management endpoints
-   - [ ] Implement KV namespace endpoints
-   - [ ] Implement D1 database endpoints
-   - [ ] Implement R2 bucket endpoints
-   - [ ] Implement Queue endpoints
-   - [ ] Implement Routes endpoints
-   - [ ] Implement multipart/form-data builder for script uploads
-
 4. **Implement error types**
-   - [ ] Define `CloudflareApiError` enum
+   - [ ] Define `CloudflareApiError` wrapping generated `ApiError`
    - [ ] Implement `Display` and `Error` traits
-   - [ ] Implement `From` conversions for HttpClientError and serde_json::Error
+   - [ ] Implement `From` conversions for `ApiError` and `serde_json::Error`
    - [ ] Handle rate limiting with retry-after
 
 5. **Implement CloudflareApiProvider trait**
    - [ ] Implement `detect()` - find wrangler.toml
    - [ ] Implement `validate()` - validate config + credentials
    - [ ] Implement `build()` - run build command
-   - [ ] Implement `deploy()` - upload via API with multipart
+   - [ ] Implement `deploy()` - upload via API using generated client functions
    - [ ] Implement `destroy()` - DELETE worker script
    - [ ] Implement `status()` - GET worker info
    - [ ] Implement `rollback()` - re-upload previous version
@@ -811,20 +511,19 @@ impl DeploymentProvider for CloudflareApiProvider {
 
 6. **Implement binding management**
    - [ ] Parse bindings from `WranglerConfig`
-   - [ ] Convert to API binding types
+   - [ ] Convert to API binding types (use generated types)
    - [ ] Handle KV, D1, R2, Queue, Service bindings
    - [ ] Handle secrets vs plain text variables
 
 7. **Implement secrets management**
-   - [ ] Implement `put_secret()` via API
-   - [ ] Implement `list_secrets()` via API
-   - [ ] Implement `delete_secret()` via API
+   - [ ] Implement `put_secret()` via generated client
+   - [ ] Implement `list_secrets()` via generated client
+   - [ ] Implement `delete_secret()` via generated client
    - [ ] Write tests for secret CRUD
 
 8. **Write unit tests**
    - [ ] Test Bearer token authentication header
-   - [ ] Test multipart form-data construction
-   - [ ] Test API response parsing
+   - [ ] Test API response parsing with generated types
    - [ ] Test error type conversions
    - [ ] Test binding conversion from config
 
