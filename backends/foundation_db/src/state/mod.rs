@@ -18,6 +18,7 @@ pub mod helpers;
 #[cfg(feature = "libsql")]
 pub mod libsql_state;
 pub mod r2;
+pub mod resource_identifier;
 #[cfg(feature = "libsql")]
 pub mod sqlite;
 pub mod traits;
