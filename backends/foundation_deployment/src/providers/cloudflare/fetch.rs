@@ -83,7 +83,7 @@ pub fn fetch_cloudflare_specs(
         let source_dir = temp_dir.join("cloudflare-schemas");
         tracing::debug!("Source dir: {:?}", source_dir);
 
-        // Find and consolidate relevant API specs
+        // Find relevant Cloudflare API spec files
         let spec_files = find_cloudflare_api_files(&source_dir);
         tracing::info!("Found {} relevant Cloudflare API spec files", spec_files.len());
         for (name, _) in &spec_files {
@@ -95,43 +95,73 @@ pub fn fetch_cloudflare_specs(
             "Failed to create output directory: {e}"
         )))?;
 
-        // Consolidate all specs into a single JSON file
-        let mut consolidated = serde_json::Map::new();
-        let mut spec_names = Vec::new();
-
-        for (name, src_path) in &spec_files {
-            tracing::debug!("Reading spec file: {:?}", src_path);
-            let content = std::fs::read_to_string(src_path).map_err(|e| DeploymentError::Generic(format!(
-                "Failed to read {name}: {e}"
-            )))?;
-
-            tracing::debug!("  Content length: {} bytes", content.len());
-            if let Ok(spec) = serde_json::from_str::<Value>(&content) {
-                if let Some(obj) = spec.as_object() {
-                    tracing::debug!("  Spec has {} top-level keys", obj.len());
-                }
-                consolidated.insert(name.clone(), spec);
-                spec_names.push(name.clone());
-                tracing::info!("  Loaded: {name}");
-            } else {
-                tracing::warn!("  Failed to parse {} as JSON", name);
-            }
-        }
-
-        tracing::debug!("Consolidated {} specs, total keys: {}", spec_names.len(), consolidated.len());
-
-        // Write consolidated spec
+        // Cloudflare api-schemas repo has a single consolidated openapi.json
+        // Just copy it directly without wrapping
         let output_path = output_dir.join("openapi.json");
-        tracing::debug!("Writing output to: {:?}", output_path);
-        let json = serde_json::to_string_pretty(&Value::Object(consolidated)).map_err(|e| {
-            DeploymentError::Generic(format!("Failed to serialize JSON: {e}"))
-        })?;
 
-        tracing::debug!("Serialized JSON length: {} bytes", json.len());
+        if spec_files.len() == 1 {
+            // Single file - copy directly
+            let (_, src_path) = &spec_files[0];
+            std::fs::copy(src_path, &output_path).map_err(|e| DeploymentError::Generic(format!(
+                "Failed to copy spec file: {e}"
+            )))?;
+            tracing::info!("Copied Cloudflare spec to: {}", output_path.display());
+        } else {
+            // Multiple files - consolidate by merging paths and schemas
+            let mut merged_paths = serde_json::Map::new();
+            let mut merged_schemas = serde_json::Map::new();
 
-        std::fs::write(&output_path, json).map_err(|e| DeploymentError::Generic(format!(
-            "Failed to write output file: {e}"
-        )))?;
+            for (name, src_path) in &spec_files {
+                tracing::debug!("Reading spec file: {:?}", src_path);
+                let content = std::fs::read_to_string(src_path).map_err(|e| DeploymentError::Generic(format!(
+                    "Failed to read {name}: {e}"
+                )))?;
+
+                if let Ok(spec) = serde_json::from_str::<Value>(&content) {
+                    if let Some(obj) = spec.as_object() {
+                        // Merge paths
+                        if let Some(paths) = obj.get("paths").and_then(|p| p.as_object()) {
+                            for (path, path_item) in paths {
+                                merged_paths.insert(path.clone(), path_item.clone());
+                            }
+                        }
+
+                        // Merge components/schemas
+                        if let Some(schemas) = obj.get("components").and_then(|c| c.get("schemas")).and_then(|s| s.as_object()) {
+                            for (schema_name, schema) in schemas {
+                                let prefixed_name = format!("{}_{schema_name}", name.replace(".json", ""));
+                                merged_schemas.insert(prefixed_name, schema.clone());
+                            }
+                        }
+                    }
+                }
+            }
+
+            // Build consolidated OpenAPI spec
+            let consolidated = serde_json::json!({
+                "openapi": "3.0.0",
+                "info": {
+                    "title": "Cloudflare API",
+                    "version": "consolidated",
+                    "description": "Consolidated Cloudflare API spec"
+                },
+                "servers": [
+                    {"url": "https://api.cloudflare.com/client/v4"}
+                ],
+                "paths": merged_paths,
+                "components": {
+                    "schemas": merged_schemas
+                }
+            });
+
+            let json = serde_json::to_string_pretty(&consolidated).map_err(|e| {
+                DeploymentError::Generic(format!("Failed to serialize JSON: {e}"))
+            })?;
+            std::fs::write(&output_path, json).map_err(|e| DeploymentError::Generic(format!(
+                "Failed to write output file: {e}"
+            )))?;
+            tracing::info!("Written consolidated Cloudflare spec to: {}", output_path.display());
+        }
 
         // Write manifest
         let manifest = serde_json::json!({
@@ -139,7 +169,6 @@ pub fn fetch_cloudflare_specs(
             "source": CLOUDFLARE_API_SCHEMAS_URL,
             "fetched_at": chrono::Utc::now().to_rfc3339(),
             "spec_files": ["openapi.json"],
-            "consolidated_from": spec_names,
         });
 
         let manifest_path = output_dir.join("_manifest.json");
