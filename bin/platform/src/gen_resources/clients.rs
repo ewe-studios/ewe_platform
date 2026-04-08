@@ -3,8 +3,9 @@
 //! WHAT: Reads OpenAPI specs from `artefacts/cloud_providers/`, extracts endpoint definitions,
 //! and generates Rust functions that use `SimpleHttpClient` to make API calls.
 //!
-//! HOW: For each endpoint, generates three functions:
+//! HOW: For each endpoint, generates four functions:
 //! - `{endpoint}_builder()` - Returns `ClientRequestBuilder` for customization
+//! - `{endpoint}_task()` - Returns `TaskIterator` for composition/wrapping
 //! - `{endpoint}_execute()` - Takes builder, returns `StreamIterator` via valtron
 //! - `{endpoint}()` - Convenience function combining both
 //!
@@ -13,6 +14,7 @@
 //! - No hidden state - pass `SimpleHttpClient` explicitly
 //! - Use `build_send_request()` to get `SendRequestTask` directly
 //! - Apply valtron combinators: `map_ready()`, `map_pending()`, `execute()`
+//! - Task functions return `TaskIterator` for user composition before `execute()`
 
 use regex::Regex;
 use std::collections::BTreeMap;
@@ -536,7 +538,7 @@ impl ClientGenerator {
 
         // Imports
         let provider_module = label.split('/').next().unwrap_or(label).replace('-', "_");
-        writeln!(out, "use foundation_core::valtron::{{execute, StreamIterator, StreamIteratorExt, TaskIteratorExt}};")?;
+        writeln!(out, "use foundation_core::valtron::{{execute, StreamIterator, StreamIteratorExt, TaskIterator, TaskIteratorExt}};")?;
         writeln!(out, "use foundation_core::wire::simple_http::client::{{")?;
         writeln!(out, "    body_reader, ClientRequestBuilder, RequestIntro, SimpleHttpClient, SystemDnsResolver,")?;
         writeln!(out, "}};")?;
@@ -549,6 +551,7 @@ impl ClientGenerator {
         // Generate functions for each endpoint
         for endpoint in &endpoints {
             self.generate_builder_fn(&mut out, endpoint)?;
+            self.generate_task_fn(&mut out, endpoint)?;
             self.generate_execute_fn(&mut out, endpoint)?;
             self.generate_convenience_fn(&mut out, endpoint)?;
         }
@@ -998,43 +1001,49 @@ impl ClientGenerator {
         Ok(())
     }
 
-    fn generate_execute_fn(&self, out: &mut String, endpoint: &ApiEndpoint) -> Result<(), GenClientError> {
+    fn generate_task_fn(&self, out: &mut String, endpoint: &ApiEndpoint) -> Result<(), GenClientError> {
         let fn_name = self.endpoint_to_fn_name(endpoint);
         let return_type = endpoint.response_type.as_deref().unwrap_or("()");
 
-        // Doc comment
+        // Doc comment explaining use cases
         writeln!(out, "/// {} {}", endpoint.method, endpoint.path)?;
         if let Some(summary) = &endpoint.summary {
             writeln!(out, "/// {}", self.sanitize_doc(summary, true))?;
         }
         writeln!(out, "///")?;
-        writeln!(out, "/// Takes a `ClientRequestBuilder`, builds and executes the request.")?;
-        writeln!(out, "/// For customization, use `{}_builder()` then pass to this function.", fn_name)?;
+        writeln!(out, "/// Takes a `ClientRequestBuilder`, builds the request, applies valtron combinators,")?;
+        writeln!(out, "/// and returns a `TaskIterator` for customization before execution.")?;
+        writeln!(out, "///")?;
+        writeln!(out, "/// Use this function when you need to:")?;
+        writeln!(out, "/// - Wrap the task with custom valtron combinators")?;
+        writeln!(out, "/// - Compose multiple tasks before execution")?;
+        writeln!(out, "/// - Intercept task execution for logging or testing")?;
+        writeln!(out, "///")?;
+        writeln!(out, "/// For direct execution, use `{}_execute()` or `{}`.", fn_name, fn_name)?;
         writeln!(out, "///")?;
         writeln!(out, "/// # Arguments")?;
         writeln!(out, "///")?;
-        writeln!(out, "/// * `builder` - ClientRequestBuilder from {}_builder()", fn_name)?;
+        writeln!(out, "/// * `builder` - A `ClientRequestBuilder`, typically from `{}_builder()`", fn_name)?;
         writeln!(out, "///")?;
         writeln!(out, "/// # Errors")?;
         writeln!(out, "///")?;
         writeln!(out, "/// Returns an error if the request cannot be built.")?;
         writeln!(out)?;
 
-        // Function signature
-        writeln!(out, "pub fn {}_execute(", fn_name)?;
+        // Function signature - takes builder only
+        writeln!(out, "pub fn {}_task(", fn_name)?;
         writeln!(out, "    builder: ClientRequestBuilder<SystemDnsResolver>,")?;
         writeln!(out, ") -> Result<")?;
-        writeln!(out, "    impl StreamIterator<")?;
+        writeln!(out, "    impl TaskIterator<")?;
         writeln!(out, "        D = Result<ApiResponse<{}>, ApiError>,", return_type)?;
         writeln!(out, "        P = ApiPending")?;
         writeln!(out, "    > + Send + 'static,")?;
         writeln!(out, "    ApiError,")?;
         writeln!(out, "> {{")?;
 
-        // Valtron combinator chain
+        // Valtron combinator chain - NO execute() call
         writeln!(out)?;
-        writeln!(out, "    // Get SendRequestTask from builder")?;
-        writeln!(out, "    let task = builder")?;
+        writeln!(out, "    Ok(builder")?;
         writeln!(out, "        .build_send_request()")?;
         writeln!(out, "        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))?")?;
         writeln!(out, "        .map_ready(|intro| match intro {{")?;
@@ -1078,11 +1087,56 @@ impl ClientGenerator {
         writeln!(out, "            }}")?;
         writeln!(out, "            RequestIntro::Failed(e) => Err(ApiError::RequestSendFailed(e.to_string())),")?;
         writeln!(out, "        }})")?;
-        writeln!(out, "        .map_pending(|_| ApiPending::Sending);")?;
+        writeln!(out, "        .map_pending(|_| ApiPending::Sending))")?;
+        writeln!(out, "}}")?;
         writeln!(out)?;
-        writeln!(out, "    // Convert TaskIterator to StreamIterator")?;
-        writeln!(out, "    execute(task, None)")?;
-        writeln!(out, "        .map_err(|e| ApiError::RequestBuildFailed(e.to_string()))")?;
+
+        Ok(())
+    }
+
+    fn generate_execute_fn(&self, out: &mut String, endpoint: &ApiEndpoint) -> Result<(), GenClientError> {
+        let fn_name = self.endpoint_to_fn_name(endpoint);
+        let return_type = endpoint.response_type.as_deref().unwrap_or("()");
+
+        // Doc comment - updated to mention task function
+        writeln!(out, "/// {} {}", endpoint.method, endpoint.path)?;
+        if let Some(summary) = &endpoint.summary {
+            writeln!(out, "/// {}", self.sanitize_doc(summary, true))?;
+        }
+        writeln!(out, "///")?;
+        writeln!(out, "/// Takes a `ClientRequestBuilder`, builds and executes the request,")?;
+        writeln!(out, "/// and returns the parsed response via a `StreamIterator`.")?;
+        writeln!(out, "///")?;
+        writeln!(out, "/// For full customization, use `{}_builder()` to create the builder,", fn_name)?;
+        writeln!(out, "/// modify it, then call this function with your customized builder.")?;
+        writeln!(out, "/// For task-level control, use `{}_task()`.", fn_name)?;
+        writeln!(out, "/// For the simplest API, use `{}()`.", fn_name)?;
+        writeln!(out, "///")?;
+        writeln!(out, "/// # Arguments")?;
+        writeln!(out, "///")?;
+        writeln!(out, "/// * `builder` - A `ClientRequestBuilder`, typically from `{}_builder()`", fn_name)?;
+        writeln!(out, "///")?;
+        writeln!(out, "/// # Errors")?;
+        writeln!(out, "///")?;
+        writeln!(out, "/// Returns an error if the request cannot be built.")?;
+        writeln!(out, "/// HTTP errors during execution are returned via the StreamIterator.")?;
+        writeln!(out)?;
+
+        // Function signature
+        writeln!(out, "pub fn {}_execute(", fn_name)?;
+        writeln!(out, "    builder: ClientRequestBuilder<SystemDnsResolver>,")?;
+        writeln!(out, ") -> Result<")?;
+        writeln!(out, "    impl StreamIterator<")?;
+        writeln!(out, "        D = Result<ApiResponse<{}>, ApiError>,", return_type)?;
+        writeln!(out, "        P = ApiPending")?;
+        writeln!(out, "    > + Send + 'static,")?;
+        writeln!(out, "    ApiError,")?;
+        writeln!(out, "> {{")?;
+
+        // Delegate to task function
+        writeln!(out)?;
+        writeln!(out, "    let task = {}_task(builder)?;", fn_name)?;
+        writeln!(out, "    execute(task, None).map_err(|e| ApiError::RequestBuildFailed(e.to_string()))")?;
         writeln!(out, "}}")?;
         writeln!(out)?;
 
@@ -1136,6 +1190,7 @@ impl ClientGenerator {
         writeln!(out, "///")?;
         writeln!(out, "/// Simplest API - builds and executes the request in one call.")?;
         writeln!(out, "/// For customization, use `{}_builder()` + `{}_execute()`.", fn_name, fn_name)?;
+        writeln!(out, "/// For task-level control, use `{}_task()`.", fn_name)?;
         writeln!(out, "///")?;
         writeln!(out, "/// # Errors")?;
         writeln!(out, "///")?;
