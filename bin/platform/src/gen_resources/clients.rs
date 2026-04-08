@@ -292,7 +292,8 @@ struct ApiEndpoint {
 
 #[derive(Debug, Clone)]
 struct ParameterInfo {
-    name: String,
+    name: String,           // Sanitized Rust-safe name
+    original_name: String,  // Original API parameter name for query strings
     rust_type: String,
     required: bool,
     description: Option<String>,
@@ -613,10 +614,18 @@ impl ClientGenerator {
                     // Extract parameters
                     for param in &operation.parameters {
                         // Skip parameters without name or location
-                        let name = match &param.name {
-                            Some(n) => n.replace('.', "_").replace('-', "_"),
+                        let original_name = match &param.name {
+                            Some(n) => n.clone(),
                             None => continue,
                         };
+                        let name = original_name
+                            .replace('.', "_")
+                            .replace('-', "_")
+                            .replace('<', "_")
+                            .replace('>', "_")
+                            .replace('[', "_")
+                            .replace(']', "_")
+                            .replace('~', "_");
                         let location = match &param.location {
                             Some(l) => l.clone(),
                             None => continue,
@@ -625,6 +634,7 @@ impl ClientGenerator {
                         let rust_type = self.param_to_rust_type(param);
                         let param_info = ParameterInfo {
                             name,
+                            original_name,
                             rust_type,
                             required: param.required,
                             description: param.description.clone(),
@@ -708,9 +718,18 @@ impl ClientGenerator {
                     if let Some(parameters) = &method.parameters {
                         for (param_name, param) in parameters {
                             let rust_type = self.gcp_param_to_rust_type(param);
+                            // Sanitize parameter names: replace dots, dashes, and special chars with underscores
+                            let sanitized_name = param_name
+                                .replace('.', "_")
+                                .replace('-', "_")
+                                .replace('<', "_")
+                                .replace('>', "_")
+                                .replace('[', "_")
+                                .replace(']', "_")
+                                .replace('~', "_");
                             let param_info = ParameterInfo {
-                                // Sanitize parameter names: replace dots and dashes with underscores
-                                name: param_name.replace('.', "_").replace('-', "_"),
+                                name: sanitized_name,
+                                original_name: param_name.clone(),
                                 rust_type,
                                 required: param.required,
                                 description: param.description.clone(),
@@ -860,8 +879,12 @@ impl ClientGenerator {
             // Extract type name from #/components/schemas/ServiceName
             ref_path.split('/').last().map(|s| {
                 // Use exact name (no stripping) to match gen_resource_types output
-                // Replace dots with nothing and capitalize next letter (e.g., treasury.transaction -> TreasuryTransaction)
-                s.split('.')
+                // Replace dots, hyphens, and @ with underscores, then capitalize each part
+                // e.g., treasury.transaction -> TreasuryTransaction
+                // e.g., Custom-pages -> CustomPages
+                // e.g., Iam_create-account -> IamCreateAccount
+                // e.g., @cf_ai4bharat... -> CfAi4bharat
+                s.split(|c| c == '.' || c == '-' || c == '@')
                     .map(|part| {
                         let mut chars = part.chars();
                         chars.next().map(|c| c.to_uppercase().collect::<String>()).unwrap_or_default()
@@ -944,18 +967,31 @@ impl ClientGenerator {
         let mut url_format = endpoint.path.clone();
 
         // Replace each placeholder with {} in order of appearance in the path
+        // Use find/replace to only replace the FIRST occurrence of each placeholder
         if !endpoint.path_placeholders.is_empty() {
             for placeholder in endpoint.path_placeholders.iter() {
-                url_format = url_format.replace(&format!("{{{}}}", placeholder), "{}");
+                let placeholder_pattern = format!("{{{}}}", placeholder);
+                // Only replace first occurrence
+                if let Some(pos) = url_format.find(&placeholder_pattern) {
+                    let before = &url_format[..pos];
+                    let after = &url_format[pos + placeholder_pattern.len()..];
+                    url_format = format!("{}{{}}{}", before, after);
+                }
             }
         }
 
         let base_url = endpoint.base_url.as_deref().unwrap_or("https://api.example.com");
         writeln!(out, "    let url = format!(")?;
         writeln!(out, "        \"{}{}\",", base_url, url_format)?;
-        // Pass path parameters in order (already ordered by parameterOrder for GCP)
-        for param in &endpoint.path_params {
-            writeln!(out, "        {},", self.escape_keyword(&param.name))?;
+        // Pass path parameters matching the placeholders in the path
+        // A parameter may appear multiple times if its placeholder appears multiple times
+        for placeholder in &endpoint.path_placeholders {
+            // Find the matching path param by name
+            let param_name = endpoint.path_params.iter()
+                .find(|p| &p.name == placeholder || &p.original_name == placeholder)
+                .map(|p| p.name.as_str())
+                .unwrap_or(placeholder);
+            writeln!(out, "        {},", self.escape_keyword(param_name))?;
         }
         writeln!(out, "    );")?;
 
@@ -968,9 +1004,22 @@ impl ClientGenerator {
             writeln!(out, "    let mut query_parts = Vec::new();")?;
             for param in &endpoint.query_params {
                 let param_name = &param.name;
-                writeln!(out, "    if let Some(val) = {} {{", self.escape_keyword(param_name))?;
-                writeln!(out, "        query_parts.push(format!(\"{}={{}}\", val));", param_name)?;
-                writeln!(out, "    }}")?;
+                let original_name = &param.original_name;
+                let rust_type = &param.rust_type;
+
+                // Check if this is a Vec type - handle array params differently
+                if rust_type.starts_with("Vec<") {
+                    // For array params: if let Some(vals) = param { for val in vals { ... } }
+                    writeln!(out, "    if let Some(vals) = {} {{", self.escape_keyword(param_name))?;
+                    writeln!(out, "        for val in vals {{")?;
+                    writeln!(out, "            query_parts.push(format!(\"{}={{}}\", val));", original_name)?;
+                    writeln!(out, "        }}")?;
+                    writeln!(out, "    }}")?;
+                } else {
+                    writeln!(out, "    if let Some(val) = {} {{", self.escape_keyword(param_name))?;
+                    writeln!(out, "        query_parts.push(format!(\"{}={{}}\", val));", original_name)?;
+                    writeln!(out, "    }}")?;
+                }
             }
             writeln!(out)?;
             writeln!(out, "    let url_with_query = if query_parts.is_empty() {{")?;
@@ -1371,8 +1420,16 @@ impl ClientGenerator {
 
     fn endpoint_to_fn_name(&self, endpoint: &ApiEndpoint) -> String {
         if let Some(ref op_id) = endpoint.operation_id {
-            // Replace dashes and dots with underscores before converting to snake case
-            let clean_id = op_id.replace('-', "_").replace('.', "_");
+            // Replace special characters with underscores before converting to snake case
+            let clean_id = op_id
+                .replace('-', "_")
+                .replace('.', "_")
+                .replace('@', "_")
+                .replace(':', "_")
+                .replace('<', "_")
+                .replace('>', "_")
+                .replace('[', "_")
+                .replace(']', "_");
             return self.to_snake_case(&clean_id);
         }
 
@@ -1384,15 +1441,32 @@ impl ClientGenerator {
             .replace('{', "")
             .replace('}', "")
             .replace('-', "_")  // Replace dashes in path
-            .replace('.', "_"); // Replace dots in path
+            .replace('.', "_") // Replace dots in path
+            .replace('@', "_") // Replace @ in path
+            .replace(':', "_") // Replace : in path
+            .replace('<', "_") // Replace < in path
+            .replace('>', "_") // Replace > in path
+            .replace('[', "_") // Replace [ in path
+            .replace(']', "_"); // Replace ] in path
         format!("{}_{}", endpoint.method.to_lowercase(), path_part)
     }
 
     fn to_snake_case(&self, s: &str) -> String {
+        // First replace special characters with underscores
+        let normalized = s
+            .replace('-', "_")
+            .replace('.', "_")
+            .replace('@', "_")
+            .replace(':', "_")
+            .replace('<', "_")
+            .replace('>', "_")
+            .replace('[', "_")
+            .replace(']', "_");
+
         let mut result = String::new();
         let mut prev_was_upper = false;
 
-        for (i, c) in s.chars().enumerate() {
+        for (i, c) in normalized.chars().enumerate() {
             if c.is_uppercase() {
                 if i > 0 && !prev_was_upper {
                     result.push('_');
@@ -1401,6 +1475,9 @@ impl ClientGenerator {
                 prev_was_upper = true;
             } else if c.is_numeric() {
                 result.push(c);
+                prev_was_upper = false;
+            } else if c == '_' {
+                result.push('_');
                 prev_was_upper = false;
             } else {
                 result.push(c);
@@ -1411,12 +1488,24 @@ impl ClientGenerator {
         result
     }
 
+
     fn label_to_feature_name(label: &str) -> String {
         label.split('/').next().unwrap_or(label).replace('-', "_")
     }
 
     fn to_pascal_case(&self, s: &str) -> String {
-        s.split('_')
+        // First normalize special characters to underscores
+        let normalized = s
+            .replace('-', "_")
+            .replace('.', "_")
+            .replace('@', "_")
+            .replace(':', "_")
+            .replace('<', "_")
+            .replace('>', "_")
+            .replace('[', "_")
+            .replace(']', "_");
+
+        normalized.split('_')
             .filter(|part| !part.is_empty())
             .map(|part| {
                 let mut chars = part.chars();
